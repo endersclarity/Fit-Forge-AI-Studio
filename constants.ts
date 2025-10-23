@@ -1,0 +1,452 @@
+
+import { Exercise, Muscle } from './types';
+
+export const ALL_MUSCLES: Muscle[] = Object.values(Muscle);
+
+export const EXERCISE_LIBRARY: Exercise[] = [
+  // PUSH
+  {
+    id: "ex01",
+    name: "Barbell Bench Press",
+    category: "Push",
+    equipment: "Barbell",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+      { muscle: Muscle.Pectoralis, percentage: 80 },
+      { muscle: Muscle.Triceps, percentage: 40 },
+      { muscle: Muscle.Deltoids, percentage: 30 },
+    ],
+  },
+  {
+    id: "ex02",
+    name: "Dumbbell Bench Press",
+    category: "Push",
+    equipment: "Dumbbells",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+      { muscle: Muscle.Pectoralis, percentage: 85 },
+      { muscle: Muscle.Triceps, percentage: 35 },
+      { muscle: Muscle.Deltoids, percentage: 35 },
+    ],
+  },
+  {
+    id: "ex03",
+    name: "Push-up",
+    category: "Push",
+    equipment: "Bodyweight",
+    difficulty: "Beginner",
+    muscleEngagements: [
+        { muscle: Muscle.Pectoralis, percentage: 70 },
+        { muscle: Muscle.Triceps, percentage: 50 },
+        { muscle: Muscle.Deltoids, percentage: 40 },
+        { muscle: Muscle.Core, percentage: 20 },
+    ],
+  },
+  {
+    id: "ex04",
+    name: "Overhead Press",
+    category: "Push",
+    equipment: "Barbell",
+    difficulty: "Advanced",
+    muscleEngagements: [
+        { muscle: Muscle.Deltoids, percentage: 85 },
+        { muscle: Muscle.Triceps, percentage: 45 },
+        { muscle: Muscle.Trapezius, percentage: 25 },
+    ],
+  },
+   {
+    id: "ex05",
+    name: "Dumbbell Shoulder Press",
+    category: "Push",
+    equipment: "Dumbbells",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Deltoids, percentage: 80 },
+        { muscle: Muscle.Triceps, percentage: 40 },
+        { muscle: Muscle.Trapezius, percentage: 20 },
+    ],
+  },
+
+  // PULL
+  {
+    id: "ex06",
+    name: "Pull-up",
+    category: "Pull",
+    equipment: "Pull-up Bar",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+      { muscle: Muscle.Lats, percentage: 85 },
+      { muscle: Muscle.Biceps, percentage: 30 },
+      { muscle: Muscle.Rhomboids, percentage: 20 },
+      { muscle: Muscle.Forearms, percentage: 25 },
+    ],
+  },
+  {
+    id: "ex07",
+    name: "Dumbbell Bicep Curl",
+    category: "Pull",
+    equipment: "Dumbbells",
+    difficulty: "Beginner",
+    muscleEngagements: [
+      { muscle: Muscle.Biceps, percentage: 80 },
+      { muscle: Muscle.Forearms, percentage: 15 },
+    ],
+  },
+  {
+    id: "ex08",
+    name: "Barbell Row",
+    category: "Pull",
+    equipment: "Barbell",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Lats, percentage: 70 },
+        { muscle: Muscle.Biceps, percentage: 25 },
+        { muscle: Muscle.Rhomboids, percentage: 40 },
+        { muscle: Muscle.Trapezius, percentage: 30 },
+    ],
+  },
+  {
+    id: "ex09",
+    name: "Dumbbell Row",
+    category: "Pull",
+    equipment: "Dumbbells",
+    difficulty: "Beginner",
+    muscleEngagements: [
+        { muscle: Muscle.Lats, percentage: 75 },
+        { muscle: Muscle.Biceps, percentage: 20 },
+        { muscle: Muscle.Rhomboids, percentage: 35 },
+    ],
+  },
+  {
+    id: "ex10",
+    name: "Lat Pulldown",
+    category: "Pull",
+    equipment: "Bodyweight", // Assuming machine, placeholder
+    difficulty: "Beginner",
+    muscleEngagements: [
+        { muscle: Muscle.Lats, percentage: 90 },
+        { muscle: Muscle.Biceps, percentage: 30 },
+    ],
+  },
+
+  // LEGS
+  {
+    id: "ex11",
+    name: "Barbell Squat",
+    category: "Legs",
+    equipment: "Barbell",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+      { muscle: Muscle.Quadriceps, percentage: 90 },
+      { muscle: Muscle.Glutes, percentage: 70 },
+      { muscle: Muscle.Core, percentage: 25 },
+      { muscle: Muscle.Hamstrings, percentage: 40 },
+    ],
+  },
+  {
+    id: "ex12",
+    name: "Goblet Squat",
+    category: "Legs",
+    equipment: "Kettlebell",
+    difficulty: "Beginner",
+    muscleEngagements: [
+      { muscle: Muscle.Quadriceps, percentage: 85 },
+      { muscle: Muscle.Glutes, percentage: 65 },
+      { muscle: Muscle.Core, percentage: 30 },
+    ],
+  },
+   {
+    id: "ex13",
+    name: "Romanian Deadlift",
+    category: "Legs",
+    equipment: "Barbell",
+    difficulty: "Advanced",
+    muscleEngagements: [
+      { muscle: Muscle.Hamstrings, percentage: 85 },
+      { muscle: Muscle.Glutes, percentage: 60 },
+      { muscle: Muscle.Core, percentage: 20 },
+    ],
+  },
+  {
+    id: "ex14",
+    name: "Lunges",
+    category: "Legs",
+    equipment: "Dumbbells",
+    difficulty: "Beginner",
+    muscleEngagements: [
+      { muscle: Muscle.Quadriceps, percentage: 70 },
+      { muscle: Muscle.Glutes, percentage: 50 },
+      { muscle: Muscle.Hamstrings, percentage: 30 },
+    ],
+  },
+  {
+    id: "ex15",
+    name: "Calf Raises",
+    category: "Legs",
+    equipment: "Bodyweight",
+    difficulty: "Beginner",
+    muscleEngagements: [
+      { muscle: Muscle.Calves, percentage: 95 },
+    ],
+  },
+
+  // CORE
+  {
+    id: "ex16",
+    name: "Plank",
+    category: "Core",
+    equipment: "Bodyweight",
+    difficulty: "Beginner",
+    muscleEngagements: [
+      { muscle: Muscle.Core, percentage: 90 },
+      { muscle: Muscle.Deltoids, percentage: 20 },
+    ],
+  },
+  {
+    id: "ex17",
+    name: "Crunches",
+    category: "Core",
+    equipment: "Bodyweight",
+    difficulty: "Beginner",
+    muscleEngagements: [
+      { muscle: Muscle.Core, percentage: 85 },
+    ],
+  },
+  // NEW PULL/BACK
+  {
+    id: "ex18",
+    name: "Single Arm Upright Row",
+    category: "Pull",
+    equipment: "Dumbbells",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Trapezius, percentage: 60 },
+        { muscle: Muscle.Deltoids, percentage: 40 },
+        { muscle: Muscle.Biceps, percentage: 20 },
+        { muscle: Muscle.Core, percentage: 15 },
+    ],
+  },
+  {
+    id: "ex19",
+    name: "TRX Bicep Curl",
+    category: "Pull",
+    equipment: "TRX",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Biceps, percentage: 80 },
+        { muscle: Muscle.Forearms, percentage: 15 },
+        { muscle: Muscle.Core, percentage: 15 },
+    ],
+  },
+  {
+    id: "ex20",
+    name: "Chin-Ups",
+    category: "Pull",
+    equipment: "Pull-up Bar",
+    difficulty: "Advanced",
+    muscleEngagements: [
+        { muscle: Muscle.Lats, percentage: 85 },
+        { muscle: Muscle.Biceps, percentage: 30 },
+        { muscle: Muscle.Rhomboids, percentage: 20 },
+    ],
+  },
+  {
+    id: "ex21",
+    name: "Face Pull",
+    category: "Pull",
+    equipment: "TRX",
+    difficulty: "Beginner",
+    muscleEngagements: [
+        { muscle: Muscle.Trapezius, percentage: 70 },
+        { muscle: Muscle.Rhomboids, percentage: 60 },
+        { muscle: Muscle.Deltoids, percentage: 30 },
+    ],
+  },
+  {
+    id: "ex22",
+    name: "Concentration Curl",
+    category: "Pull",
+    equipment: "Dumbbells",
+    difficulty: "Beginner",
+    muscleEngagements: [
+        { muscle: Muscle.Biceps, percentage: 90 },
+        { muscle: Muscle.Forearms, percentage: 10 },
+    ],
+  },
+  {
+    id: "ex23",
+    name: "Shoulder Shrugs",
+    category: "Pull",
+    equipment: "Dumbbells",
+    difficulty: "Beginner",
+    muscleEngagements: [{ muscle: Muscle.Trapezius, percentage: 95 }],
+  },
+  {
+    id: "ex24",
+    name: "T Row",
+    category: "Pull",
+    equipment: "Barbell",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Lats, percentage: 65 },
+        { muscle: Muscle.Rhomboids, percentage: 50 },
+        { muscle: Muscle.Trapezius, percentage: 35 },
+        { muscle: Muscle.Biceps, percentage: 20 },
+    ],
+  },
+  {
+    id: "ex25",
+    name: "Incline Hammer Curl",
+    category: "Pull",
+    equipment: "Dumbbells",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Biceps, percentage: 85 },
+        { muscle: Muscle.Forearms, percentage: 20 },
+    ],
+  },
+  {
+    id: "ex26",
+    name: "Neutral Grip Pull-ups",
+    category: "Pull",
+    equipment: "Pull-up Bar",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Lats, percentage: 80 },
+        { muscle: Muscle.Biceps, percentage: 35 },
+        { muscle: Muscle.Rhomboids, percentage: 25 },
+    ],
+  },
+  {
+    id: "ex27",
+    name: "Bent Over Rows",
+    category: "Pull",
+    equipment: "Barbell",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Lats, percentage: 70 },
+        { muscle: Muscle.Rhomboids, percentage: 40 },
+        { muscle: Muscle.Trapezius, percentage: 30 },
+        { muscle: Muscle.Biceps, percentage: 25 },
+    ],
+  },
+  {
+    id: "ex28",
+    name: "Renegade Rows",
+    category: "Pull",
+    equipment: "Dumbbells",
+    difficulty: "Advanced",
+    muscleEngagements: [
+        { muscle: Muscle.Lats, percentage: 65 },
+        { muscle: Muscle.Core, percentage: 50 },
+        { muscle: Muscle.Rhomboids, percentage: 35 },
+    ],
+  },
+  // NEW PUSH
+  {
+    id: "ex29",
+    name: "TRX Reverse Flys",
+    category: "Push",
+    equipment: "TRX",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Deltoids, percentage: 75 },
+        { muscle: Muscle.Rhomboids, percentage: 40 },
+        { muscle: Muscle.Trapezius, percentage: 25 },
+    ],
+  },
+  {
+    id: "ex30",
+    name: "Tricep Extension",
+    category: "Push",
+    equipment: "Dumbbells",
+    difficulty: "Beginner",
+    muscleEngagements: [{ muscle: Muscle.Triceps, percentage: 95 }],
+  },
+  {
+    id: "ex31",
+    name: "TRX Pushup",
+    category: "Push",
+    equipment: "TRX",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Pectoralis, percentage: 75 },
+        { muscle: Muscle.Triceps, percentage: 55 },
+        { muscle: Muscle.Deltoids, percentage: 35 },
+        { muscle: Muscle.Core, percentage: 25 },
+    ],
+  },
+  {
+    id: "ex32",
+    name: "Incline Bench Press",
+    category: "Push",
+    equipment: "Barbell",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Pectoralis, percentage: 85 },
+        { muscle: Muscle.Triceps, percentage: 45 },
+        { muscle: Muscle.Deltoids, percentage: 40 },
+    ],
+  },
+  {
+    id: "ex33",
+    name: "Dips",
+    category: "Push",
+    equipment: "Bodyweight",
+    difficulty: "Advanced",
+    muscleEngagements: [
+        { muscle: Muscle.Triceps, percentage: 80 },
+        { muscle: Muscle.Pectoralis, percentage: 50 },
+        { muscle: Muscle.Deltoids, percentage: 30 },
+    ],
+  },
+  {
+    id: "ex34",
+    name: "Kettlebell Press",
+    category: "Push",
+    equipment: "Kettlebell",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Deltoids, percentage: 85 },
+        { muscle: Muscle.Triceps, percentage: 40 },
+        { muscle: Muscle.Core, percentage: 20 },
+    ],
+  },
+  // NEW LEGS
+  {
+    id: "ex35",
+    name: "Glute Bridges",
+    category: "Legs",
+    equipment: "Bodyweight",
+    difficulty: "Beginner",
+    muscleEngagements: [
+        { muscle: Muscle.Glutes, percentage: 90 },
+        { muscle: Muscle.Hamstrings, percentage: 30 },
+        { muscle: Muscle.Core, percentage: 20 },
+    ],
+  },
+  {
+    id: "ex36",
+    name: "Stiff Legged Deadlifts",
+    category: "Legs",
+    equipment: "Barbell",
+    difficulty: "Advanced",
+    muscleEngagements: [
+        { muscle: Muscle.Hamstrings, percentage: 90 },
+        { muscle: Muscle.Glutes, percentage: 65 },
+        { muscle: Muscle.Core, percentage: 25 },
+    ],
+  },
+  {
+    id: "ex37",
+    name: "Kettlebell Swings",
+    category: "Legs",
+    equipment: "Kettlebell",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        { muscle: Muscle.Glutes, percentage: 85 },
+        { muscle: Muscle.Hamstrings, percentage: 60 },
+        { muscle: Muscle.Core, percentage: 40 },
+    ],
+  },
+];

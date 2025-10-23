@@ -1,0 +1,5 @@
+{
+  "name": "FitForge",
+  "description": "A fitness tracking web app that provides intelligent muscle fatigue analytics and progressive overload recommendations to help you forge the perfect physique.",
+  "requestFramePermissions": []
+}
