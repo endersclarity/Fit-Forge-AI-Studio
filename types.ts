@@ -65,10 +65,7 @@ export type MuscleAnalytics = Record<Muscle, {
   lastVolume: number;
 }>;
 
-export type PersonalBests = Record<string, {
-    maxWeight: number;
-    maxVolume: number;
-}>;
+export type PersonalBests = Record<string, ExerciseMaxes>;
 
 // USER PROFILE & STATS
 export interface WeightEntry {
@@ -118,5 +115,3 @@ export interface ExerciseMaxes {
   bestSessionVolume: number;
   rollingAverageMax: number; // avg of best sets over last 5 workouts
 }
-
-export type ExerciseMaxesHistory = Record<string, ExerciseMaxes>; // Key is exerciseId

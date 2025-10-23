@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { EXERCISE_LIBRARY } from '../constants';
-import { WorkoutSession, PersonalBests, MuscleBaselines, Muscle, Exercise } from '../types';
+import { WorkoutSession, PersonalBests, MuscleBaselines, Muscle, Exercise, ExerciseMaxes } from '../types';
 import { calculateVolume, formatDuration, findPreviousWorkout, getUserLevel } from '../utils/helpers';
 import { TrophyIcon, TrendingUpIcon } from './Icons';
 
@@ -59,19 +59,19 @@ const WorkoutSummaryModal: React.FC<WorkoutSummaryModalProps> = ({ isOpen, onClo
 
         // Personal records
         const newRecords = session.loggedExercises.map(loggedEx => {
-            const pb = personalBests[loggedEx.exerciseId] || { maxWeight: 0, maxVolume: 0 };
-            const exerciseVolume = loggedEx.sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
-            const maxWeightInSession = Math.max(...loggedEx.sets.map(s => s.weight), 0);
+            const pb = personalBests[loggedEx.exerciseId] || { bestSingleSet: 0, bestSessionVolume: 0, rollingAverageMax: 0 };
+            const sessionVolume = loggedEx.sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
+            const bestSetInSession = Math.max(...loggedEx.sets.map(s => calculateVolume(s.reps, s.weight)), 0);
 
-            const newMaxWeight = maxWeightInSession > pb.maxWeight;
-            const newMaxVolume = exerciseVolume > pb.maxVolume;
+            const newBestSingleSet = bestSetInSession > pb.bestSingleSet;
+            const newSessionVolume = sessionVolume > pb.bestSessionVolume;
             
-            if (newMaxWeight || newMaxVolume) {
+            if (newBestSingleSet || newSessionVolume) {
                 const exerciseName = EXERCISE_LIBRARY.find(e => e.id === loggedEx.exerciseId)?.name || 'Unknown';
-                return { exerciseName, newMaxWeight, newMaxVolume };
+                return { exerciseName, newBestSingleSet, newSessionVolume };
             }
             return null;
-        }).filter((record): record is { exerciseName: string; newMaxWeight: boolean; newMaxVolume: boolean; } => record !== null);
+        }).filter((record): record is { exerciseName: string; newBestSingleSet: boolean; newSessionVolume: boolean; } => record !== null);
 
         // Progressive Overload
         const previousWorkout = findPreviousWorkout(session, allWorkouts);
@@ -183,8 +183,8 @@ const WorkoutSummaryModal: React.FC<WorkoutSummaryModalProps> = ({ isOpen, onClo
                             {summaryData.newRecords.map((record, index) => (
                                 <div key={index} className="bg-brand-muted p-3 rounded-md text-sm">
                                     <p className="font-semibold">{record.exerciseName}</p>
-                                    {record.newMaxWeight && <p className="text-xs text-slate-300">New Max Weight PB</p>}
-                                    {record.newMaxVolume && <p className="text-xs text-slate-300">New Max Volume PB</p>}
+                                    {record.newBestSingleSet && <p className="text-xs text-slate-300">New Best Single Set PR</p>}
+                                    {record.newSessionVolume && <p className="text-xs text-slate-300">New Session Volume PR</p>}
                                 </div>
                             ))}
                         </div>

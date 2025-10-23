@@ -1,5 +1,6 @@
+
 import React, { useState, useMemo } from 'react';
-import { PersonalBests, ExerciseCategory, Exercise } from '../types';
+import { PersonalBests, ExerciseCategory, Exercise, ExerciseMaxes } from '../types';
 import { EXERCISE_LIBRARY } from '../constants';
 import { ArrowLeftIcon, TrophyIcon } from './Icons';
 
@@ -18,7 +19,7 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
                 if (!exercise) return null;
                 return { ...exercise, ...pb };
             })
-            .filter((record): record is (Exercise & { maxWeight: number; maxVolume: number; }) => record !== null)
+            .filter((record): record is (Exercise & ExerciseMaxes) => record !== null)
             .sort((a, b) => a.name.localeCompare(b.name));
     }, [personalBests]);
 
@@ -65,14 +66,18 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
                                 <h3 className="font-bold text-lg">{record.name}</h3>
                                 <span className="text-xs bg-brand-muted px-2 py-1 rounded-full">{record.category}</span>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 mt-3 text-center">
+                            <div className="grid grid-cols-3 gap-2 mt-3 text-center">
                                 <div>
-                                    <p className="text-brand-cyan text-xl font-bold">{record.maxWeight.toLocaleString()} lbs</p>
-                                    <p className="text-xs text-slate-400">Max Weight</p>
+                                    <p className="text-brand-cyan text-lg font-bold">{record.bestSingleSet.toLocaleString()} lbs</p>
+                                    <p className="text-xs text-slate-400">Best Set</p>
                                 </div>
                                 <div>
-                                    <p className="text-brand-cyan text-xl font-bold">{record.maxVolume.toLocaleString()} lbs</p>
-                                    <p className="text-xs text-slate-400">Max Volume</p>
+                                    <p className="text-brand-cyan text-lg font-bold">{record.bestSessionVolume.toLocaleString()} lbs</p>
+                                    <p className="text-xs text-slate-400">Best Session</p>
+                                </div>
+                                <div>
+                                    <p className="text-brand-cyan text-lg font-bold">{record.rollingAverageMax.toFixed(0).toLocaleString()} lbs</p>
+                                    <p className="text-xs text-slate-400">Rolling Avg.</p>
                                 </div>
                             </div>
                         </div>

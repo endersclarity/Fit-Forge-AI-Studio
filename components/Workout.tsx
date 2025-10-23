@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EXERCISE_LIBRARY, ALL_MUSCLES } from '../constants';
 import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation } from '../types';
@@ -106,8 +107,8 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
   // Rest Timer State
   const [activeTimer, setActiveTimer] = useState<{ setId: string; initialDuration: number; remaining: number } | null>(null);
-  // Fix: Changed useRef type to allow for an undefined initial value, resolving the "Expected 1 arguments, but got 0" error.
-  const timerIntervalRef = useRef<number | undefined>();
+  // Fix: Initialize useRef with an argument to prevent "Expected 1 arguments, but got 0" error.
+  const timerIntervalRef = useRef<number | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
@@ -391,7 +392,12 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                         <span className="col-span-2">Reps</span>
                         <span className="col-span-3"></span>
                     </div>
-                    {ex.sets.map((s, i) => (
+                    {ex.sets.map((s, i) => {
+                      const setVolume = calculateVolume(s.reps, s.weight);
+                      const bestSingleSet = personalBests[ex.exerciseId]?.bestSingleSet || 0;
+                      const isNewPR = setVolume > 0 && setVolume > bestSingleSet;
+
+                      return (
                       <div key={s.id} className="grid grid-cols-12 gap-2 items-center mb-2">
                           <span className="text-center font-bold text-slate-300 col-span-2">{i + 1}</span>
                           <div className="col-span-5 flex items-center gap-1">
@@ -407,14 +413,15 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                                 className="w-full text-center bg-brand-dark rounded-md p-2" />
                           </div>
                           <div className="col-span-3 flex justify-center items-center gap-1">
+                            {isNewPR && <TrophyIcon className="w-5 h-5 text-yellow-400" />}
                             <button onClick={() => startRestTimer(s.id)} className="text-slate-400 hover:text-brand-cyan p-1"><ClockIcon className="w-5 h-5"/></button>
                             <button onClick={() => removeSet(ex.id, s.id)} className="text-slate-400 hover:text-red-500 p-1"><XIcon className="w-5 h-5"/></button>
                           </div>
                       </div>
-                    ))}
+                    )})}
                     <div className="flex justify-between items-center mt-4">
                         <div className="text-xs text-slate-400">
-                            {pb && <p>PB: {pb.maxWeight} lbs</p>}
+                            {pb && <p>Best Set: {pb.bestSingleSet} lbs</p>}
                         </div>
                         <button onClick={() => addSet(ex.id)} className="bg-brand-muted text-white font-semibold px-4 py-2 rounded-lg text-sm">Add Set</button>
                     </div>

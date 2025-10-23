@@ -1,7 +1,8 @@
+
 import React, { useState, useCallback } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
-import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, MuscleStates, ExerciseCategory, Exercise, Variation } from './types';
+import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, MuscleStates, ExerciseCategory, Exercise, Variation, ExerciseMaxes } from './types';
 import Dashboard from './components/Dashboard';
 import WorkoutTracker from './components/Workout';
 import Profile from './components/Profile';
@@ -75,36 +76,54 @@ const App: React.FC = () => {
         };
     });
     setMuscleStates(newMuscleStates);
+    
+    const allWorkoutsIncludingCurrent = [...workouts, session];
 
-    // 4. Update Workout History
-    setWorkouts(prev => [...prev, session]);
-
-    // 5. Update Personal Bests
+    // 4. Update Personal Bests with new detailed metrics
     const newPbs = { ...personalBests };
     session.loggedExercises.forEach(loggedEx => {
-        const currentPb = newPbs[loggedEx.exerciseId] || { maxWeight: 0, maxVolume: 0 };
-        const exerciseVolume = loggedEx.sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
-        const maxWeightInSession = Math.max(...loggedEx.sets.map(s => s.weight), 0);
+        const exerciseId = loggedEx.exerciseId;
+        const currentPb = newPbs[exerciseId] || { bestSingleSet: 0, bestSessionVolume: 0, rollingAverageMax: 0 };
         
-        let updated = false;
-        if (maxWeightInSession > currentPb.maxWeight) {
-            currentPb.maxWeight = maxWeightInSession;
-            updated = true;
-        }
-        if (exerciseVolume > currentPb.maxVolume) {
-            currentPb.maxVolume = exerciseVolume;
-            updated = true;
-        }
+        // Calculate metrics for the current session
+        const sessionVolume = loggedEx.sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
+        const bestSetInSession = Math.max(...loggedEx.sets.map(s => calculateVolume(s.reps, s.weight)), 0);
+        
+        // Update best single set and session volume
+        const newBestSingleSet = Math.max(currentPb.bestSingleSet, bestSetInSession);
+        const newBestSessionVolume = Math.max(currentPb.bestSessionVolume, sessionVolume);
 
-        if (updated) {
-            newPbs[loggedEx.exerciseId] = currentPb;
-        }
+        // Calculate new rolling average max
+        const workoutsWithExercise = allWorkoutsIncludingCurrent
+            .filter(w => w.loggedExercises.some(e => e.exerciseId === exerciseId))
+            .sort((a, b) => b.endTime - a.endTime);
+        
+        const last5Workouts = workoutsWithExercise.slice(0, 5);
+        
+        const bestSetsFromLast5 = last5Workouts.map(w => {
+            const ex = w.loggedExercises.find(e => e.exerciseId === exerciseId);
+            if (!ex || ex.sets.length === 0) return 0;
+            return Math.max(...ex.sets.map(s => calculateVolume(s.reps, s.weight)));
+        });
+
+        const newRollingAverage = bestSetsFromLast5.length > 0
+            ? bestSetsFromLast5.reduce((a, b) => a + b, 0) / bestSetsFromLast5.length
+            : 0;
+
+        newPbs[exerciseId] = {
+            bestSingleSet: newBestSingleSet,
+            bestSessionVolume: newBestSessionVolume,
+            rollingAverageMax: newRollingAverage
+        };
     });
     setPersonalBests(newPbs);
     
+    // 5. Update Workout History (must be after PB calculations that use it)
+    setWorkouts(allWorkoutsIncludingCurrent);
+    
     setRecommendedWorkout(null);
 
-  }, [personalBests, muscleBaselines, muscleStates, setWorkouts, setPersonalBests, setMuscleBaselines, setMuscleStates]);
+  }, [personalBests, muscleBaselines, muscleStates, workouts, setWorkouts, setPersonalBests, setMuscleBaselines, setMuscleStates]);
 
   const navigateTo = (newView: View) => setView(newView);
 
@@ -162,6 +181,7 @@ const App: React.FC = () => {
                       muscleBaselines={muscleBaselines}
                       onStartWorkout={() => navigateTo('workout')}
                       onStartRecommendedWorkout={handleStartRecommendedWorkout}
+                      // Fix: Corrected syntax error from "navigate to" to "navigateTo"
                       onNavigateToProfile={() => navigateTo('profile')}
                       onNavigateToBests={() => navigateTo('bests')}
                     />;
