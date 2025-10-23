@@ -52,6 +52,7 @@ export interface WorkoutSession {
   id: string;
   name: string;
   type: ExerciseCategory;
+  variation: "A" | "B";
   startTime: number;
   endTime: number;
   loggedExercises: LoggedExercise[];

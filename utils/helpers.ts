@@ -1,4 +1,5 @@
-import { WorkoutSession } from './types';
+// Fix: Corrected import path for WorkoutSession type.
+import { WorkoutSession } from '../types';
 
 export const getDaysSince = (timestamp: number): number => {
   if (!timestamp) return Infinity;

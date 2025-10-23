@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { EXERCISE_LIBRARY } from '../constants';
-import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile } from '../types';
+import { EXERCISE_LIBRARY, ALL_MUSCLES } from '../constants';
+import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation } from '../types';
 import { calculateVolume, findPreviousWorkout, formatDuration, getUserLevel } from '../utils/helpers';
 import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon } from './Icons';
 
@@ -14,13 +15,13 @@ interface WorkoutProps {
   userProfile: UserProfile;
 }
 
-const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDone: () => void }> = ({ onSelect, onDone }) => {
+const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDone: () => void, workoutVariation: Variation }> = ({ onSelect, onDone, workoutVariation }) => {
     const [filter, setFilter] = useState<ExerciseCategory | 'All'>('All');
     
     const filteredExercises = useMemo(() => {
-        if (filter === 'All') return EXERCISE_LIBRARY;
-        return EXERCISE_LIBRARY.filter(ex => ex.category === filter);
-    }, [filter]);
+        const byCategory = EXERCISE_LIBRARY.filter(ex => filter === 'All' || ex.category === filter);
+        return byCategory.filter(ex => ex.variation === 'Both' || ex.variation === workoutVariation);
+    }, [filter, workoutVariation]);
 
     return (
         <div className="fixed inset-0 bg-brand-dark z-20 p-4 flex flex-col">
@@ -83,11 +84,13 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const [stage, setStage] = useState<WorkoutStage>("setup");
   const [workoutName, setWorkoutName] = useState("");
   const [workoutType, setWorkoutType] = useState<ExerciseCategory>("Push");
+  const [workoutVariation, setWorkoutVariation] = useState<"A" | "B">("A");
   const [startTime, setStartTime] = useState<number>(0);
   const [endTime, setEndTime] = useState<number>(0);
   const [loggedExercises, setLoggedExercises] = useState<LoggedExercise[]>([]);
   const [isExerciseSelectorOpen, setExerciseSelectorOpen] = useState(false);
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
+  const [isCapacityPanelOpen, setCapacityPanelOpen] = useState(false);
 
   const [finalWorkoutSession, setFinalWorkoutSession] = useState<WorkoutSession | null>(null);
 
@@ -96,7 +99,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const timerIntervalRef = useRef<number>();
 
   const playBeep = () => {
-    // Fix: The AudioContext constructor is called without arguments for broader browser compatibility.
+    // Fix: The AudioContext constructor is called without arguments for broader browser compatibility, resolving an argument error.
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     if (!audioContext) return;
     const oscillator = audioContext.createOscillator();
@@ -200,6 +203,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       id: `workout-${startTime}`,
       name: workoutName,
       type: workoutType,
+      variation: workoutVariation,
       startTime,
       endTime: end,
       loggedExercises,
@@ -218,6 +222,58 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const totalVolume = finalWorkoutSession?.loggedExercises.reduce((total, ex) => total + ex.sets.reduce((exTotal, s) => exTotal + calculateVolume(s.reps, s.weight), 0), 0) || 0;
   const prevTotalVolume = previousWorkout?.loggedExercises.reduce((total, ex) => total + ex.sets.reduce((exTotal, s) => exTotal + calculateVolume(s.reps, s.weight), 0), 0) || 0;
   const volumeChange = prevTotalVolume > 0 ? ((totalVolume - prevTotalVolume) / prevTotalVolume) * 100 : 0;
+
+  const muscleCapacityData = useMemo(() => {
+    const baselinesStr = localStorage.getItem('fitforge-muscle-baselines');
+    if (!baselinesStr) {
+        return { status: 'no_baselines', data: [] };
+    }
+    const baselines: MuscleBaselines = JSON.parse(baselinesStr);
+
+    const hasSets = loggedExercises.some(ex => ex.sets.length > 0);
+    if (!hasSets) {
+        return { status: 'no_sets', data: [] };
+    }
+
+    const workoutMuscleVolumes: Record<Muscle, number> = ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: 0 }), {} as Record<Muscle, number>);
+    loggedExercises.forEach(loggedEx => {
+        const exerciseInfo = EXERCISE_LIBRARY.find(e => e.id === loggedEx.exerciseId);
+        if (!exerciseInfo) return;
+        const exerciseVolume = loggedEx.sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
+        exerciseInfo.muscleEngagements.forEach(engagement => {
+            workoutMuscleVolumes[engagement.muscle] += exerciseVolume * (engagement.percentage / 100);
+        });
+    });
+    
+    const capacityInfo = Object.entries(workoutMuscleVolumes)
+        .map(([muscleStr, volume]) => {
+            const muscle = muscleStr as Muscle;
+            const muscleBaselineData = baselines[muscle];
+            const baseline = muscleBaselineData?.userOverride || muscleBaselineData?.systemLearnedMax || 10000;
+            const fatiguePercent = Math.min((volume / baseline) * 100, 100);
+            const remainingCapacity = Math.max(0, baseline - volume);
+            return {
+                muscle,
+                fatiguePercent,
+                currentVolume: volume,
+                remainingCapacity,
+            };
+        })
+        .filter(item => item.fatiguePercent > 5)
+        .sort((a, b) => b.fatiguePercent - a.fatiguePercent);
+
+    if (capacityInfo.length === 0) {
+        return { status: 'no_fatigue', data: [] };
+    }
+    
+    return { status: 'ok', data: capacityInfo };
+  }, [loggedExercises]);
+
+  const getFatigueColor = (percentage: number): string => {
+    if (percentage > 70) return "bg-red-500";
+    if (percentage > 40) return "bg-yellow-500";
+    return "bg-green-500";
+  };
 
 
   if (stage === "setup") {
@@ -239,6 +295,23 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                 <option>Core</option>
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Workout Variation</label>
+              <div className="flex bg-brand-surface rounded-md p-1">
+                <button 
+                  onClick={() => setWorkoutVariation("A")}
+                  className={`w-1/2 rounded-md py-2 font-semibold transition-colors ${workoutVariation === 'A' ? 'bg-brand-cyan text-brand-dark' : 'text-slate-300'}`}
+                >
+                  Workout A
+                </button>
+                <button 
+                  onClick={() => setWorkoutVariation("B")}
+                  className={`w-1/2 rounded-md py-2 font-semibold transition-colors ${workoutVariation === 'B' ? 'bg-brand-cyan text-brand-dark' : 'text-slate-300'}`}
+                >
+                  Workout B
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div className="flex gap-2">
@@ -255,7 +328,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
           <header className="flex justify-between items-center mb-4">
             <div>
                 <h2 className="text-xl font-bold">{workoutName}</h2>
-                <p className="text-sm text-slate-400">{workoutType} Day</p>
+                <p className="text-sm text-slate-400">{workoutType} Day ({workoutVariation})</p>
             </div>
             <button onClick={finishWorkout} className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg">Finish</button>
           </header>
@@ -305,12 +378,44 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                 </div>}
               </div>
             )})}
+
+            <div className="bg-brand-surface rounded-lg">
+                <button onClick={() => setCapacityPanelOpen(!isCapacityPanelOpen)} className="w-full p-4 flex justify-between items-center">
+                    <h3 className="font-semibold text-lg">Muscle Capacity</h3>
+                    {isCapacityPanelOpen ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6"/>}
+                </button>
+                <div className={`grid transition-all duration-300 ease-in-out ${isCapacityPanelOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                    <div className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3">
+                            {muscleCapacityData.status === 'no_baselines' && <p className="text-sm text-slate-400 text-center py-2">Set muscle baselines in Profile to track capacity.</p>}
+                            {muscleCapacityData.status === 'no_sets' && <p className="text-sm text-slate-400 text-center py-2">Start logging sets to see muscle fatigue.</p>}
+                            {muscleCapacityData.status === 'no_fatigue' && <p className="text-sm text-slate-400 text-center py-2">No significant muscle fatigue yet.</p>}
+                            {muscleCapacityData.status === 'ok' && muscleCapacityData.data.map(item => (
+                                <div key={item.muscle}>
+                                    <div className="flex justify-between items-center mb-1 text-sm">
+                                        <span className="font-medium">{item.muscle}</span>
+                                        <span className="font-bold">{item.fatiguePercent.toFixed(0)}%</span>
+                                    </div>
+                                    <div className="w-full bg-brand-muted rounded-full h-2">
+                                        <div className={`${getFatigueColor(item.fatiguePercent)} h-2 rounded-full`} style={{ width: `${item.fatiguePercent}%` }}></div>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
+                                        <span>{item.currentVolume.toFixed(0)} lbs</span>
+                                        <span>{item.remainingCapacity.toFixed(0)} lbs remaining</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <button onClick={() => setExerciseSelectorOpen(true)} className="w-full border-2 border-dashed border-brand-muted text-brand-muted py-3 rounded-lg font-semibold flex items-center justify-center gap-2">
               <PlusIcon className="w-5 h-5"/> Add Exercise
             </button>
           </div>
           {activeTimer && <RestTimer timer={activeTimer} onClose={stopRestTimer} onAdd={addRestTime} />}
-          {isExerciseSelectorOpen && <ExerciseSelector onSelect={addExercise} onDone={() => setExerciseSelectorOpen(false)} />}
+          {isExerciseSelectorOpen && <ExerciseSelector onSelect={addExercise} onDone={() => setExerciseSelectorOpen(false)} workoutVariation={workoutVariation} />}
         </div>
     );
   }

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ALL_MUSCLES } from '../constants';
 import { Muscle, MuscleStates, UserProfile, WorkoutSession } from '../types';
@@ -99,7 +100,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, 
                                 <p className="text-sm text-slate-400">{new Date(workout.endTime).toLocaleDateString()}</p>
                            </div>
                            <div className="flex justify-between items-center text-xs text-slate-300 mt-1">
-                                <p>{workout.type} Day</p>
+                                <p>{workout.type} Day {workout.variation && `(${workout.variation})`}</p>
                                 <p>Duration: {formatDuration(workout.endTime - workout.startTime)}</p>
                            </div>
                         </div>
