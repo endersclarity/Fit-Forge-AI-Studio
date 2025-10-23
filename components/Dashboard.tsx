@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { ALL_MUSCLES } from '../constants';
-import { Muscle, MuscleStates, UserProfile, WorkoutSession } from '../types';
+// Fix: Added MuscleBaselines import
+import { Muscle, MuscleStates, UserProfile, WorkoutSession, MuscleBaselines } from '../types';
 import { calculateRecoveryPercentage, getDaysSince, getRecoveryColor, getUserLevel, formatDuration } from '../utils/helpers';
-import { DumbbellIcon, UserIcon, TrophyIcon } from './Icons';
+// Fix: Added ChevronDownIcon and ChevronUpIcon imports
+import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -14,33 +16,113 @@ interface DashboardProps {
   onNavigateToBests: () => void;
 }
 
-const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates }> = ({ muscleStates }) => {
-  const muscleData = ALL_MUSCLES.map(muscle => {
-    const status = muscleStates[muscle];
-    if (!status || !status.lastTrained) {
-      return { muscle, daysSince: Infinity, recovery: 100 };
+const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts: WorkoutSession[] }> = ({ muscleStates, workouts }) => {
+  const [expandedMuscle, setExpandedMuscle] = useState<Muscle | null>(null);
+
+  const muscleBaselines: MuscleBaselines = useMemo(() => {
+    try {
+      const item = window.localStorage.getItem('fitforge-muscle-baselines');
+      return item ? JSON.parse(item) : {};
+    } catch (error) {
+      console.error("Failed to parse muscle baselines from localStorage", error);
+      return {};
     }
-    const daysSince = getDaysSince(status.lastTrained);
-    const recovery = calculateRecoveryPercentage(daysSince, status.recoveryDaysNeeded);
-    return { muscle, daysSince: Math.floor(daysSince), recovery };
-  }).sort((a, b) => a.recovery - b.recovery);
+  }, []);
+
+  const muscleData = useMemo(() => {
+    return ALL_MUSCLES.map(muscle => {
+      const status = muscleStates[muscle];
+      if (!status || !status.lastTrained) {
+        return { muscle, daysSince: Infinity, recovery: 100, recoveryDaysNeeded: 0 };
+      }
+      const daysSince = getDaysSince(status.lastTrained);
+      const recovery = calculateRecoveryPercentage(daysSince, status.recoveryDaysNeeded);
+      return { muscle, daysSince: Math.floor(daysSince), recovery, recoveryDaysNeeded: status.recoveryDaysNeeded };
+    }).sort((a, b) => {
+      if (a.recovery === 100 && b.recovery < 100) return 1;
+      if (b.recovery === 100 && a.recovery < 100) return -1;
+      return a.recovery - b.recovery;
+    });
+  }, [muscleStates]);
+
+  const getExpandedDetails = (muscle: Muscle) => {
+    const baselineData = muscleBaselines[muscle] || { userOverride: null, systemLearnedMax: 0 };
+    const baselineCapacity = baselineData.userOverride || baselineData.systemLearnedMax;
+
+    const lastWorkoutForMuscle = workouts
+        .filter(w => w.muscleFatigueHistory && w.muscleFatigueHistory[muscle])
+        .sort((a, b) => b.endTime - a.endTime)[0];
+
+    let lastSessionVolume = 0;
+    if (lastWorkoutForMuscle) {
+        const fatiguePercent = lastWorkoutForMuscle.muscleFatigueHistory[muscle]!;
+        // Avoid division by zero if baseline is 0
+        const baselineForCalc = baselineCapacity > 0 ? baselineCapacity : 1; 
+        lastSessionVolume = (fatiguePercent * baselineForCalc) / 100;
+    }
+
+    const maxVolume = baselineData.systemLearnedMax;
+
+    return { baselineCapacity, lastSessionVolume, maxVolume };
+  };
 
   return (
-    <div className="space-y-3">
-      {muscleData.map(({ muscle, daysSince, recovery }) => (
-        <div key={muscle}>
-          <div className="flex justify-between items-center mb-1 text-sm">
-            <span className="font-medium">{muscle}</span>
-            <span className="text-slate-400">{recovery === 100 ? 'Fully Recovered' : `${recovery.toFixed(0)}% Recovered`}</span>
+    <div className="space-y-2">
+      {muscleData.map(({ muscle, daysSince, recovery, recoveryDaysNeeded }) => {
+        const isExpanded = expandedMuscle === muscle;
+        const daysUntilReady = Math.max(0, recoveryDaysNeeded - daysSince);
+        const details = isExpanded ? getExpandedDetails(muscle) : null;
+        
+        return (
+          <div key={muscle} className="bg-brand-muted rounded-md">
+            <button
+              onClick={() => setExpandedMuscle(isExpanded ? null : muscle)}
+              className="w-full text-left p-3 focus:outline-none"
+              aria-expanded={isExpanded}
+              aria-controls={`details-${muscle}`}
+            >
+              <div className="flex justify-between items-center mb-1 text-sm">
+                <span className="font-medium">{muscle}</span>
+                <span className="text-slate-400">{recovery < 100 ? `${recovery.toFixed(0)}% Recovered` : 'Fully Recovered'}</span>
+              </div>
+              <div className="w-full bg-slate-600 rounded-full h-2.5">
+                <div className={`${getRecoveryColor(recovery)} h-2.5 rounded-full`} style={{ width: `${recovery}%` }}></div>
+              </div>
+              <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
+                <span>{daysSince !== Infinity ? `Last trained: ${daysSince}d ago` : 'Not trained yet'}</span>
+                 <span>
+                    {daysSince !== Infinity ? (
+                        recovery < 100 ? `Ready in: ${daysUntilReady.toFixed(1)}d` : <span className="text-green-400 font-semibold">Ready now</span>
+                    ) : ''}
+                </span>
+              </div>
+            </button>
+            <div 
+              id={`details-${muscle}`}
+              className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+            >
+                <div className="overflow-hidden">
+                    {details && (
+                        <div className="p-3 pt-2 border-t border-slate-600/50 text-xs">
+                           <div className="flex justify-between items-center py-1">
+                               <span className="text-slate-400">Baseline Capacity:</span>
+                               <span className="font-semibold">{details.baselineCapacity.toLocaleString()} lbs</span>
+                           </div>
+                           <div className="flex justify-between items-center py-1">
+                               <span className="text-slate-400">Last Session Volume:</span>
+                               <span className="font-semibold">{details.lastSessionVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })} lbs</span>
+                           </div>
+                           <div className="flex justify-between items-center py-1">
+                               <span className="text-slate-400">All-Time Max Volume:</span>
+                               <span className="font-semibold">{details.maxVolume.toLocaleString()} lbs</span>
+                           </div>
+                        </div>
+                    )}
+                </div>
+            </div>
           </div>
-          <div className="w-full bg-brand-muted rounded-full h-2.5">
-            <div className={`${getRecoveryColor(recovery)} h-2.5 rounded-full`} style={{ width: `${recovery}%` }}></div>
-          </div>
-          <div className="text-right text-xs text-slate-500 mt-1">
-            {daysSince !== Infinity ? `Last trained ${daysSince}d ago` : 'Not trained yet'}
-          </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   );
 };
@@ -88,7 +170,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, 
 
         <section className="bg-brand-surface p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Muscle Recovery</h3>
-            <MuscleRecoveryVisualizer muscleStates={muscleStates} />
+            <MuscleRecoveryVisualizer muscleStates={muscleStates} workouts={workouts} />
         </section>
 
         <section className="bg-brand-surface p-4 rounded-lg">

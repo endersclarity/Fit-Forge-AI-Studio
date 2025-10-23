@@ -111,7 +111,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     oscillator.frequency.value = 880;
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
     gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
-    // Fix: The oscillator.start() method requires an argument. Passing audioContext.currentTime ensures it starts immediately and is compatible with more browsers, resolving the "Expected 1 arguments, but got 0" error.
+    // Fix: The oscillator.start() method requires an argument in some implementations. Passing audioContext.currentTime ensures it starts immediately and is compatible with more browsers, resolving the "Expected 1 arguments, but got 0" error.
     oscillator.start(audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
     oscillator.stop(audioContext.currentTime + 1);
