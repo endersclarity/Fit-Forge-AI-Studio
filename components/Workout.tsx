@@ -1,9 +1,8 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EXERCISE_LIBRARY } from '../constants';
 import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile } from '../types';
 import { calculateVolume, findPreviousWorkout, formatDuration, getUserLevel } from '../utils/helpers';
-import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon } from './Icons';
+import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon } from './Icons';
 
 type WorkoutStage = "setup" | "tracking" | "summary";
 
@@ -51,6 +50,35 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
     );
 };
 
+const RestTimer: React.FC<{
+    timer: { remaining: number; initialDuration: number };
+    onClose: () => void;
+    onAdd: (seconds: number) => void;
+}> = ({ timer, onClose, onAdd }) => {
+    const progress = timer.initialDuration > 0 ? (timer.remaining / timer.initialDuration) * 100 : 0;
+    const minutes = Math.floor(timer.remaining / 60);
+    const seconds = timer.remaining % 60;
+    const timeString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+    return (
+        <div className="fixed inset-x-0 bottom-0 bg-brand-surface p-4 z-30 shadow-lg rounded-t-2xl max-w-2xl mx-auto border-t border-brand-muted">
+             <div className="w-full bg-brand-muted rounded-full h-1.5 mb-3">
+                <div className="bg-brand-cyan h-1.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+            </div>
+            <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => onAdd(15)} className="text-sm font-semibold bg-brand-muted px-3 py-1 rounded-md">+15s</button>
+                    <span className="text-3xl font-bold font-mono tracking-wider">{timeString}</span>
+                </div>
+                <button onClick={onClose} className="text-sm font-semibold text-slate-300">
+                    {timer.remaining > 0 ? 'Skip' : 'Done'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+
 const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, allWorkouts, personalBests, userProfile }) => {
   const [stage, setStage] = useState<WorkoutStage>("setup");
   const [workoutName, setWorkoutName] = useState("");
@@ -62,6 +90,53 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
 
   const [finalWorkoutSession, setFinalWorkoutSession] = useState<WorkoutSession | null>(null);
+
+  // Rest Timer State
+  const [activeTimer, setActiveTimer] = useState<{ setId: string; initialDuration: number; remaining: number } | null>(null);
+  const timerIntervalRef = useRef<number>();
+
+  const playBeep = () => {
+    // FIX: Pass an empty object to the AudioContext constructor to satisfy environments that expect an argument.
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({});
+    if (!audioContext) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880;
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
+    oscillator.start(audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
+    oscillator.stop(audioContext.currentTime + 1);
+  };
+  
+  useEffect(() => {
+    if (activeTimer && activeTimer.remaining > 0) {
+        timerIntervalRef.current = window.setInterval(() => {
+            setActiveTimer(prev => prev ? { ...prev, remaining: prev.remaining - 1 } : null);
+        }, 1000);
+    } else if (activeTimer && activeTimer.remaining <= 0) {
+        clearInterval(timerIntervalRef.current);
+        playBeep();
+    }
+    return () => clearInterval(timerIntervalRef.current);
+  }, [activeTimer]);
+
+  const startRestTimer = (setId: string, duration: number = 90) => {
+    clearInterval(timerIntervalRef.current);
+    setActiveTimer({ setId, initialDuration: duration, remaining: duration });
+  };
+
+  const stopRestTimer = () => {
+    clearInterval(timerIntervalRef.current);
+    setActiveTimer(null);
+  };
+
+  const addRestTime = (seconds: number) => {
+    setActiveTimer(prev => prev ? { ...prev, remaining: Math.max(0, prev.remaining + seconds) } : null);
+  };
 
   const startWorkout = () => {
     setStartTime(Date.now());
@@ -90,13 +165,22 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const updateSet = (exerciseId: string, setId: string, field: 'reps' | 'weight', value: number) => {
     if (field === 'weight' && (value < 0 || value > 500)) return;
     if (field === 'reps' && (value < 1 || value > 50)) return;
+    
+    const finalValue = field === 'reps' ? Math.round(value) : value;
 
     setLoggedExercises(prev => prev.map(ex => 
       ex.id === exerciseId ? {
         ...ex,
-        sets: ex.sets.map(s => s.id === setId ? { ...s, [field]: value } : s)
+        sets: ex.sets.map(s => s.id === setId ? { ...s, [field]: finalValue } : s)
       } : ex
     ));
+  };
+
+  const handleWeightBlur = (exerciseId: string, setId: string, currentWeight: number) => {
+    const roundedWeight = Math.round(currentWeight / 2.5) * 2.5;
+    if (roundedWeight !== currentWeight) {
+        updateSet(exerciseId, setId, 'weight', roundedWeight);
+    }
   };
 
   const removeSet = (exerciseId: string, setId: string) => {
@@ -122,6 +206,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     setFinalWorkoutSession(session);
     onFinishWorkout(session);
     setStage("summary");
+    stopRestTimer();
   };
 
   const getExerciseName = (exerciseId: string) => EXERCISE_LIBRARY.find(e => e.id === exerciseId)?.name || 'Unknown Exercise';
@@ -172,7 +257,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             </div>
             <button onClick={finishWorkout} className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg">Finish</button>
           </header>
-          <div className="flex-grow space-y-3 overflow-y-auto">
+          <div className="flex-grow space-y-3 overflow-y-auto pb-24">
             {loggedExercises.map(ex => {
               const pb = personalBests[ex.exerciseId];
               const isExpanded = expandedExerciseId === ex.id;
@@ -183,22 +268,30 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                   {isExpanded ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6"/>}
                 </button>
                 {isExpanded && <div className="p-4 pt-0">
-                    <div className="grid grid-cols-5 gap-2 text-center text-xs text-slate-400 font-semibold mb-2">
-                        <span className="col-span-1">Set</span>
-                        <span className="col-span-2">Weight (lbs)</span>
-                        <span className="col-span-1">Reps</span>
-                        <span className="col-span-1"></span>
+                    <div className="grid grid-cols-12 gap-2 text-center text-xs text-slate-400 font-semibold mb-2">
+                        <span className="col-span-2">Set</span>
+                        <span className="col-span-4">Weight (lbs)</span>
+                        <span className="col-span-2">Reps</span>
+                        <span className="col-span-4"></span>
                     </div>
                     {ex.sets.map((s, i) => (
-                      <div key={s.id} className="grid grid-cols-5 gap-2 items-center mb-2">
-                          <span className="text-center font-bold text-slate-300">{i + 1}</span>
+                      <div key={s.id} className="grid grid-cols-12 gap-2 items-center mb-2">
+                          <span className="text-center font-bold text-slate-300 col-span-2">{i + 1}</span>
+                          <div className="col-span-4">
+                            <input type="number" step="2.5" value={s.weight} 
+                                onChange={e => updateSet(ex.id, s.id, 'weight', parseFloat(e.target.value) || 0)} 
+                                onBlur={e => handleWeightBlur(ex.id, s.id, parseFloat(e.target.value) || 0)}
+                                className="w-full text-center bg-brand-dark rounded-md p-2" />
+                          </div>
                           <div className="col-span-2">
-                            <input type="number" step="0.25" value={s.weight} onChange={e => updateSet(ex.id, s.id, 'weight', parseFloat(e.target.value))} className="w-full text-center bg-brand-dark rounded-md p-2" />
+                            <input type="number" value={s.reps} 
+                                onChange={e => updateSet(ex.id, s.id, 'reps', parseInt(e.target.value) || 0)} 
+                                className="w-full text-center bg-brand-dark rounded-md p-2" />
                           </div>
-                          <div className="col-span-1">
-                            <input type="number" value={s.reps} onChange={e => updateSet(ex.id, s.id, 'reps', parseInt(e.target.value))} className="w-full text-center bg-brand-dark rounded-md p-2" />
+                          <div className="col-span-4 flex justify-center items-center gap-2">
+                            <button onClick={() => startRestTimer(s.id)} className="text-slate-400 hover:text-brand-cyan p-1"><ClockIcon className="w-5 h-5"/></button>
+                            <button onClick={() => removeSet(ex.id, s.id)} className="text-slate-400 hover:text-red-500 p-1"><XIcon className="w-5 h-5"/></button>
                           </div>
-                          <button onClick={() => removeSet(ex.id, s.id)} className="col-span-1 flex justify-center text-slate-400 hover:text-red-500"><XIcon className="w-5 h-5"/></button>
                       </div>
                     ))}
                     <div className="flex justify-between items-center mt-4">
@@ -214,6 +307,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
               <PlusIcon className="w-5 h-5"/> Add Exercise
             </button>
           </div>
+          {activeTimer && <RestTimer timer={activeTimer} onClose={stopRestTimer} onAdd={addRestTime} />}
           {isExerciseSelectorOpen && <ExerciseSelector onSelect={addExercise} onDone={() => setExerciseSelectorOpen(false)} />}
         </div>
     );
