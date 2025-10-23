@@ -96,8 +96,8 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const timerIntervalRef = useRef<number>();
 
   const playBeep = () => {
-    // FIX: Pass an empty object to the AudioContext constructor to satisfy environments that expect an argument.
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({});
+    // Fix: The AudioContext constructor is called without arguments for broader browser compatibility.
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     if (!audioContext) return;
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();

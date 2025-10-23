@@ -1,4 +1,3 @@
-
 import { WorkoutSession } from './types';
 
 export const getDaysSince = (timestamp: number): number => {
@@ -6,13 +5,18 @@ export const getDaysSince = (timestamp: number): number => {
   return (Date.now() - timestamp) / (1000 * 60 * 60 * 24);
 };
 
-export const calculateRecoveryPercentage = (daysSince: number): number => {
-  if (daysSince >= 5) return 100;
-  if (daysSince >= 4) return 98;
-  if (daysSince >= 3) return 90;
-  if (daysSince >= 2) return 75;
-  if (daysSince >= 1) return 50;
-  if (daysSince >= 0) return 10;
+export const calculateRecoveryPercentage = (daysSince: number, recoveryDaysNeeded: number): number => {
+  if (daysSince >= recoveryDaysNeeded) return 100;
+  
+  // Scale the current days since trained to a 5-day curve for non-linear recovery
+  const scaledDays = (daysSince / recoveryDaysNeeded) * 5;
+
+  if (scaledDays >= 5) return 100;
+  if (scaledDays >= 4) return 98;
+  if (scaledDays >= 3) return 90;
+  if (scaledDays >= 2) return 75;
+  if (scaledDays >= 1) return 50;
+  if (scaledDays >= 0) return 10;
   return 100;
 };
 

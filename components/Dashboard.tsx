@@ -1,26 +1,26 @@
 import React from 'react';
 import { ALL_MUSCLES } from '../constants';
-import { Muscle, MuscleAnalytics, UserProfile, WorkoutSession } from '../types';
+import { Muscle, MuscleStates, UserProfile, WorkoutSession } from '../types';
 import { calculateRecoveryPercentage, getDaysSince, getRecoveryColor, getUserLevel, formatDuration } from '../utils/helpers';
 import { DumbbellIcon, UserIcon } from './Icons';
 
 interface DashboardProps {
   profile: UserProfile;
   workouts: WorkoutSession[];
-  muscleAnalytics: MuscleAnalytics;
+  muscleStates: MuscleStates;
   onStartWorkout: () => void;
   onNavigateToProfile: () => void;
 }
 
-const MuscleRecoveryVisualizer: React.FC<{ muscleAnalytics: MuscleAnalytics }> = ({ muscleAnalytics }) => {
+const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates }> = ({ muscleStates }) => {
   const muscleData = ALL_MUSCLES.map(muscle => {
-    const status = muscleAnalytics[muscle];
+    const status = muscleStates[muscle];
     if (!status || !status.lastTrained) {
-      return { muscle, daysSince: Infinity, recovery: 100, lastVolume: 0 };
+      return { muscle, daysSince: Infinity, recovery: 100 };
     }
     const daysSince = getDaysSince(status.lastTrained);
-    const recovery = calculateRecoveryPercentage(daysSince);
-    return { muscle, daysSince: Math.floor(daysSince), recovery, lastVolume: status.lastVolume };
+    const recovery = calculateRecoveryPercentage(daysSince, status.recoveryDaysNeeded);
+    return { muscle, daysSince: Math.floor(daysSince), recovery };
   }).sort((a, b) => a.recovery - b.recovery);
 
   return (
@@ -29,7 +29,7 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleAnalytics: MuscleAnalytics }> =
         <div key={muscle}>
           <div className="flex justify-between items-center mb-1 text-sm">
             <span className="font-medium">{muscle}</span>
-            <span className="text-slate-400">{recovery === 100 ? 'Fully Recovered' : `${recovery}% Recovered`}</span>
+            <span className="text-slate-400">{recovery === 100 ? 'Fully Recovered' : `${recovery.toFixed(0)}% Recovered`}</span>
           </div>
           <div className="w-full bg-brand-muted rounded-full h-2.5">
             <div className={`${getRecoveryColor(recovery)} h-2.5 rounded-full`} style={{ width: `${recovery}%` }}></div>
@@ -43,7 +43,7 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleAnalytics: MuscleAnalytics }> =
   );
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleAnalytics, onStartWorkout, onNavigateToProfile }) => {
+const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, onStartWorkout, onNavigateToProfile }) => {
   const { level, progress, nextLevelWorkouts } = getUserLevel(workouts.length);
 
   return (
@@ -82,7 +82,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleAnalytic
         {level >= 2 && (
             <section className="bg-brand-surface p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4">Muscle Recovery</h3>
-                <MuscleRecoveryVisualizer muscleAnalytics={muscleAnalytics} />
+                <MuscleRecoveryVisualizer muscleStates={muscleStates} />
             </section>
         )}
 
