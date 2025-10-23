@@ -1,17 +1,15 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { ALL_MUSCLES } from '../constants';
 import { Muscle, MuscleAnalytics, UserProfile, WorkoutSession } from '../types';
 import { calculateRecoveryPercentage, getDaysSince, getRecoveryColor, getUserLevel, formatDuration } from '../utils/helpers';
 import { DumbbellIcon, UserIcon } from './Icons';
-import ProfileModal from './ProfileModal';
 
 interface DashboardProps {
   profile: UserProfile;
-  setProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
   workouts: WorkoutSession[];
   muscleAnalytics: MuscleAnalytics;
   onStartWorkout: () => void;
+  onNavigateToProfile: () => void;
 }
 
 const MuscleRecoveryVisualizer: React.FC<{ muscleAnalytics: MuscleAnalytics }> = ({ muscleAnalytics }) => {
@@ -45,11 +43,8 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleAnalytics: MuscleAnalytics }> =
   );
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ profile, setProfile, workouts, muscleAnalytics, onStartWorkout }) => {
-  const [isProfileModalOpen, setProfileModalOpen] = useState(false);
+const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleAnalytics, onStartWorkout, onNavigateToProfile }) => {
   const { level, progress, nextLevelWorkouts } = getUserLevel(workouts.length);
-
-  const lastWorkout = workouts.length > 0 ? workouts.slice().sort((a, b) => b.endTime - a.endTime)[0] : null;
 
   return (
     <div className="p-4 md:p-6 min-h-screen bg-brand-dark space-y-6">
@@ -58,7 +53,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, setProfile, workouts, mu
             <DumbbellIcon className="w-8 h-8 text-brand-cyan" />
             <h1 className="text-2xl font-bold tracking-tight">FitForge</h1>
         </div>
-        <button onClick={() => setProfileModalOpen(true)} className="p-2 rounded-full hover:bg-brand-surface">
+        <button onClick={onNavigateToProfile} className="p-2 rounded-full hover:bg-brand-surface">
             <UserIcon className="w-6 h-6"/>
         </button>
       </header>
@@ -113,13 +108,6 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, setProfile, workouts, mu
             )}
         </section>
       </main>
-
-      <ProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setProfileModalOpen(false)}
-        profile={profile}
-        setProfile={setProfile}
-      />
     </div>
   );
 };
