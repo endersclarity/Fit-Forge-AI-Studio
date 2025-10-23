@@ -195,6 +195,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const finishWorkout = () => {
     const end = Date.now();
     setEndTime(end);
+    // Fix: Add missing muscleFatigueHistory property to conform to WorkoutSession type
     const session: WorkoutSession = {
       id: `workout-${startTime}`,
       name: workoutName,
@@ -202,6 +203,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       startTime,
       endTime: end,
       loggedExercises,
+      muscleFatigueHistory: {},
     };
     setFinalWorkoutSession(session);
     onFinishWorkout(session);

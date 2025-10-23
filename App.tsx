@@ -11,6 +11,7 @@ type View = "dashboard" | "workout";
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>("dashboard");
+  // Fix: Add name to the initial profile state to match the UserProfile type.
   const [profile, setProfile] = useLocalStorage<UserProfile>('fitforge-profile', { name: '', experience: 'Beginner' });
   const [workouts, setWorkouts] = useLocalStorage<WorkoutSession[]>('fitforge-workouts', []);
   const [muscleAnalytics, setMuscleAnalytics] = useLocalStorage<MuscleAnalytics>('fitforge-muscle-analytics', 
@@ -71,7 +72,7 @@ const App: React.FC = () => {
     setPersonalBests(newPbs);
 
     // View is handled by the Workout component itself, just need to provide the cancel function
-  }, [workouts, muscleAnalytics, personalBests, setWorkouts, setMuscleAnalytics, setPersonalBests]);
+  }, [muscleAnalytics, personalBests, setWorkouts, setMuscleAnalytics, setPersonalBests]);
 
   const startWorkout = () => setView("workout");
   const backToDashboard = () => setView("dashboard");

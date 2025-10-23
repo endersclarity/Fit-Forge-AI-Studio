@@ -16,6 +16,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
       { muscle: Muscle.Triceps, percentage: 40 },
       { muscle: Muscle.Deltoids, percentage: 30 },
     ],
+    variation: "Both",
   },
   {
     id: "ex02",
@@ -28,6 +29,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
       { muscle: Muscle.Triceps, percentage: 35 },
       { muscle: Muscle.Deltoids, percentage: 35 },
     ],
+    variation: "Both",
   },
   {
     id: "ex03",
@@ -41,6 +43,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Deltoids, percentage: 40 },
         { muscle: Muscle.Core, percentage: 20 },
     ],
+    variation: "Both",
   },
   {
     id: "ex04",
@@ -53,6 +56,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Triceps, percentage: 45 },
         { muscle: Muscle.Trapezius, percentage: 25 },
     ],
+    variation: "Both",
   },
    {
     id: "ex05",
@@ -65,6 +69,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Triceps, percentage: 40 },
         { muscle: Muscle.Trapezius, percentage: 20 },
     ],
+    variation: "Both",
   },
 
   // PULL
@@ -80,6 +85,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
       { muscle: Muscle.Rhomboids, percentage: 20 },
       { muscle: Muscle.Forearms, percentage: 25 },
     ],
+    variation: "Both",
   },
   {
     id: "ex07",
@@ -91,6 +97,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
       { muscle: Muscle.Biceps, percentage: 80 },
       { muscle: Muscle.Forearms, percentage: 15 },
     ],
+    variation: "Both",
   },
   {
     id: "ex08",
@@ -104,6 +111,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Rhomboids, percentage: 40 },
         { muscle: Muscle.Trapezius, percentage: 30 },
     ],
+    variation: "Both",
   },
   {
     id: "ex09",
@@ -116,6 +124,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Biceps, percentage: 20 },
         { muscle: Muscle.Rhomboids, percentage: 35 },
     ],
+    variation: "Both",
   },
   {
     id: "ex10",
@@ -127,6 +136,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Lats, percentage: 90 },
         { muscle: Muscle.Biceps, percentage: 30 },
     ],
+    variation: "Both",
   },
 
   // LEGS
@@ -142,6 +152,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
       { muscle: Muscle.Core, percentage: 25 },
       { muscle: Muscle.Hamstrings, percentage: 40 },
     ],
+    variation: "Both",
   },
   {
     id: "ex12",
@@ -154,6 +165,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
       { muscle: Muscle.Glutes, percentage: 65 },
       { muscle: Muscle.Core, percentage: 30 },
     ],
+    variation: "Both",
   },
    {
     id: "ex13",
@@ -166,6 +178,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
       { muscle: Muscle.Glutes, percentage: 60 },
       { muscle: Muscle.Core, percentage: 20 },
     ],
+    variation: "Both",
   },
   {
     id: "ex14",
@@ -178,6 +191,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
       { muscle: Muscle.Glutes, percentage: 50 },
       { muscle: Muscle.Hamstrings, percentage: 30 },
     ],
+    variation: "Both",
   },
   {
     id: "ex15",
@@ -188,6 +202,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     muscleEngagements: [
       { muscle: Muscle.Calves, percentage: 95 },
     ],
+    variation: "Both",
   },
 
   // CORE
@@ -201,6 +216,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
       { muscle: Muscle.Core, percentage: 90 },
       { muscle: Muscle.Deltoids, percentage: 20 },
     ],
+    variation: "Both",
   },
   {
     id: "ex17",
@@ -211,6 +227,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     muscleEngagements: [
       { muscle: Muscle.Core, percentage: 85 },
     ],
+    variation: "Both",
   },
   // NEW PULL/BACK
   {
@@ -225,6 +242,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Biceps, percentage: 20 },
         { muscle: Muscle.Core, percentage: 15 },
     ],
+    variation: "Both",
   },
   {
     id: "ex19",
@@ -237,6 +255,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Forearms, percentage: 15 },
         { muscle: Muscle.Core, percentage: 15 },
     ],
+    variation: "Both",
   },
   {
     id: "ex20",
@@ -249,6 +268,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Biceps, percentage: 30 },
         { muscle: Muscle.Rhomboids, percentage: 20 },
     ],
+    variation: "Both",
   },
   {
     id: "ex21",
@@ -261,6 +281,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Rhomboids, percentage: 60 },
         { muscle: Muscle.Deltoids, percentage: 30 },
     ],
+    variation: "Both",
   },
   {
     id: "ex22",
@@ -272,6 +293,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Biceps, percentage: 90 },
         { muscle: Muscle.Forearms, percentage: 10 },
     ],
+    variation: "Both",
   },
   {
     id: "ex23",
@@ -280,6 +302,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     equipment: "Dumbbells",
     difficulty: "Beginner",
     muscleEngagements: [{ muscle: Muscle.Trapezius, percentage: 95 }],
+    variation: "Both",
   },
   {
     id: "ex24",
@@ -293,6 +316,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Trapezius, percentage: 35 },
         { muscle: Muscle.Biceps, percentage: 20 },
     ],
+    variation: "Both",
   },
   {
     id: "ex25",
@@ -304,6 +328,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Biceps, percentage: 85 },
         { muscle: Muscle.Forearms, percentage: 20 },
     ],
+    variation: "Both",
   },
   {
     id: "ex26",
@@ -316,6 +341,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Biceps, percentage: 35 },
         { muscle: Muscle.Rhomboids, percentage: 25 },
     ],
+    variation: "Both",
   },
   {
     id: "ex27",
@@ -329,6 +355,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Trapezius, percentage: 30 },
         { muscle: Muscle.Biceps, percentage: 25 },
     ],
+    variation: "Both",
   },
   {
     id: "ex28",
@@ -341,6 +368,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Core, percentage: 50 },
         { muscle: Muscle.Rhomboids, percentage: 35 },
     ],
+    variation: "Both",
   },
   // NEW PUSH
   {
@@ -354,6 +382,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Rhomboids, percentage: 40 },
         { muscle: Muscle.Trapezius, percentage: 25 },
     ],
+    variation: "Both",
   },
   {
     id: "ex30",
@@ -362,6 +391,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     equipment: "Dumbbells",
     difficulty: "Beginner",
     muscleEngagements: [{ muscle: Muscle.Triceps, percentage: 95 }],
+    variation: "Both",
   },
   {
     id: "ex31",
@@ -375,6 +405,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Deltoids, percentage: 35 },
         { muscle: Muscle.Core, percentage: 25 },
     ],
+    variation: "Both",
   },
   {
     id: "ex32",
@@ -387,6 +418,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Triceps, percentage: 45 },
         { muscle: Muscle.Deltoids, percentage: 40 },
     ],
+    variation: "Both",
   },
   {
     id: "ex33",
@@ -399,6 +431,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Pectoralis, percentage: 50 },
         { muscle: Muscle.Deltoids, percentage: 30 },
     ],
+    variation: "Both",
   },
   {
     id: "ex34",
@@ -411,6 +444,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Triceps, percentage: 40 },
         { muscle: Muscle.Core, percentage: 20 },
     ],
+    variation: "Both",
   },
   // NEW LEGS
   {
@@ -424,6 +458,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Hamstrings, percentage: 30 },
         { muscle: Muscle.Core, percentage: 20 },
     ],
+    variation: "Both",
   },
   {
     id: "ex36",
@@ -436,6 +471,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Glutes, percentage: 65 },
         { muscle: Muscle.Core, percentage: 25 },
     ],
+    variation: "Both",
   },
   {
     id: "ex37",
@@ -448,5 +484,6 @@ export const EXERCISE_LIBRARY: Exercise[] = [
         { muscle: Muscle.Hamstrings, percentage: 60 },
         { muscle: Muscle.Core, percentage: 40 },
     ],
+    variation: "Both",
   },
 ];
