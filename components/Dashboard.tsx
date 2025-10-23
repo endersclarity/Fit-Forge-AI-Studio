@@ -1,8 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
-import { ALL_MUSCLES } from '../constants';
+import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
 // Fix: Added MuscleBaselines import
-import { Muscle, MuscleStates, UserProfile, WorkoutSession, MuscleBaselines } from '../types';
+import { Muscle, MuscleStates, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise } from '../types';
 import { calculateRecoveryPercentage, getDaysSince, getRecoveryColor, getUserLevel, formatDuration } from '../utils/helpers';
 // Fix: Added ChevronDownIcon and ChevronUpIcon imports
 import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
@@ -39,9 +39,10 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts:
       const recovery = calculateRecoveryPercentage(daysSince, status.recoveryDaysNeeded);
       return { muscle, daysSince: Math.floor(daysSince), recovery, recoveryDaysNeeded: status.recoveryDaysNeeded };
     }).sort((a, b) => {
-      if (a.recovery === 100 && b.recovery < 100) return 1;
-      if (b.recovery === 100 && a.recovery < 100) return -1;
-      return a.recovery - b.recovery;
+        if (a.daysSince === Infinity && b.daysSince !== Infinity) return 1;
+        if (b.daysSince === Infinity && a.daysSince !== Infinity) return -1;
+        if (a.daysSince === Infinity && b.daysSince === Infinity) return 0;
+        return a.recovery - b.recovery;
     });
   }, [muscleStates]);
 
@@ -54,11 +55,11 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts:
         .sort((a, b) => b.endTime - a.endTime)[0];
 
     let lastSessionVolume = 0;
-    if (lastWorkoutForMuscle) {
+    if (lastWorkoutForMuscle && lastWorkoutForMuscle.muscleFatigueHistory) {
         const fatiguePercent = lastWorkoutForMuscle.muscleFatigueHistory[muscle]!;
         // Avoid division by zero if baseline is 0
         const baselineForCalc = baselineCapacity > 0 ? baselineCapacity : 1; 
-        lastSessionVolume = (fatiguePercent * baselineForCalc) / 100;
+        lastSessionVolume = (fatiguePercent / 100) * baselineForCalc;
     }
 
     const maxVolume = baselineData.systemLearnedMax;
@@ -70,7 +71,7 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts:
     <div className="space-y-2">
       {muscleData.map(({ muscle, daysSince, recovery, recoveryDaysNeeded }) => {
         const isExpanded = expandedMuscle === muscle;
-        const daysUntilReady = Math.max(0, recoveryDaysNeeded - daysSince);
+        const daysUntilReady = Math.max(0, Math.ceil(recoveryDaysNeeded - daysSince));
         const details = isExpanded ? getExpandedDetails(muscle) : null;
         
         return (
@@ -92,7 +93,7 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts:
                 <span>{daysSince !== Infinity ? `Last trained: ${daysSince}d ago` : 'Not trained yet'}</span>
                  <span>
                     {daysSince !== Infinity ? (
-                        recovery < 100 ? `Ready in: ${daysUntilReady.toFixed(1)}d` : <span className="text-green-400 font-semibold">Ready now</span>
+                        recovery < 100 ? `Ready in: ~${daysUntilReady}d` : <span className="text-green-400 font-semibold">Ready now</span>
                     ) : ''}
                 </span>
               </div>
@@ -126,6 +127,65 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts:
     </div>
   );
 };
+
+const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) => {
+    const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
+
+    const getExerciseName = (id: string) => EXERCISE_LIBRARY.find(e => e.id === id)?.name || 'Unknown Exercise';
+
+    if (workouts.length === 0) {
+        return <p className="text-slate-400 text-center py-4">No workouts logged yet. Let's get started!</p>;
+    }
+
+    return (
+        <div className="space-y-3">
+            {workouts.slice().sort((a,b) => b.endTime - a.endTime).slice(0,5).map(workout => {
+                const isExpanded = expandedWorkoutId === workout.id;
+                return (
+                    <div key={workout.id} className="bg-brand-muted rounded-md">
+                        <button onClick={() => setExpandedWorkoutId(isExpanded ? null : workout.id)} className="w-full text-left p-3 focus:outline-none">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <p className="font-semibold">{workout.name}</p>
+                                    <div className="flex items-center gap-3 text-xs text-slate-300 mt-1">
+                                        <p>{workout.type} Day {workout.variation && `(${workout.variation})`}</p>
+                                        <span>&bull;</span>
+                                        <p>{formatDuration(workout.endTime - workout.startTime)}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                     <p className="text-sm text-slate-400">{new Date(workout.endTime).toLocaleDateString()}</p>
+                                    {isExpanded ? <ChevronUpIcon className="w-5 h-5"/> : <ChevronDownIcon className="w-5 h-5"/>}
+                                </div>
+                            </div>
+                        </button>
+                        <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                            <div className="overflow-hidden">
+                                <div className="p-3 pt-2 border-t border-slate-600/50 text-xs">
+                                    {workout.loggedExercises.map((ex: LoggedExercise) => (
+                                        <div key={ex.id} className="mb-2 last:mb-0">
+                                            <p className="font-semibold text-slate-300">{getExerciseName(ex.exerciseId)}</p>
+                                            <ul className="list-disc list-inside pl-2 text-slate-400">
+                                                {ex.sets.map((set, i) => (
+                                                    <li key={set.id}>
+                                                        Set {i + 1}: {set.bodyweightAtTime 
+                                                            ? `Bodyweight (${set.weight} lbs)` 
+                                                            : `${set.weight} lbs`} x {set.reps} reps
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 
 const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, onStartWorkout, onNavigateToProfile, onNavigateToBests }) => {
   const { level, progress, nextLevelWorkouts } = getUserLevel(workouts.length);
@@ -175,24 +235,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, 
 
         <section className="bg-brand-surface p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Workout History</h3>
-            {workouts.length === 0 ? (
-                <p className="text-slate-400 text-center py-4">No workouts logged yet. Let's get started!</p>
-            ) : (
-                <div className="space-y-3">
-                    {workouts.slice().sort((a,b) => b.endTime - a.endTime).slice(0,5).map(workout => (
-                        <div key={workout.id} className="bg-brand-muted p-3 rounded-md">
-                           <div className="flex justify-between items-center">
-                                <p className="font-semibold">{workout.name}</p>
-                                <p className="text-sm text-slate-400">{new Date(workout.endTime).toLocaleDateString()}</p>
-                           </div>
-                           <div className="flex justify-between items-center text-xs text-slate-300 mt-1">
-                                <p>{workout.type} Day {workout.variation && `(${workout.variation})`}</p>
-                                <p>Duration: {formatDuration(workout.endTime - workout.startTime)}</p>
-                           </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+            <WorkoutHistory workouts={workouts} />
         </section>
       </main>
     </div>

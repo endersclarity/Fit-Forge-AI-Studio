@@ -92,6 +92,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const [isExerciseSelectorOpen, setExerciseSelectorOpen] = useState(false);
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
   const [isCapacityPanelOpen, setCapacityPanelOpen] = useState(false);
+  const [bodyweightWarning, setBodyweightWarning] = useState<string | null>(null);
 
   const [finalWorkoutSession, setFinalWorkoutSession] = useState<WorkoutSession | null>(null);
 
@@ -111,7 +112,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     oscillator.frequency.value = 880;
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
     gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
-    // Fix: The oscillator.start() method requires an argument in some implementations. Passing audioContext.currentTime ensures it starts immediately and is compatible with more browsers, resolving the "Expected 1 arguments, but got 0" error.
+    // Fix: The oscillator.start() method requires an argument in some implementations. Passing audioContext.currentTime ensures it starts immediately and is compatible with more browsers.
     oscillator.start(audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
     oscillator.stop(audioContext.currentTime + 1);
@@ -183,16 +184,34 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     setLoggedExercises(prev => prev.map(ex => 
       ex.id === exerciseId ? {
         ...ex,
-        sets: ex.sets.map(s => s.id === setId ? { ...s, [field]: finalValue } : s)
+        sets: ex.sets.map(s => s.id === setId ? { ...s, [field]: finalValue, bodyweightAtTime: undefined } : s)
       } : ex
     ));
   };
 
   const handleWeightBlur = (exerciseId: string, setId: string, currentWeight: number) => {
-    const roundedWeight = Math.round(currentWeight / 2.5) * 2.5;
+    const roundedWeight = Math.round(currentWeight / 0.25) * 0.25;
     if (roundedWeight !== currentWeight) {
         updateSet(exerciseId, setId, 'weight', roundedWeight);
     }
+  };
+
+  const handleUseBodyweight = (exerciseId: string, setId: string) => {
+    const latestWeightEntry = userProfile.bodyweightHistory?.sort((a,b) => b.date - a.date)[0];
+    const bodyweight = latestWeightEntry?.weight || 150;
+    
+    if (!latestWeightEntry) {
+        setBodyweightWarning("Default used - set bodyweight in Profile");
+        setTimeout(() => setBodyweightWarning(null), 3000);
+    }
+
+    setLoggedExercises(prev => 
+        prev.map(ex => 
+            ex.id === exerciseId 
+            ? { ...ex, sets: ex.sets.map(s => s.id === setId ? { ...s, weight: bodyweight, bodyweightAtTime: bodyweight } : s) } 
+            : ex
+        )
+    );
   };
 
   const removeSet = (exerciseId: string, setId: string) => {
@@ -326,7 +345,12 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
   if (stage === "tracking") {
     return (
-        <div className="p-4 bg-brand-dark min-h-screen flex flex-col">
+        <div className="p-4 bg-brand-dark min-h-screen flex flex-col relative">
+          {bodyweightWarning && 
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-yellow-500 text-black text-xs font-semibold px-3 py-1 rounded-full shadow-lg z-10">
+                {bodyweightWarning}
+            </div>
+          }
           <header className="flex justify-between items-center mb-4">
             <div>
                 <h2 className="text-xl font-bold">{workoutName}</h2>
@@ -347,25 +371,26 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                 {isExpanded && <div className="p-4 pt-0">
                     <div className="grid grid-cols-12 gap-2 text-center text-xs text-slate-400 font-semibold mb-2">
                         <span className="col-span-2">Set</span>
-                        <span className="col-span-4">Weight (lbs)</span>
+                        <span className="col-span-5">Weight (lbs)</span>
                         <span className="col-span-2">Reps</span>
-                        <span className="col-span-4"></span>
+                        <span className="col-span-3"></span>
                     </div>
                     {ex.sets.map((s, i) => (
                       <div key={s.id} className="grid grid-cols-12 gap-2 items-center mb-2">
                           <span className="text-center font-bold text-slate-300 col-span-2">{i + 1}</span>
-                          <div className="col-span-4">
-                            <input type="number" step="2.5" value={s.weight} 
+                          <div className="col-span-5 flex items-center gap-1">
+                            <input type="number" step="0.25" value={s.weight} 
                                 onChange={e => updateSet(ex.id, s.id, 'weight', parseFloat(e.target.value) || 0)} 
                                 onBlur={e => handleWeightBlur(ex.id, s.id, parseFloat(e.target.value) || 0)}
                                 className="w-full text-center bg-brand-dark rounded-md p-2" />
+                            <button onClick={() => handleUseBodyweight(ex.id, s.id)} className="bg-brand-muted text-xs px-2 py-1 rounded-md whitespace-nowrap h-full">Use BW</button>
                           </div>
                           <div className="col-span-2">
                             <input type="number" value={s.reps} 
                                 onChange={e => updateSet(ex.id, s.id, 'reps', parseInt(e.target.value) || 0)} 
                                 className="w-full text-center bg-brand-dark rounded-md p-2" />
                           </div>
-                          <div className="col-span-4 flex justify-center items-center gap-2">
+                          <div className="col-span-3 flex justify-center items-center gap-1">
                             <button onClick={() => startRestTimer(s.id)} className="text-slate-400 hover:text-brand-cyan p-1"><ClockIcon className="w-5 h-5"/></button>
                             <button onClick={() => removeSet(ex.id, s.id)} className="text-slate-400 hover:text-red-500 p-1"><XIcon className="w-5 h-5"/></button>
                           </div>
