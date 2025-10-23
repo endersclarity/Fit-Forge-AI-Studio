@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 // Fix: Import ALL_MUSCLES from constants instead of types
-import { UserProfile, WeightEntry, Equipment, EquipmentItem, EquipmentIncrement, MuscleBaselines, Muscle } from '../types';
+import { UserProfile, WeightEntry, Equipment, EquipmentItem, EquipmentIncrement, MuscleBaselines, Muscle, Difficulty } from '../types';
 import { ALL_MUSCLES } from '../constants';
 import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon, EditIcon, PlusIcon, SaveIcon, TrashIcon, XIcon } from './Icons';
 
@@ -165,6 +165,8 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
     const [isEquipmentModalOpen, setEquipmentModalOpen] = useState(false);
     const [editingEquipment, setEditingEquipment] = useState<EquipmentItem | null>(null);
     const [editingWeight, setEditingWeight] = useState(false);
+    const [editingName, setEditingName] = useState(false);
+    const [currentName, setCurrentName] = useState(profile.name);
 
     const latestWeightEntry = useMemo(() => {
         if (!profile.bodyweightHistory || profile.bodyweightHistory.length === 0) {
@@ -177,6 +179,11 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
 
     const handleProfileChange = (field: keyof UserProfile, value: any) => {
         setProfile(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleNameSave = () => {
+        handleProfileChange('name', currentName);
+        setEditingName(false);
     };
 
     const handleWeightSave = () => {
@@ -236,6 +243,33 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
                 <section className="bg-brand-surface p-4 rounded-lg">
                     <h2 className="text-lg font-semibold mb-4">Personal Metrics</h2>
                     <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300">Name</label>
+                            {editingName ? (
+                                <div className="flex items-center gap-2">
+                                <input type="text" value={currentName} onChange={e => setCurrentName(e.target.value)} className="w-full bg-brand-dark border border-brand-muted rounded-md px-3 py-2 text-lg font-bold" />
+                                <button onClick={handleNameSave} className="p-2 bg-brand-cyan rounded-md"><SaveIcon className="w-5 h-5 text-brand-dark"/></button>
+                                </div>
+                            ) : (
+                                <div className="flex items-baseline gap-2 cursor-pointer" onClick={() => setEditingName(true)}>
+                                    <p className="text-2xl font-bold">{profile.name}</p>
+                                    <EditIcon className="w-4 h-4 text-slate-400" />
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <label htmlFor="experience" className="block text-sm font-medium text-slate-300 mb-1">Experience Level</label>
+                            <select 
+                                id="experience" 
+                                value={profile.experience} 
+                                onChange={e => handleProfileChange('experience', e.target.value as Difficulty)} 
+                                className="w-full bg-brand-dark border border-brand-muted rounded-md px-3 py-2"
+                            >
+                                <option>Beginner</option>
+                                <option>Intermediate</option>
+                                <option>Advanced</option>
+                            </select>
+                        </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-300">Current Bodyweight (lbs)</label>
                             {editingWeight ? (

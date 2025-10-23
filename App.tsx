@@ -1,14 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
-import { UserProfile, WorkoutSession, MuscleAnalytics, PersonalBests, Muscle, MuscleBaselines, MuscleBaseline, MuscleStates } from './types';
+import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, MuscleStates } from './types';
 import Dashboard from './components/Dashboard';
 import WorkoutTracker from './components/Workout';
 import Profile from './components/Profile';
+import PersonalBestsComponent from './components/PersonalBests';
 import Toast from './components/Toast';
 import { calculateVolume } from './utils/helpers';
 
-type View = "dashboard" | "workout" | "profile";
+type View = "dashboard" | "workout" | "profile" | "bests";
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>("dashboard");
@@ -106,6 +107,7 @@ const App: React.FC = () => {
                       muscleStates={muscleStates} 
                       onStartWorkout={() => navigateTo('workout')}
                       onNavigateToProfile={() => navigateTo('profile')}
+                      onNavigateToBests={() => navigateTo('bests')}
                     />;
         case 'workout':
             return <WorkoutTracker 
@@ -114,6 +116,7 @@ const App: React.FC = () => {
                       allWorkouts={workouts}
                       personalBests={personalBests}
                       userProfile={profile}
+                      muscleBaselines={muscleBaselines}
                     />;
         case 'profile':
             return <Profile
@@ -123,6 +126,11 @@ const App: React.FC = () => {
                       setMuscleBaselines={setMuscleBaselines}
                       onBack={() => navigateTo('dashboard')}
                     />;
+        case 'bests':
+            return <PersonalBestsComponent
+                      personalBests={personalBests}
+                      onBack={() => navigateTo('dashboard')}
+                    />;
         default:
             return <Dashboard 
                       profile={profile} 
@@ -130,6 +138,7 @@ const App: React.FC = () => {
                       muscleStates={muscleStates} 
                       onStartWorkout={() => navigateTo('workout')}
                       onNavigateToProfile={() => navigateTo('profile')}
+                      onNavigateToBests={() => navigateTo('bests')}
                     />;
     }
   }

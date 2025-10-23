@@ -54,6 +54,6 @@ export const calculateVolume = (reps: number, weight: number): number => {
 
 export const findPreviousWorkout = (currentWorkout: WorkoutSession, allWorkouts: WorkoutSession[]): WorkoutSession | undefined => {
     return allWorkouts
-        .filter(w => w.id !== currentWorkout.id && w.type === currentWorkout.type)
+        .filter(w => w.id !== currentWorkout.id && w.type === currentWorkout.type && w.variation === currentWorkout.variation)
         .sort((a, b) => b.endTime - a.endTime)[0];
 };

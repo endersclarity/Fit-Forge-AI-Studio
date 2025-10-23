@@ -3,7 +3,7 @@ import React from 'react';
 import { ALL_MUSCLES } from '../constants';
 import { Muscle, MuscleStates, UserProfile, WorkoutSession } from '../types';
 import { calculateRecoveryPercentage, getDaysSince, getRecoveryColor, getUserLevel, formatDuration } from '../utils/helpers';
-import { DumbbellIcon, UserIcon } from './Icons';
+import { DumbbellIcon, UserIcon, TrophyIcon } from './Icons';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -11,6 +11,7 @@ interface DashboardProps {
   muscleStates: MuscleStates;
   onStartWorkout: () => void;
   onNavigateToProfile: () => void;
+  onNavigateToBests: () => void;
 }
 
 const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates }> = ({ muscleStates }) => {
@@ -44,7 +45,7 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates }> = ({ mu
   );
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, onStartWorkout, onNavigateToProfile }) => {
+const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, onStartWorkout, onNavigateToProfile, onNavigateToBests }) => {
   const { level, progress, nextLevelWorkouts } = getUserLevel(workouts.length);
 
   return (
@@ -54,9 +55,14 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, 
             <DumbbellIcon className="w-8 h-8 text-brand-cyan" />
             <h1 className="text-2xl font-bold tracking-tight">FitForge</h1>
         </div>
-        <button onClick={onNavigateToProfile} className="p-2 rounded-full hover:bg-brand-surface">
-            <UserIcon className="w-6 h-6"/>
-        </button>
+        <div className="flex items-center gap-2">
+            <button onClick={onNavigateToBests} className="p-2 rounded-full hover:bg-brand-surface">
+                <TrophyIcon className="w-6 h-6 text-yellow-400"/>
+            </button>
+            <button onClick={onNavigateToProfile} className="p-2 rounded-full hover:bg-brand-surface">
+                <UserIcon className="w-6 h-6"/>
+            </button>
+        </div>
       </header>
 
       <main className="space-y-8">
@@ -80,12 +86,10 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, 
             </button>
         </section>
 
-        {level >= 2 && (
-            <section className="bg-brand-surface p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4">Muscle Recovery</h3>
-                <MuscleRecoveryVisualizer muscleStates={muscleStates} />
-            </section>
-        )}
+        <section className="bg-brand-surface p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-4">Muscle Recovery</h3>
+            <MuscleRecoveryVisualizer muscleStates={muscleStates} />
+        </section>
 
         <section className="bg-brand-surface p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Workout History</h3>

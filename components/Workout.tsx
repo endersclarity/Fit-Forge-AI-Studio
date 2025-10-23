@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EXERCISE_LIBRARY, ALL_MUSCLES } from '../constants';
 import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation } from '../types';
 import { calculateVolume, findPreviousWorkout, formatDuration, getUserLevel } from '../utils/helpers';
 import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon } from './Icons';
+import WorkoutSummaryModal from './WorkoutSummaryModal';
 
 type WorkoutStage = "setup" | "tracking" | "summary";
 
@@ -13,6 +13,7 @@ interface WorkoutProps {
   allWorkouts: WorkoutSession[];
   personalBests: PersonalBests;
   userProfile: UserProfile;
+  muscleBaselines: MuscleBaselines;
 }
 
 const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDone: () => void, workoutVariation: Variation }> = ({ onSelect, onDone, workoutVariation }) => {
@@ -80,7 +81,7 @@ const RestTimer: React.FC<{
 };
 
 
-const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, allWorkouts, personalBests, userProfile }) => {
+const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, allWorkouts, personalBests, userProfile, muscleBaselines }) => {
   const [stage, setStage] = useState<WorkoutStage>("setup");
   const [workoutName, setWorkoutName] = useState("");
   const [workoutType, setWorkoutType] = useState<ExerciseCategory>("Push");
@@ -97,10 +98,10 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   // Rest Timer State
   const [activeTimer, setActiveTimer] = useState<{ setId: string; initialDuration: number; remaining: number } | null>(null);
   const timerIntervalRef = useRef<number>();
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const playBeep = () => {
-    // Fix: The AudioContext constructor is called without arguments for broader browser compatibility, resolving an argument error.
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioContext = audioContextRef.current;
     if (!audioContext) return;
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -110,6 +111,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     oscillator.frequency.value = 880;
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
     gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
+    // Fix: The oscillator.start() method requires an argument. Passing audioContext.currentTime ensures it starts immediately and is compatible with more browsers, resolving the "Expected 1 arguments, but got 0" error.
     oscillator.start(audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
     oscillator.stop(audioContext.currentTime + 1);
@@ -128,6 +130,13 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   }, [activeTimer]);
 
   const startRestTimer = (setId: string, duration: number = 90) => {
+    if (!audioContextRef.current) {
+        try {
+            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        } catch(e) {
+            console.error("Web Audio API is not supported in this browser", e);
+        }
+    }
     clearInterval(timerIntervalRef.current);
     setActiveTimer({ setId, initialDuration: duration, remaining: duration });
   };
@@ -195,10 +204,10 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     ));
   };
   
-  const finishWorkout = () => {
+  const handleOpenSummary = () => {
     const end = Date.now();
     setEndTime(end);
-    // Fix: Add missing muscleFatigueHistory property to conform to WorkoutSession type
+    
     const session: WorkoutSession = {
       id: `workout-${startTime}`,
       name: workoutName,
@@ -207,21 +216,14 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       startTime,
       endTime: end,
       loggedExercises,
-      muscleFatigueHistory: {},
+      muscleFatigueHistory: {}, // This will be calculated in onFinishWorkout
     };
     setFinalWorkoutSession(session);
-    onFinishWorkout(session);
     setStage("summary");
     stopRestTimer();
   };
 
   const getExerciseName = (exerciseId: string) => EXERCISE_LIBRARY.find(e => e.id === exerciseId)?.name || 'Unknown Exercise';
-
-  const userLevel = getUserLevel(allWorkouts.length).level;
-  const previousWorkout = finalWorkoutSession ? findPreviousWorkout(finalWorkoutSession, allWorkouts) : null;
-  const totalVolume = finalWorkoutSession?.loggedExercises.reduce((total, ex) => total + ex.sets.reduce((exTotal, s) => exTotal + calculateVolume(s.reps, s.weight), 0), 0) || 0;
-  const prevTotalVolume = previousWorkout?.loggedExercises.reduce((total, ex) => total + ex.sets.reduce((exTotal, s) => exTotal + calculateVolume(s.reps, s.weight), 0), 0) || 0;
-  const volumeChange = prevTotalVolume > 0 ? ((totalVolume - prevTotalVolume) / prevTotalVolume) * 100 : 0;
 
   const muscleCapacityData = useMemo(() => {
     const baselinesStr = localStorage.getItem('fitforge-muscle-baselines');
@@ -330,7 +332,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                 <h2 className="text-xl font-bold">{workoutName}</h2>
                 <p className="text-sm text-slate-400">{workoutType} Day ({workoutVariation})</p>
             </div>
-            <button onClick={finishWorkout} className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg">Finish</button>
+            <button onClick={handleOpenSummary} className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg">Finish</button>
           </header>
           <div className="flex-grow space-y-3 overflow-y-auto pb-24">
             {loggedExercises.map(ex => {
@@ -420,46 +422,19 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     );
   }
 
-  if (stage === "summary") {
+  if (stage === "summary" && finalWorkoutSession) {
     return (
-      <div className="p-4 bg-brand-dark min-h-screen flex flex-col justify-between">
-        <div>
-            <h2 className="text-3xl font-bold mb-2 text-center">Workout Complete!</h2>
-            <p className="text-center text-slate-400 mb-8">{finalWorkoutSession?.name}</p>
-
-            <div className="grid grid-cols-2 gap-4 text-center mb-8">
-                <div className="bg-brand-surface p-4 rounded-lg">
-                    <p className="text-2xl font-bold">{formatDuration(endTime - startTime)}</p>
-                    <p className="text-sm text-slate-400">Duration</p>
-                </div>
-                <div className="bg-brand-surface p-4 rounded-lg">
-                    <p className="text-2xl font-bold">{totalVolume.toLocaleString()}<span className="text-base text-slate-400"> lbs</span></p>
-                    <p className="text-sm text-slate-400">Total Volume</p>
-                </div>
-            </div>
-
-            {userLevel >= 3 && previousWorkout && (
-                <div className="bg-brand-surface p-4 rounded-lg mb-8">
-                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><TrophyIcon className="w-5 h-5 text-yellow-400"/> Progressive Overload</h3>
-                    <p>
-                        Total volume was <span className={`font-bold ${volumeChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>{volumeChange.toFixed(1)}% {volumeChange >= 0 ? 'higher' : 'lower'}</span> than your last {finalWorkoutSession?.type} workout.
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">Previous: {prevTotalVolume.toLocaleString()} lbs</p>
-                    <h4 className="font-semibold mt-4 mb-2">Next Time Suggestions:</h4>
-                    <ul className="list-disc list-inside text-sm space-y-1 text-slate-300">
-                        {finalWorkoutSession?.loggedExercises.slice(0, 2).map(ex => {
-                            const sets = ex.sets;
-                            if (sets.length === 0) return null;
-                            const avgWeight = sets.reduce((sum, s) => sum + s.weight, 0) / sets.length;
-                            const targetWeight = (avgWeight * 1.025).toFixed(1).replace(/\.0$/, '');
-                            return <li key={ex.id}>For {getExerciseName(ex.exerciseId)}, aim for {sets[0].reps} reps at ~{targetWeight} lbs.</li>
-                        })}
-                    </ul>
-                </div>
-            )}
-        </div>
-        <button onClick={onCancel} className="w-full bg-brand-cyan text-brand-dark py-4 rounded-lg font-bold">Done</button>
-      </div>
+      <WorkoutSummaryModal
+        isOpen={true}
+        session={finalWorkoutSession}
+        personalBests={personalBests}
+        muscleBaselines={muscleBaselines}
+        allWorkouts={allWorkouts}
+        onClose={() => {
+          onFinishWorkout(finalWorkoutSession);
+          onCancel();
+        }}
+      />
     );
   }
   
