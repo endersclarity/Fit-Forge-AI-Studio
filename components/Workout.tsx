@@ -4,6 +4,7 @@ import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, 
 import { calculateVolume, findPreviousWorkout, formatDuration, getUserLevel } from '../utils/helpers';
 import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon } from './Icons';
 import WorkoutSummaryModal from './WorkoutSummaryModal';
+import { RecommendedWorkoutData } from '../App';
 
 type WorkoutStage = "setup" | "tracking" | "summary";
 
@@ -14,6 +15,7 @@ interface WorkoutProps {
   personalBests: PersonalBests;
   userProfile: UserProfile;
   muscleBaselines: MuscleBaselines;
+  initialData?: RecommendedWorkoutData | null;
 }
 
 const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDone: () => void, workoutVariation: Variation }> = ({ onSelect, onDone, workoutVariation }) => {
@@ -81,14 +83,20 @@ const RestTimer: React.FC<{
 };
 
 
-const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, allWorkouts, personalBests, userProfile, muscleBaselines }) => {
-  const [stage, setStage] = useState<WorkoutStage>("setup");
-  const [workoutName, setWorkoutName] = useState("");
-  const [workoutType, setWorkoutType] = useState<ExerciseCategory>("Push");
-  const [workoutVariation, setWorkoutVariation] = useState<"A" | "B">("A");
-  const [startTime, setStartTime] = useState<number>(0);
-  const [endTime, setEndTime] = useState<number>(0);
-  const [loggedExercises, setLoggedExercises] = useState<LoggedExercise[]>([]);
+const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, allWorkouts, personalBests, userProfile, muscleBaselines, initialData }) => {
+  const [stage, setStage] = useState<WorkoutStage>(initialData ? "tracking" : "setup");
+  const [workoutName, setWorkoutName] = useState(initialData ? `${initialData.type} Day ${initialData.variation}` : "");
+  const [workoutType, setWorkoutType] = useState<ExerciseCategory>(initialData?.type || "Push");
+  // Fix: Handle cases where the recommended workout variation is "Both" by defaulting to "A".
+  const [workoutVariation, setWorkoutVariation] = useState<"A" | "B">(initialData?.variation && initialData.variation !== 'Both' ? initialData.variation : 'A');
+  const [startTime, setStartTime] = useState<number>(initialData ? Date.now() : 0);
+  const [loggedExercises, setLoggedExercises] = useState<LoggedExercise[]>(
+     initialData ? initialData.suggestedExercises.map(ex => ({
+        id: `${ex.id}-${Date.now()}`,
+        exerciseId: ex.id,
+        sets: []
+    })) : []
+  );
   const [isExerciseSelectorOpen, setExerciseSelectorOpen] = useState(false);
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
   const [isCapacityPanelOpen, setCapacityPanelOpen] = useState(false);
@@ -98,8 +106,15 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
   // Rest Timer State
   const [activeTimer, setActiveTimer] = useState<{ setId: string; initialDuration: number; remaining: number } | null>(null);
-  const timerIntervalRef = useRef<number>();
+  // Fix: Changed useRef type to allow for an undefined initial value, resolving the "Expected 1 arguments, but got 0" error.
+  const timerIntervalRef = useRef<number | undefined>();
   const audioContextRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    if (initialData && loggedExercises.length > 0) {
+        setExpandedExerciseId(loggedExercises[0].id);
+    }
+  }, [initialData, loggedExercises]);
 
   const playBeep = () => {
     const audioContext = audioContextRef.current;
@@ -112,7 +127,6 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     oscillator.frequency.value = 880;
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
     gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
-    // Fix: The oscillator.start() method requires an argument in some implementations. Passing audioContext.currentTime ensures it starts immediately and is compatible with more browsers.
     oscillator.start(audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
     oscillator.stop(audioContext.currentTime + 1);
@@ -124,10 +138,12 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             setActiveTimer(prev => prev ? { ...prev, remaining: prev.remaining - 1 } : null);
         }, 1000);
     } else if (activeTimer && activeTimer.remaining <= 0) {
-        clearInterval(timerIntervalRef.current);
+        if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
         playBeep();
     }
-    return () => clearInterval(timerIntervalRef.current);
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    }
   }, [activeTimer]);
 
   const startRestTimer = (setId: string, duration: number = 90) => {
@@ -138,12 +154,12 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             console.error("Web Audio API is not supported in this browser", e);
         }
     }
-    clearInterval(timerIntervalRef.current);
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     setActiveTimer({ setId, initialDuration: duration, remaining: duration });
   };
 
   const stopRestTimer = () => {
-    clearInterval(timerIntervalRef.current);
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     setActiveTimer(null);
   };
 
@@ -225,7 +241,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   
   const handleOpenSummary = () => {
     const end = Date.now();
-    setEndTime(end);
+    // Fix: Removed call to non-existent 'setEndTime' function.
     
     const session: WorkoutSession = {
       id: `workout-${startTime}`,

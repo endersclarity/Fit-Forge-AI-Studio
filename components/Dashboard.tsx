@@ -1,20 +1,146 @@
-
 import React, { useState, useMemo } from 'react';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
-// Fix: Added MuscleBaselines import
-import { Muscle, MuscleStates, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise } from '../types';
+import { Muscle, MuscleStates, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise } from '../types';
 import { calculateRecoveryPercentage, getDaysSince, getRecoveryColor, getUserLevel, formatDuration } from '../utils/helpers';
-// Fix: Added ChevronDownIcon and ChevronUpIcon imports
 import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
+import { RecommendedWorkoutData } from '../App';
 
 interface DashboardProps {
   profile: UserProfile;
   workouts: WorkoutSession[];
   muscleStates: MuscleStates;
+  muscleBaselines: MuscleBaselines;
   onStartWorkout: () => void;
+  onStartRecommendedWorkout: (data: RecommendedWorkoutData) => void;
   onNavigateToProfile: () => void;
   onNavigateToBests: () => void;
 }
+
+const PRIMARY_MUSCLE_GROUPS: Record<string, Muscle[]> = {
+  Push: [Muscle.Pectoralis, Muscle.Triceps, Muscle.Deltoids],
+  Pull: [Muscle.Lats, Muscle.Biceps, Muscle.Rhomboids, Muscle.Trapezius],
+  Legs: [Muscle.Quadriceps, Muscle.Glutes, Muscle.Hamstrings],
+};
+
+const WorkoutRecommender: React.FC<{
+    muscleStates: MuscleStates;
+    workouts: WorkoutSession[];
+    muscleBaselines: MuscleBaselines;
+    onStart: (data: RecommendedWorkoutData) => void;
+}> = ({ muscleStates, workouts, muscleBaselines, onStart }) => {
+    
+    const recommendation = useMemo(() => {
+        const RECOVERY_THRESHOLD = 90;
+
+        const recoveredMuscles = ALL_MUSCLES
+            .map(muscle => {
+                const state = muscleStates[muscle];
+                if (!state || !state.lastTrained) return { muscle, recovery: 100 };
+                const daysSince = getDaysSince(state.lastTrained);
+                const recovery = calculateRecoveryPercentage(daysSince, state.recoveryDaysNeeded);
+                return { muscle, recovery };
+            })
+            .filter(m => m.recovery >= RECOVERY_THRESHOLD);
+
+        const categoryScores: Record<string, { score: number; totalRecovery: number }> = { Push: { score: 0, totalRecovery: 0 }, Pull: { score: 0, totalRecovery: 0 }, Legs: { score: 0, totalRecovery: 0 } };
+        const recoveredMusclesByCategory: Record<string, { muscle: Muscle; recovery: number }[]> = { Push: [], Pull: [], Legs: [] };
+
+        recoveredMuscles.forEach(({ muscle, recovery }) => {
+            for (const category in PRIMARY_MUSCLE_GROUPS) {
+                if (PRIMARY_MUSCLE_GROUPS[category].includes(muscle)) {
+                    categoryScores[category].score++;
+                    categoryScores[category].totalRecovery += recovery;
+                    recoveredMusclesByCategory[category].push({ muscle, recovery });
+                }
+            }
+        });
+
+        const sortedCategories = Object.entries(categoryScores).sort(([, a], [, b]) => {
+            if (b.score !== a.score) return b.score - a.score;
+            return b.totalRecovery - a.totalRecovery;
+        });
+
+        const bestCategory = sortedCategories[0][0] as ExerciseCategory;
+
+        if (categoryScores[bestCategory].score === 0) {
+            return { type: 'rest' as const };
+        }
+
+        const lastWorkoutOfType = workouts
+            .filter(w => w.type === bestCategory)
+            .sort((a, b) => b.endTime - a.endTime)[0];
+        const nextVariation = lastWorkoutOfType?.variation === 'A' ? ('B' as const) : ('A' as const);
+
+        const suggestedExercises = EXERCISE_LIBRARY
+            .filter(ex => ex.category === bestCategory && (ex.variation === 'Both' || ex.variation === nextVariation))
+            .slice(0, 4);
+
+        const targetMuscles = PRIMARY_MUSCLE_GROUPS[bestCategory];
+        const targetVolumes = targetMuscles
+            .filter(muscle => recoveredMuscles.some(rm => rm.muscle === muscle))
+            .map(muscle => {
+                const baseline = muscleBaselines[muscle]?.userOverride || muscleBaselines[muscle]?.systemLearnedMax || 0;
+                if (baseline === 0) return null;
+                return {
+                    muscle,
+                    low: Math.round(baseline * 0.7 / 100) * 100,
+                    high: Math.round(baseline * 0.9 / 100) * 100
+                };
+            }).filter((v): v is { muscle: Muscle; low: number; high: number; } => v !== null && v.low > 0);
+
+        return {
+            type: 'workout' as const,
+            category: bestCategory,
+            variation: nextVariation,
+            recoveredMuscles: recoveredMusclesByCategory[bestCategory].sort((a,b) => b.recovery - a.recovery),
+            suggestedExercises,
+            targetVolumes,
+        };
+    }, [muscleStates, workouts, muscleBaselines]);
+
+    if (recommendation.type === 'rest') {
+        return (
+            <div className="bg-brand-surface p-4 rounded-lg text-center">
+                <h3 className="text-lg font-semibold mb-2">Rest Day Recommended</h3>
+                <p className="text-slate-400 text-sm">Your muscles need more recovery time. Come back tomorrow!</p>
+            </div>
+        );
+    }
+    
+    return (
+        <div className="bg-brand-surface p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-1">Workout Recommendation</h3>
+            <p className="text-2xl font-bold text-brand-cyan mb-2">Ready for: {recommendation.category} Day {recommendation.variation}</p>
+            <p className="text-xs text-slate-400 mb-4">
+                {recommendation.recoveredMuscles.map(m => `${m.muscle} (${m.recovery.toFixed(0)}%)`).join(', ')}
+            </p>
+
+            <div className="mb-4">
+                <h4 className="font-semibold text-sm mb-2">Suggested Exercises:</h4>
+                <ul className="grid grid-cols-2 gap-2 text-xs">
+                    {recommendation.suggestedExercises.map(ex => <li key={ex.id} className="bg-brand-muted px-2 py-1 rounded">{ex.name}</li>)}
+                </ul>
+            </div>
+            
+            {recommendation.targetVolumes.length > 0 && (
+                 <div className="mb-4">
+                    <h4 className="font-semibold text-sm mb-2">Target Volume:</h4>
+                    <p className="text-xs text-slate-400">
+                        {recommendation.targetVolumes.map(v => `${v.muscle} ${v.low.toLocaleString()}-${v.high.toLocaleString()} lbs`).join(', ')}
+                    </p>
+                </div>
+            )}
+           
+            <button
+                onClick={() => onStart({ type: recommendation.category, variation: recommendation.variation, suggestedExercises: recommendation.suggestedExercises })}
+                className="w-full bg-cyan-600 text-white font-semibold py-3 px-4 rounded-lg text-base hover:bg-cyan-500 transition-colors"
+            >
+                Start This Workout
+            </button>
+        </div>
+    );
+};
+
 
 const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts: WorkoutSession[] }> = ({ muscleStates, workouts }) => {
   const [expandedMuscle, setExpandedMuscle] = useState<Muscle | null>(null);
@@ -57,7 +183,6 @@ const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts:
     let lastSessionVolume = 0;
     if (lastWorkoutForMuscle && lastWorkoutForMuscle.muscleFatigueHistory) {
         const fatiguePercent = lastWorkoutForMuscle.muscleFatigueHistory[muscle]!;
-        // Avoid division by zero if baseline is 0
         const baselineForCalc = baselineCapacity > 0 ? baselineCapacity : 1; 
         lastSessionVolume = (fatiguePercent / 100) * baselineForCalc;
     }
@@ -187,7 +312,7 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
 };
 
 
-const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, onStartWorkout, onNavigateToProfile, onNavigateToBests }) => {
+const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, muscleBaselines, onStartWorkout, onStartRecommendedWorkout, onNavigateToProfile, onNavigateToBests }) => {
   const { level, progress, nextLevelWorkouts } = getUserLevel(workouts.length);
 
   return (
@@ -217,6 +342,15 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, 
           <p className="text-xs text-slate-400 mt-2 text-right">
             {level < 4 ? `${nextLevelWorkouts - workouts.length} workouts to Level ${level + 1}` : "Max level reached!"}
           </p>
+        </section>
+
+        <section>
+            <WorkoutRecommender 
+                muscleStates={muscleStates} 
+                workouts={workouts} 
+                muscleBaselines={muscleBaselines}
+                onStart={onStartRecommendedWorkout}
+            />
         </section>
 
         <section>

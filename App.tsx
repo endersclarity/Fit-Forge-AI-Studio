@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
-import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, MuscleStates } from './types';
+import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, MuscleStates, ExerciseCategory, Exercise, Variation } from './types';
 import Dashboard from './components/Dashboard';
 import WorkoutTracker from './components/Workout';
 import Profile from './components/Profile';
@@ -10,6 +10,12 @@ import Toast from './components/Toast';
 import { calculateVolume } from './utils/helpers';
 
 type View = "dashboard" | "workout" | "profile" | "bests";
+
+export interface RecommendedWorkoutData {
+    type: ExerciseCategory;
+    variation: Variation;
+    suggestedExercises: Exercise[];
+}
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>("dashboard");
@@ -23,6 +29,8 @@ const App: React.FC = () => {
     ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: { userOverride: null, systemLearnedMax: 0 } }), {} as MuscleBaselines)
   );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [recommendedWorkout, setRecommendedWorkout] = useState<RecommendedWorkoutData | null>(null);
+
 
   const handleFinishWorkout = useCallback((session: WorkoutSession) => {
     // 1. Calculate muscle volumes for this session
@@ -93,10 +101,22 @@ const App: React.FC = () => {
         }
     });
     setPersonalBests(newPbs);
+    
+    setRecommendedWorkout(null);
 
   }, [personalBests, muscleBaselines, muscleStates, setWorkouts, setPersonalBests, setMuscleBaselines, setMuscleStates]);
 
   const navigateTo = (newView: View) => setView(newView);
+
+  const handleStartRecommendedWorkout = useCallback((data: RecommendedWorkoutData) => {
+    setRecommendedWorkout(data);
+    setView('workout');
+  }, []);
+
+  const handleCancelWorkout = useCallback(() => {
+    setRecommendedWorkout(null);
+    setView('dashboard');
+  }, []);
   
   const renderContent = () => {
     switch(view) {
@@ -105,18 +125,21 @@ const App: React.FC = () => {
                       profile={profile} 
                       workouts={workouts} 
                       muscleStates={muscleStates} 
+                      muscleBaselines={muscleBaselines}
                       onStartWorkout={() => navigateTo('workout')}
+                      onStartRecommendedWorkout={handleStartRecommendedWorkout}
                       onNavigateToProfile={() => navigateTo('profile')}
                       onNavigateToBests={() => navigateTo('bests')}
                     />;
         case 'workout':
             return <WorkoutTracker 
                       onFinishWorkout={handleFinishWorkout} 
-                      onCancel={() => navigateTo('dashboard')}
+                      onCancel={handleCancelWorkout}
                       allWorkouts={workouts}
                       personalBests={personalBests}
                       userProfile={profile}
                       muscleBaselines={muscleBaselines}
+                      initialData={recommendedWorkout}
                     />;
         case 'profile':
             return <Profile
@@ -136,7 +159,9 @@ const App: React.FC = () => {
                       profile={profile} 
                       workouts={workouts} 
                       muscleStates={muscleStates} 
+                      muscleBaselines={muscleBaselines}
                       onStartWorkout={() => navigateTo('workout')}
+                      onStartRecommendedWorkout={handleStartRecommendedWorkout}
                       onNavigateToProfile={() => navigateTo('profile')}
                       onNavigateToBests={() => navigateTo('bests')}
                     />;
