@@ -262,11 +262,10 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const getExerciseName = (exerciseId: string) => EXERCISE_LIBRARY.find(e => e.id === exerciseId)?.name || 'Unknown Exercise';
 
   const muscleCapacityData = useMemo(() => {
-    const baselinesStr = localStorage.getItem('fitforge-muscle-baselines');
-    if (!baselinesStr) {
+    const baselines = muscleBaselines;
+    if (!baselines || Object.keys(baselines).length === 0) {
         return { status: 'no_baselines', data: [] };
     }
-    const baselines: MuscleBaselines = JSON.parse(baselinesStr);
 
     const hasSets = loggedExercises.some(ex => ex.sets.length > 0);
     if (!hasSets) {
@@ -305,7 +304,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     }
     
     return { status: 'ok', data: capacityInfo };
-  }, [loggedExercises]);
+  }, [loggedExercises, muscleBaselines]);
 
   const getFatigueColor = (percentage: number): string => {
     if (percentage > 70) return "bg-red-500";

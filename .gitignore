@@ -8,9 +8,16 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+backend/node_modules
 dist
 dist-ssr
 *.local
+
+# Database and data
+data/
+*.db
+*.db-shm
+*.db-wal
 
 # Editor directories and files
 .vscode/*

@@ -1,0 +1,34 @@
+# Node modules
+node_modules
+npm-debug.log
+
+# Git
+.git
+.gitignore
+
+# Build output
+dist
+build
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+README-LOCAL.md
+
+# Data (don't copy into image)
+data/
+
+# Backend files (frontend doesn't need these)
+backend/

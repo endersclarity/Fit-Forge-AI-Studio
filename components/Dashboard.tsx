@@ -142,18 +142,8 @@ const WorkoutRecommender: React.FC<{
 };
 
 
-const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts: WorkoutSession[] }> = ({ muscleStates, workouts }) => {
+const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts: WorkoutSession[], muscleBaselines: MuscleBaselines }> = ({ muscleStates, workouts, muscleBaselines }) => {
   const [expandedMuscle, setExpandedMuscle] = useState<Muscle | null>(null);
-
-  const muscleBaselines: MuscleBaselines = useMemo(() => {
-    try {
-      const item = window.localStorage.getItem('fitforge-muscle-baselines');
-      return item ? JSON.parse(item) : {};
-    } catch (error) {
-      console.error("Failed to parse muscle baselines from localStorage", error);
-      return {};
-    }
-  }, []);
 
   const muscleData = useMemo(() => {
     return ALL_MUSCLES.map(muscle => {
@@ -364,7 +354,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, 
 
         <section className="bg-brand-surface p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Muscle Recovery</h3>
-            <MuscleRecoveryVisualizer muscleStates={muscleStates} workouts={workouts} />
+            <MuscleRecoveryVisualizer muscleStates={muscleStates} workouts={workouts} muscleBaselines={muscleBaselines} />
         </section>
 
         <section className="bg-brand-surface p-4 rounded-lg">

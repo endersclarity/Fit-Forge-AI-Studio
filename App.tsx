@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import { useAPIState } from './hooks/useAPIState';
+import { profileAPI, workoutsAPI, muscleStatesAPI, personalBestsAPI, muscleBaselinesAPI } from './api';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
 import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, MuscleStates, ExerciseCategory, Exercise, Variation, ExerciseMaxes } from './types';
 import Dashboard from './components/Dashboard';
@@ -20,108 +21,122 @@ export interface RecommendedWorkoutData {
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>("dashboard");
-  const [profile, setProfile] = useLocalStorage<UserProfile>('fitforge-profile', { name: 'Athlete', experience: 'Beginner', bodyweightHistory: [], equipment: [] });
-  const [workouts, setWorkouts] = useLocalStorage<WorkoutSession[]>('fitforge-workouts', []);
-  const [muscleStates, setMuscleStates] = useLocalStorage<MuscleStates>('fitforge-muscle-states', 
-    ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: { lastTrained: 0, fatiguePercentage: 0, recoveryDaysNeeded: 0 } }), {} as MuscleStates)
-  );
-  const [personalBests, setPersonalBests] = useLocalStorage<PersonalBests>('fitforge-pbs', {});
-  const [muscleBaselines, setMuscleBaselines] = useLocalStorage<MuscleBaselines>('fitforge-muscle-baselines',
-    ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: { userOverride: null, systemLearnedMax: 0 } }), {} as MuscleBaselines)
-  );
+
+  // Initialize default values
+  const defaultProfile: UserProfile = { name: 'Athlete', experience: 'Beginner', bodyweightHistory: [], equipment: [] };
+  const defaultMuscleStates: MuscleStates = ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: { lastTrained: 0, fatiguePercentage: 0, recoveryDaysNeeded: 0 } }), {} as MuscleStates);
+  const defaultMuscleBaselines: MuscleBaselines = ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: { userOverride: null, systemLearnedMax: 0 } }), {} as MuscleBaselines);
+
+  // Replace useLocalStorage with useAPIState
+  const [profile, setProfile, profileLoading, profileError] = useAPIState<UserProfile>(profileAPI.get, profileAPI.update, defaultProfile);
+  const [workouts, setWorkouts, workoutsLoading, workoutsError] = useAPIState<WorkoutSession[]>(workoutsAPI.getAll, async (newWorkouts) => {
+    // For workouts, we only create new ones, not replace the entire array
+    // Return the new workouts array as-is for local state
+    return newWorkouts;
+  }, []);
+  const [muscleStates, setMuscleStates, muscleStatesLoading, muscleStatesError] = useAPIState<MuscleStates>(muscleStatesAPI.get, muscleStatesAPI.update, defaultMuscleStates);
+  const [personalBests, setPersonalBests, personalBestsLoading, personalBestsError] = useAPIState<PersonalBests>(personalBestsAPI.get, personalBestsAPI.update, {});
+  const [muscleBaselines, setMuscleBaselines, muscleBaselinesLoading, muscleBaselinesError] = useAPIState<MuscleBaselines>(muscleBaselinesAPI.get, muscleBaselinesAPI.update, defaultMuscleBaselines);
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [recommendedWorkout, setRecommendedWorkout] = useState<RecommendedWorkoutData | null>(null);
 
 
-  const handleFinishWorkout = useCallback((session: WorkoutSession) => {
-    // 1. Calculate muscle volumes for this session
-    const workoutMuscleVolumes: Record<Muscle, number> = ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: 0 }), {} as Record<Muscle, number>);
-    session.loggedExercises.forEach(loggedEx => {
-      const exerciseInfo = EXERCISE_LIBRARY.find(e => e.id === loggedEx.exerciseId);
-      if (!exerciseInfo) return;
-      const exerciseVolume = loggedEx.sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
-      exerciseInfo.muscleEngagements.forEach(engagement => {
-        workoutMuscleVolumes[engagement.muscle] += exerciseVolume * (engagement.percentage / 100);
-      });
-    });
-
-    // 2. Calculate fatigue and update baselines
-    const muscleFatigue: Partial<Record<Muscle, number>> = {};
-    const newBaselines = { ...muscleBaselines };
-    Object.entries(workoutMuscleVolumes).forEach(([muscleStr, volume]) => {
-      if (volume <= 0) return;
-      const muscle = muscleStr as Muscle;
-      const baseline = newBaselines[muscle]?.userOverride || newBaselines[muscle]?.systemLearnedMax || 10000; // default fallback
-      const fatiguePercent = Math.min((volume / baseline) * 100, 100);
-      muscleFatigue[muscle] = fatiguePercent;
-
-      if (volume > (newBaselines[muscle]?.systemLearnedMax || 0)) {
-        newBaselines[muscle].systemLearnedMax = Math.round(volume);
-        setToastMessage(`New ${muscle} max: ${Math.round(volume).toLocaleString()} lbs!`);
-      }
-    });
-    setMuscleBaselines(newBaselines);
-    session.muscleFatigueHistory = muscleFatigue;
-
-    // 3. Update Muscle States with new fatigue and recovery info
-    const newMuscleStates = { ...muscleStates };
-    Object.entries(muscleFatigue).forEach(([muscleStr, fatigue]) => {
-        const muscle = muscleStr as Muscle;
-        // Recovery formula: 1 base day + up to 6 days based on fatigue
-        const recoveryDays = 1 + (fatigue / 100) * 6; 
-        newMuscleStates[muscle] = {
-            lastTrained: session.endTime,
-            fatiguePercentage: fatigue,
-            recoveryDaysNeeded: recoveryDays
-        };
-    });
-    setMuscleStates(newMuscleStates);
-    
-    const allWorkoutsIncludingCurrent = [...workouts, session];
-
-    // 4. Update Personal Bests with new detailed metrics
-    const newPbs = { ...personalBests };
-    session.loggedExercises.forEach(loggedEx => {
-        const exerciseId = loggedEx.exerciseId;
-        const currentPb = newPbs[exerciseId] || { bestSingleSet: 0, bestSessionVolume: 0, rollingAverageMax: 0 };
-        
-        // Calculate metrics for the current session
-        const sessionVolume = loggedEx.sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
-        const bestSetInSession = Math.max(...loggedEx.sets.map(s => calculateVolume(s.reps, s.weight)), 0);
-        
-        // Update best single set and session volume
-        const newBestSingleSet = Math.max(currentPb.bestSingleSet, bestSetInSession);
-        const newBestSessionVolume = Math.max(currentPb.bestSessionVolume, sessionVolume);
-
-        // Calculate new rolling average max
-        const workoutsWithExercise = allWorkoutsIncludingCurrent
-            .filter(w => w.loggedExercises.some(e => e.exerciseId === exerciseId))
-            .sort((a, b) => b.endTime - a.endTime);
-        
-        const last5Workouts = workoutsWithExercise.slice(0, 5);
-        
-        const bestSetsFromLast5 = last5Workouts.map(w => {
-            const ex = w.loggedExercises.find(e => e.exerciseId === exerciseId);
-            if (!ex || ex.sets.length === 0) return 0;
-            return Math.max(...ex.sets.map(s => calculateVolume(s.reps, s.weight)));
+  const handleFinishWorkout = useCallback(async (session: WorkoutSession) => {
+    try {
+      // 1. Calculate muscle volumes for this session
+      const workoutMuscleVolumes: Record<Muscle, number> = ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: 0 }), {} as Record<Muscle, number>);
+      session.loggedExercises.forEach(loggedEx => {
+        const exerciseInfo = EXERCISE_LIBRARY.find(e => e.id === loggedEx.exerciseId);
+        if (!exerciseInfo) return;
+        const exerciseVolume = loggedEx.sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
+        exerciseInfo.muscleEngagements.forEach(engagement => {
+          workoutMuscleVolumes[engagement.muscle] += exerciseVolume * (engagement.percentage / 100);
         });
+      });
 
-        const newRollingAverage = bestSetsFromLast5.length > 0
-            ? bestSetsFromLast5.reduce((a, b) => a + b, 0) / bestSetsFromLast5.length
-            : 0;
+      // 2. Calculate fatigue and update baselines
+      const muscleFatigue: Partial<Record<Muscle, number>> = {};
+      const newBaselines = { ...muscleBaselines };
+      Object.entries(workoutMuscleVolumes).forEach(([muscleStr, volume]) => {
+        if (volume <= 0) return;
+        const muscle = muscleStr as Muscle;
+        const baseline = newBaselines[muscle]?.userOverride || newBaselines[muscle]?.systemLearnedMax || 10000; // default fallback
+        const fatiguePercent = Math.min((volume / baseline) * 100, 100);
+        muscleFatigue[muscle] = fatiguePercent;
 
-        newPbs[exerciseId] = {
-            bestSingleSet: newBestSingleSet,
-            bestSessionVolume: newBestSessionVolume,
-            rollingAverageMax: newRollingAverage
-        };
-    });
-    setPersonalBests(newPbs);
-    
-    // 5. Update Workout History (must be after PB calculations that use it)
-    setWorkouts(allWorkoutsIncludingCurrent);
-    
-    setRecommendedWorkout(null);
+        if (volume > (newBaselines[muscle]?.systemLearnedMax || 0)) {
+          newBaselines[muscle].systemLearnedMax = Math.round(volume);
+          setToastMessage(`New ${muscle} max: ${Math.round(volume).toLocaleString()} lbs!`);
+        }
+      });
+      await setMuscleBaselines(newBaselines);
+      session.muscleFatigueHistory = muscleFatigue;
+
+      // 3. Update Muscle States with new fatigue and recovery info
+      const newMuscleStates = { ...muscleStates };
+      Object.entries(muscleFatigue).forEach(([muscleStr, fatigue]) => {
+          const muscle = muscleStr as Muscle;
+          // Recovery formula: 1 base day + up to 6 days based on fatigue
+          const recoveryDays = 1 + (fatigue / 100) * 6;
+          newMuscleStates[muscle] = {
+              lastTrained: session.endTime,
+              fatiguePercentage: fatigue,
+              recoveryDaysNeeded: recoveryDays
+          };
+      });
+      await setMuscleStates(newMuscleStates);
+
+      const allWorkoutsIncludingCurrent = [...workouts, session];
+
+      // 4. Update Personal Bests with new detailed metrics
+      const newPbs = { ...personalBests };
+      session.loggedExercises.forEach(loggedEx => {
+          const exerciseId = loggedEx.exerciseId;
+          const currentPb = newPbs[exerciseId] || { bestSingleSet: 0, bestSessionVolume: 0, rollingAverageMax: 0 };
+
+          // Calculate metrics for the current session
+          const sessionVolume = loggedEx.sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
+          const bestSetInSession = Math.max(...loggedEx.sets.map(s => calculateVolume(s.reps, s.weight)), 0);
+
+          // Update best single set and session volume
+          const newBestSingleSet = Math.max(currentPb.bestSingleSet, bestSetInSession);
+          const newBestSessionVolume = Math.max(currentPb.bestSessionVolume, sessionVolume);
+
+          // Calculate new rolling average max
+          const workoutsWithExercise = allWorkoutsIncludingCurrent
+              .filter(w => w.loggedExercises.some(e => e.exerciseId === exerciseId))
+              .sort((a, b) => b.endTime - a.endTime);
+
+          const last5Workouts = workoutsWithExercise.slice(0, 5);
+
+          const bestSetsFromLast5 = last5Workouts.map(w => {
+              const ex = w.loggedExercises.find(e => e.exerciseId === exerciseId);
+              if (!ex || ex.sets.length === 0) return 0;
+              return Math.max(...ex.sets.map(s => calculateVolume(s.reps, s.weight)));
+          });
+
+          const newRollingAverage = bestSetsFromLast5.length > 0
+              ? bestSetsFromLast5.reduce((a, b) => a + b, 0) / bestSetsFromLast5.length
+              : 0;
+
+          newPbs[exerciseId] = {
+              bestSingleSet: newBestSingleSet,
+              bestSessionVolume: newBestSessionVolume,
+              rollingAverageMax: newRollingAverage
+          };
+      });
+      await setPersonalBests(newPbs);
+
+      // 5. Save new workout to database and update local state
+      await workoutsAPI.create(session);
+      await setWorkouts(allWorkoutsIncludingCurrent);
+
+      setRecommendedWorkout(null);
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      setToastMessage('Failed to save workout. Please try again.');
+    }
 
   }, [personalBests, muscleBaselines, muscleStates, workouts, setWorkouts, setPersonalBests, setMuscleBaselines, setMuscleStates]);
 
@@ -138,12 +153,47 @@ const App: React.FC = () => {
   }, []);
   
   const renderContent = () => {
+    // Show loading state while any critical data is loading
+    const isLoading = profileLoading || workoutsLoading || muscleStatesLoading || muscleBaselinesLoading;
+
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-brand-dark">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-cyan"></div>
+            <p className="mt-4 text-slate-400">Loading your data...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Show error state if any critical API failed
+    const hasError = profileError || workoutsError || muscleStatesError || muscleBaselinesError;
+    if (hasError) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-brand-dark p-4">
+          <div className="text-center bg-brand-surface p-6 rounded-lg max-w-md">
+            <p className="text-red-400 font-semibold mb-2">Failed to connect to backend</p>
+            <p className="text-slate-400 text-sm mb-4">
+              Make sure the backend server is running at http://localhost:3001
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-brand-cyan text-brand-dark px-4 py-2 rounded-lg font-semibold"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     switch(view) {
         case 'dashboard':
-            return <Dashboard 
-                      profile={profile} 
-                      workouts={workouts} 
-                      muscleStates={muscleStates} 
+            return <Dashboard
+                      profile={profile}
+                      workouts={workouts}
+                      muscleStates={muscleStates}
                       muscleBaselines={muscleBaselines}
                       onStartWorkout={() => navigateTo('workout')}
                       onStartRecommendedWorkout={handleStartRecommendedWorkout}

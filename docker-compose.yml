@@ -1,0 +1,48 @@
+# Docker Compose configuration for FitForge Local
+# Runs frontend + backend + SQLite database
+
+version: '3.8'
+
+services:
+  # Backend API Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fitforge-backend
+    ports:
+      - "3001:3001"
+    volumes:
+      # Persist database on host machine
+      - ./data:/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_PATH=/data/fitforge.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # Frontend React App
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fitforge-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - VITE_API_URL=http://localhost:3001/api
+    restart: unless-stopped
+
+volumes:
+  # Named volume for database persistence
+  data:
+    driver: local
