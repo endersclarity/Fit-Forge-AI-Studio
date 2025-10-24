@@ -10,7 +10,20 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 
 // Middleware
-app.use(cors());
+// Restrict CORS to localhost origins only to prevent CSRF attacks
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',      // Vite dev server / Docker frontend
+    'http://localhost:5173',      // Vite default port
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: false,
+  maxAge: 86400
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -221,7 +234,7 @@ app.use((req, res) => {
 // Start Server
 // ============================================
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '127.0.0.1', () => {
   console.log('='.repeat(50));
   console.log('🏋️  FitForge Local Server');
   console.log('='.repeat(50));

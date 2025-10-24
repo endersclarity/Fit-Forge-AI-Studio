@@ -13,6 +13,23 @@ dist
 dist-ssr
 *.local
 
+# Environment variables - NEVER COMMIT
+.env
+.env.local
+.env.*.local
+.env.development
+.env.development.local
+.env.production
+.env.production.local
+.env.test
+.env.test.local
+backend/.env
+backend/.env.local
+backend/.env.*
+**/.env
+**/.env.local
+**/.env.*
+
 # Database and data
 data/
 *.db
