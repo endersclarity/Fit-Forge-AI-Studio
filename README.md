@@ -2,19 +2,38 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# FitForge Local - Offline Fitness Tracker
 
-This contains everything you need to run your app locally.
+This is a fully offline version of FitForge that runs on your computer with a local SQLite database.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1y9ZTUl_UUW-_df7t7GhpHwGgCK2WjTyw
+## Quick Start (RECOMMENDED)
 
-## Run Locally
+**Windows Users:**
+1. Install Docker Desktop: https://www.docker.com/products/docker-desktop/
+2. Double-click `start.bat` in this folder
+3. Open browser to http://localhost:3000
 
-**Prerequisites:**  Node.js
+**All Platforms:**
+```bash
+docker-compose up -d
+# Open browser to http://localhost:3000
+```
 
+## Documentation
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+For complete setup instructions, troubleshooting, and alternative methods, see:
+- **[README-LOCAL.md](README-LOCAL.md)** - Full documentation for offline setup
+
+## Why Docker?
+
+Docker is the recommended way to run FitForge Local because:
+- Works reliably across Windows, macOS, and Linux
+- Avoids npm dependency issues (especially the Rollup bug on Windows)
+- Clean, isolated environment
+- Easy to start/stop with `start.bat`
+
+## Alternative: Local Development
+
+See [README-LOCAL.md](README-LOCAL.md) for instructions on running without Docker.
+
+**Note:** Windows users may encounter npm/Rollup dependency issues. Docker is strongly recommended.

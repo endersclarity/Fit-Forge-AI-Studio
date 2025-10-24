@@ -1,7 +1,9 @@
+// Load environment variables from .env.local (for local npm development)
+require('dotenv').config({ path: '.env.local' });
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const path = require('path');
 const db = require('./database/database');
 
 const app = express();
@@ -137,17 +139,82 @@ app.put('/api/muscle-baselines', (req, res) => {
   }
 });
 
+// Get all workout templates
+app.get('/api/templates', (req, res) => {
+  try {
+    const templates = db.getWorkoutTemplates();
+    res.json(templates);
+  } catch (error) {
+    console.error('Error getting workout templates:', error);
+    res.status(500).json({ error: 'Failed to get workout templates' });
+  }
+});
+
+// Get a single workout template by ID
+app.get('/api/templates/:id', (req, res) => {
+  try {
+    const template = db.getWorkoutTemplateById(req.params.id);
+    if (!template) {
+      return res.status(404).json({ error: 'Template not found' });
+    }
+    res.json(template);
+  } catch (error) {
+    console.error('Error getting workout template:', error);
+    res.status(500).json({ error: 'Failed to get workout template' });
+  }
+});
+
+// Create a new workout template
+app.post('/api/templates', (req, res) => {
+  try {
+    const template = db.createWorkoutTemplate(req.body);
+    res.status(201).json(template);
+  } catch (error) {
+    console.error('Error creating workout template:', error);
+    res.status(500).json({ error: 'Failed to create workout template' });
+  }
+});
+
+// Update a workout template
+app.put('/api/templates/:id', (req, res) => {
+  try {
+    const template = db.updateWorkoutTemplate(req.params.id, req.body);
+    if (!template) {
+      return res.status(404).json({ error: 'Template not found' });
+    }
+    res.json(template);
+  } catch (error) {
+    console.error('Error updating workout template:', error);
+    res.status(500).json({ error: 'Failed to update workout template' });
+  }
+});
+
+// Delete a workout template
+app.delete('/api/templates/:id', (req, res) => {
+  try {
+    const success = db.deleteWorkoutTemplate(req.params.id);
+    if (!success) {
+      return res.status(404).json({ error: 'Template not found' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting workout template:', error);
+    res.status(500).json({ error: 'Failed to delete workout template' });
+  }
+});
+
 // ============================================
-// Serve React Frontend (in production)
+// 404 Handler for Non-API Routes
 // ============================================
 
-// Serve static files from frontend build
-const frontendPath = path.join(__dirname, '../dist');
-app.use(express.static(frontendPath));
-
-// All other routes serve the React app (SPA fallback)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+// This is an API-only server. All routes should start with /api.
+// Frontend is served separately (via Docker container or Vite dev server).
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: 'This is an API-only server. Frontend is served separately.',
+    hint: 'API routes start with /api. Did you mean to access the frontend at http://localhost:3000?'
+  });
 });
 
 // ============================================

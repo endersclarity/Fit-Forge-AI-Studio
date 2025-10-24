@@ -1,4 +1,4 @@
-# FitForge Local - Offline Docker Setup
+# FitForge Local - Offline Setup
 
 Run FitForge completely offline with a real database on your computer.
 
@@ -8,9 +8,11 @@ Run FitForge completely offline with a real database on your computer.
 - ✅ **Real Database** - SQLite database stores all your data
 - ✅ **Persistent Data** - All workouts saved to your computer
 - ✅ **Easy Backup** - Just copy the database file
-- ✅ **Docker-based** - Clean, isolated installation
+- ✅ **Docker-based** - Clean, isolated installation (RECOMMENDED)
 
 ## Architecture
+
+FitForge Local uses a **microservices architecture** with separate frontend and backend services. This is NOT a monolith - the backend does not serve the frontend.
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -20,8 +22,13 @@ Run FitForge completely offline with a real database on your computer.
 │  │   Frontend   │───▶│    Backend API   │  │
 │  │   (React)    │◀───│    (Express)     │  │
 │  │              │    │                  │  │
-│  │  localhost:  │    │  localhost:3001  │  │
-│  │     3000     │    │                  │  │
+│  │  Separate    │    │  API-only server │  │
+│  │  Service     │    │  (no static      │  │
+│  │              │    │   files served)  │  │
+│  │  localhost:  │    │                  │  │
+│  │     3000     │    │  localhost:      │  │
+│  │              │    │  3001 (Docker)   │  │
+│  │              │    │  3002 (npm dev)  │  │
 │  └──────────────┘    └────────┬─────────┘  │
 │                               │             │
 │                               ▼             │
@@ -36,14 +43,54 @@ Run FitForge completely offline with a real database on your computer.
 └─────────────────────────────────────────────┘
 ```
 
+**Key Architectural Principles:**
+- Frontend and backend are **completely separate services**
+- Backend is **API-only** - it does NOT serve static files or HTML
+- Frontend is served by either:
+  - Docker container (production-like, recommended)
+  - Vite dev server (local development)
+- This separation allows independent scaling and deployment
+- Clean separation of concerns: UI layer vs. API layer
+
+## Port Configuration
+
+FitForge uses different ports depending on how you start the application:
+
+| Startup Method | Frontend | Backend | Access URL |
+|---------------|----------|---------|------------|
+| Docker (Recommended) | 3000 | 3001 | http://localhost:3000 |
+| npm dev (Local) | 3000 (Vite) | 3002 | http://localhost:3000 |
+
+**Why different backend ports?**
+- Docker uses port 3001 (defined in docker-compose.yml)
+- Local npm development uses port 3002 to avoid conflicts if Docker containers are still running
+- Both methods can coexist on your machine without port conflicts
+
+**Configuration files:**
+- Docker: Port set in `docker-compose.yml`
+- npm dev: Port set in `backend/.env.local` (PORT=3002)
+
 ## Prerequisites
+
+### For Docker Setup (Recommended)
 
 - **Docker Desktop** installed on your computer
   - Download from: https://www.docker.com/products/docker-desktop/
+  - Ensures consistent, reliable environment across all platforms
+  - Avoids npm/node dependency issues on Windows
 
-## Quick Start
+## Quick Start (Docker - RECOMMENDED)
 
-### 1. Start the App
+**Docker is the recommended way to run FitForge Local.** It avoids dependency issues and provides a consistent, reliable environment.
+
+### Option A: Windows Users - Use start.bat (Easiest!)
+
+1. Open File Explorer and navigate to `fitforge-local` folder
+2. Double-click `start.bat`
+3. Wait for containers to start
+4. Open browser to: **http://localhost:3000**
+
+### Option B: Command Line
 
 ```bash
 # Navigate to fitforge-local directory
@@ -51,13 +98,12 @@ cd C:\Users\ender\.claude\projects\launchpad\fitforge-local
 
 # Start all services
 docker-compose up -d
+
+# Access the app
+# Open browser to: http://localhost:3000
 ```
 
-### 2. Access the App
-
-Open your browser to: **http://localhost:3000**
-
-### 3. Stop the App
+### Stop the App
 
 ```bash
 # Stop all services
@@ -137,7 +183,11 @@ The SQLite database includes these tables:
 
 ## API Endpoints
 
-The backend exposes these endpoints (available at http://localhost:3001/api):
+The backend exposes these endpoints:
+- Docker: http://localhost:3001/api
+- npm dev: http://localhost:3002/api
+
+Available endpoints:
 
 - `GET /api/health` - Health check
 - `GET /api/profile` - Get user profile
@@ -155,13 +205,32 @@ The backend exposes these endpoints (available at http://localhost:3001/api):
 
 ### Port Already in Use
 
+**Docker ports (3000, 3001):**
+
 If port 3000 or 3001 is already in use:
 
 ```bash
+# Check what's using the ports
+netstat -ano | findstr :3000
+netstat -ano | findstr :3001
+
 # Stop other services using those ports, or
 # Edit docker-compose.yml to use different ports:
 ports:
-  - "8080:3000"  # Access at localhost:8080 instead
+  - "8080:3000"  # Access frontend at localhost:8080 instead
+  - "8081:3001"  # Backend API at localhost:8081 instead
+```
+
+**npm dev port (3002):**
+
+Port 3002 is specifically chosen to avoid conflicts with Docker. If it's already in use:
+
+```bash
+# Check what's using port 3002
+netstat -ano | findstr :3002
+
+# Edit backend/.env.local to use a different port:
+PORT=3003
 ```
 
 ### Container Won't Start
@@ -189,24 +258,113 @@ mv data/fitforge.db data/fitforge.db.corrupted
 docker-compose up -d
 ```
 
-## Development
+## Alternative: Local Development (Not Recommended on Windows)
 
-### Run Without Docker
+### Why Docker is Recommended
 
-If you prefer to run locally without Docker:
+**Windows users**: npm has a known bug with optional dependencies that affects the Rollup bundler used by Vite. You may encounter errors like:
+
+```
+Error: Cannot find module '@rollup/rollup-win32-x64-msvc'
+```
+
+This is a documented npm issue (https://github.com/npm/cli/issues/4828) that is difficult to resolve. **Docker avoids this issue entirely.**
+
+### If You Must Run Without Docker
+
+**Prerequisites:**
+- Node.js 16+ installed
+- npm or pnpm package manager
+
+**Setup:**
+
+```bash
+# Backend configuration is already set up
+# The backend/.env.local file configures PORT=3002 for local development
+# This avoids conflicts with Docker (which uses port 3001)
+```
+
+**Steps:**
 
 ```bash
 # Terminal 1: Start backend
 cd backend
 npm install
 npm start
+# Backend will run on port 3002
 
-# Terminal 2: Start frontend
+# Terminal 2: Start frontend (from fitforge-local root)
 npm install
 npm run dev
+# Frontend will run on port 3000 (Vite default)
 ```
 
-Access at: http://localhost:5173 (Vite dev server)
+**Access the application:**
+- Frontend: http://localhost:3000 (Vite dev server)
+- Backend API: http://localhost:3002/api
+
+### Troubleshooting Local Development
+
+#### Windows: Rollup/npm Optional Dependency Issue
+
+**Symptoms:**
+- `npm install` completes without errors
+- `npm run dev` fails with "Cannot find module '@rollup/rollup-win32-x64-msvc'"
+- Reinstalling doesn't fix the issue
+
+**Attempted Solutions (often don't work):**
+```bash
+# These rarely work due to the npm bug:
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install --force
+npm install --include=optional
+```
+
+**Recommended Solution:**
+Use Docker instead (see Quick Start section above). The `start.bat` script makes this easy.
+
+**Alternative Solution (if Docker not available):**
+Switch to pnpm package manager:
+```bash
+# Install pnpm globally
+npm install -g pnpm
+
+# Use pnpm instead of npm
+pnpm install
+pnpm run dev
+```
+
+pnpm handles optional dependencies correctly on Windows and may resolve the issue.
+
+#### Port Already in Use (Frontend)
+
+If port 5173 is already in use:
+```bash
+# Kill the process using port 5173, or
+# Edit vite.config.ts to use a different port
+```
+
+#### Backend Connection Issues
+
+Ensure backend is running on the correct port:
+
+**For Docker:**
+```bash
+docker-compose logs backend
+# Should show: Server running on: http://localhost:3001
+```
+
+**For npm dev:**
+```bash
+cd backend
+npm start
+# Should show: Server running on: http://localhost:3002
+```
+
+If the backend is on the wrong port, check:
+- Docker: Verify `docker-compose.yml` has `PORT=3001` in environment
+- npm dev: Verify `backend/.env.local` has `PORT=3002`
 
 ## System Requirements
 
