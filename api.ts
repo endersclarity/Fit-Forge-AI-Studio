@@ -1,7 +1,20 @@
 // API client for FitForge local backend
 // Replaces localStorage with API calls to Express server
 
-import type { UserProfile, WorkoutSession, MuscleStates, PersonalBests, MuscleBaselines } from './types';
+import type {
+  UserProfile,
+  WorkoutSession,
+  MuscleStates,
+  PersonalBests,
+  MuscleBaselines,
+  WorkoutTemplate,
+  WorkoutResponse,
+  MuscleStatesResponse,
+  MuscleStatesUpdateRequest,
+  MuscleStateData,
+  ExerciseCategory,
+  Muscle
+} from './types';
 import { EXERCISE_LIBRARY } from './constants';
 
 // API base URL - defaults to same origin in production, localhost:3001 in development
@@ -45,17 +58,17 @@ export const profileAPI = {
 export const workoutsAPI = {
   getAll: async (): Promise<WorkoutSession[]> => {
     // Backend returns workouts in a different format, need to transform
-    const backendWorkouts = await apiRequest<any[]>('/workouts');
+    const backendWorkouts = await apiRequest<WorkoutResponse[]>('/workouts');
     // Transform backend format to frontend WorkoutSession format
     // Backend has: { id, date, variation, duration_seconds, exercises: [{ exercise, sets }] }
     // Frontend expects: WorkoutSession with loggedExercises
     return backendWorkouts.map((bw) => ({
       id: String(bw.id),
       name: `${bw.variation || 'Unknown'} Workout`,
-      type: 'Push' as any, // TODO: Store workout type in backend
+      type: 'Push' as ExerciseCategory, // TODO: Store workout type in backend
       variation: (bw.variation || 'A') as 'A' | 'B',
-      startTime: bw.date - (bw.duration_seconds || 0) * 1000,
-      endTime: bw.date,
+      startTime: typeof bw.date === 'string' ? new Date(bw.date).getTime() : bw.date - (bw.duration_seconds || 0) * 1000,
+      endTime: typeof bw.date === 'string' ? new Date(bw.date).getTime() : bw.date,
       loggedExercises: [],
       muscleFatigueHistory: {}
     }));
@@ -79,13 +92,16 @@ export const workoutsAPI = {
       })
     };
 
-    const saved = await apiRequest<any>('/workouts', {
+    const saved = await apiRequest<WorkoutResponse>('/workouts', {
       method: 'POST',
       body: JSON.stringify(backendWorkout),
     });
 
-    // Return the original workout since backend doesn't return full workout
-    return workout;
+    // Return the original workout with the backend ID
+    return {
+      ...workout,
+      id: String(saved.id)
+    };
   },
 };
 
@@ -94,14 +110,18 @@ export const workoutsAPI = {
  */
 export const muscleStatesAPI = {
   get: async (): Promise<MuscleStates> => {
-    const backendStates = await apiRequest<any>('/muscle-states');
+    const backendStates = await apiRequest<MuscleStatesResponse>('/muscle-states');
     // Transform backend format to frontend MuscleStates format
     // Backend has: { fatiguePercent, volumeToday, recoveredAt, lastTrained }
     // Frontend expects: { lastTrained, fatiguePercentage, recoveryDaysNeeded }
-    const transformed: any = {};
-    for (const [muscle, state] of Object.entries(backendStates as any)) {
-      transformed[muscle] = {
-        lastTrained: state.lastTrained || 0,
+    const transformed: Partial<MuscleStates> = {};
+    for (const [muscle, state] of Object.entries(backendStates)) {
+      const lastTrainedTimestamp = state.lastTrained
+        ? new Date(state.lastTrained).getTime()
+        : 0;
+
+      transformed[muscle as Muscle] = {
+        lastTrained: lastTrainedTimestamp,
         fatiguePercentage: state.fatiguePercent || 0,
         recoveryDaysNeeded: 0 // Backend doesn't store this, frontend calculates it
       };
@@ -110,17 +130,21 @@ export const muscleStatesAPI = {
   },
   update: async (states: MuscleStates): Promise<MuscleStates> => {
     // Transform frontend MuscleStates to backend format
-    const backendStates: any = {};
+    const backendStates: MuscleStatesUpdateRequest = {};
     for (const [muscle, state] of Object.entries(states)) {
+      const lastTrainedDate = state.lastTrained
+        ? new Date(state.lastTrained).toISOString()
+        : null;
+
       backendStates[muscle] = {
         fatiguePercent: state.fatiguePercentage,
         volumeToday: 0, // Not tracked in frontend currently
         recoveredAt: null, // Calculated from lastTrained + recoveryDaysNeeded
-        lastTrained: state.lastTrained
+        lastTrained: lastTrainedDate
       };
     }
 
-    await apiRequest<any>('/muscle-states', {
+    await apiRequest<MuscleStatesResponse>('/muscle-states', {
       method: 'PUT',
       body: JSON.stringify(backendStates),
     });
@@ -150,6 +174,28 @@ export const muscleBaselinesAPI = {
     method: 'PUT',
     body: JSON.stringify(baselines),
   }),
+};
+
+/**
+ * Workout Templates API
+ */
+export const templatesAPI = {
+  getAll: () => apiRequest<WorkoutTemplate[]>('/templates'),
+  getById: (id: string) => apiRequest<WorkoutTemplate>(`/templates/${id}`),
+  create: (template: Omit<WorkoutTemplate, 'id' | 'timesUsed' | 'createdAt' | 'updatedAt'>) =>
+    apiRequest<WorkoutTemplate>('/templates', {
+      method: 'POST',
+      body: JSON.stringify(template),
+    }),
+  update: (id: string, template: Partial<WorkoutTemplate>) =>
+    apiRequest<WorkoutTemplate>(`/templates/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(template),
+    }),
+  delete: (id: string) =>
+    apiRequest<{ success: boolean }>(`/templates/${id}`, {
+      method: 'DELETE',
+    }),
 };
 
 /**
