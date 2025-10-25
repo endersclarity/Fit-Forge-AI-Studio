@@ -2,6 +2,17 @@
 
 Run FitForge completely offline with a real database on your computer.
 
+## ⚠️ SECURITY NOTICE
+
+FitForge Local is designed for **SINGLE-USER, LOCAL-ONLY** use.
+
+- No authentication is implemented
+- All data is accessible to anyone who can reach the API
+- DO NOT expose to the internet
+- DO NOT use on untrusted networks (public WiFi)
+
+The server is configured to bind to `127.0.0.1` (localhost only) to prevent network access by default. However, when running in Docker or on shared networks, ensure proper network isolation.
+
 ## Features
 
 - ✅ **Completely Offline** - No internet connection needed

@@ -1,19 +1,23 @@
 import React, { useState, useMemo } from 'react';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
-import { Muscle, MuscleStates, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise } from '../types';
+import { Muscle, MuscleStates, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate } from '../types';
 import { calculateRecoveryPercentage, getDaysSince, getRecoveryColor, getUserLevel, formatDuration } from '../utils/helpers';
 import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 import { RecommendedWorkoutData } from '../App';
+import DashboardQuickStart from './DashboardQuickStart';
 
 interface DashboardProps {
   profile: UserProfile;
   workouts: WorkoutSession[];
   muscleStates: MuscleStates;
   muscleBaselines: MuscleBaselines;
+  templates: WorkoutTemplate[];
   onStartWorkout: () => void;
   onStartRecommendedWorkout: (data: RecommendedWorkoutData) => void;
+  onSelectTemplate: (template: WorkoutTemplate) => void;
   onNavigateToProfile: () => void;
   onNavigateToBests: () => void;
+  onNavigateToTemplates: () => void;
 }
 
 const PRIMARY_MUSCLE_GROUPS: Record<string, Muscle[]> = {
@@ -142,104 +146,221 @@ const WorkoutRecommender: React.FC<{
 };
 
 
-const MuscleRecoveryVisualizer: React.FC<{ muscleStates: MuscleStates, workouts: WorkoutSession[], muscleBaselines: MuscleBaselines }> = ({ muscleStates, workouts, muscleBaselines }) => {
-  const [expandedMuscle, setExpandedMuscle] = useState<Muscle | null>(null);
+// Muscle category groupings for heat map
+const MUSCLE_CATEGORIES: Record<string, Muscle[]> = {
+  Push: [Muscle.Pectoralis, Muscle.Deltoids, Muscle.Triceps],
+  Pull: [Muscle.Lats, Muscle.Rhomboids, Muscle.Trapezius, Muscle.Biceps, Muscle.Forearms],
+  Legs: [Muscle.Quadriceps, Muscle.Hamstrings, Muscle.Glutes, Muscle.Calves],
+  Core: [Muscle.Core]
+};
 
-  const muscleData = useMemo(() => {
-    return ALL_MUSCLES.map(muscle => {
-      const status = muscleStates[muscle];
-      if (!status || !status.lastTrained) {
-        return { muscle, daysSince: Infinity, recovery: 100, recoveryDaysNeeded: 0 };
-      }
-      const daysSince = getDaysSince(status.lastTrained);
-      const recovery = calculateRecoveryPercentage(daysSince, status.recoveryDaysNeeded);
-      return { muscle, daysSince: Math.floor(daysSince), recovery, recoveryDaysNeeded: status.recoveryDaysNeeded };
-    }).sort((a, b) => {
-        if (a.daysSince === Infinity && b.daysSince !== Infinity) return 1;
-        if (b.daysSince === Infinity && a.daysSince !== Infinity) return -1;
-        if (a.daysSince === Infinity && b.daysSince === Infinity) return 0;
-        return a.recovery - b.recovery;
-    });
+// Helper functions for fatigue visualization
+const getFatigueColor = (fatiguePercent: number): string => {
+  if (fatiguePercent <= 33) return 'bg-green-500';
+  if (fatiguePercent <= 66) return 'bg-yellow-500';
+  return 'bg-red-500';
+};
+
+const getRecoveryStatus = (fatiguePercent: number): 'ready' | 'recovering' | 'fatigued' => {
+  if (fatiguePercent <= 33) return 'ready';
+  if (fatiguePercent <= 66) return 'recovering';
+  return 'fatigued';
+};
+
+interface ExerciseForMuscle {
+  id: string;
+  name: string;
+  engagement: number;
+  category: ExerciseCategory;
+}
+
+const getExercisesForMuscle = (muscle: Muscle): ExerciseForMuscle[] => {
+  return EXERCISE_LIBRARY
+    .map(exercise => {
+      const engagement = exercise.muscleEngagements.find(e => e.muscle === muscle);
+      if (!engagement) return null;
+      return {
+        id: exercise.id,
+        name: exercise.name,
+        engagement: engagement.percentage,
+        category: exercise.category
+      };
+    })
+    .filter((ex): ex is ExerciseForMuscle => ex !== null)
+    .sort((a, b) => b.engagement - a.engagement);
+};
+
+const MuscleFatigueHeatMap: React.FC<{ muscleStates: MuscleStates, workouts: WorkoutSession[], muscleBaselines: MuscleBaselines }> = ({ muscleStates, workouts, muscleBaselines }) => {
+  const [selectedMuscle, setSelectedMuscle] = useState<Muscle | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Transform muscle states into categorized fatigue data
+  const categorizedMuscleData = useMemo(() => {
+    return Object.entries(MUSCLE_CATEGORIES).map(([category, muscles]) => ({
+      category,
+      muscles: muscles.map(muscle => {
+        const status = muscleStates[muscle];
+        if (!status || !status.lastTrained) {
+          return {
+            muscle,
+            daysSince: Infinity,
+            fatiguePercent: 0,
+            recoveryDaysNeeded: 0,
+            lastTrained: null
+          };
+        }
+        const daysSince = getDaysSince(status.lastTrained);
+        const recovery = calculateRecoveryPercentage(daysSince, status.recoveryDaysNeeded);
+        const fatiguePercent = 100 - recovery; // Convert recovery to fatigue
+        return {
+          muscle,
+          daysSince: Math.floor(daysSince),
+          fatiguePercent: Math.round(fatiguePercent),
+          recoveryDaysNeeded: status.recoveryDaysNeeded,
+          lastTrained: status.lastTrained
+        };
+      })
+    }));
   }, [muscleStates]);
 
-  const getExpandedDetails = (muscle: Muscle) => {
-    const baselineData = muscleBaselines[muscle] || { userOverride: null, systemLearnedMax: 0 };
-    const baselineCapacity = baselineData.userOverride || baselineData.systemLearnedMax;
-
-    const lastWorkoutForMuscle = workouts
-        .filter(w => w.muscleFatigueHistory && w.muscleFatigueHistory[muscle])
-        .sort((a, b) => b.endTime - a.endTime)[0];
-
-    let lastSessionVolume = 0;
-    if (lastWorkoutForMuscle && lastWorkoutForMuscle.muscleFatigueHistory) {
-        const fatiguePercent = lastWorkoutForMuscle.muscleFatigueHistory[muscle]!;
-        const baselineForCalc = baselineCapacity > 0 ? baselineCapacity : 1; 
-        lastSessionVolume = (fatiguePercent / 100) * baselineForCalc;
-    }
-
-    const maxVolume = baselineData.systemLearnedMax;
-
-    return { baselineCapacity, lastSessionVolume, maxVolume };
+  const handleMuscleClick = (muscle: Muscle) => {
+    setSelectedMuscle(muscle);
+    setIsModalOpen(true);
   };
 
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedMuscle(null);
+  };
+
+  const exercisesForMuscle = selectedMuscle ? getExercisesForMuscle(selectedMuscle) : [];
+
+  // Close modal on Escape key
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        handleModalClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isModalOpen]);
+
+  // Prevent body scroll when modal open
+  React.useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isModalOpen]);
+
   return (
-    <div className="space-y-2">
-      {muscleData.map(({ muscle, daysSince, recovery, recoveryDaysNeeded }) => {
-        const isExpanded = expandedMuscle === muscle;
-        const daysUntilReady = Math.max(0, Math.ceil(recoveryDaysNeeded - daysSince));
-        const details = isExpanded ? getExpandedDetails(muscle) : null;
-        
-        return (
-          <div key={muscle} className="bg-brand-muted rounded-md">
-            <button
-              onClick={() => setExpandedMuscle(isExpanded ? null : muscle)}
-              className="w-full text-left p-3 focus:outline-none"
-              aria-expanded={isExpanded}
-              aria-controls={`details-${muscle}`}
-            >
-              <div className="flex justify-between items-center mb-1 text-sm">
-                <span className="font-medium">{muscle}</span>
-                <span className="text-slate-400">{recovery < 100 ? `${recovery.toFixed(0)}% Recovered` : 'Fully Recovered'}</span>
-              </div>
-              <div className="w-full bg-slate-600 rounded-full h-2.5">
-                <div className={`${getRecoveryColor(recovery)} h-2.5 rounded-full`} style={{ width: `${recovery}%` }}></div>
-              </div>
-              <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
-                <span>{daysSince !== Infinity ? `Last trained: ${daysSince}d ago` : 'Not trained yet'}</span>
-                 <span>
-                    {daysSince !== Infinity ? (
-                        recovery < 100 ? `Ready in: ~${daysUntilReady}d` : <span className="text-green-400 font-semibold">Ready now</span>
-                    ) : ''}
-                </span>
-              </div>
-            </button>
-            <div 
-              id={`details-${muscle}`}
-              className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-            >
-                <div className="overflow-hidden">
-                    {details && (
-                        <div className="p-3 pt-2 border-t border-slate-600/50 text-xs">
-                           <div className="flex justify-between items-center py-1">
-                               <span className="text-slate-400">Baseline Capacity:</span>
-                               <span className="font-semibold">{details.baselineCapacity.toLocaleString()} lbs</span>
-                           </div>
-                           <div className="flex justify-between items-center py-1">
-                               <span className="text-slate-400">Last Session Volume:</span>
-                               <span className="font-semibold">{details.lastSessionVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })} lbs</span>
-                           </div>
-                           <div className="flex justify-between items-center py-1">
-                               <span className="text-slate-400">All-Time Max Volume:</span>
-                               <span className="font-semibold">{details.maxVolume.toLocaleString()} lbs</span>
-                           </div>
-                        </div>
-                    )}
-                </div>
+    <>
+      <div className="space-y-4">
+        {categorizedMuscleData.map(({ category, muscles }) => (
+          <div key={category}>
+            {/* Category Header */}
+            <div className="mb-2 mt-4 first:mt-0">
+              <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">
+                {category} Muscles
+              </h4>
+            </div>
+
+            {/* Muscles in Category */}
+            <div className="space-y-2">
+              {muscles.map(({ muscle, daysSince, fatiguePercent, recoveryDaysNeeded, lastTrained }) => {
+                const daysUntilReady = Math.max(0, Math.ceil(recoveryDaysNeeded - daysSince));
+                const isReady = fatiguePercent <= 33;
+
+                return (
+                  <div key={muscle} className="bg-brand-muted rounded-md">
+                    <button
+                      onClick={() => handleMuscleClick(muscle)}
+                      className="w-full text-left p-3 focus:outline-none hover:bg-brand-surface transition-colors cursor-pointer"
+                      aria-label={`${muscle}: ${fatiguePercent}% fatigued${isReady ? ', ready now' : `, ready in ${daysUntilReady} days`}`}
+                    >
+                      <div className="flex justify-between items-center mb-1 text-sm">
+                        <span className="font-medium">{muscle}</span>
+                        <span className="text-slate-400">
+                          {fatiguePercent === 0 ? 'Fully Recovered' : `${fatiguePercent}% fatigued`}
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-600 rounded-full h-2.5 mb-2">
+                        <div
+                          className={`${getFatigueColor(fatiguePercent)} h-2.5 rounded-full transition-all duration-300`}
+                          style={{ width: `${fatiguePercent}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center text-xs text-slate-500">
+                        <span>
+                          {lastTrained ? `Last trained: ${daysSince}d ago` : 'Never trained'}
+                        </span>
+                        <span>
+                          {isReady ? (
+                            <span className="text-green-400 font-semibold">Ready now</span>
+                          ) : (
+                            `Ready in ${daysUntilReady}d`
+                          )}
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        )
-      })}
-    </div>
+        ))}
+      </div>
+
+      {/* Exercise Modal */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
+          onClick={handleModalClose}
+        >
+          <div
+            className="bg-brand-surface rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Exercises for {selectedMuscle}</h3>
+              <button
+                onClick={handleModalClose}
+                className="text-slate-400 hover:text-white text-2xl leading-none"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="space-y-2">
+              {exercisesForMuscle.length === 0 ? (
+                <p className="text-slate-400 text-center py-4">
+                  No exercises found for this muscle.
+                </p>
+              ) : (
+                exercisesForMuscle.map((ex) => (
+                  <div
+                    key={ex.id}
+                    className="flex justify-between items-center p-3 bg-brand-muted rounded hover:bg-brand-dark transition-colors"
+                  >
+                    <div>
+                      <p className="font-medium">{ex.name}</p>
+                      <p className="text-xs text-slate-400">{ex.category}</p>
+                    </div>
+                    <span className="text-brand-cyan font-semibold text-lg">
+                      {ex.engagement}%
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -302,7 +423,7 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
 };
 
 
-const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, muscleBaselines, onStartWorkout, onStartRecommendedWorkout, onNavigateToProfile, onNavigateToBests }) => {
+const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, muscleBaselines, templates, onStartWorkout, onStartRecommendedWorkout, onSelectTemplate, onNavigateToProfile, onNavigateToBests, onNavigateToTemplates }) => {
   const { level, progress, nextLevelWorkouts } = getUserLevel(workouts.length);
 
   return (
@@ -335,26 +456,40 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, 
         </section>
 
         <section>
-            <WorkoutRecommender 
-                muscleStates={muscleStates} 
-                workouts={workouts} 
+            <WorkoutRecommender
+                muscleStates={muscleStates}
+                workouts={workouts}
                 muscleBaselines={muscleBaselines}
                 onStart={onStartRecommendedWorkout}
             />
         </section>
 
         <section>
+            <DashboardQuickStart
+                templates={templates}
+                onSelectTemplate={onSelectTemplate}
+                onViewAllTemplates={onNavigateToTemplates}
+            />
+        </section>
+
+        <section className="space-y-3">
+            <button
+                onClick={onNavigateToTemplates}
+                className="w-full bg-brand-surface text-white font-semibold py-4 px-4 rounded-lg text-lg hover:bg-opacity-80 transition-colors border border-brand-cyan"
+            >
+                📋 Browse Workout Templates
+            </button>
             <button
                 onClick={onStartWorkout}
                 className="w-full bg-brand-cyan text-brand-dark font-bold py-4 px-4 rounded-lg text-lg hover:bg-cyan-400 transition-colors"
             >
-                Start New Workout
+                Start Custom Workout
             </button>
         </section>
 
         <section className="bg-brand-surface p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Muscle Recovery</h3>
-            <MuscleRecoveryVisualizer muscleStates={muscleStates} workouts={workouts} muscleBaselines={muscleBaselines} />
+            <h3 className="text-lg font-semibold mb-4">Muscle Fatigue Heat Map</h3>
+            <MuscleFatigueHeatMap muscleStates={muscleStates} workouts={workouts} muscleBaselines={muscleBaselines} />
         </section>
 
         <section className="bg-brand-surface p-4 rounded-lg">

@@ -82,7 +82,7 @@ export const workoutsAPI = {
       return null;
     }
   },
-  create: async (workout: WorkoutSession & { category?: string; progressionMethod?: string }): Promise<WorkoutSession> => {
+  create: async (workout: WorkoutSession & { category?: string; progressionMethod?: string }): Promise<WorkoutSession & { prs?: import('./types').PRInfo[] }> => {
     // Transform frontend WorkoutSession to backend format
     const backendWorkout = {
       date: workout.endTime,
@@ -97,7 +97,8 @@ export const workoutsAPI = {
           exercise: exerciseInfo?.name || 'Unknown',
           sets: le.sets.map(s => ({
             weight: s.weight,
-            reps: s.reps
+            reps: s.reps,
+            to_failure: s.to_failure // Include to_failure field
           }))
         };
       })
@@ -108,10 +109,11 @@ export const workoutsAPI = {
       body: JSON.stringify(backendWorkout),
     });
 
-    // Return the original workout with the backend ID
+    // Return the original workout with the backend ID and PRs
     return {
       ...workout,
-      id: String(saved.id)
+      id: String(saved.id),
+      prs: saved.prs // Include PRs returned from the API
     };
   },
 };

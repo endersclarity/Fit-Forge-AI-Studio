@@ -40,6 +40,7 @@ export interface LoggedSet {
   reps: number;
   weight: number;
   bodyweightAtTime?: number; // For bodyweight exercises
+  to_failure?: boolean; // Whether the set was taken to muscular failure
 }
 
 export interface LoggedExercise {
@@ -168,11 +169,22 @@ export interface ProfileUpdateRequest {
 export interface WorkoutExerciseSet {
   weight: number;
   reps: number;
+  to_failure?: boolean; // Whether the set was taken to muscular failure
 }
 
 export interface WorkoutExercise {
   exercise: string;
   sets: WorkoutExerciseSet[];
+}
+
+export interface PRInfo {
+  isPR: boolean;
+  exercise: string;
+  newVolume: number;
+  previousVolume: number;
+  improvement: number;
+  percentIncrease: number;
+  isFirstTime: boolean;
 }
 
 export interface WorkoutResponse {
@@ -183,6 +195,7 @@ export interface WorkoutResponse {
   progression_method: string | null;
   duration_seconds: number | null;
   exercises: WorkoutExercise[];
+  prs?: PRInfo[]; // Personal records detected in this workout
   created_at?: string;
 }
 

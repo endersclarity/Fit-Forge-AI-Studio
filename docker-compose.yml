@@ -1,8 +1,6 @@
 # Docker Compose configuration for FitForge Local
 # Runs frontend + backend + SQLite database
 
-version: '3.8'
-
 services:
   # Backend API Server
   backend:
@@ -32,14 +30,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3001/api
     container_name: fitforge-frontend
     ports:
       - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
-    environment:
-      - VITE_API_URL=http://localhost:3001/api
     restart: unless-stopped
 
 volumes:

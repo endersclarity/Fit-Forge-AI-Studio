@@ -190,9 +190,9 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
         id: `${ex.id}-${Date.now()}`,
         exerciseId: ex.id,
         sets: [
-          { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id) },
-          { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id) },
-          { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id) }
+          { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: false },
+          { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: false },
+          { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: true }
         ]
     })) : []
   );
@@ -326,7 +326,8 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
         const sets: LoggedSet[] = prevExercise.sets.map((_, setIdx) => ({
           id: `set-${setIdx + 1}-${Date.now()}-${idx}`,
           reps: suggestion.suggestedReps,
-          weight: suggestion.suggestedWeight
+          weight: suggestion.suggestedWeight,
+          to_failure: setIdx === prevExercise.sets.length - 1 // Smart default: last set is to failure
         }));
 
         return {
@@ -358,20 +359,45 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   };
   
   const addSet = (exerciseId: string) => {
-    const newSet: LoggedSet = { id: `set-${Date.now()}`, reps: 8, weight: 100 };
-    setLoggedExercises(prev => prev.map(ex => ex.id === exerciseId ? { ...ex, sets: [...ex.sets, newSet] } : ex));
+    setLoggedExercises(prev => prev.map(ex => {
+      if (ex.id !== exerciseId) return ex;
+
+      // Unmark the previous last set as "to failure"
+      const updatedSets = ex.sets.map((s, idx) =>
+        idx === ex.sets.length - 1 ? { ...s, to_failure: false } : s
+      );
+
+      // Add new set marked as "to failure" (smart default)
+      const newSet: LoggedSet = {
+        id: `set-${Date.now()}`,
+        reps: 8,
+        weight: 100,
+        to_failure: true
+      };
+
+      return { ...ex, sets: [...updatedSets, newSet] };
+    }));
   };
   
   const updateSet = (exerciseId: string, setId: string, field: 'reps' | 'weight', value: number) => {
     if (field === 'weight' && (value < 0 || value > 500)) return;
     if (field === 'reps' && (value < 1 || value > 50)) return;
-    
+
     const finalValue = field === 'reps' ? Math.round(value) : value;
 
-    setLoggedExercises(prev => prev.map(ex => 
+    setLoggedExercises(prev => prev.map(ex =>
       ex.id === exerciseId ? {
         ...ex,
         sets: ex.sets.map(s => s.id === setId ? { ...s, [field]: finalValue, bodyweightAtTime: undefined } : s)
+      } : ex
+    ));
+  };
+
+  const toggleSetFailure = (exerciseId: string, setId: string) => {
+    setLoggedExercises(prev => prev.map(ex =>
+      ex.id === exerciseId ? {
+        ...ex,
+        sets: ex.sets.map(s => s.id === setId ? { ...s, to_failure: !s.to_failure } : s)
       } : ex
     ));
   };
@@ -581,33 +607,45 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                   {isExpanded ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6"/>}
                 </button>
                 {isExpanded && <div className="p-4 pt-0">
-                    <div className="grid grid-cols-12 gap-2 text-center text-xs text-slate-400 font-semibold mb-2">
-                        <span className="col-span-2">Set</span>
-                        <span className="col-span-5">Weight (lbs)</span>
-                        <span className="col-span-2">Reps</span>
-                        <span className="col-span-3"></span>
+                    <div className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 text-center text-xs text-slate-400 font-semibold mb-2">
+                        <span className="col-span-1"></span>
+                        <span className="col-span-1">Set</span>
+                        <span className="col-span-1">Weight (lbs)</span>
+                        <span className="col-span-1">Reps</span>
+                        <span className="col-span-1"></span>
                     </div>
                     {ex.sets.map((s, i) => {
                       const setVolume = calculateVolume(s.reps, s.weight);
                       const bestSingleSet = personalBests[ex.exerciseId]?.bestSingleSet || 0;
                       const isNewPR = setVolume > 0 && setVolume > bestSingleSet;
+                      const isLastSet = i === ex.sets.length - 1;
+                      const toFailure = s.to_failure !== undefined ? s.to_failure : isLastSet;
 
                       return (
-                      <div key={s.id} className="grid grid-cols-12 gap-2 items-center mb-2">
-                          <span className="text-center font-bold text-slate-300 col-span-2">{i + 1}</span>
-                          <div className="col-span-5 flex items-center gap-1">
-                            <input type="number" step="0.25" value={s.weight} 
-                                onChange={e => updateSet(ex.id, s.id, 'weight', parseFloat(e.target.value) || 0)} 
+                      <div key={s.id} className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 items-center mb-2">
+                          <div className="flex justify-center">
+                            <button
+                              onClick={() => toggleSetFailure(ex.id, s.id)}
+                              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-brand-cyan border-brand-cyan' : 'border-slate-400'}`}
+                              title={toFailure ? "Taken to failure" : "Not to failure"}
+                            >
+                              {toFailure && <span className="text-brand-dark font-bold text-sm">✓</span>}
+                            </button>
+                          </div>
+                          <span className="text-center font-bold text-slate-300">{i + 1}</span>
+                          <div className="flex items-center gap-1">
+                            <input type="number" step="0.25" value={s.weight}
+                                onChange={e => updateSet(ex.id, s.id, 'weight', parseFloat(e.target.value) || 0)}
                                 onBlur={e => handleWeightBlur(ex.id, s.id, parseFloat(e.target.value) || 0)}
                                 className="w-full text-center bg-brand-dark rounded-md p-2" />
                             <button onClick={() => handleUseBodyweight(ex.id, s.id)} className="bg-brand-muted text-xs px-2 py-1 rounded-md whitespace-nowrap h-full">Use BW</button>
                           </div>
-                          <div className="col-span-2">
-                            <input type="number" value={s.reps} 
-                                onChange={e => updateSet(ex.id, s.id, 'reps', parseInt(e.target.value) || 0)} 
+                          <div>
+                            <input type="number" value={s.reps}
+                                onChange={e => updateSet(ex.id, s.id, 'reps', parseInt(e.target.value) || 0)}
                                 className="w-full text-center bg-brand-dark rounded-md p-2" />
                           </div>
-                          <div className="col-span-3 flex justify-center items-center gap-1">
+                          <div className="flex justify-center items-center gap-1">
                             {isNewPR && <TrophyIcon className="w-5 h-5 text-yellow-400" />}
                             <button onClick={() => startRestTimer(s.id)} className="text-slate-400 hover:text-brand-cyan p-1"><ClockIcon className="w-5 h-5"/></button>
                             <button onClick={() => removeSet(ex.id, s.id)} className="text-slate-400 hover:text-red-500 p-1"><XIcon className="w-5 h-5"/></button>

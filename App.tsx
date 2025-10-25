@@ -1,22 +1,25 @@
 
 import React, { useState, useCallback } from 'react';
 import { useAPIState } from './hooks/useAPIState';
-import { profileAPI, workoutsAPI, muscleStatesAPI, personalBestsAPI, muscleBaselinesAPI } from './api';
+import { profileAPI, workoutsAPI, muscleStatesAPI, personalBestsAPI, muscleBaselinesAPI, templatesAPI } from './api';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
-import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, MuscleStates, ExerciseCategory, Exercise, Variation, ExerciseMaxes } from './types';
+import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, MuscleStates, ExerciseCategory, Exercise, Variation, ExerciseMaxes, WorkoutTemplate, PRInfo } from './types';
 import Dashboard from './components/Dashboard';
 import WorkoutTracker from './components/Workout';
 import Profile from './components/Profile';
 import PersonalBestsComponent from './components/PersonalBests';
+import WorkoutTemplates from './components/WorkoutTemplates';
 import Toast from './components/Toast';
+import { PRNotificationManager } from './components/PRNotification';
 import { calculateVolume } from './utils/helpers';
 
-type View = "dashboard" | "workout" | "profile" | "bests";
+type View = "dashboard" | "workout" | "profile" | "bests" | "templates";
 
 export interface RecommendedWorkoutData {
     type: ExerciseCategory;
     variation: Variation;
     suggestedExercises: Exercise[];
+    sourceTemplate?: WorkoutTemplate;
 }
 
 const App: React.FC = () => {
@@ -37,9 +40,11 @@ const App: React.FC = () => {
   const [muscleStates, setMuscleStates, muscleStatesLoading, muscleStatesError] = useAPIState<MuscleStates>(muscleStatesAPI.get, muscleStatesAPI.update, defaultMuscleStates);
   const [personalBests, setPersonalBests, personalBestsLoading, personalBestsError] = useAPIState<PersonalBests>(personalBestsAPI.get, personalBestsAPI.update, {});
   const [muscleBaselines, setMuscleBaselines, muscleBaselinesLoading, muscleBaselinesError] = useAPIState<MuscleBaselines>(muscleBaselinesAPI.get, muscleBaselinesAPI.update, defaultMuscleBaselines);
+  const [templates, setTemplates, templatesLoading, templatesError] = useAPIState<WorkoutTemplate[]>(templatesAPI.getAll, async (newTemplates) => newTemplates, []);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [recommendedWorkout, setRecommendedWorkout] = useState<RecommendedWorkoutData | null>(null);
+  const [prNotifications, setPrNotifications] = useState<PRInfo[]>([]);
 
 
   const handleFinishWorkout = useCallback(async (session: WorkoutSession) => {
@@ -129,8 +134,13 @@ const App: React.FC = () => {
       await setPersonalBests(newPbs);
 
       // 5. Save new workout to database and update local state
-      await workoutsAPI.create(session);
+      const savedWorkout = await workoutsAPI.create(session);
       await setWorkouts(allWorkoutsIncludingCurrent);
+
+      // Display PR notifications if any were detected
+      if (savedWorkout.prs && savedWorkout.prs.length > 0) {
+        setPrNotifications(savedWorkout.prs);
+      }
 
       setRecommendedWorkout(null);
     } catch (error) {
@@ -150,6 +160,21 @@ const App: React.FC = () => {
   const handleCancelWorkout = useCallback(() => {
     setRecommendedWorkout(null);
     setView('dashboard');
+  }, []);
+
+  const handleSelectTemplate = useCallback((template: WorkoutTemplate) => {
+    // Convert template to recommended workout format
+    const exercises = template.exerciseIds
+      .map(id => EXERCISE_LIBRARY.find(ex => ex.id === id))
+      .filter((ex): ex is Exercise => ex !== undefined);
+
+    setRecommendedWorkout({
+      type: template.category,
+      variation: template.variation,
+      suggestedExercises: exercises,
+      sourceTemplate: template
+    });
+    setView('workout');
   }, []);
   
   const renderContent = () => {
@@ -195,14 +220,17 @@ const App: React.FC = () => {
                       workouts={workouts}
                       muscleStates={muscleStates}
                       muscleBaselines={muscleBaselines}
+                      templates={templates}
                       onStartWorkout={() => navigateTo('workout')}
                       onStartRecommendedWorkout={handleStartRecommendedWorkout}
+                      onSelectTemplate={handleSelectTemplate}
                       onNavigateToProfile={() => navigateTo('profile')}
                       onNavigateToBests={() => navigateTo('bests')}
+                      onNavigateToTemplates={() => navigateTo('templates')}
                     />;
         case 'workout':
-            return <WorkoutTracker 
-                      onFinishWorkout={handleFinishWorkout} 
+            return <WorkoutTracker
+                      onFinishWorkout={handleFinishWorkout}
                       onCancel={handleCancelWorkout}
                       allWorkouts={workouts}
                       personalBests={personalBests}
@@ -223,17 +251,24 @@ const App: React.FC = () => {
                       personalBests={personalBests}
                       onBack={() => navigateTo('dashboard')}
                     />;
+        case 'templates':
+            return <WorkoutTemplates
+                      onBack={() => navigateTo('dashboard')}
+                      onSelectTemplate={handleSelectTemplate}
+                    />;
         default:
-            return <Dashboard 
-                      profile={profile} 
-                      workouts={workouts} 
-                      muscleStates={muscleStates} 
+            return <Dashboard
+                      profile={profile}
+                      workouts={workouts}
+                      muscleStates={muscleStates}
                       muscleBaselines={muscleBaselines}
+                      templates={templates}
                       onStartWorkout={() => navigateTo('workout')}
                       onStartRecommendedWorkout={handleStartRecommendedWorkout}
-                      // Fix: Corrected syntax error from "navigate to" to "navigateTo"
+                      onSelectTemplate={handleSelectTemplate}
                       onNavigateToProfile={() => navigateTo('profile')}
                       onNavigateToBests={() => navigateTo('bests')}
+                      onNavigateToTemplates={() => navigateTo('templates')}
                     />;
     }
   }
@@ -241,6 +276,12 @@ const App: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto">
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
+      {prNotifications.length > 0 && (
+        <PRNotificationManager
+          prs={prNotifications}
+          onDismissAll={() => setPrNotifications([])}
+        />
+      )}
       {renderContent()}
     </div>
   );

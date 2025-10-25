@@ -17,7 +17,8 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
             .map(([exerciseId, pb]) => {
                 const exercise = EXERCISE_LIBRARY.find(ex => ex.id === exerciseId);
                 if (!exercise) return null;
-                return { ...exercise, ...pb };
+                const pbData = pb as ExerciseMaxes;
+                return { ...exercise, ...pbData } as Exercise & ExerciseMaxes;
             })
             .filter((record): record is (Exercise & ExerciseMaxes) => record !== null)
             .sort((a, b) => a.name.localeCompare(b.name));

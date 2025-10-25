@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS exercise_sets (
   weight REAL NOT NULL,
   reps INTEGER NOT NULL,
   set_number INTEGER NOT NULL,
+  to_failure INTEGER DEFAULT 1, -- 1 = true (set taken to failure), 0 = false (submaximal)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
 );
@@ -113,6 +114,7 @@ CREATE TABLE IF NOT EXISTS workout_templates (
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_workouts_user_date ON workouts(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_exercise_sets_workout ON exercise_sets(workout_id);
+CREATE INDEX IF NOT EXISTS idx_exercise_sets_to_failure ON exercise_sets(to_failure);
 CREATE INDEX IF NOT EXISTS idx_muscle_states_user ON muscle_states(user_id);
 CREATE INDEX IF NOT EXISTS idx_personal_bests_user ON personal_bests(user_id);
 CREATE INDEX IF NOT EXISTS idx_muscle_baselines_user ON muscle_baselines(user_id);
