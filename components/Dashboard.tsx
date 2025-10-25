@@ -1,10 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
-import { Muscle, MuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate } from '../types';
+import { Muscle, MuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse } from '../types';
 import { getUserLevel, formatDuration } from '../utils/helpers';
 import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 import { RecommendedWorkoutData } from '../App';
 import DashboardQuickStart from './DashboardQuickStart';
+import ExerciseRecommendations from './ExerciseRecommendations';
+import QuickTrainingStats from './QuickTrainingStats';
+import WorkoutHistorySummary from './WorkoutHistorySummary';
+import RecoveryTimelineView from './RecoveryTimelineView';
+import { calculateStreak, calculateWeeklyStats, findRecentPRs } from '../utils/statsHelpers';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -424,23 +429,42 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
   // State management for fetching muscle states from API
   const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
+  const [workoutHistory, setWorkoutHistory] = useState<WorkoutResponse[]>([]);
+  const [personalBests, setPersonalBests] = useState<PersonalBestsResponse>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch muscle states from backend API
-  const fetchMuscleStates = async () => {
+  // Fetch muscle states, workouts, and personal bests from backend API
+  const fetchDashboardData = async () => {
     setLoading(true);
     setError(null);
     try {
       // Use API_BASE_URL from env to hit backend correctly
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-      const response = await fetch(`${API_BASE_URL}/muscle-states`);
-      if (!response.ok) throw new Error('Failed to fetch muscle states');
-      const data = await response.json();
-      setMuscleStates(data);
+
+      // Fetch all data in parallel
+      const [muscleStatesRes, workoutsRes, personalBestsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/muscle-states`),
+        fetch(`${API_BASE_URL}/workouts`),
+        fetch(`${API_BASE_URL}/personal-bests`)
+      ]);
+
+      if (!muscleStatesRes.ok) throw new Error('Failed to fetch muscle states');
+      if (!workoutsRes.ok) throw new Error('Failed to fetch workouts');
+      if (!personalBestsRes.ok) throw new Error('Failed to fetch personal bests');
+
+      const [muscleStatesData, workoutsData, personalBestsData] = await Promise.all([
+        muscleStatesRes.json(),
+        workoutsRes.json(),
+        personalBestsRes.json()
+      ]);
+
+      setMuscleStates(muscleStatesData);
+      setWorkoutHistory(workoutsData);
+      setPersonalBests(personalBestsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
-      console.error('Error fetching muscle states:', err);
+      console.error('Error fetching dashboard data:', err);
     } finally {
       setLoading(false);
     }
@@ -448,8 +472,13 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
   // Auto-refresh on component mount
   useEffect(() => {
-    fetchMuscleStates();
+    fetchDashboardData();
   }, []);
+
+  // Calculate stats using useMemo for performance
+  const streak = useMemo(() => calculateStreak(workoutHistory), [workoutHistory]);
+  const weeklyStats = useMemo(() => calculateWeeklyStats(workoutHistory), [workoutHistory]);
+  const recentPRs = useMemo(() => findRecentPRs(personalBests, workoutHistory), [personalBests, workoutHistory]);
 
   return (
     <div className="p-4 md:p-6 min-h-screen bg-brand-dark space-y-6">
@@ -512,11 +541,40 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
             </button>
         </section>
 
+        {/* Quick Training Stats */}
+        {!loading && !error && workoutHistory.length > 0 && (
+          <QuickTrainingStats
+            streak={streak}
+            weeklyStats={weeklyStats}
+            recentPRs={recentPRs}
+          />
+        )}
+
+        {/* Workout History Summary */}
+        {!loading && !error && (
+          <WorkoutHistorySummary
+            workouts={workoutHistory}
+            personalBests={personalBests}
+          />
+        )}
+
+        {/* Recovery Timeline */}
+        {!loading && !error && Object.keys(muscleStates).length > 0 && (
+          <RecoveryTimelineView
+            muscleStates={muscleStates}
+            onMuscleClick={(muscleName) => {
+              // Reuse the existing muscle modal logic from MuscleFatigueHeatMap
+              // For now, this is a placeholder - we'd need to lift the modal state
+              console.log('Muscle clicked:', muscleName);
+            }}
+          />
+        )}
+
         <section className="bg-brand-surface p-4 rounded-lg">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Muscle Fatigue Heat Map</h3>
               <button
-                onClick={fetchMuscleStates}
+                onClick={fetchDashboardData}
                 disabled={loading}
                 className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                   loading
@@ -531,7 +589,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
               <div className="text-center py-8">
                 <p className="text-red-400 mb-4">Error: {error}</p>
                 <button
-                  onClick={fetchMuscleStates}
+                  onClick={fetchDashboardData}
                   className="bg-brand-cyan text-brand-dark px-4 py-2 rounded hover:bg-cyan-400 transition-colors"
                 >
                   Retry
@@ -545,6 +603,24 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
               <MuscleFatigueHeatMap muscleStates={muscleStates} workouts={workouts} muscleBaselines={muscleBaselines} />
             )}
         </section>
+
+        {/* Exercise Recommendations Section */}
+        {!loading && !error && Object.keys(muscleStates).length > 0 && profile.equipment && (
+          <section>
+            <ExerciseRecommendations
+              muscleStates={muscleStates}
+              equipment={profile.equipment || []}
+              onAddToWorkout={(exercise) => {
+                // Start a workout with the selected exercise
+                onStartRecommendedWorkout({
+                  type: exercise.category,
+                  variation: 'A', // Default to A variation
+                  suggestedExercises: [exercise]
+                });
+              }}
+            />
+          </section>
+        )}
 
         <section className="bg-brand-surface p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Workout History</h3>

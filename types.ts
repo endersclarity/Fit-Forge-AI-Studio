@@ -282,3 +282,31 @@ export interface ApiErrorResponse {
   message?: string;
   hint?: string;
 }
+
+// ============================================
+// EXERCISE RECOMMENDATION TYPES
+// ============================================
+
+/**
+ * Internal calculation type for muscle readiness
+ */
+export interface MuscleReadiness {
+  muscle: Muscle;
+  recovery: number;      // 0-100% (100 = fully recovered)
+  fatigue: number;       // 0-100% (0 = fully recovered)
+  engagement: number;    // 0-100% (how much this exercise works this muscle)
+  isPrimary: boolean;    // engagement >= 50%
+}
+
+/**
+ * Recommendation engine output
+ */
+export interface ExerciseRecommendation {
+  exercise: Exercise;
+  opportunityScore: number;
+  primaryMuscles: MuscleReadiness[];
+  limitingFactors: MuscleReadiness[];
+  status: 'excellent' | 'good' | 'suboptimal' | 'not-recommended';
+  explanation: string;
+  equipmentAvailable: boolean;
+}
