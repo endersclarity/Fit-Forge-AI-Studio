@@ -432,7 +432,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/muscle-states');
+      // Use API_BASE_URL from env to hit backend correctly
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${API_BASE_URL}/muscle-states`);
       if (!response.ok) throw new Error('Failed to fetch muscle states');
       const data = await response.json();
       setMuscleStates(data);
