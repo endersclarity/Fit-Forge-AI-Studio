@@ -264,27 +264,82 @@ function saveWorkout(workout: WorkoutSaveRequest): WorkoutResponse {
 }
 
 /**
- * Get muscle states
+ * Get muscle states with calculated fields
+ *
+ * This function implements the backend calculation engine for muscle state.
+ * It reads immutable historical facts from the database and calculates current
+ * state based on time elapsed and recovery formulas.
  */
 function getMuscleStates(): MuscleStatesResponse {
   const states = db.prepare(`
-    SELECT muscle_name, fatigue_percent, volume_today, recovered_at, last_trained
+    SELECT muscle_name, initial_fatigue_percent, last_trained
     FROM muscle_states
     WHERE user_id = 1
   `).all() as Array<{
     muscle_name: string;
-    fatigue_percent: number;
-    volume_today: number;
-    recovered_at: string | null;
+    initial_fatigue_percent: number;
     last_trained: string | null;
   }>;
 
+  const now = Date.now();
   const result: MuscleStatesResponse = {};
+
   for (const state of states) {
+    // Handle never-trained muscles (last_trained is null)
+    if (!state.last_trained) {
+      result[state.muscle_name] = {
+        currentFatiguePercent: 0,
+        daysElapsed: null,
+        estimatedRecoveryDays: 1, // Base recovery time
+        daysUntilRecovered: 0,
+        recoveryStatus: 'ready',
+        initialFatiguePercent: 0,
+        lastTrained: null
+      };
+      continue;
+    }
+
+    // Calculate time elapsed since workout
+    const lastTrainedTime = new Date(state.last_trained).getTime();
+    const daysElapsed = (now - lastTrainedTime) / (1000 * 60 * 60 * 24);
+
+    // Calculate recovery time using linear formula
+    // recoveryDays = 1 + (initialFatigue / 100) * 6
+    // Range: 1 day (0% fatigue) to 7 days (100% fatigue)
+    const estimatedRecoveryDays = 1 + (state.initial_fatigue_percent / 100) * 6;
+
+    // Calculate current fatigue using linear decay
+    // currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
+    let currentFatiguePercent = state.initial_fatigue_percent * (1 - daysElapsed / estimatedRecoveryDays);
+
+    // Apply bounds checking (clamp to 0-100)
+    currentFatiguePercent = Math.max(0, Math.min(100, currentFatiguePercent));
+
+    // Round to 1 decimal place for display
+    currentFatiguePercent = Math.round(currentFatiguePercent * 10) / 10;
+
+    // Calculate days until fully recovered
+    let daysUntilRecovered = Math.max(0, estimatedRecoveryDays - daysElapsed);
+    daysUntilRecovered = Math.round(daysUntilRecovered * 10) / 10;
+
+    // Determine recovery status based on thresholds
+    // ready: <= 33%, recovering: <= 66%, fatigued: > 66%
+    let recoveryStatus: 'ready' | 'recovering' | 'fatigued';
+    if (currentFatiguePercent <= 33) {
+      recoveryStatus = 'ready';
+    } else if (currentFatiguePercent <= 66) {
+      recoveryStatus = 'recovering';
+    } else {
+      recoveryStatus = 'fatigued';
+    }
+
     result[state.muscle_name] = {
-      fatiguePercent: state.fatigue_percent,
-      volumeToday: state.volume_today,
-      recoveredAt: state.recovered_at,
+      currentFatiguePercent,
+      daysElapsed: Math.round(daysElapsed * 10) / 10,
+      estimatedRecoveryDays: Math.round(estimatedRecoveryDays * 10) / 10,
+      daysUntilRecovered,
+      recoveryStatus,
+      initialFatiguePercent: state.initial_fatigue_percent,
       lastTrained: state.last_trained
     };
   }
@@ -294,27 +349,31 @@ function getMuscleStates(): MuscleStatesResponse {
 
 /**
  * Update muscle states
+ *
+ * Stores immutable historical facts from a workout and returns calculated current state.
+ * The response includes all calculated fields from getMuscleStates().
  */
 function updateMuscleStates(states: MuscleStatesUpdateRequest): MuscleStatesResponse {
   const update = db.prepare(`
     UPDATE muscle_states
-    SET fatigue_percent = ?, volume_today = ?, recovered_at = ?, last_trained = ?, updated_at = CURRENT_TIMESTAMP
+    SET initial_fatigue_percent = ?, volume_today = ?, last_trained = ?, updated_at = CURRENT_TIMESTAMP
     WHERE user_id = 1 AND muscle_name = ?
   `);
 
   const updateTransaction = db.transaction(() => {
     for (const [muscleName, state] of Object.entries(states)) {
       update.run(
-        state.fatiguePercent ?? 0,
-        state.volumeToday ?? 0,
-        state.recoveredAt ?? null,
-        state.lastTrained ?? null,
+        state.initial_fatigue_percent,
+        state.volume_today ?? 0,
+        state.last_trained,
         muscleName
       );
     }
   });
 
   updateTransaction();
+
+  // Return calculated muscle states with all fields
   return getMuscleStates();
 }
 

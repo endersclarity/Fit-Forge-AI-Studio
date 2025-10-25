@@ -58,17 +58,17 @@ CREATE TABLE IF NOT EXISTS exercise_sets (
   FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
 );
 
--- Muscle states (current fatigue and recovery)
+-- Muscle states (stores immutable historical facts, not calculated values)
 CREATE TABLE IF NOT EXISTS muscle_states (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
-  muscle_name TEXT NOT NULL UNIQUE,
-  fatigue_percent REAL NOT NULL DEFAULT 0,
+  muscle_name TEXT NOT NULL,
+  initial_fatigue_percent REAL NOT NULL DEFAULT 0,
   volume_today REAL NOT NULL DEFAULT 0,
-  recovered_at TEXT,
   last_trained TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(user_id, muscle_name)
 );
 
 -- Personal bests
@@ -124,20 +124,20 @@ CREATE INDEX IF NOT EXISTS idx_workout_templates_user ON workout_templates(user_
 INSERT OR IGNORE INTO users (id, name, experience) VALUES (1, 'Athlete', 'Beginner');
 
 -- Initialize all muscle states with default values
-INSERT OR IGNORE INTO muscle_states (user_id, muscle_name, fatigue_percent, volume_today) VALUES
-  (1, 'Pectoralis', 0, 0),
-  (1, 'Triceps', 0, 0),
-  (1, 'Deltoids', 0, 0),
-  (1, 'Lats', 0, 0),
-  (1, 'Biceps', 0, 0),
-  (1, 'Rhomboids', 0, 0),
-  (1, 'Trapezius', 0, 0),
-  (1, 'Forearms', 0, 0),
-  (1, 'Quadriceps', 0, 0),
-  (1, 'Glutes', 0, 0),
-  (1, 'Hamstrings', 0, 0),
-  (1, 'Calves', 0, 0),
-  (1, 'Core', 0, 0);
+INSERT OR IGNORE INTO muscle_states (user_id, muscle_name) VALUES
+  (1, 'Pectoralis'),
+  (1, 'Triceps'),
+  (1, 'Deltoids'),
+  (1, 'Lats'),
+  (1, 'Biceps'),
+  (1, 'Rhomboids'),
+  (1, 'Trapezius'),
+  (1, 'Forearms'),
+  (1, 'Quadriceps'),
+  (1, 'Glutes'),
+  (1, 'Hamstrings'),
+  (1, 'Calves'),
+  (1, 'Core');
 
 -- Initialize all muscle baselines
 INSERT OR IGNORE INTO muscle_baselines (user_id, muscle_name, system_learned_max) VALUES

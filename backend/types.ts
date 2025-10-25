@@ -196,21 +196,35 @@ export interface WorkoutSaveRequest {
 }
 
 // Muscle State API Types
+
+/**
+ * Response type for GET /api/muscle-states
+ * Contains both stored fields and calculated fields for a muscle's state
+ */
 export interface MuscleStateData {
-  fatiguePercent: number;
-  volumeToday: number;
-  recoveredAt: string | null;
-  lastTrained: string | null;
+  // Calculated fields (derived from stored fields and current time)
+  currentFatiguePercent: number;       // Current fatigue after time-based decay (0-100)
+  daysElapsed: number | null;          // Days since last workout (null if never trained)
+  estimatedRecoveryDays: number;       // Total days needed for full recovery
+  daysUntilRecovered: number;          // Days remaining until full recovery
+  recoveryStatus: 'ready' | 'recovering' | 'fatigued'; // Status based on thresholds
+
+  // Stored fields (from database)
+  initialFatiguePercent: number;       // Fatigue at time of workout (immutable historical fact)
+  lastTrained: string | null;          // UTC ISO 8601 timestamp of last workout
 }
 
 export type MuscleStatesResponse = Record<string, MuscleStateData>;
 
+/**
+ * Request type for PUT /api/muscle-states
+ * Used when updating muscle states after a workout
+ */
 export interface MuscleStatesUpdateRequest {
   [muscleName: string]: {
-    fatiguePercent?: number;
-    volumeToday?: number;
-    recoveredAt?: string | null;
-    lastTrained?: string | null;
+    initial_fatigue_percent: number;   // Fatigue percentage at time of workout
+    last_trained: string;               // UTC ISO 8601 timestamp (e.g., "2025-10-25T12:00:00.000Z")
+    volume_today?: number;              // Optional: workout volume
   };
 }
 
