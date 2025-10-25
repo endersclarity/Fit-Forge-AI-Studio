@@ -9,6 +9,41 @@
 - **Status:** Active development
 - **Last Updated:** 2025-10-24
 
+### Vision Statement
+
+FitForge is not just a workout logger - it's an **intelligent muscle capacity learning system** that understands individual body mechanics and provides real-time, personalized workout guidance. The system learns YOUR body through actual performance data, tracks muscle-specific fatigue and recovery, and provides smart progressive overload recommendations to optimize training effectiveness.
+
+**Core Philosophy:**
+- **Intelligence over tracking** - Focus on "what can I do RIGHT NOW?" not "what did I do yesterday?"
+- **Data-driven, not survey-driven** - Let performance data speak for itself
+- **Personal calibration** - Start with exercise science, learn YOUR body through use
+- **Progressive innovation** - Alternate between +3% weight and +3% reps to prevent plateaus
+
+---
+
+## 🎯 Current Priorities (2025-10-24)
+
+Based on comprehensive brainstorming session (see `docs/brainstorming-session-results.md`):
+
+**Priority 1: Smart Workout Continuation System** 🚧 _In Proposal_
+- Track workout variations (A/B) and suggest opposite variation
+- Auto-populate previous workout with progressive overload suggestions
+- Alternate between +3% weight and +3% reps for systematic progression
+- **Status:** OpenSpec proposal created (`enable-smart-workout-continuation`)
+- **Estimated:** 12-16 hours implementation
+
+**Priority 2: Muscle Fatigue Heat Map (Home Screen)**
+- Visual representation of all 13 muscle groups with fatigue percentages
+- Color-coded: Green (ready), Yellow (recovering), Red (fatigued)
+- Interactive: tap muscle to see exercises that target it
+- **Status:** Planned (depends on Priority 1)
+
+**Priority 3: "To Failure" Tracking + PR Detection**
+- Boolean flag on each set marking if taken to failure
+- Automatic PR detection when exceeding previous best
+- Simple celebration notifications
+- **Status:** Planned (enables future baseline learning)
+
 ---
 
 ## 🎯 Core Purpose
@@ -445,6 +480,48 @@ docker-compose up -d
 
 ---
 
+## 🔄 OpenSpec Workflow
+
+FitForge uses OpenSpec for structured change management and proposal-driven development.
+
+### Active Proposals
+
+**`enable-smart-workout-continuation`** - Status: Draft
+- **Created:** 2025-10-24
+- **Capabilities:** workout-variation-tracking, progressive-overload-suggestions, workout-loading-ui
+- **Requirements:** 28 total across 3 capabilities
+- **Tasks:** 15 tasks, 4 phases, 12-16 hour estimate
+- **Location:** `openspec/changes/enable-smart-workout-continuation/`
+
+### Archived Changes
+
+**`fix-deployment-blockers`** - Status: Deployed
+- Type safety improvements, backend TypeScript conversion
+- Database reliability, build system fixes
+
+**`enable-template-based-workouts`** - Status: Deployed
+- Template selection from dashboard
+- Pre-populated workout setup from templates
+
+### Creating New Proposals
+
+1. Review brainstorming doc: `docs/brainstorming-session-results.md`
+2. Create proposal: `openspec/changes/{change-id}/proposal.md`
+3. Define architecture: `design.md` (if complex)
+4. Write spec deltas: `specs/{capability}/spec.md`
+5. Plan implementation: `tasks.md`
+6. Validate: `openspec validate {change-id} --strict`
+7. Commit proposal before implementation
+
+### Applying Proposals
+
+1. Follow tasks.md in order
+2. Commit after each phase or major milestone
+3. Update tasks.md progress
+4. When complete, archive the proposal
+
+---
+
 ## 🤝 Contributing Guidelines
 
 When working on FitForge:
@@ -466,6 +543,27 @@ Refer to the comprehensive documentation:
 - Setup issues → FITFORGE-INIT.md or QUICK-START.md
 - Security concerns → README-LOCAL.md
 - Feature details → Relevant handoff documents
+
+---
+
+## 🔮 Future Innovations (Roadmap)
+
+Documented in `docs/brainstorming-session-results.md`:
+
+**Phase 2: Research Sprint** (After Priority 3)
+- Validate muscle engagement percentage model
+- Research recovery formulas (muscle-specific vs universal)
+- Define baseline learning algorithm mathematical specification
+
+**Phase 3+: Advanced Intelligence**
+- Baseline learning algorithm (constraint satisfaction for muscle capacity)
+- Personal calibration system (override default muscle engagement percentages)
+- Historical analytics dashboard (charts, progression trends)
+- Quick-add interface for casual logging
+- 3D body model with interactive heat map (moonshot)
+- AI coach integration with Claude Code (moonshot)
+
+**Key Principle:** Ship imperfect, iterate with real data. V1 uses rough approximations that still provide value, then improve model over time with validated research.
 
 ---
 
