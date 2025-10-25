@@ -165,6 +165,16 @@ export const muscleStatesAPI = {
     // Return the original states
     return states;
   },
+  /**
+   * Update muscle states using new API format (Phase 4)
+   * Accepts initial_fatigue_percent and last_trained in UTC ISO format
+   */
+  updateNew: async (updates: MuscleStatesUpdateRequest): Promise<MuscleStatesResponse> => {
+    return await apiRequest<MuscleStatesResponse>('/muscle-states', {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  },
 };
 
 /**

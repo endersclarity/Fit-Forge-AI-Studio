@@ -79,18 +79,23 @@ const App: React.FC = () => {
       session.muscleFatigueHistory = muscleFatigue;
 
       // 3. Update Muscle States with new fatigue and recovery info
-      const newMuscleStates = { ...muscleStates };
+      // Build the muscle state update payload using new API field names
+      const muscleUpdates: Record<string, { initial_fatigue_percent: number; last_trained: string; volume_today: number }> = {};
       Object.entries(muscleFatigue).forEach(([muscleStr, fatigue]) => {
           const muscle = muscleStr as Muscle;
-          // Recovery formula: 1 base day + up to 6 days based on fatigue
-          const recoveryDays = 1 + (fatigue / 100) * 6;
-          newMuscleStates[muscle] = {
-              lastTrained: session.endTime,
-              fatiguePercentage: fatigue,
-              recoveryDaysNeeded: recoveryDays
+          muscleUpdates[muscle] = {
+              initial_fatigue_percent: fatigue,
+              last_trained: new Date(session.endTime).toISOString(), // Convert to UTC ISO 8601
+              volume_today: workoutMuscleVolumes[muscle] || 0
           };
       });
-      await setMuscleStates(newMuscleStates);
+
+      // Call API to update muscle states (it will return calculated values)
+      await muscleStatesAPI.updateNew(muscleUpdates);
+
+      // Refetch muscle states to get fresh calculated values from backend
+      const refreshedStates = await muscleStatesAPI.get();
+      setMuscleStates(refreshedStates);
 
       const allWorkoutsIncludingCurrent = [...workouts, session];
 
