@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // API client for FitForge local backend
 // Replaces localStorage with API calls to Express server
 
@@ -72,6 +73,14 @@ export const workoutsAPI = {
       loggedExercises: [],
       muscleFatigueHistory: {}
     }));
+  },
+  getLastByCategory: async (category: string): Promise<WorkoutResponse | null> => {
+    try {
+      return await apiRequest<WorkoutResponse>(`/workouts/last?category=${encodeURIComponent(category)}`);
+    } catch (error) {
+      // Return null if not found (404)
+      return null;
+    }
   },
   create: async (workout: WorkoutSession): Promise<WorkoutSession> => {
     // Transform frontend WorkoutSession to backend format

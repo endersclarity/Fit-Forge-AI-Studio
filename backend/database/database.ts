@@ -14,7 +14,7 @@ import {
   MuscleBaselinesResponse,
   MuscleBaselinesUpdateRequest,
   WorkoutTemplate
-} from '../../types';
+} from '../types';
 
 // Database file location (persisted in data/ folder)
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/fitforge.db');
@@ -28,7 +28,7 @@ if (!fs.existsSync(dataDir)) {
 
 // Initialize database
 const db: Database.Database = new Database(DB_PATH);
-db.pragma('journal_mode = WAL'); // Better performance for concurrent reads
+db.pragma('journal_mode = DELETE'); // DELETE mode for Docker compatibility (WAL doesn't work on Windows volume mounts)
 
 console.log(`Database initialized at: ${DB_PATH}`);
 
@@ -55,7 +55,9 @@ interface WorkoutRow {
   id: number;
   user_id: number;
   date: string;
-  variation: string;
+  category: string | null;
+  variation: string | null;
+  progression_method: string | null;
   duration_seconds: number | null;
   created_at: string;
 }
@@ -178,7 +180,9 @@ function getWorkouts(): WorkoutResponse[] {
     results.push({
       id: workout.id,
       date: workout.date,
+      category: workout.category,
       variation: workout.variation,
+      progression_method: workout.progression_method,
       duration_seconds: workout.duration_seconds,
       exercises: Object.values(exercisesMap),
       created_at: workout.created_at
@@ -193,8 +197,8 @@ function getWorkouts(): WorkoutResponse[] {
  */
 function saveWorkout(workout: WorkoutSaveRequest): WorkoutResponse {
   const insertWorkout = db.prepare(`
-    INSERT INTO workouts (user_id, date, variation, duration_seconds)
-    VALUES (1, ?, ?, ?)
+    INSERT INTO workouts (user_id, date, category, variation, progression_method, duration_seconds)
+    VALUES (1, ?, ?, ?, ?, ?)
   `);
 
   const insertSet = db.prepare(`
@@ -204,7 +208,13 @@ function saveWorkout(workout: WorkoutSaveRequest): WorkoutResponse {
 
   const saveTransaction = db.transaction(() => {
     // Insert workout
-    const result = insertWorkout.run(workout.date, workout.variation, workout.durationSeconds || null);
+    const result = insertWorkout.run(
+      workout.date,
+      workout.category || null,
+      workout.variation || null,
+      workout.progressionMethod || null,
+      workout.durationSeconds || null
+    );
     const workoutId = result.lastInsertRowid as number;
 
     // Insert exercise sets
@@ -244,7 +254,9 @@ function saveWorkout(workout: WorkoutSaveRequest): WorkoutResponse {
   return {
     id: savedWorkout.id,
     date: savedWorkout.date,
+    category: savedWorkout.category,
     variation: savedWorkout.variation,
+    progression_method: savedWorkout.progression_method,
     duration_seconds: savedWorkout.duration_seconds,
     exercises: Object.values(exercisesMap),
     created_at: savedWorkout.created_at
@@ -627,12 +639,60 @@ function seedDefaultTemplates(): void {
 console.log('Running seed function...');
 seedDefaultTemplates();
 
+/**
+ * Get last workout by category
+ */
+function getLastWorkoutByCategory(category: string): WorkoutResponse | null {
+  const workout = db.prepare(`
+    SELECT * FROM workouts
+    WHERE user_id = 1 AND category = ?
+    ORDER BY date DESC
+    LIMIT 1
+  `).get(category) as WorkoutRow | undefined;
+
+  if (!workout) {
+    return null;
+  }
+
+  // Get exercise sets for this workout
+  const sets = db.prepare(`
+    SELECT exercise_name as exercise, weight, reps, set_number
+    FROM exercise_sets
+    WHERE workout_id = ?
+    ORDER BY set_number
+  `).all(workout.id) as Array<{ exercise: string; weight: number; reps: number; set_number: number }>;
+
+  // Group sets by exercise
+  const exercisesMap: Record<string, WorkoutExercise> = {};
+  for (const set of sets) {
+    if (!exercisesMap[set.exercise]) {
+      exercisesMap[set.exercise] = { exercise: set.exercise, sets: [] };
+    }
+    const exercise = exercisesMap[set.exercise];
+    if (exercise) {
+      exercise.sets.push({ weight: set.weight, reps: set.reps });
+    }
+  }
+
+  return {
+    id: workout.id,
+    date: workout.date,
+    category: workout.category,
+    variation: workout.variation,
+    progression_method: workout.progression_method,
+    duration_seconds: workout.duration_seconds,
+    exercises: Object.values(exercisesMap),
+    created_at: workout.created_at
+  };
+}
+
 // Export database instance and helper functions
 export {
   db,
   getProfile,
   updateProfile,
   getWorkouts,
+  getLastWorkoutByCategory,
   saveWorkout,
   getMuscleStates,
   updateMuscleStates,

@@ -37,7 +37,9 @@ CREATE TABLE IF NOT EXISTS workouts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   date TEXT NOT NULL,
+  category TEXT,
   variation TEXT,
+  progression_method TEXT,
   duration_seconds INTEGER,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -93,12 +95,28 @@ CREATE TABLE IF NOT EXISTS muscle_baselines (
   UNIQUE(user_id, muscle_name)
 );
 
+-- Workout templates (saved workout configurations)
+CREATE TABLE IF NOT EXISTS workout_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  category TEXT NOT NULL,
+  variation TEXT NOT NULL,
+  exercise_ids TEXT NOT NULL, -- JSON array of exercise IDs
+  is_favorite INTEGER DEFAULT 0,
+  times_used INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_workouts_user_date ON workouts(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_exercise_sets_workout ON exercise_sets(workout_id);
 CREATE INDEX IF NOT EXISTS idx_muscle_states_user ON muscle_states(user_id);
 CREATE INDEX IF NOT EXISTS idx_personal_bests_user ON personal_bests(user_id);
 CREATE INDEX IF NOT EXISTS idx_muscle_baselines_user ON muscle_baselines(user_id);
+CREATE INDEX IF NOT EXISTS idx_workout_templates_user ON workout_templates(user_id);
 
 -- Insert default user
 INSERT OR IGNORE INTO users (id, name, experience) VALUES (1, 'Athlete', 'Beginner');

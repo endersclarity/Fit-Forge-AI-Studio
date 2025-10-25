@@ -20,7 +20,7 @@ import {
   WorkoutTemplate,
   HealthCheckResponse,
   ApiErrorResponse
-} from '../types';
+} from './types';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
@@ -31,8 +31,10 @@ const corsOptions: cors.CorsOptions = {
   origin: [
     'http://localhost:3000',      // Vite dev server / Docker frontend
     'http://localhost:5173',      // Vite default port
+    'http://localhost:5000',      // Serve port
     'http://127.0.0.1:3000',
-    'http://127.0.0.1:5173'
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5000'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: false,
@@ -88,6 +90,30 @@ app.get('/api/workouts', (_req: Request, res: Response<WorkoutResponse[] | ApiEr
   } catch (error) {
     console.error('Error getting workouts:', error);
     res.status(500).json({ error: 'Failed to get workouts' });
+  }
+});
+
+// Get last workout by category
+app.get('/api/workouts/last', (req: Request, res: Response<WorkoutResponse | ApiErrorResponse>) => {
+  try {
+    const category = req.query.category as string;
+
+    if (!category) {
+      res.status(400).json({ error: 'Category parameter is required' });
+      return;
+    }
+
+    const workout = db.getLastWorkoutByCategory(category);
+
+    if (!workout) {
+      res.status(404).json({ error: `No workout found for category: ${category}` });
+      return;
+    }
+
+    res.json(workout);
+  } catch (error) {
+    console.error('Error getting last workout:', error);
+    res.status(500).json({ error: 'Failed to get last workout' });
   }
 });
 
@@ -250,11 +276,11 @@ app.use((_req: Request, res: Response<ApiErrorResponse>) => {
 // Start Server
 // ============================================
 
-app.listen(PORT, '127.0.0.1', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log('='.repeat(50));
   console.log('🏋️  FitForge Local Server');
   console.log('='.repeat(50));
-  console.log(`Server running on: http://localhost:${PORT}`);
+  console.log(`Server running on: http://0.0.0.0:${PORT}`);
   console.log(`API available at: http://localhost:${PORT}/api`);
   console.log(`Database location: ${process.env.DB_PATH || '../data/fitforge.db'}`);
   console.log('='.repeat(50));
