@@ -182,6 +182,21 @@ export interface PRInfo {
   isFirstTime: boolean;
 }
 
+export interface QuickAddRequest {
+  exercise_name: string;
+  weight: number;
+  reps: number;
+  to_failure?: boolean;
+  date?: string; // ISO 8601
+}
+
+export interface QuickAddResponse {
+  workout: WorkoutResponse;
+  muscle_states: MuscleStatesResponse;
+  pr_info?: PRInfo;
+  attached_to_active: boolean;
+}
+
 export interface WorkoutResponse {
   id: number;
   date: string;

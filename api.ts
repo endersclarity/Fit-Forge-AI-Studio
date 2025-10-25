@@ -183,6 +183,22 @@ export const templatesAPI = {
 };
 
 /**
+ * Quick-Add API
+ */
+export const quickAddAPI = {
+  /**
+   * Log a quick exercise set
+   * Creates a minimal workout with a single set
+   */
+  quickAdd: async (request: import('./types').QuickAddRequest): Promise<import('./types').QuickAddResponse> => {
+    return await apiRequest<import('./types').QuickAddResponse>('/quick-add', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
+};
+
+/**
  * Health check
  */
 export const healthCheck = () => apiRequest<{ status: string; timestamp: string }>('/health');

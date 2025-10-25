@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>FitForge - Recovery Dashboard (Prototype)</title>
+
+    <!--
+    PRODUCTION NOTE: Replace Tailwind CDN with bundled CSS
+    npm install -D tailwindcss
+    npx tailwindcss build -o styles.css
+    -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet"/>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00529B",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111721",
+                        "status-green": "#28A745",
+                        "status-amber": "#FFC107",
+                        "status-red": "#DC3545",
+                        "status-blue": "#17A2B8",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        lg: "0.75rem",
+                        xl: "1rem",
+                        full: "9999px",
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+            font-feature-settings: "tnum";
+        }
+
+        /* Hide default details marker */
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        /* Smooth expand animation */
+        details[open] summary ~ * {
+            animation: sweep 0.5s ease-in-out;
+        }
+
+        @keyframes sweep {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Progress bar width transitions */
+        .progress-bar > div {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display">
+    <div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+
+        <!-- Top Navigation -->
+        <div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+            <div class="flex size-12 shrink-0 items-center">
+                <span aria-hidden="true" class="material-symbols-outlined text-white" style="font-size: 32px">fitness_center</span>
+            </div>
+            <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">
+                Recovery Dashboard
+            </h2>
+            <div class="flex w-12 items-center justify-end">
+                <button aria-label="Settings" class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 bg-transparent text-white gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                    <span aria-hidden="true" class="material-symbols-outlined text-white" style="font-size: 24px">settings</span>
+                    <span class="sr-only">Settings</span>
+                </button>
+            </div>
+        </div>
+
+        <main class="flex-1 px-4 pb-24">
+
+            <!-- Offline Banner (hidden by default, show when offline) -->
+            <div class="bg-status-amber/20 text-status-amber text-sm px-4 py-2 rounded-lg flex items-center gap-2 mb-4 hidden" id="offline-banner">
+                <span aria-hidden="true" class="material-symbols-outlined">wifi_off</span>
+                <span>You are currently in offline mode.</span>
+            </div>
+
+            <!-- Hero Section -->
+            <h1 class="text-white tracking-light text-[32px] font-bold leading-tight pt-2">
+                Ready for: PULL DAY B
+            </h1>
+            <p class="text-gray-400 text-base font-normal leading-normal pb-6">
+                Last workout: Pull Day A (3 days ago)
+            </p>
+
+            <!-- Muscle Recovery Heat Map -->
+            <div class="flex flex-col gap-3">
+
+                <!-- PUSH Section -->
+                <details class="flex flex-col rounded-lg bg-[#1a2233] group" open>
+                    <summary class="flex cursor-pointer items-center justify-between gap-6 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg hover:bg-white/5 transition-colors">
+                        <p class="text-white text-sm font-medium leading-normal">PUSH (3)</p>
+                        <span aria-hidden="true" class="material-symbols-outlined text-white group-open:rotate-180 transition-transform">expand_more</span>
+                    </summary>
+                    <div class="flex flex-col gap-4 p-4 pt-0">
+                        <!-- Pectoralis Major -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Pectoralis Major</p>
+                                <p class="text-status-red text-sm font-bold leading-normal tabular-nums">85%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-red h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/25</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">3 days</p>
+                            </div>
+                        </div>
+                        <!-- Anterior Deltoids -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Anterior Deltoids</p>
+                                <p class="text-status-amber text-sm font-bold leading-normal tabular-nums">45%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-amber h-2 rounded-full" style="width: 45%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/26</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">1 day</p>
+                            </div>
+                        </div>
+                        <!-- Triceps -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Triceps</p>
+                                <p class="text-status-green text-sm font-bold leading-normal tabular-nums">15%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-green h-2 rounded-full" style="width: 15%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/23</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">Recovered</p>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- PULL Section -->
+                <details class="flex flex-col rounded-lg bg-[#1a2233] group">
+                    <summary class="flex cursor-pointer items-center justify-between gap-6 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg hover:bg-white/5 transition-colors">
+                        <p class="text-white text-sm font-medium leading-normal">PULL (5)</p>
+                        <span aria-hidden="true" class="material-symbols-outlined text-white group-open:rotate-180 transition-transform">expand_more</span>
+                    </summary>
+                    <div class="flex flex-col gap-4 p-4 pt-0">
+                        <!-- Latissimus Dorsi -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Latissimus Dorsi</p>
+                                <p class="text-status-green text-sm font-bold leading-normal tabular-nums">25%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-green h-2 rounded-full" style="width: 25%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/24</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">Recovered</p>
+                            </div>
+                        </div>
+                        <!-- Biceps -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Biceps</p>
+                                <p class="text-status-green text-sm font-bold leading-normal tabular-nums">30%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-green h-2 rounded-full" style="width: 30%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/24</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">Recovered</p>
+                            </div>
+                        </div>
+                        <!-- Rhomboids -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Rhomboids</p>
+                                <p class="text-status-amber text-sm font-bold leading-normal tabular-nums">55%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-amber h-2 rounded-full" style="width: 55%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/26</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">2 days</p>
+                            </div>
+                        </div>
+                        <!-- Trapezius -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Trapezius</p>
+                                <p class="text-status-red text-sm font-bold leading-normal tabular-nums">75%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-red h-2 rounded-full" style="width: 75%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/25</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">3 days</p>
+                            </div>
+                        </div>
+                        <!-- Forearms -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Forearms</p>
+                                <p class="text-status-green text-sm font-bold leading-normal tabular-nums">10%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-green h-2 rounded-full" style="width: 10%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/22</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">Recovered</p>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- LEGS Section -->
+                <details class="flex flex-col rounded-lg bg-[#1a2233] group">
+                    <summary class="flex cursor-pointer items-center justify-between gap-6 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg hover:bg-white/5 transition-colors">
+                        <p class="text-white text-sm font-medium leading-normal">LEGS (4)</p>
+                        <span aria-hidden="true" class="material-symbols-outlined text-white group-open:rotate-180 transition-transform">expand_more</span>
+                    </summary>
+                    <div class="flex flex-col gap-4 p-4 pt-0">
+                        <!-- Quadriceps -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Quadriceps</p>
+                                <p class="text-status-red text-sm font-bold leading-normal tabular-nums">90%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-red h-2 rounded-full" style="width: 90%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/26</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">4 days</p>
+                            </div>
+                        </div>
+                        <!-- Hamstrings -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Hamstrings</p>
+                                <p class="text-status-amber text-sm font-bold leading-normal tabular-nums">60%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-amber h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/26</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">2 days</p>
+                            </div>
+                        </div>
+                        <!-- Glutes -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Glutes</p>
+                                <p class="text-status-green text-sm font-bold leading-normal tabular-nums">20%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-green h-2 rounded-full" style="width: 20%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/23</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">Recovered</p>
+                            </div>
+                        </div>
+                        <!-- Calves -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Calves</p>
+                                <p class="text-status-green text-sm font-bold leading-normal tabular-nums">5%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-green h-2 rounded-full" style="width: 5%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/21</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">Recovered</p>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- CORE Section -->
+                <details class="flex flex-col rounded-lg bg-[#1a2233] group">
+                    <summary class="flex cursor-pointer items-center justify-between gap-6 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg hover:bg-white/5 transition-colors">
+                        <p class="text-white text-sm font-medium leading-normal">CORE (1)</p>
+                        <span aria-hidden="true" class="material-symbols-outlined text-white group-open:rotate-180 transition-transform">expand_more</span>
+                    </summary>
+                    <div class="flex flex-col gap-4 p-4 pt-0">
+                        <!-- Abdominals -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 justify-between items-center">
+                                <p class="text-white text-base font-medium leading-normal">Abdominals</p>
+                                <p class="text-status-amber text-sm font-bold leading-normal tabular-nums">40%</p>
+                            </div>
+                            <div class="w-full bg-[#344565] rounded-full h-2 progress-bar">
+                                <div class="bg-status-amber h-2 rounded-full" style="width: 40%"></div>
+                            </div>
+                            <div class="flex gap-4 justify-between">
+                                <p class="text-gray-400 text-sm font-normal leading-normal tabular-nums">Trained: 01/26</p>
+                                <p class="text-gray-400 text-sm font-normal leading-normal">1 day</p>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+            </div>
+
+            <!-- Smart Recommendations -->
+            <div class="mt-8">
+                <details class="group" open>
+                    <summary class="flex items-center justify-between cursor-pointer list-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg p-1 -m-1 hover:bg-white/5 transition-colors">
+                        <h3 class="text-white text-xl font-bold">Smart Recommendations</h3>
+                        <span aria-hidden="true" class="material-symbols-outlined text-white group-open:rotate-180 transition-transform">expand_more</span>
+                    </summary>
+                    <div class="mt-4">
+
+                        <!-- Category Tabs -->
+                        <div class="flex space-x-1 bg-[#1a2233] p-1 rounded-lg">
+                            <button class="flex-1 py-2 px-4 text-sm font-medium rounded-md bg-primary text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary hover:bg-primary/80 transition-colors">All</button>
+                            <button class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-gray-400 hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors">Push</button>
+                            <button class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-gray-400 hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors">Pull</button>
+                            <button class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-gray-400 hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors">Legs</button>
+                            <button class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-gray-400 hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors">Core</button>
+                        </div>
+
+                        <!-- Recommendation Cards -->
+                        <div class="flex flex-col gap-4 mt-4">
+
+                            <!-- EXCELLENT Card -->
+                            <article class="bg-[#1a2233] rounded-lg p-4 flex flex-col gap-3 hover:bg-white/5 transition-colors cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-white font-bold">Barbell Bench Press</h4>
+                                    <div class="flex items-center gap-2 text-sm font-medium text-status-green bg-status-green/20 px-2.5 py-1.5 rounded-full">
+                                        <span aria-hidden="true" class="material-symbols-outlined text-base">check_circle</span>
+                                        <span>EXCELLENT</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 flex-wrap">
+                                    <span class="text-xs font-semibold px-2 py-1 bg-status-red/30 text-status-red rounded-full tabular-nums">Pectoralis Major 85%</span>
+                                    <span class="text-xs font-semibold px-2 py-1 bg-status-amber/30 text-status-amber rounded-full tabular-nums">Deltoids 40%</span>
+                                </div>
+                                <div class="border-t border-gray-700 my-1"></div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <p class="text-gray-300 tabular-nums">Last: <span class="font-semibold text-white">8 reps @ 150 lbs</span></p>
+                                    <div class="relative group/tooltip">
+                                        <div class="flex items-center gap-1 text-primary font-bold bg-primary/20 px-2 py-1 rounded-md">
+                                            <span aria-hidden="true" class="material-symbols-outlined text-base">trending_up</span>
+                                            <p class="tabular-nums">+3% weight: 155 lbs</p>
+                                        </div>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none">
+                                            Progressive Overload
+                                            <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-900"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-400 text-xs">
+                                    <span aria-hidden="true" class="material-symbols-outlined text-base">bar_chart</span>
+                                    <span>Barbell</span>
+                                </div>
+                            </article>
+
+                            <!-- GOOD Card -->
+                            <article class="bg-[#1a2233] rounded-lg p-4 flex flex-col gap-3 hover:bg-white/5 transition-colors cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-white font-bold">Lat Pulldown</h4>
+                                    <div class="flex items-center gap-2 text-sm font-medium text-status-blue bg-status-blue/20 px-2.5 py-1.5 rounded-full">
+                                        <span aria-hidden="true" class="material-symbols-outlined text-base">thumb_up</span>
+                                        <span>GOOD</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 flex-wrap">
+                                    <span class="text-xs font-semibold px-2 py-1 bg-status-green/30 text-status-green rounded-full tabular-nums">Lats 25%</span>
+                                    <span class="text-xs font-semibold px-2 py-1 bg-status-green/30 text-status-green rounded-full tabular-nums">Biceps 30%</span>
+                                </div>
+                                <div class="border-t border-gray-700 my-1"></div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <p class="text-gray-300 tabular-nums">Last: <span class="font-semibold text-white">12 reps @ 50 lbs</span></p>
+                                    <div class="relative group/tooltip">
+                                        <div class="flex items-center gap-1 text-primary font-bold bg-primary/20 px-2 py-1 rounded-md">
+                                            <span aria-hidden="true" class="material-symbols-outlined text-base">trending_up</span>
+                                            <p class="tabular-nums">+3% weight: 52 lbs</p>
+                                        </div>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none">
+                                            Progressive Overload
+                                            <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-900"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-400 text-xs">
+                                    <span aria-hidden="true" class="material-symbols-outlined text-base">cable</span>
+                                    <span>Cable Machine</span>
+                                </div>
+                            </article>
+
+                            <!-- SUBOPTIMAL Card -->
+                            <article class="bg-[#1a2233] rounded-lg p-4 flex flex-col gap-3 hover:bg-white/5 transition-colors cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-white font-bold">Overhead Press</h4>
+                                    <div class="flex items-center gap-2 text-sm font-medium text-status-amber bg-status-amber/20 px-2.5 py-1.5 rounded-full">
+                                        <span aria-hidden="true" class="material-symbols-outlined text-base">warning</span>
+                                        <span>SUBOPTIMAL</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-status-amber/80 -mt-2">
+                                    Deltoids still fatigued. Consider a lighter variation or alternative exercise.
+                                </p>
+                                <div class="flex gap-2 flex-wrap">
+                                    <span class="text-xs font-semibold px-2 py-1 bg-status-red/30 text-status-red rounded-full tabular-nums">Anterior Deltoids 70%</span>
+                                    <span class="text-xs font-semibold px-2 py-1 bg-status-amber/30 text-status-amber rounded-full tabular-nums">Triceps 50%</span>
+                                </div>
+                                <div class="border-t border-gray-700 my-1"></div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <p class="text-gray-300 tabular-nums">Last: <span class="font-semibold text-white">10 reps @ 75 lbs</span></p>
+                                    <div class="relative group/tooltip">
+                                        <div class="flex items-center gap-1 text-primary font-bold bg-primary/20 px-2 py-1 rounded-md">
+                                            <span aria-hidden="true" class="material-symbols-outlined text-base">trending_up</span>
+                                            <p class="tabular-nums">+2% weight: 77 lbs</p>
+                                        </div>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none">
+                                            Progressive Overload
+                                            <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-900"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-400 text-xs">
+                                    <span aria-hidden="true" class="material-symbols-outlined text-base">fitness_center</span>
+                                    <span>Dumbbells</span>
+                                </div>
+                            </article>
+
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+            <!-- Skeleton State Documentation (Hidden) -->
+            <div class="hidden mt-8" id="skeleton-example">
+                <h3 class="text-white text-xl font-bold mb-4">Skeleton State Example</h3>
+                <div class="flex flex-col rounded-lg bg-[#1a2233] p-4 animate-pulse">
+                    <div class="flex flex-col gap-4">
+                        <div class="space-y-3">
+                            <div class="h-4 bg-slate-700 rounded w-1/3"></div>
+                            <div class="h-2 bg-slate-700 rounded"></div>
+                            <div class="flex justify-between">
+                                <div class="h-2 bg-slate-700 rounded w-1/4"></div>
+                                <div class="h-2 bg-slate-700 rounded w-1/4"></div>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="h-4 bg-slate-700 rounded w-1/2"></div>
+                            <div class="h-2 bg-slate-700 rounded"></div>
+                            <div class="flex justify-between">
+                                <div class="h-2 bg-slate-700 rounded w-1/4"></div>
+                                <div class="h-2 bg-slate-700 rounded w-1/4"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Floating Action Button -->
+        <div class="fixed bottom-6 right-6">
+            <button aria-label="Start Workout" class="bg-primary text-white rounded-full h-16 w-16 flex items-center justify-center shadow-2xl hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark focus-visible:ring-primary">
+                <span aria-hidden="true" class="material-symbols-outlined" style="font-size: 32px">play_arrow</span>
+                <span class="sr-only">Start Workout</span>
+            </button>
+        </div>
+
+    </div>
+</body>
+</html>

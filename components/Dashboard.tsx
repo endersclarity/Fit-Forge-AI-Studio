@@ -10,6 +10,7 @@ import QuickTrainingStats from './QuickTrainingStats';
 import WorkoutHistorySummary from './WorkoutHistorySummary';
 import RecoveryTimelineView from './RecoveryTimelineView';
 import { calculateStreak, calculateWeeklyStats, findRecentPRs } from '../utils/statsHelpers';
+import QuickAdd from './QuickAdd';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -434,6 +435,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // QuickAdd modal state
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+
   // Fetch muscle states, workouts, and personal bests from backend API
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -627,6 +631,38 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
             <WorkoutHistory workouts={workouts} />
         </section>
       </main>
+
+      {/* Floating Action Button for Quick Add */}
+      <button
+        onClick={() => setIsQuickAddOpen(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-brand-cyan text-brand-dark rounded-full shadow-lg hover:bg-cyan-400 transition-all hover:scale-110 flex items-center justify-center z-40"
+        aria-label="Quick Add Exercise"
+      >
+        <svg
+          className="w-8 h-8"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+      </button>
+
+      {/* QuickAdd Modal */}
+      <QuickAdd
+        isOpen={isQuickAddOpen}
+        onClose={() => setIsQuickAddOpen(false)}
+        onSuccess={() => {
+          // Refresh dashboard data after successful quick add
+          fetchDashboardData();
+        }}
+      />
     </div>
   );
 };

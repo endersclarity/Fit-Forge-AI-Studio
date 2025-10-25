@@ -268,6 +268,32 @@ export interface HealthCheckResponse {
   timestamp: string;
 }
 
+// Quick-Add API Types
+export interface QuickAddRequest {
+  exercise_name: string;
+  weight: number;
+  reps: number;
+  to_failure?: boolean;
+  date?: string; // ISO 8601
+}
+
+export interface PRInfo {
+  isPR: boolean;
+  exercise: string;
+  newVolume: number;
+  previousVolume: number;
+  improvement: number;
+  percentIncrease: number;
+  isFirstTime: boolean;
+}
+
+export interface QuickAddResponse {
+  workout: WorkoutResponse;
+  muscle_states: MuscleStatesResponse;
+  pr_info?: PRInfo;
+  attached_to_active: boolean;
+}
+
 // Error Response Type
 export interface ApiErrorResponse {
   error: string;

@@ -6,6 +6,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import * as db from './database/database';
+import { getExerciseByName } from './constants';
 import {
   ProfileResponse,
   ProfileUpdateRequest,
@@ -19,7 +20,9 @@ import {
   MuscleBaselinesUpdateRequest,
   WorkoutTemplate,
   HealthCheckResponse,
-  ApiErrorResponse
+  ApiErrorResponse,
+  QuickAddRequest,
+  QuickAddResponse
 } from './types';
 
 const app = express();
@@ -191,6 +194,103 @@ app.put('/api/muscle-baselines', (req: Request<{}, MuscleBaselinesResponse | Api
   } catch (error) {
     console.error('Error updating muscle baselines:', error);
     res.status(500).json({ error: 'Failed to update muscle baselines' });
+  }
+});
+
+// Get last two sets for an exercise (for smart defaults)
+app.get('/api/workouts/last-two-sets', (req: Request, res: Response): Response => {
+  try {
+    const exerciseName = req.query.exerciseName as string;
+
+    if (!exerciseName) {
+      return res.status(400).json({ error: 'exerciseName parameter is required' });
+    }
+
+    const sets = db.db.prepare(`
+      SELECT weight, reps, to_failure, es.created_at as date
+      FROM exercise_sets es
+      JOIN workouts w ON es.workout_id = w.id
+      WHERE w.user_id = 1 AND es.exercise_name = ?
+      ORDER BY es.created_at DESC
+      LIMIT 2
+    `).all(exerciseName) as Array<{ weight: number; reps: number; to_failure: number; date: string }>;
+
+    return res.json({
+      lastSet: sets[0] ? { ...sets[0], to_failure: Boolean(sets[0].to_failure) } : null,
+      secondLastSet: sets[1] ? { ...sets[1], to_failure: Boolean(sets[1].to_failure) } : null
+    });
+  } catch (error) {
+    console.error('Error getting last two sets:', error);
+    return res.status(500).json({ error: 'Failed to get last two sets' });
+  }
+});
+
+// Quick-add workout
+app.post('/api/quick-add', (req: Request<{}, QuickAddResponse | ApiErrorResponse, QuickAddRequest>, res: Response<QuickAddResponse | ApiErrorResponse>): Response => {
+  try {
+    const { exercise_name, weight, reps, to_failure = false, date } = req.body;
+
+    // Validation
+    const exercise = getExerciseByName(exercise_name);
+    if (!exercise) {
+      return res.status(400).json({ error: 'Invalid exercise name' });
+    }
+    if (!weight || weight <= 0 || weight > 10000) {
+      return res.status(400).json({ error: 'Weight must be between 0 and 10000 lbs' });
+    }
+    if (!reps || reps <= 0 || reps > 1000 || !Number.isInteger(reps)) {
+      return res.status(400).json({ error: 'Reps must be a positive integer between 1 and 1000' });
+    }
+
+    const exerciseDate = date || new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    // Create quick-add workout
+    const workoutData: WorkoutSaveRequest = {
+      date: exerciseDate,
+      category: exercise.category,
+      variation: 'Both',
+      durationSeconds: 0,
+      exercises: [
+        {
+          exercise: exercise_name,
+          sets: [
+            {
+              weight,
+              reps
+            }
+          ]
+        }
+      ]
+    };
+
+    // Save workout
+    const workout = db.saveWorkout(workoutData);
+
+    // Update to_failure flag if needed (since saveWorkout doesn't handle it yet)
+    if (to_failure) {
+      db.db.prepare(`
+        UPDATE exercise_sets
+        SET to_failure = 1
+        WHERE workout_id = ?
+      `).run(workout.id);
+    }
+
+    // Note: In this simplified implementation, muscle states and PR detection
+    // are handled by the frontend. The backend just creates the workout record.
+    // For the full backend refactor (Phase 1 of the proposal), these calculations
+    // would be moved to the backend.
+
+    // Get current muscle states
+    const muscle_states = db.getMuscleStates();
+
+    return res.status(201).json({
+      workout,
+      muscle_states,
+      attached_to_active: false
+    });
+  } catch (error) {
+    console.error('Error in quick-add:', error);
+    return res.status(500).json({ error: 'Failed to log exercise' });
   }
 });
 
