@@ -58,13 +58,13 @@
 
 ### 2.3 Build Chart Components (2-3 days)
 
-- [ ] Create `components/ExerciseProgressionChart.tsx` (line chart for weight/reps over time)
-- [ ] Create `components/MuscleCapacityChart.tsx` (line chart for baseline growth)
-- [ ] Create `components/VolumeTrendsChart.tsx` (stacked bar chart by category)
-- [ ] Create `components/ActivityCalendarHeatmap.tsx` (visual workout calendar)
-- [ ] Implement responsive design for mobile screens
-- [ ] Add tooltips and labels to all charts
-- [ ] Test charts with various data ranges
+- [x] Create `components/ExerciseProgressionChart.tsx` (line chart for weight/reps over time)
+- [x] Create `components/MuscleCapacityChart.tsx` (line chart for baseline growth)
+- [x] Create `components/VolumeTrendsChart.tsx` (stacked bar chart by category)
+- [x] Create `components/ActivityCalendarHeatmap.tsx` (visual workout calendar)
+- [x] Implement responsive design for mobile screens
+- [x] Add tooltips and labels to all charts
+- [x] Test charts with various data ranges
 
 ### 2.4 Build Data Cards (1-2 days)
 
@@ -78,8 +78,8 @@
 
 - [x] Add "Analytics" tab/section to Dashboard navigation
 - [x] Wire up Analytics screen to app routing
-- [ ] Test full data flow from API to charts
-- [ ] Verify navigation between Dashboard and Analytics works
+- [x] Test full data flow from API to charts
+- [x] Verify navigation between Dashboard and Analytics works
 
 ---
 

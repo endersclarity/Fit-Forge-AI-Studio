@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { AnalyticsResponse } from '../types';
 import { API_BASE_URL } from '../api';
+import ExerciseProgressionChart from './ExerciseProgressionChart';
+import MuscleCapacityChart from './MuscleCapacityChart';
+import VolumeTrendsChart from './VolumeTrendsChart';
+import ActivityCalendarHeatmap from './ActivityCalendarHeatmap';
 
 const Analytics: React.FC = () => {
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
@@ -142,50 +146,14 @@ const Analytics: React.FC = () => {
 
       {/* Charts and Data Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Exercise Progression Placeholder */}
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6">
-          <h2 className="text-xl font-bold text-slate-200 mb-4">Exercise Progression</h2>
-          <div className="bg-brand-dark/50 rounded p-8 text-center">
-            <p className="text-slate-400 mb-2">Exercise progression charts will be displayed here</p>
-            <p className="text-slate-500 text-sm">
-              Tracking {Object.keys(analytics.exerciseProgression).length} exercises
-            </p>
-          </div>
-        </div>
+        {/* Exercise Progression Chart */}
+        <ExerciseProgressionChart exerciseProgression={analytics.exerciseProgression} />
 
-        {/* Volume Trends */}
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6">
-          <h2 className="text-xl font-bold text-slate-200 mb-4">Volume by Category</h2>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 bg-brand-dark/50 rounded">
-              <span className="text-red-400 font-medium">Push</span>
-              <span className="text-slate-300">{analytics.volumeTrends.byCategory.Push.total.toLocaleString()} lbs</span>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-brand-dark/50 rounded">
-              <span className="text-blue-400 font-medium">Pull</span>
-              <span className="text-slate-300">{analytics.volumeTrends.byCategory.Pull.total.toLocaleString()} lbs</span>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-brand-dark/50 rounded">
-              <span className="text-yellow-400 font-medium">Legs</span>
-              <span className="text-slate-300">{analytics.volumeTrends.byCategory.Legs.total.toLocaleString()} lbs</span>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-brand-dark/50 rounded">
-              <span className="text-green-400 font-medium">Core</span>
-              <span className="text-slate-300">{analytics.volumeTrends.byCategory.Core.total.toLocaleString()} lbs</span>
-            </div>
-          </div>
-        </div>
+        {/* Volume Trends Chart */}
+        <VolumeTrendsChart volumeTrends={analytics.volumeTrends} />
 
-        {/* Muscle Capacity Placeholder */}
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6">
-          <h2 className="text-xl font-bold text-slate-200 mb-4">Muscle Capacity Growth</h2>
-          <div className="bg-brand-dark/50 rounded p-8 text-center">
-            <p className="text-slate-400 mb-2">Muscle capacity trends will be displayed here</p>
-            <p className="text-slate-500 text-sm">
-              Tracking {Object.keys(analytics.muscleCapacityTrends).length} muscle groups
-            </p>
-          </div>
-        </div>
+        {/* Muscle Capacity Chart */}
+        <MuscleCapacityChart muscleCapacityTrends={analytics.muscleCapacityTrends} />
 
         {/* PR Timeline */}
         <div className="bg-brand-surface border border-brand-muted rounded-lg p-6">
@@ -209,6 +177,14 @@ const Analytics: React.FC = () => {
               <p className="text-center text-slate-400 py-8">No PRs recorded yet. Keep pushing!</p>
             )}
           </div>
+        </div>
+
+        {/* Activity Calendar Heatmap - Full width */}
+        <div className="lg:col-span-2">
+          <ActivityCalendarHeatmap
+            activityCalendar={analytics.consistencyMetrics.activityCalendar}
+            timeRangeDays={timeRange}
+          />
         </div>
 
         {/* Consistency Metrics */}

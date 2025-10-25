@@ -18,7 +18,7 @@ import type {
 import { EXERCISE_LIBRARY } from './constants';
 
 // API base URL - defaults to same origin in production, localhost:3001 in development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 /**
  * Generic API request helper
