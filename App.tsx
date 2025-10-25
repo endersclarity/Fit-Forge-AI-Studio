@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { useAPIState } from './hooks/useAPIState';
 import { profileAPI, workoutsAPI, muscleStatesAPI, personalBestsAPI, muscleBaselinesAPI, templatesAPI } from './api';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
-import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, MuscleStates, ExerciseCategory, Exercise, Variation, ExerciseMaxes, WorkoutTemplate, PRInfo } from './types';
+import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, ExerciseCategory, Exercise, Variation, ExerciseMaxes, WorkoutTemplate, PRInfo } from './types';
 import Dashboard from './components/Dashboard';
 import WorkoutTracker from './components/Workout';
 import Profile from './components/Profile';
@@ -27,7 +27,6 @@ const App: React.FC = () => {
 
   // Initialize default values
   const defaultProfile: UserProfile = { name: 'Athlete', experience: 'Beginner', bodyweightHistory: [], equipment: [] };
-  const defaultMuscleStates: MuscleStates = ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: { lastTrained: 0, fatiguePercentage: 0, recoveryDaysNeeded: 0 } }), {} as MuscleStates);
   const defaultMuscleBaselines: MuscleBaselines = ALL_MUSCLES.reduce((acc, muscle) => ({ ...acc, [muscle]: { userOverride: null, systemLearnedMax: 0 } }), {} as MuscleBaselines);
 
   // Replace useLocalStorage with useAPIState
@@ -37,7 +36,7 @@ const App: React.FC = () => {
     // Return the new workouts array as-is for local state
     return newWorkouts;
   }, []);
-  const [muscleStates, setMuscleStates, muscleStatesLoading, muscleStatesError] = useAPIState<MuscleStates>(muscleStatesAPI.get, muscleStatesAPI.update, defaultMuscleStates);
+  // Note: muscleStates removed - Dashboard manages its own state via direct API fetch
   const [personalBests, setPersonalBests, personalBestsLoading, personalBestsError] = useAPIState<PersonalBests>(personalBestsAPI.get, personalBestsAPI.update, {});
   const [muscleBaselines, setMuscleBaselines, muscleBaselinesLoading, muscleBaselinesError] = useAPIState<MuscleBaselines>(muscleBaselinesAPI.get, muscleBaselinesAPI.update, defaultMuscleBaselines);
   const [templates, setTemplates, templatesLoading, templatesError] = useAPIState<WorkoutTemplate[]>(templatesAPI.getAll, async (newTemplates) => newTemplates, []);
@@ -90,12 +89,9 @@ const App: React.FC = () => {
           };
       });
 
-      // Call API to update muscle states (it will return calculated values)
+      // Call API to update muscle states
+      // Note: Dashboard will auto-refresh on mount to show updated states
       await muscleStatesAPI.updateNew(muscleUpdates);
-
-      // Refetch muscle states to get fresh calculated values from backend
-      const refreshedStates = await muscleStatesAPI.get();
-      setMuscleStates(refreshedStates);
 
       const allWorkoutsIncludingCurrent = [...workouts, session];
 
@@ -153,7 +149,7 @@ const App: React.FC = () => {
       setToastMessage('Failed to save workout. Please try again.');
     }
 
-  }, [personalBests, muscleBaselines, muscleStates, workouts, setWorkouts, setPersonalBests, setMuscleBaselines, setMuscleStates]);
+  }, [personalBests, muscleBaselines, workouts, setWorkouts, setPersonalBests, setMuscleBaselines]);
 
   const navigateTo = (newView: View) => setView(newView);
 
@@ -184,7 +180,7 @@ const App: React.FC = () => {
   
   const renderContent = () => {
     // Show loading state while any critical data is loading
-    const isLoading = profileLoading || workoutsLoading || muscleStatesLoading || muscleBaselinesLoading;
+    const isLoading = profileLoading || workoutsLoading || muscleBaselinesLoading;
 
     if (isLoading) {
       return (
@@ -198,7 +194,7 @@ const App: React.FC = () => {
     }
 
     // Show error state if any critical API failed
-    const hasError = profileError || workoutsError || muscleStatesError || muscleBaselinesError;
+    const hasError = profileError || workoutsError || muscleBaselinesError;
     if (hasError) {
       return (
         <div className="flex items-center justify-center min-h-screen bg-brand-dark p-4">

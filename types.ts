@@ -102,23 +102,8 @@ export interface MuscleBaseline {
 
 export type MuscleBaselines = Record<Muscle, MuscleBaseline>;
 
-/**
- * @deprecated Use MuscleStateData from API response instead.
- * This type will be removed after frontend refactor is complete (Phase 5).
- * The new API returns calculated fields from the backend.
- */
-export interface MuscleState {
-  lastTrained: number; // timestamp
-  fatiguePercentage: number; // 0-100
-  recoveryDaysNeeded: number;
-}
-
-/**
- * @deprecated Use MuscleStatesResponse from API instead.
- * This type will be removed after frontend refactor is complete (Phase 5).
- */
-export type MuscleStates = Record<Muscle, MuscleState>;
-
+// Note: MuscleState and MuscleStates types have been removed in Phase 5.
+// Use MuscleStateData and MuscleStatesResponse instead (from API response).
 
 // PERFORMANCE HISTORY
 export interface ExerciseMaxes {

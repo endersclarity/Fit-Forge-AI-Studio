@@ -5,7 +5,6 @@
 import type {
   UserProfile,
   WorkoutSession,
-  MuscleStates,
   PersonalBests,
   MuscleBaselines,
   WorkoutTemplate,
@@ -120,54 +119,16 @@ export const workoutsAPI = {
 
 /**
  * Muscle States API
+ *
+ * Note: The old get/update methods that transformed data have been removed.
+ * Muscle states are now managed directly by components via fetch().
+ * This API only provides the updateNew() method for workout save flow.
  */
 export const muscleStatesAPI = {
-  get: async (): Promise<MuscleStates> => {
-    const backendStates = await apiRequest<MuscleStatesResponse>('/muscle-states');
-    // Transform backend format to frontend MuscleStates format
-    // Backend has: { fatiguePercent, volumeToday, recoveredAt, lastTrained }
-    // Frontend expects: { lastTrained, fatiguePercentage, recoveryDaysNeeded }
-    const transformed: Partial<MuscleStates> = {};
-    for (const [muscle, state] of Object.entries(backendStates)) {
-      const lastTrainedTimestamp = state.lastTrained
-        ? new Date(state.lastTrained).getTime()
-        : 0;
-
-      transformed[muscle as Muscle] = {
-        lastTrained: lastTrainedTimestamp,
-        fatiguePercentage: state.fatiguePercent || 0,
-        recoveryDaysNeeded: 0 // Backend doesn't store this, frontend calculates it
-      };
-    }
-    return transformed as MuscleStates;
-  },
-  update: async (states: MuscleStates): Promise<MuscleStates> => {
-    // Transform frontend MuscleStates to backend format
-    const backendStates: MuscleStatesUpdateRequest = {};
-    for (const [muscle, state] of Object.entries(states)) {
-      const lastTrainedDate = state.lastTrained
-        ? new Date(state.lastTrained).toISOString()
-        : null;
-
-      backendStates[muscle] = {
-        fatiguePercent: state.fatiguePercentage,
-        volumeToday: 0, // Not tracked in frontend currently
-        recoveredAt: null, // Calculated from lastTrained + recoveryDaysNeeded
-        lastTrained: lastTrainedDate
-      };
-    }
-
-    await apiRequest<MuscleStatesResponse>('/muscle-states', {
-      method: 'PUT',
-      body: JSON.stringify(backendStates),
-    });
-
-    // Return the original states
-    return states;
-  },
   /**
-   * Update muscle states using new API format (Phase 4)
+   * Update muscle states using new API format
    * Accepts initial_fatigue_percent and last_trained in UTC ISO format
+   * Returns calculated muscle states from backend
    */
   updateNew: async (updates: MuscleStatesUpdateRequest): Promise<MuscleStatesResponse> => {
     return await apiRequest<MuscleStatesResponse>('/muscle-states', {
