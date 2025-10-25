@@ -1,11 +1,15 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EXERCISE_LIBRARY, ALL_MUSCLES } from '../constants';
-import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation } from '../types';
+import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation, Equipment } from '../types';
 import { calculateVolume, findPreviousWorkout, formatDuration, getUserLevel } from '../utils/helpers';
 import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon } from './Icons';
 import WorkoutSummaryModal from './WorkoutSummaryModal';
 import { RecommendedWorkoutData } from '../App';
+import { LastWorkoutSummary } from './LastWorkoutSummary';
+import { workoutsAPI } from '../api';
+import { WorkoutResponse } from '../backend/types';
+import { calculateProgressiveOverload, ProgressionMethod } from '../utils/progressiveOverload';
 
 type WorkoutStage = "setup" | "tracking" | "summary";
 
@@ -20,12 +24,44 @@ interface WorkoutProps {
 }
 
 const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDone: () => void, workoutVariation: Variation }> = ({ onSelect, onDone, workoutVariation }) => {
-    const [filter, setFilter] = useState<ExerciseCategory | 'All'>('All');
-    
+    const [categoryFilter, setCategoryFilter] = useState<ExerciseCategory | 'All'>('All');
+    const [equipmentFilter, setEquipmentFilter] = useState<Equipment | 'All'>('All');
+    const [muscleFilter, setMuscleFilter] = useState<Muscle | 'All'>('All');
+
     const filteredExercises = useMemo(() => {
-        const byCategory = EXERCISE_LIBRARY.filter(ex => filter === 'All' || ex.category === filter);
-        return byCategory.filter(ex => ex.variation === 'Both' || ex.variation === workoutVariation);
-    }, [filter, workoutVariation]);
+        let filtered = EXERCISE_LIBRARY;
+
+        // Category filter
+        if (categoryFilter !== 'All') {
+            filtered = filtered.filter(ex => ex.category === categoryFilter);
+        }
+
+        // Equipment filter
+        if (equipmentFilter !== 'All') {
+            filtered = filtered.filter(ex => {
+                if (Array.isArray(ex.equipment)) {
+                    return ex.equipment.includes(equipmentFilter);
+                }
+                return ex.equipment === equipmentFilter;
+            });
+        }
+
+        // Muscle filter
+        if (muscleFilter !== 'All') {
+            filtered = filtered.filter(ex =>
+                ex.muscleEngagements.some(eng => eng.muscle === muscleFilter)
+            );
+        }
+
+        // Variation filter
+        filtered = filtered.filter(ex => ex.variation === 'Both' || ex.variation === workoutVariation);
+
+        return filtered;
+    }, [categoryFilter, equipmentFilter, muscleFilter, workoutVariation]);
+
+    const equipmentOptions: (Equipment | 'All')[] = ['All', 'Bodyweight', 'Dumbbells', 'Kettlebell', 'Pull-up Bar', 'TRX', 'Dip Station', 'Bench'];
+
+    const muscleOptions: (Muscle | 'All')[] = ['All', ...ALL_MUSCLES];
 
     return (
         <div className="fixed inset-0 bg-brand-dark z-20 p-4 flex flex-col">
@@ -33,23 +69,62 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
                 <h2 className="text-xl font-bold">Add Exercise</h2>
                 <button onClick={onDone} className="text-brand-cyan">Done</button>
             </div>
-            <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
-                {(['All', 'Push', 'Pull', 'Legs', 'Core'] as const).map(cat => (
-                    <button key={cat} onClick={() => setFilter(cat)} className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${filter === cat ? 'bg-brand-cyan text-brand-dark font-semibold' : 'bg-brand-surface'}`}>
-                        {cat}
-                    </button>
-                ))}
+
+            {/* Category Filter */}
+            <div className="mb-3">
+                <label className="block text-xs font-semibold text-slate-400 mb-1">CATEGORY</label>
+                <div className="flex space-x-2 overflow-x-auto pb-2">
+                    {(['All', 'Push', 'Pull', 'Legs', 'Core'] as const).map(cat => (
+                        <button key={cat} onClick={() => setCategoryFilter(cat)} className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${categoryFilter === cat ? 'bg-brand-cyan text-brand-dark font-semibold' : 'bg-brand-surface'}`}>
+                            {cat}
+                        </button>
+                    ))}
+                </div>
             </div>
+
+            {/* Equipment Filter */}
+            <div className="mb-3">
+                <label className="block text-xs font-semibold text-slate-400 mb-1">EQUIPMENT</label>
+                <div className="flex space-x-2 overflow-x-auto pb-2">
+                    {equipmentOptions.map(eq => (
+                        <button key={eq} onClick={() => setEquipmentFilter(eq)} className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${equipmentFilter === eq ? 'bg-brand-cyan text-brand-dark font-semibold' : 'bg-brand-surface'}`}>
+                            {eq}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Muscle Filter */}
+            <div className="mb-3">
+                <label className="block text-xs font-semibold text-slate-400 mb-1">MUSCLE GROUP</label>
+                <div className="flex space-x-2 overflow-x-auto pb-2">
+                    {muscleOptions.map(muscle => (
+                        <button key={muscle} onClick={() => setMuscleFilter(muscle)} className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${muscleFilter === muscle ? 'bg-brand-cyan text-brand-dark font-semibold' : 'bg-brand-surface'}`}>
+                            {muscle}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             <div className="flex-grow overflow-y-auto space-y-2">
-                {filteredExercises.map(ex => (
-                    <button key={ex.id} onClick={() => onSelect(ex)} className="w-full text-left bg-brand-surface p-3 rounded-lg flex justify-between items-center">
-                        <div>
-                            <p className="font-semibold">{ex.name}</p>
-                            <p className="text-xs text-slate-400">{ex.equipment}</p>
-                        </div>
-                        <PlusIcon className="w-5 h-5 text-brand-cyan"/>
-                    </button>
-                ))}
+                {filteredExercises.length === 0 ? (
+                    <div className="text-center text-slate-400 py-8">
+                        No exercises match your filters
+                    </div>
+                ) : (
+                    filteredExercises.map(ex => {
+                        const equipmentDisplay = Array.isArray(ex.equipment) ? ex.equipment.join(' / ') : ex.equipment;
+                        return (
+                            <button key={ex.id} onClick={() => onSelect(ex)} className="w-full text-left bg-brand-surface p-3 rounded-lg flex justify-between items-center">
+                                <div>
+                                    <p className="font-semibold">{ex.name}</p>
+                                    <p className="text-xs text-slate-400">{equipmentDisplay}</p>
+                                </div>
+                                <PlusIcon className="w-5 h-5 text-brand-cyan"/>
+                            </button>
+                        );
+                    })
+                )}
             </div>
         </div>
     );
@@ -85,6 +160,25 @@ const RestTimer: React.FC<{
 
 
 const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, allWorkouts, personalBests, userProfile, muscleBaselines, initialData }) => {
+  // State for last workout data
+  const [lastWorkout, setLastWorkout] = useState<WorkoutResponse | null>(null);
+  const [loadingLastWorkout, setLoadingLastWorkout] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory>(initialData?.type || "Push");
+
+  // Helper function to determine default weight for an exercise
+  const getDefaultWeight = (exerciseId: string): number => {
+    // Priority 1: User's personal best for this exercise
+    const pb = personalBests[exerciseId];
+    if (pb && pb.bestSingleSet > 0) {
+      return Math.round(pb.bestSingleSet * 0.85); // Use 85% of PB as starting point
+    }
+    // Priority 2: Sensible default based on exercise difficulty
+    const exercise = EXERCISE_LIBRARY.find(e => e.id === exerciseId);
+    if (exercise?.difficulty === 'Advanced') return 150;
+    if (exercise?.difficulty === 'Intermediate') return 100;
+    return 75; // Beginner default
+  };
+
   const [stage, setStage] = useState<WorkoutStage>(initialData ? "tracking" : "setup");
   const [workoutName, setWorkoutName] = useState(initialData ? `${initialData.type} Day ${initialData.variation}` : "");
   const [workoutType, setWorkoutType] = useState<ExerciseCategory>(initialData?.type || "Push");
@@ -95,7 +189,11 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
      initialData ? initialData.suggestedExercises.map(ex => ({
         id: `${ex.id}-${Date.now()}`,
         exerciseId: ex.id,
-        sets: []
+        sets: [
+          { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id) },
+          { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id) },
+          { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id) }
+        ]
     })) : []
   );
   const [isExerciseSelectorOpen, setExerciseSelectorOpen] = useState(false);
@@ -116,6 +214,26 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
         setExpandedExerciseId(loggedExercises[0].id);
     }
   }, [initialData, loggedExercises]);
+
+  // Fetch last workout when category changes
+  useEffect(() => {
+    const fetchLastWorkout = async () => {
+      setLoadingLastWorkout(true);
+      try {
+        const lastWorkoutData = await workoutsAPI.getLastByCategory(selectedCategory);
+        setLastWorkout(lastWorkoutData);
+      } catch (error) {
+        console.error('Error fetching last workout:', error);
+        setLastWorkout(null);
+      } finally {
+        setLoadingLastWorkout(false);
+      }
+    };
+
+    if (stage === "setup") {
+      fetchLastWorkout();
+    }
+  }, [selectedCategory, stage]);
 
   const playBeep = () => {
     const audioContext = audioContextRef.current;
@@ -176,11 +294,63 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     }
   };
 
+  // Load template with progressive overload suggestions
+  const loadTemplateWithProgression = (variation: 'A' | 'B') => {
+    setWorkoutVariation(variation);
+    setWorkoutName(`${selectedCategory} Day ${variation}`);
+
+    // TODO: Load template exercises from templatesAPI
+    // For now, we'll just set up the workout with the selected variation
+    // This will be fully implemented when we integrate with WorkoutTemplates
+
+    // If we have a last workout, we can use it to suggest progressive overload
+    if (lastWorkout && lastWorkout.exercises) {
+      const newExercises: LoggedExercise[] = lastWorkout.exercises.map((prevExercise, idx) => {
+        // Find the exercise in the library
+        const exerciseInfo = EXERCISE_LIBRARY.find(e => e.name === prevExercise.exercise);
+        const exerciseId = exerciseInfo?.id || `ex${idx}`;
+
+        // Get the best set from last workout
+        const bestSet = prevExercise.sets.reduce((max, set) =>
+          (set.weight * set.reps > max.weight * max.reps) ? set : max
+        );
+
+        // Calculate progressive overload
+        const suggestion = calculateProgressiveOverload(
+          { weight: bestSet.weight, reps: bestSet.reps },
+          (lastWorkout.progression_method as ProgressionMethod) || null,
+          { weight: bestSet.weight, reps: bestSet.reps }
+        );
+
+        // Create sets with suggestions
+        const sets: LoggedSet[] = prevExercise.sets.map((_, setIdx) => ({
+          id: `set-${setIdx + 1}-${Date.now()}-${idx}`,
+          reps: suggestion.suggestedReps,
+          weight: suggestion.suggestedWeight
+        }));
+
+        return {
+          id: `${exerciseId}-${Date.now()}-${idx}`,
+          exerciseId,
+          sets
+        };
+      });
+
+      setLoggedExercises(newExercises);
+    }
+
+    startWorkout();
+  };
+
   const addExercise = (exercise: Exercise) => {
     const newLoggedExercise: LoggedExercise = {
       id: `${exercise.id}-${Date.now()}`,
       exerciseId: exercise.id,
-      sets: [],
+      sets: [
+        { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id) },
+        { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id) },
+        { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id) }
+      ],
     };
     setLoggedExercises(prev => [...prev, newLoggedExercise]);
     setExpandedExerciseId(newLoggedExercise.id);
@@ -318,30 +488,56 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       <div className="p-4 bg-brand-dark min-h-screen flex flex-col">
         <div className="flex-grow">
           <h2 className="text-2xl font-bold mb-6">New Workout</h2>
+
+          {/* Workout Type Selection */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Workout Type</label>
+            <select
+              value={selectedCategory}
+              onChange={e => {
+                setSelectedCategory(e.target.value as ExerciseCategory);
+                setWorkoutType(e.target.value as ExerciseCategory);
+              }}
+              className="w-full bg-brand-surface border border-brand-muted rounded-md px-3 py-2"
+            >
+              <option>Push</option>
+              <option>Pull</option>
+              <option>Legs</option>
+              <option>Core</option>
+            </select>
+          </div>
+
+          {/* Last Workout Summary */}
+          {!loadingLastWorkout && (
+            <LastWorkoutSummary
+              lastWorkout={lastWorkout}
+              category={selectedCategory}
+              onLoadTemplate={loadTemplateWithProgression}
+              loading={loadingLastWorkout}
+            />
+          )}
+
+          {loadingLastWorkout && (
+            <div className="bg-brand-surface p-6 rounded-lg mb-4 text-center">
+              <p className="text-slate-400">Loading last workout...</p>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Workout Name</label>
               <input type="text" value={workoutName} onChange={e => setWorkoutName(e.target.value)} placeholder="e.g. Morning Push" className="w-full bg-brand-surface border border-brand-muted rounded-md px-3 py-2" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Workout Type</label>
-              <select value={workoutType} onChange={e => setWorkoutType(e.target.value as ExerciseCategory)} className="w-full bg-brand-surface border border-brand-muted rounded-md px-3 py-2">
-                <option>Push</option>
-                <option>Pull</option>
-                <option>Legs</option>
-                <option>Core</option>
-              </select>
-            </div>
-            <div>
               <label className="block text-sm font-medium mb-1">Workout Variation</label>
               <div className="flex bg-brand-surface rounded-md p-1">
-                <button 
+                <button
                   onClick={() => setWorkoutVariation("A")}
                   className={`w-1/2 rounded-md py-2 font-semibold transition-colors ${workoutVariation === 'A' ? 'bg-brand-cyan text-brand-dark' : 'text-slate-300'}`}
                 >
                   Workout A
                 </button>
-                <button 
+                <button
                   onClick={() => setWorkoutVariation("B")}
                   className={`w-1/2 rounded-md py-2 font-semibold transition-colors ${workoutVariation === 'B' ? 'bg-brand-cyan text-brand-dark' : 'text-slate-300'}`}
                 >

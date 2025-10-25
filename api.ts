@@ -82,11 +82,13 @@ export const workoutsAPI = {
       return null;
     }
   },
-  create: async (workout: WorkoutSession): Promise<WorkoutSession> => {
+  create: async (workout: WorkoutSession & { category?: string; progressionMethod?: string }): Promise<WorkoutSession> => {
     // Transform frontend WorkoutSession to backend format
     const backendWorkout = {
       date: workout.endTime,
+      category: workout.category || workout.type,
       variation: workout.variation,
+      progressionMethod: workout.progressionMethod,
       durationSeconds: Math.floor((workout.endTime - workout.startTime) / 1000),
       exercises: workout.loggedExercises.map(le => {
         // Find exercise name from EXERCISE_LIBRARY

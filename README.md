@@ -6,6 +6,26 @@
 
 This is a fully offline version of FitForge that runs on your computer with a local SQLite database.
 
+## ⚠️ SECURITY NOTICE
+
+FitForge Local is designed for **SINGLE-USER, LOCAL-ONLY** use.
+
+- No authentication is implemented
+- All data is accessible to anyone who can reach the API
+- DO NOT expose to the internet
+- DO NOT use on untrusted networks (public WiFi)
+
+See [README-LOCAL.md](README-LOCAL.md) for complete security details.
+
+## Features
+
+**Smart Workout Continuation System** - Build on your progress with intelligent guidance:
+- **Variation Tracking**: Automatically suggests alternating between workout variations (A/B)
+- **Progressive Overload**: Auto-calculates +3% weight OR +3% reps to ensure consistent progress
+- **Last Workout Summary**: See what you did last time with suggested increments
+- **Workout History**: Track which variation you performed and when
+- **Alternating Progression**: Vary stimulus between weight and reps to prevent plateaus
+
 ## Quick Start (RECOMMENDED)
 
 **Windows Users:**
