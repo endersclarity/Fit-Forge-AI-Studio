@@ -6,6 +6,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import * as db from './database/database';
+import { getAnalytics, AnalyticsResponse } from './database/analytics';
 import { getExerciseByName } from './constants';
 import {
   ProfileResponse,
@@ -355,6 +356,27 @@ app.delete('/api/templates/:id', (req: Request<{ id: string }>, res: Response<{ 
   } catch (error) {
     console.error('Error deleting workout template:', error);
     return res.status(500).json({ error: 'Failed to delete workout template' });
+  }
+});
+
+// Get analytics data
+app.get('/api/analytics', (req: Request, res: Response<AnalyticsResponse | ApiErrorResponse>) => {
+  try {
+    const timeRange = req.query.timeRange ? parseInt(req.query.timeRange as string, 10) : 90;
+
+    // Validate timeRange
+    if (isNaN(timeRange) || timeRange < 1 || timeRange > 3650) {
+      return res.status(400).json({
+        error: 'Invalid timeRange parameter',
+        message: 'timeRange must be a number between 1 and 3650 days'
+      });
+    }
+
+    const analytics = getAnalytics(1, timeRange);
+    return res.json(analytics);
+  } catch (error) {
+    console.error('Error getting analytics:', error);
+    return res.status(500).json({ error: 'Failed to get analytics data' });
   }
 });
 

@@ -23,6 +23,7 @@ interface DashboardProps {
   onNavigateToProfile: () => void;
   onNavigateToBests: () => void;
   onNavigateToTemplates: () => void;
+  onNavigateToAnalytics?: () => void;
 }
 
 const PRIMARY_MUSCLE_GROUPS: Record<string, Muscle[]> = {
@@ -425,7 +426,7 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
 };
 
 
-const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaselines, templates, onStartWorkout, onStartRecommendedWorkout, onSelectTemplate, onNavigateToProfile, onNavigateToBests, onNavigateToTemplates }) => {
+const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaselines, templates, onStartWorkout, onStartRecommendedWorkout, onSelectTemplate, onNavigateToProfile, onNavigateToBests, onNavigateToTemplates, onNavigateToAnalytics }) => {
   const { level, progress, nextLevelWorkouts } = getUserLevel(workouts.length);
 
   // State management for fetching muscle states from API
@@ -492,10 +493,17 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
             <h1 className="text-2xl font-bold tracking-tight">FitForge</h1>
         </div>
         <div className="flex items-center gap-2">
-            <button onClick={onNavigateToBests} className="p-2 rounded-full hover:bg-brand-surface">
+            {onNavigateToAnalytics && (
+              <button onClick={onNavigateToAnalytics} className="p-2 rounded-full hover:bg-brand-surface" title="Analytics">
+                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </button>
+            )}
+            <button onClick={onNavigateToBests} className="p-2 rounded-full hover:bg-brand-surface" title="Personal Bests">
                 <TrophyIcon className="w-6 h-6 text-yellow-400"/>
             </button>
-            <button onClick={onNavigateToProfile} className="p-2 rounded-full hover:bg-brand-surface">
+            <button onClick={onNavigateToProfile} className="p-2 rounded-full hover:bg-brand-surface" title="Profile">
                 <UserIcon className="w-6 h-6"/>
             </button>
         </div>

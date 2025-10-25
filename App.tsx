@@ -9,11 +9,12 @@ import WorkoutTracker from './components/Workout';
 import Profile from './components/Profile';
 import PersonalBestsComponent from './components/PersonalBests';
 import WorkoutTemplates from './components/WorkoutTemplates';
+import Analytics from './components/Analytics';
 import Toast from './components/Toast';
 import { PRNotificationManager } from './components/PRNotification';
 import { calculateVolume } from './utils/helpers';
 
-type View = "dashboard" | "workout" | "profile" | "bests" | "templates";
+type View = "dashboard" | "workout" | "profile" | "bests" | "templates" | "analytics";
 
 export interface RecommendedWorkoutData {
     type: ExerciseCategory;
@@ -227,6 +228,7 @@ const App: React.FC = () => {
                       onNavigateToProfile={() => navigateTo('profile')}
                       onNavigateToBests={() => navigateTo('bests')}
                       onNavigateToTemplates={() => navigateTo('templates')}
+                      onNavigateToAnalytics={() => navigateTo('analytics')}
                     />;
         case 'workout':
             return <WorkoutTracker
@@ -256,6 +258,8 @@ const App: React.FC = () => {
                       onBack={() => navigateTo('dashboard')}
                       onSelectTemplate={handleSelectTemplate}
                     />;
+        case 'analytics':
+            return <Analytics />;
         default:
             return <Dashboard
                       profile={profile}
@@ -268,6 +272,7 @@ const App: React.FC = () => {
                       onNavigateToProfile={() => navigateTo('profile')}
                       onNavigateToBests={() => navigateTo('bests')}
                       onNavigateToTemplates={() => navigateTo('templates')}
+                      onNavigateToAnalytics={() => navigateTo('analytics')}
                     />;
     }
   }

@@ -113,11 +113,13 @@ CREATE TABLE IF NOT EXISTS workout_templates (
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_workouts_user_date ON workouts(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date);
 CREATE INDEX IF NOT EXISTS idx_exercise_sets_workout ON exercise_sets(workout_id);
 CREATE INDEX IF NOT EXISTS idx_exercise_sets_to_failure ON exercise_sets(to_failure);
 CREATE INDEX IF NOT EXISTS idx_muscle_states_user ON muscle_states(user_id);
 CREATE INDEX IF NOT EXISTS idx_personal_bests_user ON personal_bests(user_id);
 CREATE INDEX IF NOT EXISTS idx_muscle_baselines_user ON muscle_baselines(user_id);
+CREATE INDEX IF NOT EXISTS idx_muscle_baselines_updated ON muscle_baselines(updated_at);
 CREATE INDEX IF NOT EXISTS idx_workout_templates_user ON workout_templates(user_id);
 
 -- Insert default user

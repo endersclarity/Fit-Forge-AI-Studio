@@ -325,3 +325,110 @@ export interface ExerciseRecommendation {
   explanation: string;
   equipmentAvailable: boolean;
 }
+
+// ============================================
+// ANALYTICS TYPES
+// ============================================
+
+export interface AnalyticsTimeRange {
+  start: string;
+  end: string;
+  days: number;
+}
+
+export interface AnalyticsSummary {
+  totalWorkouts: number;
+  totalVolume: number;
+  totalPRs: number;
+  currentStreak: number;
+  weeklyFrequency: number;
+}
+
+export interface ExerciseDataPoint {
+  date: string;
+  weight: number;
+  reps: number;
+  volume: number;
+}
+
+export interface ExerciseProgression {
+  dataPoints: ExerciseDataPoint[];
+  bestSingleSet: number;
+  percentChange: number;
+  latestPR?: {
+    date: string;
+    weight: number;
+    reps: number;
+  };
+}
+
+export interface MuscleCapacityDataPoint {
+  date: string;
+  capacity: number;
+}
+
+export interface MuscleCapacityTrend {
+  dataPoints: MuscleCapacityDataPoint[];
+  currentCapacity: number;
+  startingCapacity: number;
+  percentGrowth: number;
+  avgGrowthPerMonth: number;
+}
+
+export interface VolumeWeekData {
+  weekStart: string;
+  Push: number;
+  Pull: number;
+  Legs: number;
+  Core: number;
+  total: number;
+}
+
+export interface CategoryVolumeData {
+  total: number;
+  percentChange: number;
+}
+
+export interface VolumeTrends {
+  byWeek: VolumeWeekData[];
+  byCategory: {
+    Push: CategoryVolumeData;
+    Pull: CategoryVolumeData;
+    Legs: CategoryVolumeData;
+    Core: CategoryVolumeData;
+  };
+}
+
+export interface PRTimelineEntry {
+  date: string;
+  exercise: string;
+  newVolume: number;
+  previousVolume: number;
+  improvement: number;
+  percentIncrease: number;
+}
+
+export interface ActivityDay {
+  date: string;
+  workoutCount: number;
+  category: string;
+}
+
+export interface ConsistencyMetrics {
+  currentStreak: number;
+  longestStreak: number;
+  workoutsThisWeek: number;
+  workoutsLastWeek: number;
+  avgWeeklyFrequency: number;
+  activityCalendar: ActivityDay[];
+}
+
+export interface AnalyticsResponse {
+  timeRange: AnalyticsTimeRange;
+  summary: AnalyticsSummary;
+  exerciseProgression: Record<string, ExerciseProgression>;
+  muscleCapacityTrends: Record<string, MuscleCapacityTrend>;
+  volumeTrends: VolumeTrends;
+  prTimeline: PRTimelineEntry[];
+  consistencyMetrics: ConsistencyMetrics;
+}
