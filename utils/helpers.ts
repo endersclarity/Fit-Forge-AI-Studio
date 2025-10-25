@@ -5,6 +5,13 @@ import { WorkoutSession } from '../types';
 // as part of Phase 5 cleanup. Muscle state calculations are now handled by the backend.
 // See utils/progressiveOverload.ts for date-related utilities.
 
+/**
+ * @deprecated This function is deprecated as of the "remove-gamification-gates" change.
+ * Level-based gamification has been removed from the UI to provide users with
+ * unrestricted access to their own training data. This function is kept for
+ * backward compatibility but should not be used in new code.
+ * Consider removing in a future cleanup pass.
+ */
 export const getUserLevel = (workoutCount: number): { level: number; progress: number; nextLevelWorkouts: number; } => {
   if (workoutCount <= 2) return { level: 1, progress: (workoutCount / 3) * 100, nextLevelWorkouts: 3 };
   if (workoutCount <= 9) return { level: 2, progress: ((workoutCount - 3) / 7) * 100, nextLevelWorkouts: 10 };

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EXERCISE_LIBRARY, ALL_MUSCLES } from '../constants';
 import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation, Equipment } from '../types';
-import { calculateVolume, findPreviousWorkout, formatDuration, getUserLevel } from '../utils/helpers';
+import { calculateVolume, findPreviousWorkout, formatDuration } from '../utils/helpers';
 import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon } from './Icons';
 import WorkoutSummaryModal from './WorkoutSummaryModal';
 import { RecommendedWorkoutData } from '../App';

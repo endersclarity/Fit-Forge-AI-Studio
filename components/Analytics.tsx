@@ -66,23 +66,8 @@ const Analytics: React.FC = () => {
     return null;
   }
 
-  // Check if user has enough data
-  if (analytics.summary.totalWorkouts < 3) {
-    return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="bg-brand-surface border border-brand-cyan/30 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-brand-cyan mb-4">Not Enough Data Yet</h2>
-          <p className="text-slate-300 mb-2">Keep training to unlock your analytics dashboard!</p>
-          <p className="text-slate-400 text-sm mb-2">
-            You need at least 3 workouts to see meaningful analytics.
-          </p>
-          <p className="text-brand-cyan font-semibold">
-            Current workouts: {analytics.summary.totalWorkouts}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Show empty state for users with no workouts
+  const hasNoData = analytics.summary.totalWorkouts === 0;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -106,6 +91,17 @@ const Analytics: React.FC = () => {
           </select>
         </div>
       </div>
+
+      {/* Empty State Message */}
+      {hasNoData && (
+        <div className="bg-brand-surface border border-brand-cyan/30 rounded-lg p-8 text-center mb-8">
+          <h2 className="text-2xl font-bold text-brand-cyan mb-4">Start Training to See Your Progress!</h2>
+          <p className="text-slate-300 mb-2">Your analytics charts will populate as you log workouts.</p>
+          <p className="text-slate-400 text-sm">
+            Track your volume, PRs, consistency, and more - all your training data in one place.
+          </p>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">

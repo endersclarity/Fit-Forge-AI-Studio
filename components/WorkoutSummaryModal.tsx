@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { EXERCISE_LIBRARY } from '../constants';
 import { WorkoutSession, PersonalBests, MuscleBaselines, Muscle, Exercise, ExerciseMaxes } from '../types';
-import { calculateVolume, formatDuration, findPreviousWorkout, getUserLevel } from '../utils/helpers';
+import { calculateVolume, formatDuration, findPreviousWorkout } from '../utils/helpers';
 import { TrophyIcon, TrendingUpIcon } from './Icons';
 
 interface WorkoutSummaryModalProps {
@@ -15,8 +15,6 @@ interface WorkoutSummaryModalProps {
 }
 
 const WorkoutSummaryModal: React.FC<WorkoutSummaryModalProps> = ({ isOpen, onClose, session, personalBests, muscleBaselines, allWorkouts }) => {
-    const userLevel = getUserLevel(allWorkouts.length);
-
     const summaryData = useMemo(() => {
         if (!session) return null;
 

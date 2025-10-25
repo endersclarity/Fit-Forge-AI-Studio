@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
 import { Muscle, MuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse } from '../types';
-import { getUserLevel, formatDuration } from '../utils/helpers';
+import { formatDuration } from '../utils/helpers';
 import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 import { RecommendedWorkoutData } from '../App';
 import DashboardQuickStart from './DashboardQuickStart';
@@ -427,7 +427,6 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
 
 
 const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaselines, templates, onStartWorkout, onStartRecommendedWorkout, onSelectTemplate, onNavigateToProfile, onNavigateToBests, onNavigateToTemplates, onNavigateToAnalytics }) => {
-  const { level, progress, nextLevelWorkouts } = getUserLevel(workouts.length);
 
   // State management for fetching muscle states from API
   const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
@@ -512,13 +511,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
       <main className="space-y-8">
         <section className="bg-brand-surface p-4 rounded-lg">
           <h2 className="text-xl font-semibold mb-1">Welcome back, {profile.name || 'Athlete'}!</h2>
-          <p className="text-slate-400 mb-4">You are Level {level}. Ready to forge your strength?</p>
-          <div className="w-full bg-brand-muted rounded-full h-2.5">
-            <div className="bg-brand-cyan h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
-          </div>
-          <p className="text-xs text-slate-400 mt-2 text-right">
-            {level < 4 ? `${nextLevelWorkouts - workouts.length} workouts to Level ${level + 1}` : "Max level reached!"}
-          </p>
+          <p className="text-slate-400">Ready to forge your strength?</p>
         </section>
 
         <section>

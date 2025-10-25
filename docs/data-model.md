@@ -665,6 +665,71 @@ interface RecoveryGroups {
   recovering: Array<{ muscle: string; data: MuscleStateData; daysUntil: number }>;
   fatigued: Array<{ muscle: string; data: MuscleStateData; daysUntil: number }>;
 }
+
+// Analytics Dashboard Types (Phase 1 & 2 Complete)
+interface AnalyticsResponse {
+  timeRange: {
+    start: string;    // ISO date
+    end: string;      // ISO date
+    days: number;
+  };
+  summary: {
+    totalWorkouts: number;
+    totalVolume: number;
+    totalPRs: number;
+    currentStreak: number;
+    weeklyFrequency: number;
+  };
+  exerciseProgression: Record<string, {
+    dataPoints: Array<{ date: string; weight: number; reps: number; volume: number }>;
+    bestSingleSet: number;
+    percentChange: number;
+    latestPR?: { date: string; weight: number; reps: number };
+  }>;
+  muscleCapacityTrends: Record<string, {
+    dataPoints: Array<{ date: string; capacity: number }>;
+    currentCapacity: number;
+    startingCapacity: number;
+    percentGrowth: number;
+    avgGrowthPerMonth: number;
+  }>;
+  volumeTrends: {
+    byWeek: Array<{
+      weekStart: string;
+      Push: number;
+      Pull: number;
+      Legs: number;
+      Core: number;
+      total: number;
+    }>;
+    byCategory: {
+      Push: { total: number; percentChange: number };
+      Pull: { total: number; percentChange: number };
+      Legs: { total: number; percentChange: number };
+      Core: { total: number; percentChange: number };
+    };
+  };
+  prTimeline: Array<{
+    date: string;
+    exercise: string;
+    newVolume: number;
+    previousVolume: number;
+    improvement: number;
+    percentIncrease: number;
+  }>;
+  consistencyMetrics: {
+    currentStreak: number;
+    longestStreak: number;
+    workoutsThisWeek: number;
+    workoutsLastWeek: number;
+    avgWeeklyFrequency: number;
+    activityCalendar: Array<{
+      date: string;
+      workoutCount: number;
+      category: string;
+    }>;
+  };
+}
 ```
 
 ---
@@ -704,6 +769,17 @@ interface RecoveryGroups {
 - `POST /api/templates` (body: `Omit<WorkoutTemplate, 'id' | 'timesUsed' | 'createdAt' | 'updatedAt'>`) → `WorkoutTemplate`
 - `PUT /api/templates/:id` (body: `Partial<WorkoutTemplate>`) → `WorkoutTemplate`
 - `DELETE /api/templates/:id` → `{ success: boolean }`
+
+### Analytics (Phase 1 & 2 Complete)
+- `GET /api/analytics?timeRange={number}` → `AnalyticsResponse`
+  - Query parameters:
+    - `timeRange` (optional): Number of days to analyze (default: 90)
+  - Returns aggregated analytics data including:
+    - Exercise progression charts (weight/reps over time)
+    - Muscle capacity trend analysis
+    - Volume trends by category and week
+    - PR timeline with improvements
+    - Consistency metrics (streak, frequency, calendar)
 
 ---
 
@@ -901,11 +977,13 @@ function calculateProgressiveOverload(
 **Location**: `utils/helpers.ts`
 
 ```typescript
-getUserLevel(workoutCount: number): number         // Level 1-4
+getUserLevel(workoutCount: number): number         // DEPRECATED: Level 1-4 (removed from UI)
 formatDuration(milliseconds: number): string       // "Xh Ym Zs"
 calculateVolume(reps: number, weight: number): number  // reps × weight
 findPreviousWorkout(current, all): WorkoutSession | null
 ```
+
+**Note**: `getUserLevel()` has been deprecated as of the "remove-gamification-gates" change. Level-based gamification has been removed from the UI to provide users with unrestricted access to their training data. The function is kept for backward compatibility but should not be used in new code.
 
 ### Exercise Recommendation Engine
 **Location**: `utils/exerciseRecommendations.ts`
@@ -1104,6 +1182,69 @@ interface CollapsibleSectionProps {
 }
 ```
 
+### Analytics Components (Phase 1 & 2 Complete)
+
+#### Analytics
+**Location**: `components/Analytics.tsx`
+
+Main analytics dashboard component that displays comprehensive performance tracking and visualization.
+
+**Features**:
+- Time-range filtering (7/30/90/365 days, all-time)
+- Summary statistics cards
+- Empty state handling for new users
+- Loading and error states
+- Responsive layout
+
+**Props**:
+```typescript
+// Standalone component, fetches data via /api/analytics
+```
+
+#### ExerciseProgressionChart
+**Location**: `components/ExerciseProgressionChart.tsx`
+
+Interactive chart showing weight and rep progression for selected exercises over time.
+
+**Features**:
+- Exercise selector dropdown
+- Line chart visualization
+- Hover tooltips with detailed data
+- Percentage change calculations
+
+#### MuscleCapacityChart
+**Location**: `components/MuscleCapacityChart.tsx`
+
+Displays muscle capacity baseline growth trends over time.
+
+**Features**:
+- Muscle group selector
+- Trend line visualization
+- Growth rate statistics
+- Current vs starting capacity comparison
+
+#### VolumeTrendsChart
+**Location**: `components/VolumeTrendsChart.tsx`
+
+Stacked bar chart showing training volume by category over weeks.
+
+**Features**:
+- Category breakdown (Push/Pull/Legs/Core)
+- Weekly aggregation
+- Color-coded categories
+- Total volume trends
+
+#### ActivityCalendarHeatmap
+**Location**: `components/ActivityCalendarHeatmap.tsx`
+
+Visual workout frequency calendar showing training consistency.
+
+**Features**:
+- Heatmap visualization
+- Daily workout indicators
+- Category color coding
+- Streak highlighting
+
 ---
 
 ## React Hooks
@@ -1246,6 +1387,18 @@ This data model supports a comprehensive fitness tracking application with:
 - **Equipment management** for progressive resistance
 - **Bodyweight tracking** for contextual performance analysis
 - **Performance analytics** with weekly stats and PR highlights
+- **Analytics dashboard** (Phase 1 & 2 Complete) with:
+  - Exercise progression charts (weight/reps over time)
+  - Muscle capacity trend analysis
+  - Volume tracking by category and week
+  - PR timeline with improvement percentages
+  - Consistency metrics (streak, frequency, activity calendar)
 - **50+ exercises** across Push/Pull/Legs/Core categories
 
 The three-layer architecture ensures type safety, separation of concerns, and maintainability while providing a responsive single-user experience with smart workout intelligence.
+
+### Recent Updates
+
+**2025-10-25**: Added Analytics Dashboard (Phase 1 & 2) - `/api/analytics` endpoint with comprehensive performance tracking and visualization support.
+
+**2025-10-25**: Removed gamification barriers - Deprecated `getUserLevel()` function and removed level-based UI elements to provide unrestricted access to user data.
