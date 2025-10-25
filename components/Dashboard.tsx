@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
-import { Muscle, MuscleStates, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate } from '../types';
-import { calculateRecoveryPercentage, getDaysSince, getRecoveryColor, getUserLevel, formatDuration } from '../utils/helpers';
+import { Muscle, MuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate } from '../types';
+import { getUserLevel, formatDuration } from '../utils/helpers';
 import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 import { RecommendedWorkoutData } from '../App';
 import DashboardQuickStart from './DashboardQuickStart';
@@ -9,7 +9,6 @@ import DashboardQuickStart from './DashboardQuickStart';
 interface DashboardProps {
   profile: UserProfile;
   workouts: WorkoutSession[];
-  muscleStates: MuscleStates;
   muscleBaselines: MuscleBaselines;
   templates: WorkoutTemplate[];
   onStartWorkout: () => void;
@@ -27,12 +26,12 @@ const PRIMARY_MUSCLE_GROUPS: Record<string, Muscle[]> = {
 };
 
 const WorkoutRecommender: React.FC<{
-    muscleStates: MuscleStates;
+    muscleStates: MuscleStatesResponse;
     workouts: WorkoutSession[];
     muscleBaselines: MuscleBaselines;
     onStart: (data: RecommendedWorkoutData) => void;
 }> = ({ muscleStates, workouts, muscleBaselines, onStart }) => {
-    
+
     const recommendation = useMemo(() => {
         const RECOVERY_THRESHOLD = 90;
 
@@ -40,8 +39,8 @@ const WorkoutRecommender: React.FC<{
             .map(muscle => {
                 const state = muscleStates[muscle];
                 if (!state || !state.lastTrained) return { muscle, recovery: 100 };
-                const daysSince = getDaysSince(state.lastTrained);
-                const recovery = calculateRecoveryPercentage(daysSince, state.recoveryDaysNeeded);
+                // Use backend-calculated recovery: 100 - currentFatiguePercent
+                const recovery = 100 - state.currentFatiguePercent;
                 return { muscle, recovery };
             })
             .filter(m => m.recovery >= RECOVERY_THRESHOLD);
@@ -190,11 +189,11 @@ const getExercisesForMuscle = (muscle: Muscle): ExerciseForMuscle[] => {
     .sort((a, b) => b.engagement - a.engagement);
 };
 
-const MuscleFatigueHeatMap: React.FC<{ muscleStates: MuscleStates, workouts: WorkoutSession[], muscleBaselines: MuscleBaselines }> = ({ muscleStates, workouts, muscleBaselines }) => {
+const MuscleFatigueHeatMap: React.FC<{ muscleStates: MuscleStatesResponse, workouts: WorkoutSession[], muscleBaselines: MuscleBaselines }> = ({ muscleStates, workouts, muscleBaselines }) => {
   const [selectedMuscle, setSelectedMuscle] = useState<Muscle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Transform muscle states into categorized fatigue data
+  // Transform muscle states into categorized fatigue data (using backend-calculated values)
   const categorizedMuscleData = useMemo(() => {
     return Object.entries(MUSCLE_CATEGORIES).map(([category, muscles]) => ({
       category,
@@ -203,20 +202,18 @@ const MuscleFatigueHeatMap: React.FC<{ muscleStates: MuscleStates, workouts: Wor
         if (!status || !status.lastTrained) {
           return {
             muscle,
-            daysSince: Infinity,
+            daysSince: null,
             fatiguePercent: 0,
-            recoveryDaysNeeded: 0,
+            daysUntilRecovered: 0,
             lastTrained: null
           };
         }
-        const daysSince = getDaysSince(status.lastTrained);
-        const recovery = calculateRecoveryPercentage(daysSince, status.recoveryDaysNeeded);
-        const fatiguePercent = 100 - recovery; // Convert recovery to fatigue
+        // Use backend-calculated values directly - no frontend calculation!
         return {
           muscle,
-          daysSince: Math.floor(daysSince),
-          fatiguePercent: Math.round(fatiguePercent),
-          recoveryDaysNeeded: status.recoveryDaysNeeded,
+          daysSince: status.daysElapsed,
+          fatiguePercent: Math.round(status.currentFatiguePercent),
+          daysUntilRecovered: Math.ceil(status.daysUntilRecovered),
           lastTrained: status.lastTrained
         };
       })
@@ -270,8 +267,7 @@ const MuscleFatigueHeatMap: React.FC<{ muscleStates: MuscleStates, workouts: Wor
 
             {/* Muscles in Category */}
             <div className="space-y-2">
-              {muscles.map(({ muscle, daysSince, fatiguePercent, recoveryDaysNeeded, lastTrained }) => {
-                const daysUntilReady = Math.max(0, Math.ceil(recoveryDaysNeeded - daysSince));
+              {muscles.map(({ muscle, daysSince, fatiguePercent, daysUntilRecovered, lastTrained }) => {
                 const isReady = fatiguePercent <= 33;
 
                 return (
@@ -279,7 +275,7 @@ const MuscleFatigueHeatMap: React.FC<{ muscleStates: MuscleStates, workouts: Wor
                     <button
                       onClick={() => handleMuscleClick(muscle)}
                       className="w-full text-left p-3 focus:outline-none hover:bg-brand-surface transition-colors cursor-pointer"
-                      aria-label={`${muscle}: ${fatiguePercent}% fatigued${isReady ? ', ready now' : `, ready in ${daysUntilReady} days`}`}
+                      aria-label={`${muscle}: ${fatiguePercent}% fatigued${isReady ? ', ready now' : `, ready in ${daysUntilRecovered} days`}`}
                     >
                       <div className="flex justify-between items-center mb-1 text-sm">
                         <span className="font-medium">{muscle}</span>
@@ -295,13 +291,13 @@ const MuscleFatigueHeatMap: React.FC<{ muscleStates: MuscleStates, workouts: Wor
                       </div>
                       <div className="flex justify-between items-center text-xs text-slate-500">
                         <span>
-                          {lastTrained ? `Last trained: ${daysSince}d ago` : 'Never trained'}
+                          {lastTrained ? `Last trained: ${daysSince !== null ? Math.floor(daysSince) : 0}d ago` : 'Never trained'}
                         </span>
                         <span>
                           {isReady ? (
                             <span className="text-green-400 font-semibold">Ready now</span>
                           ) : (
-                            `Ready in ${daysUntilReady}d`
+                            `Ready in ${daysUntilRecovered}d`
                           )}
                         </span>
                       </div>
@@ -423,8 +419,35 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
 };
 
 
-const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, muscleBaselines, templates, onStartWorkout, onStartRecommendedWorkout, onSelectTemplate, onNavigateToProfile, onNavigateToBests, onNavigateToTemplates }) => {
+const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaselines, templates, onStartWorkout, onStartRecommendedWorkout, onSelectTemplate, onNavigateToProfile, onNavigateToBests, onNavigateToTemplates }) => {
   const { level, progress, nextLevelWorkouts } = getUserLevel(workouts.length);
+
+  // State management for fetching muscle states from API
+  const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch muscle states from backend API
+  const fetchMuscleStates = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/muscle-states');
+      if (!response.ok) throw new Error('Failed to fetch muscle states');
+      const data = await response.json();
+      setMuscleStates(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Error fetching muscle states:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Auto-refresh on component mount
+  useEffect(() => {
+    fetchMuscleStates();
+  }, []);
 
   return (
     <div className="p-4 md:p-6 min-h-screen bg-brand-dark space-y-6">
@@ -488,8 +511,37 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleStates, 
         </section>
 
         <section className="bg-brand-surface p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Muscle Fatigue Heat Map</h3>
-            <MuscleFatigueHeatMap muscleStates={muscleStates} workouts={workouts} muscleBaselines={muscleBaselines} />
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Muscle Fatigue Heat Map</h3>
+              <button
+                onClick={fetchMuscleStates}
+                disabled={loading}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  loading
+                    ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                    : 'bg-brand-cyan text-brand-dark hover:bg-cyan-400'
+                }`}
+              >
+                {loading ? 'Loading...' : '🔄 Refresh'}
+              </button>
+            </div>
+            {error ? (
+              <div className="text-center py-8">
+                <p className="text-red-400 mb-4">Error: {error}</p>
+                <button
+                  onClick={fetchMuscleStates}
+                  className="bg-brand-cyan text-brand-dark px-4 py-2 rounded hover:bg-cyan-400 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : loading && Object.keys(muscleStates).length === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                <p>Loading muscle states...</p>
+              </div>
+            ) : (
+              <MuscleFatigueHeatMap muscleStates={muscleStates} workouts={workouts} muscleBaselines={muscleBaselines} />
+            )}
         </section>
 
         <section className="bg-brand-surface p-4 rounded-lg">

@@ -218,7 +218,6 @@ const App: React.FC = () => {
             return <Dashboard
                       profile={profile}
                       workouts={workouts}
-                      muscleStates={muscleStates}
                       muscleBaselines={muscleBaselines}
                       templates={templates}
                       onStartWorkout={() => navigateTo('workout')}
@@ -260,7 +259,6 @@ const App: React.FC = () => {
             return <Dashboard
                       profile={profile}
                       workouts={workouts}
-                      muscleStates={muscleStates}
                       muscleBaselines={muscleBaselines}
                       templates={templates}
                       onStartWorkout={() => navigateTo('workout')}
