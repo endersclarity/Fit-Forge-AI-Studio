@@ -190,6 +190,12 @@ export interface QuickAddRequest {
   date?: string; // ISO 8601
 }
 
+export interface BaselineUpdate {
+  muscle: string;
+  oldMax: number;
+  newMax: number;
+}
+
 export interface QuickAddResponse {
   workout: WorkoutResponse;
   muscle_states: MuscleStatesResponse;
@@ -207,6 +213,7 @@ export interface WorkoutResponse {
   exercises: WorkoutExercise[];
   prs?: PRInfo[]; // Personal records detected in this workout
   created_at?: string;
+  updated_baselines?: BaselineUpdate[]; // Optional: baseline learning updates from failure sets
 }
 
 export interface WorkoutSaveRequest {

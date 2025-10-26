@@ -10,11 +10,12 @@ import Profile from './components/Profile';
 import PersonalBestsComponent from './components/PersonalBests';
 import WorkoutTemplates from './components/WorkoutTemplates';
 import Analytics from './components/Analytics';
+import MuscleBaselinesPage from './components/MuscleBaselinesPage';
 import Toast from './components/Toast';
 import { PRNotificationManager } from './components/PRNotification';
 import { calculateVolume } from './utils/helpers';
 
-type View = "dashboard" | "workout" | "profile" | "bests" | "templates" | "analytics";
+type View = "dashboard" | "workout" | "profile" | "bests" | "templates" | "analytics" | "muscle-baselines";
 
 export interface RecommendedWorkoutData {
     type: ExerciseCategory;
@@ -144,6 +145,12 @@ const App: React.FC = () => {
         setPrNotifications(savedWorkout.prs);
       }
 
+      // Display toast notification for baseline updates
+      if (savedWorkout.updated_baselines && savedWorkout.updated_baselines.length > 0) {
+        const muscleNames = savedWorkout.updated_baselines.map(u => u.muscle).join(', ');
+        setToastMessage(`🤖 Muscle capacity updated for ${savedWorkout.updated_baselines.length} muscle${savedWorkout.updated_baselines.length > 1 ? 's' : ''}: ${muscleNames}`);
+      }
+
       setRecommendedWorkout(null);
     } catch (error) {
       console.error('Error saving workout:', error);
@@ -229,6 +236,7 @@ const App: React.FC = () => {
                       onNavigateToBests={() => navigateTo('bests')}
                       onNavigateToTemplates={() => navigateTo('templates')}
                       onNavigateToAnalytics={() => navigateTo('analytics')}
+                      onNavigateToMuscleBaselines={() => navigateTo('muscle-baselines')}
                     />;
         case 'workout':
             return <WorkoutTracker
@@ -260,6 +268,8 @@ const App: React.FC = () => {
                     />;
         case 'analytics':
             return <Analytics />;
+        case 'muscle-baselines':
+            return <MuscleBaselinesPage />;
         default:
             return <Dashboard
                       profile={profile}
@@ -273,6 +283,7 @@ const App: React.FC = () => {
                       onNavigateToBests={() => navigateTo('bests')}
                       onNavigateToTemplates={() => navigateTo('templates')}
                       onNavigateToAnalytics={() => navigateTo('analytics')}
+                      onNavigateToMuscleBaselines={() => navigateTo('muscle-baselines')}
                     />;
     }
   }

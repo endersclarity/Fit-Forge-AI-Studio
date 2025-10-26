@@ -168,11 +168,18 @@ export interface ProfileUpdateRequest {
 export interface WorkoutExerciseSet {
   weight: number;
   reps: number;
+  to_failure?: boolean; // Optional: indicates if set was taken to failure
 }
 
 export interface WorkoutExercise {
   exercise: string;
   sets: WorkoutExerciseSet[];
+}
+
+export interface BaselineUpdate {
+  muscle: string;
+  oldMax: number;
+  newMax: number;
 }
 
 export interface WorkoutResponse {
@@ -184,6 +191,7 @@ export interface WorkoutResponse {
   duration_seconds: number | null;
   exercises: WorkoutExercise[];
   created_at?: string;
+  updated_baselines?: BaselineUpdate[]; // Optional field for baseline learning updates
 }
 
 export interface WorkoutSaveRequest {
