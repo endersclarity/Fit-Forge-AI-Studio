@@ -203,6 +203,34 @@ export interface WorkoutSaveRequest {
   exercises: WorkoutExercise[];
 }
 
+// Progressive Overload API Types
+export interface ProgressiveOption {
+  weight: number;
+  reps: number;
+  method: 'weight' | 'reps';
+}
+
+export interface ProgressiveSuggestion {
+  lastPerformance: {
+    weight: number;
+    reps: number;
+    date: string;
+  };
+  lastMethod: 'weight' | 'reps' | 'none';
+  weightOption: ProgressiveOption;
+  repsOption: ProgressiveOption;
+  suggested: 'weight' | 'reps';
+  daysAgo: number;
+}
+
+// Workout Variation API Types
+export interface WorkoutVariationSuggestion {
+  suggested: 'A' | 'B';
+  lastVariation: 'A' | 'B' | null;
+  lastDate: string | null;
+  daysAgo: number | null;
+}
+
 // Muscle State API Types
 
 /**

@@ -60,6 +60,33 @@ export interface WorkoutSession {
   muscleFatigueHistory: Partial<Record<Muscle, number>>; // fatigue %
 }
 
+// PROGRESSIVE OVERLOAD TYPES
+export interface ProgressiveOption {
+  weight: number;
+  reps: number;
+  method: 'weight' | 'reps';
+}
+
+export interface ProgressiveSuggestion {
+  lastPerformance: {
+    weight: number;
+    reps: number;
+    date: string;
+  };
+  lastMethod: 'weight' | 'reps' | 'none';
+  weightOption: ProgressiveOption;
+  repsOption: ProgressiveOption;
+  suggested: 'weight' | 'reps';
+  daysAgo: number;
+}
+
+export interface WorkoutVariationSuggestion {
+  suggested: 'A' | 'B';
+  lastVariation: 'A' | 'B' | null;
+  lastDate: string | null;
+  daysAgo: number | null;
+}
+
 // Fix: Export MuscleAnalytics and PersonalBests types
 export type MuscleAnalytics = Record<Muscle, {
   lastTrained: number;

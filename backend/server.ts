@@ -98,12 +98,20 @@ app.get('/api/workouts', (_req: Request, res: Response<WorkoutResponse[] | ApiEr
 });
 
 // Get last workout by category
-app.get('/api/workouts/last', (req: Request, res: Response<WorkoutResponse | ApiErrorResponse>) => {
+app.get('/api/workouts/last', (req: Request, res: Response) => {
   try {
     const category = req.query.category as string;
+    const includeVariationSuggestion = req.query.includeVariationSuggestion === 'true';
 
     if (!category) {
       res.status(400).json({ error: 'Category parameter is required' });
+      return;
+    }
+
+    // If only variation suggestion is needed
+    if (includeVariationSuggestion) {
+      const variationSuggestion = db.getLastVariationForCategory(category);
+      res.json(variationSuggestion);
       return;
     }
 
@@ -118,6 +126,28 @@ app.get('/api/workouts/last', (req: Request, res: Response<WorkoutResponse | Api
   } catch (error) {
     console.error('Error getting last workout:', error);
     res.status(500).json({ error: 'Failed to get last workout' });
+  }
+});
+
+// Get progressive overload suggestions for an exercise
+app.get('/api/progressive-suggestions', (req: Request, res: Response) => {
+  try {
+    const exerciseName = req.query.exercise as string;
+
+    if (!exerciseName) {
+      return res.status(400).json({ error: 'Exercise parameter is required' });
+    }
+
+    const suggestions = db.getProgressiveSuggestions(exerciseName);
+
+    if (!suggestions) {
+      return res.status(404).json({ error: `No history found for exercise: ${exerciseName}` });
+    }
+
+    return res.json(suggestions);
+  } catch (error) {
+    console.error('Error getting progressive suggestions:', error);
+    return res.status(500).json({ error: 'Failed to get progressive suggestions' });
   }
 });
 

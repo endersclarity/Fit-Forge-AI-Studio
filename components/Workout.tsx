@@ -10,6 +10,7 @@ import { LastWorkoutSummary } from './LastWorkoutSummary';
 import { workoutsAPI } from '../api';
 import { WorkoutResponse } from '../backend/types';
 import { calculateProgressiveOverload, ProgressionMethod } from '../utils/progressiveOverload';
+import { ProgressiveSuggestionButtons } from './ProgressiveSuggestionButtons';
 
 type WorkoutStage = "setup" | "tracking" | "summary";
 
@@ -164,6 +165,12 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const [lastWorkout, setLastWorkout] = useState<WorkoutResponse | null>(null);
   const [loadingLastWorkout, setLoadingLastWorkout] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory>(initialData?.type || "Push");
+  const [variationSuggestion, setVariationSuggestion] = useState<{
+    suggested: 'A' | 'B';
+    lastVariation: 'A' | 'B' | null;
+    lastDate: string | null;
+    daysAgo: number | null;
+  } | null>(null);
 
   // Helper function to determine default weight for an exercise
   const getDefaultWeight = (exerciseId: string): number => {
@@ -215,23 +222,34 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     }
   }, [initialData, loggedExercises]);
 
-  // Fetch last workout when category changes
+  // Fetch last workout and variation suggestion when category changes
   useEffect(() => {
-    const fetchLastWorkout = async () => {
+    const fetchLastWorkoutData = async () => {
       setLoadingLastWorkout(true);
       try {
+        // Fetch last workout
         const lastWorkoutData = await workoutsAPI.getLastByCategory(selectedCategory);
         setLastWorkout(lastWorkoutData);
+
+        // Fetch variation suggestion
+        const response = await fetch(`/api/workouts/last?category=${selectedCategory}&includeVariationSuggestion=true`);
+        if (response.ok) {
+          const suggestionData = await response.json();
+          setVariationSuggestion(suggestionData);
+          // Auto-set the suggested variation
+          setWorkoutVariation(suggestionData.suggested);
+        }
       } catch (error) {
         console.error('Error fetching last workout:', error);
         setLastWorkout(null);
+        setVariationSuggestion(null);
       } finally {
         setLoadingLastWorkout(false);
       }
     };
 
     if (stage === "setup") {
-      fetchLastWorkout();
+      fetchLastWorkoutData();
     }
   }, [selectedCategory, stage]);
 
@@ -556,6 +574,21 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Workout Variation</label>
+
+              {/* Variation Context */}
+              {variationSuggestion && variationSuggestion.lastVariation && (
+                <div className="mb-2 p-3 bg-brand-surface rounded-md border border-brand-muted">
+                  <p className="text-sm text-gray-300">
+                    <span className="text-gray-400">Last time: </span>
+                    <span className="font-semibold">{selectedCategory} {variationSuggestion.lastVariation}</span>
+                    <span className="text-gray-500 ml-1">({variationSuggestion.daysAgo} days ago)</span>
+                  </p>
+                  <p className="text-xs text-brand-cyan mt-1">
+                    → Today: {selectedCategory} {variationSuggestion.suggested} (Recommended)
+                  </p>
+                </div>
+              )}
+
               <div className="flex bg-brand-surface rounded-md p-1">
                 <button
                   onClick={() => setWorkoutVariation("A")}
@@ -607,6 +640,19 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                   {isExpanded ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6"/>}
                 </button>
                 {isExpanded && <div className="p-4 pt-0">
+                    {/* Progressive Suggestion Buttons - only show for first set */}
+                    {ex.sets.length === 1 && ex.sets[0].weight === 0 && ex.sets[0].reps === 0 && (
+                      <div className="mb-4">
+                        <ProgressiveSuggestionButtons
+                          exerciseName={getExerciseName(ex.exerciseId)}
+                          onSelect={(weight, reps, method) => {
+                            // Auto-fill the first set with selected suggestion
+                            updateSet(ex.id, ex.sets[0].id, 'weight', weight);
+                            updateSet(ex.id, ex.sets[0].id, 'reps', reps);
+                          }}
+                        />
+                      </div>
+                    )}
                     <div className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 text-center text-xs text-slate-400 font-semibold mb-2">
                         <span className="col-span-1"></span>
                         <span className="col-span-1">Set</span>

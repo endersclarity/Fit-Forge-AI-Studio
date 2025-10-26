@@ -364,6 +364,180 @@ function learnMuscleBaselinesFromWorkout(workoutId: number): BaselineUpdate[] {
 }
 
 /**
+ * Get last performance for a specific exercise
+ *
+ * Retrieves the most recent workout containing the specified exercise
+ * and returns the first set's data (weight, reps, date) as the baseline.
+ *
+ * @param exerciseName - Name of the exercise to query
+ * @returns Last performance data or null if no history exists
+ */
+function getLastPerformanceForExercise(exerciseName: string): {
+  weight: number;
+  reps: number;
+  date: string;
+  workoutId: number;
+} | null {
+  const result = db.prepare(`
+    SELECT w.id as workout_id, w.date, es.weight, es.reps
+    FROM workouts w
+    JOIN exercise_sets es ON w.id = es.workout_id
+    WHERE w.user_id = 1 AND es.exercise_name = ?
+    ORDER BY w.date DESC, es.set_number ASC
+    LIMIT 1
+  `).get(exerciseName) as {
+    workout_id: number;
+    date: string;
+    weight: number;
+    reps: number;
+  } | undefined;
+
+  if (!result) {
+    return null;
+  }
+
+  return {
+    weight: result.weight,
+    reps: result.reps,
+    date: result.date,
+    workoutId: result.workout_id
+  };
+}
+
+/**
+ * Get previous performance for a specific exercise (second-to-last workout)
+ *
+ * Used to detect which progression method was used last time.
+ *
+ * @param exerciseName - Name of the exercise to query
+ * @returns Previous performance data or null if insufficient history
+ */
+function getPreviousPerformanceForExercise(exerciseName: string): {
+  weight: number;
+  reps: number;
+  date: string;
+} | null {
+  const result = db.prepare(`
+    SELECT w.date, es.weight, es.reps
+    FROM workouts w
+    JOIN exercise_sets es ON w.id = es.workout_id
+    WHERE w.user_id = 1 AND es.exercise_name = ?
+    ORDER BY w.date DESC, es.set_number ASC
+    LIMIT 1 OFFSET 1
+  `).get(exerciseName) as {
+    date: string;
+    weight: number;
+    reps: number;
+  } | undefined;
+
+  if (!result) {
+    return null;
+  }
+
+  return {
+    weight: result.weight,
+    reps: result.reps,
+    date: result.date
+  };
+}
+
+/**
+ * Get progressive overload suggestions for an exercise
+ *
+ * Calculates both +3% weight and +3% reps options from last performance,
+ * detects which method was used last time, and recommends alternating.
+ *
+ * @param exerciseName - Name of the exercise
+ * @returns Progressive suggestion object or null if no history
+ */
+function getProgressiveSuggestions(exerciseName: string): {
+  lastPerformance: {
+    weight: number;
+    reps: number;
+    date: string;
+  };
+  lastMethod: 'weight' | 'reps' | 'none';
+  weightOption: {
+    weight: number;
+    reps: number;
+    method: 'weight';
+  };
+  repsOption: {
+    weight: number;
+    reps: number;
+    method: 'reps';
+  };
+  suggested: 'weight' | 'reps';
+  daysAgo: number;
+} | null {
+  // Get last two performances
+  const lastPerf = getLastPerformanceForExercise(exerciseName);
+  const previousPerf = getPreviousPerformanceForExercise(exerciseName);
+
+  if (!lastPerf) {
+    return null; // No history, user must establish baseline
+  }
+
+  // Calculate days since last performance
+  const lastDate = new Date(lastPerf.date).getTime();
+  const now = Date.now();
+  const daysAgo = Math.round((now - lastDate) / (1000 * 60 * 60 * 24));
+
+  // Detect last method used (weight/reps/none)
+  let lastMethod: 'weight' | 'reps' | 'none' = 'none';
+
+  if (previousPerf) {
+    const weightIncreased = lastPerf.weight > previousPerf.weight;
+    const repsIncreased = lastPerf.reps > previousPerf.reps;
+    const weightDecreased = lastPerf.weight < previousPerf.weight;
+    const repsDecreased = lastPerf.reps < previousPerf.reps;
+
+    // Clear weight progression: weight up, reps same
+    if (weightIncreased && !repsIncreased && !repsDecreased) {
+      lastMethod = 'weight';
+    }
+    // Clear reps progression: reps up, weight same
+    else if (repsIncreased && !weightIncreased && !weightDecreased) {
+      lastMethod = 'reps';
+    }
+    // Otherwise: both changed, neither changed, or regression → "none"
+  }
+
+  // Calculate +3% weight option (round to nearest integer)
+  const weightOption = {
+    weight: Math.round(lastPerf.weight * 1.03),
+    reps: lastPerf.reps,
+    method: 'weight' as const
+  };
+
+  // Calculate +3% reps option (round up)
+  const repsOption = {
+    weight: lastPerf.weight,
+    reps: Math.ceil(lastPerf.reps * 1.03),
+    method: 'reps' as const
+  };
+
+  // Determine recommended method (alternate from last)
+  const suggested =
+    lastMethod === 'weight' ? 'reps' :
+    lastMethod === 'reps' ? 'weight' :
+    'reps'; // Default to reps if unclear (safer for joints)
+
+  return {
+    lastPerformance: {
+      weight: lastPerf.weight,
+      reps: lastPerf.reps,
+      date: lastPerf.date
+    },
+    lastMethod,
+    weightOption,
+    repsOption,
+    suggested,
+    daysAgo
+  };
+}
+
+/**
  * Get muscle states with calculated fields
  *
  * This function implements the backend calculation engine for muscle state.
@@ -799,6 +973,54 @@ console.log('Running seed function...');
 seedDefaultTemplates();
 
 /**
+ * Get last variation used for a category and suggest opposite
+ *
+ * Returns the last variation used in a category and suggests
+ * the opposite variation for balanced training.
+ *
+ * @param category - Exercise category (Push/Pull/Legs/Core)
+ * @returns Variation suggestion object or default to 'A' if no history
+ */
+function getLastVariationForCategory(category: string): {
+  suggested: 'A' | 'B';
+  lastVariation: 'A' | 'B' | null;
+  lastDate: string | null;
+  daysAgo: number | null;
+} {
+  const lastWorkout = db.prepare(`
+    SELECT variation, date
+    FROM workouts
+    WHERE user_id = 1 AND category = ?
+    ORDER BY date DESC
+    LIMIT 1
+  `).get(category) as { variation: string; date: string } | undefined;
+
+  if (!lastWorkout) {
+    return {
+      suggested: 'A', // Default to A for first workout
+      lastVariation: null,
+      lastDate: null,
+      daysAgo: null
+    };
+  }
+
+  // Calculate days since last workout
+  const lastDate = new Date(lastWorkout.date).getTime();
+  const now = Date.now();
+  const daysAgo = Math.round((now - lastDate) / (1000 * 60 * 60 * 24));
+
+  // Suggest opposite of what was done last time
+  const suggested = lastWorkout.variation === 'A' ? 'B' : 'A';
+
+  return {
+    suggested,
+    lastVariation: lastWorkout.variation as 'A' | 'B',
+    lastDate: lastWorkout.date,
+    daysAgo
+  };
+}
+
+/**
  * Get last workout by category
  */
 function getLastWorkoutByCategory(category: string): WorkoutResponse | null {
@@ -852,7 +1074,9 @@ export {
   updateProfile,
   getWorkouts,
   getLastWorkoutByCategory,
+  getLastVariationForCategory,
   saveWorkout,
+  getProgressiveSuggestions,
   getMuscleStates,
   updateMuscleStates,
   getPersonalBests,
