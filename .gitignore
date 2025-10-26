@@ -46,3 +46,6 @@ data/
 *.njsproj
 *.sln
 *.sw?
+
+*storybook.log
+storybook-static

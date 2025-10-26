@@ -1,0 +1,44 @@
+import type { Preview } from '@storybook/react-vite'
+
+// Load Tailwind CSS for Storybook
+const preview: Preview = {
+  parameters: {
+    controls: {
+      matchers: {
+       color: /(background|color)$/i,
+       date: /Date$/i,
+      },
+    },
+
+    a11y: {
+      // 'todo' - show a11y violations in the test UI only
+      // 'error' - fail CI on a11y violations
+      // 'off' - skip a11y checks entirely
+      test: 'todo'
+    },
+
+    backgrounds: {
+      default: 'dark',
+      values: [
+        { name: 'dark', value: '#111721' }, // FitForge dark background
+        { name: 'light', value: '#f6f6f8' },
+      ],
+    },
+  },
+
+  decorators: [
+    (Story) => (
+      <div style={{
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+        backgroundColor: '#111721',
+        color: '#ffffff',
+        minHeight: '100vh',
+        padding: '20px'
+      }}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export default preview;
