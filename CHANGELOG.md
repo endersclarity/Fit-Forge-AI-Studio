@@ -7,6 +7,78 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-26 22:30 - [Feature] First-Time User Onboarding (Phases 1-2 Complete)
+
+**Commits**: `54c4133`, `f0e1688`, `cfb4ca7`, `4236b94`
+**Files Changed**:
+- backend/database/database.ts (UserNotFoundError, initializeProfile function)
+- backend/server.ts (GET /api/profile 404 handling, POST /api/profile/init endpoint)
+- backend/types.ts (ProfileInitRequest, ApiErrorResponse.code)
+- App.tsx (first-time user detection, onboarding screen)
+- api.ts (structured error parsing, profileAPI.init method)
+- openspec/changes/2025-10-26-enable-first-time-user-onboarding/tasks.md (completion tracking)
+
+**Summary**: Implemented backend API and frontend detection for first-time user onboarding. New users see welcome screen instead of crash.
+
+**Details**:
+
+**Phase 1 - Backend Profile Creation API:**
+- Created custom `UserNotFoundError` class with `code: 'USER_NOT_FOUND'`
+- Modified GET `/api/profile` to return HTTP 404 with structured error (not generic 500)
+- Implemented POST `/api/profile/init` endpoint with comprehensive validation:
+  - Validates name (required, non-empty)
+  - Validates experience level (Beginner/Intermediate/Advanced)
+  - Validates equipment array (minWeight, maxWeight, increment)
+- Created `initializeProfile()` database function with atomic transaction:
+  - Inserts user with id=1
+  - Initializes all 13 muscle baselines with experience-scaled values
+  - Initializes all 13 muscle states (0% fatigue, 100% recovery)
+  - Inserts equipment if provided
+  - Idempotent: returns existing profile if already exists
+- Experience-based baseline scaling:
+  - Beginner: 5,000 capacity per muscle
+  - Intermediate: 10,000 capacity per muscle
+  - Advanced: 15,000 capacity per muscle
+- Added `ProfileInitRequest` interface to types
+- Added `code` field to `ApiErrorResponse` type
+
+**Phase 2 - Frontend First-Time User Detection:**
+- Modified `apiRequest()` helper to parse error response bodies:
+  - Extracts `error.code` from backend error responses
+  - Attaches code to Error object for frontend detection
+- Added `isFirstTimeUser` state to App.tsx
+- Added useEffect to detect `USER_NOT_FOUND` error code
+- Modified `renderContent()` to show onboarding for first-time users:
+  - Welcome screen with "Welcome to FitForge!" heading
+  - Brief description: "Intelligent muscle capacity learning system"
+  - "Get Started" placeholder button (ready for wizard integration)
+- Fixed error handling logic:
+  - USER_NOT_FOUND no longer shows "Failed to connect to backend"
+  - Clear separation between onboarding and true errors
+- Added `profileAPI.init()` method for profile initialization
+
+**User Experience Impact:**
+- Before: New users saw "User not found" crash → unusable app
+- After: New users see welcoming onboarding screen → smooth first-run experience
+- Existing users: No changes, continue to normal dashboard
+
+**Remaining Work (Phases 3-5):**
+- Phase 3: Profile Setup Wizard UI (name, experience, equipment steps)
+- Phase 4: Integration (wire wizard to API, handle completion)
+- Phase 5: Polish & Testing (styling, accessibility, E2E testing)
+- Estimated: ~17 hours remaining
+
+**Breaking Changes**: None
+
+**Technical Context**:
+- OpenSpec proposal: `enable-first-time-user-onboarding` (Phases 1-2 complete)
+- Proposal priority: Critical Blocker (app crashes without this)
+- Transaction safety ensures database consistency
+- Backend validates all inputs before database operations
+- Frontend gracefully handles structured errors
+
+---
+
 ### 2025-10-26 20:15 - [Feature]
 
 **Commit**: `666fcf6`
