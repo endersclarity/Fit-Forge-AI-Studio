@@ -215,6 +215,17 @@ export const quickAddAPI = {
       body: JSON.stringify(request),
     });
   },
+
+  /**
+   * Log a quick workout with multiple exercises and sets
+   * Creates a complete workout with auto-detected category and variation
+   */
+  quickWorkout: async (request: import('./types').QuickWorkoutRequest): Promise<import('./types').QuickWorkoutResponse> => {
+    return await apiRequest<import('./types').QuickWorkoutResponse>('/quick-workout', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  },
 };
 
 /**

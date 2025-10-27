@@ -4,6 +4,7 @@ import { SmartDefaults } from '../utils/smartDefaults';
 
 interface QuickAddFormProps {
   exercise: Exercise;
+  setNumber?: number; // Optional - only shown in multi-set mode
   weight: number;
   reps: number;
   toFailure: boolean;
@@ -19,6 +20,7 @@ interface QuickAddFormProps {
 
 const QuickAddForm: React.FC<QuickAddFormProps> = ({
   exercise,
+  setNumber,
   weight,
   reps,
   toFailure,
@@ -51,7 +53,10 @@ const QuickAddForm: React.FC<QuickAddFormProps> = ({
       <div className="bg-brand-muted p-4 rounded-lg">
         <div className="flex justify-between items-start mb-2">
           <div>
-            <h4 className="font-semibold text-lg">{exercise.name}</h4>
+            <h4 className="font-semibold text-lg">
+              {exercise.name}
+              {setNumber && <span className="text-brand-cyan ml-2">- Set {setNumber}</span>}
+            </h4>
             <p className="text-xs text-slate-400">{equipmentText}</p>
           </div>
           <span className={`text-xs px-2 py-1 rounded ${
@@ -207,7 +212,7 @@ const QuickAddForm: React.FC<QuickAddFormProps> = ({
           className="flex-1 bg-brand-muted text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-dark transition-colors"
           disabled={loading}
         >
-          Change Exercise
+          {setNumber && setNumber > 1 ? 'Back' : 'Change Exercise'}
         </button>
         <button
           onClick={onSubmit}
@@ -218,7 +223,7 @@ const QuickAddForm: React.FC<QuickAddFormProps> = ({
               : 'bg-slate-600 text-slate-400 cursor-not-allowed'
           }`}
         >
-          {loading ? 'Logging...' : 'Log It'}
+          {loading ? 'Logging...' : 'Log Set'}
         </button>
       </div>
     </div>

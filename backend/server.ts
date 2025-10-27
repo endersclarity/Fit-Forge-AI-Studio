@@ -24,7 +24,9 @@ import {
   HealthCheckResponse,
   ApiErrorResponse,
   QuickAddRequest,
-  QuickAddResponse
+  QuickAddResponse,
+  QuickWorkoutRequest,
+  QuickWorkoutResponse
 } from './types';
 
 const app = express();
@@ -362,6 +364,107 @@ app.post('/api/quick-add', (req: Request<{}, QuickAddResponse | ApiErrorResponse
   } catch (error) {
     console.error('Error in quick-add:', error);
     return res.status(500).json({ error: 'Failed to log exercise' });
+  }
+});
+
+// Quick-workout (batch multi-exercise, multi-set workout logger)
+app.post('/api/quick-workout', (req: Request<{}, QuickWorkoutResponse | ApiErrorResponse, QuickWorkoutRequest>, res: Response<QuickWorkoutResponse | ApiErrorResponse>): Response => {
+  try {
+    const { exercises, timestamp } = req.body;
+
+    // Validation
+    if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
+      return res.status(400).json({ error: 'At least one exercise is required' });
+    }
+
+    // Validate all exercises and sets
+    for (const exercise of exercises) {
+      const exerciseInfo = getExerciseByName(exercise.exercise_name);
+      if (!exerciseInfo) {
+        return res.status(400).json({ error: `Invalid exercise name: ${exercise.exercise_name}` });
+      }
+
+      if (!exercise.sets || !Array.isArray(exercise.sets) || exercise.sets.length === 0) {
+        return res.status(400).json({ error: `Exercise ${exercise.exercise_name} must have at least one set` });
+      }
+
+      for (const set of exercise.sets) {
+        if (set.weight === undefined || set.weight === null || set.weight < 0 || set.weight > 10000) {
+          return res.status(400).json({ error: `Weight must be between 0 and 10000 lbs for ${exercise.exercise_name}` });
+        }
+        if (!set.reps || set.reps <= 0 || set.reps > 1000 || !Number.isInteger(set.reps)) {
+          return res.status(400).json({ error: `Reps must be a positive integer between 1 and 1000 for ${exercise.exercise_name}` });
+        }
+      }
+    }
+
+    const workoutDate = timestamp ? new Date(timestamp).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+    // Category auto-detection: Count exercises by category, pick majority
+    const categoryCounts: Record<string, number> = {};
+    let firstCategory = '';
+    for (const exercise of exercises) {
+      const exerciseInfo = getExerciseByName(exercise.exercise_name)!;
+      const category = exerciseInfo.category;
+      if (!firstCategory) firstCategory = category;
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    }
+
+    const detectedCategory = Object.keys(categoryCounts).reduce((a, b) =>
+      categoryCounts[a] > categoryCounts[b] ? a : b
+    ) || firstCategory;
+
+    // Variation auto-detection: Check last workout of same category, alternate A/B
+    const lastWorkouts = db.getWorkouts(); // Get all workouts
+    const lastWorkoutOfCategory = lastWorkouts
+      .filter((w: any) => w.category === detectedCategory)
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+    let detectedVariation: 'A' | 'B' = 'A';
+    if (lastWorkoutOfCategory) {
+      const lastVariation = lastWorkoutOfCategory.variation;
+      detectedVariation = lastVariation === 'A' ? 'B' : 'A';
+    }
+
+    // Duration estimation: (total_sets * 30) + ((total_sets - 1) * 60) seconds
+    const totalSets = exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+    const durationSeconds = (totalSets * 30) + (Math.max(0, totalSets - 1) * 60);
+
+    // Create workout
+    const workoutData: WorkoutSaveRequest = {
+      date: workoutDate,
+      category: detectedCategory,
+      variation: detectedVariation,
+      durationSeconds,
+      exercises: exercises.map(ex => ({
+        exercise: ex.exercise_name,
+        sets: ex.sets.map(s => ({
+          weight: s.weight,
+          reps: s.reps,
+          to_failure: s.to_failure
+        }))
+      }))
+    };
+
+    const workout = db.saveWorkout(workoutData);
+
+    // TODO: Implement PR detection across all exercises
+    const prs: import('./types').PRInfo[] = [];
+
+    // TODO: Implement baseline updates
+    const updated_baselines: import('./types').BaselineUpdate[] = [];
+
+    return res.status(201).json({
+      workout_id: workout.id,
+      category: detectedCategory,
+      variation: detectedVariation,
+      duration_seconds: durationSeconds,
+      prs,
+      updated_baselines,
+      muscle_states_updated: true
+    });
+  } catch (error) {
+    console.error('Error in quick-workout:', error);
+    return res.status(500).json({ error: 'Failed to save workout' });
   }
 });
 

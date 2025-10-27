@@ -7,6 +7,86 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-27 04:40 - [Feature] Enhanced Quick Workout Logger - Multi-Exercise, Multi-Set Support
+
+**Files Changed**:
+- components/QuickAdd.tsx (complete state machine refactor)
+- components/QuickAddForm.tsx (added setNumber prop, updated button labels)
+- backend/server.ts (new POST /api/quick-workout endpoint)
+- backend/types.ts (added QuickWorkoutRequest, QuickWorkoutResponse, QuickWorkoutExercise)
+- api.ts (added quickWorkout() method to quickAddAPI)
+- types.ts (added frontend types for quick-workout)
+
+**Summary**: Transformed Quick Add from single-set logger into full Quick Workout Logger supporting multiple exercises with multiple sets each, all in one modal session. Enables retroactive logging of complete workouts.
+
+**Details**:
+
+**Frontend State Machine**:
+- Implemented 3-mode state machine: `exercise-picker` → `set-entry` → `summary`
+- **LoggedExercise** interface: tracks exerciseId, exerciseName, and array of sets
+- **LoggedSet** interface: setNumber, weight, reps, toFailure
+- Modal stays open until user clicks "Finish Workout"
+- Close confirmation: "Discard workout? You have X exercises logged"
+
+**User Flow**:
+1. **Exercise Picker Mode**: Select exercise (prevents duplicates)
+2. **Set Entry Mode**: Log weight/reps/to-failure, displays "Set X" indicator
+3. **Summary Mode**: Shows all logged exercises and sets with 🔥 icon for to-failure
+   - "Another Set" button: Pre-fills form with last set values (-10% reps)
+   - "Add Exercise" button: Returns to picker
+   - "Finish Workout" button: Saves everything as one workout
+
+**Backend API - POST /api/quick-workout**:
+- Accepts array of exercises, each with array of sets
+- **Category Auto-Detection**: Counts exercises by category, assigns majority
+  - Example: 2 Pull + 1 Push exercises → "Pull" workout
+  - Tie-breaker: Uses first exercise's category
+- **Variation Auto-Detection (A/B)**: Queries last workout of same category, alternates
+  - First workout → "A"
+  - Last was "A" → assigns "B"
+  - Last was "B" → assigns "A"
+- **Duration Calculation**: `(totalSets × 30) + ((totalSets - 1) × 60)` seconds
+  - Example: 5 sets = (5×30) + (4×60) = 390 seconds
+- **Validation**: Exercise names, weights (0-10000), reps (1-1000 integers)
+- **Bodyweight Support**: Allows weight = 0 for exercises like push-ups
+
+**Test Results** (Verified via curl):
+```json
+{
+  "workout_id": 4,
+  "category": "Pull",
+  "variation": "A",
+  "duration_seconds": 390,
+  "prs": [],
+  "updated_baselines": [],
+  "muscle_states_updated": true
+}
+```
+
+**Key Improvements**:
+- Before: 9 modal opens to log 3-exercise, 9-set workout
+- After: 1 modal session logs entire workout
+- Smart defaults: Last set's values pre-fill next set
+- Visual feedback: Summary shows all logged work
+- Auto-detection: No manual category/variation selection needed
+
+**Technical Notes**:
+- State managed in QuickAdd component, not lifted to parent
+- API creates single workout record with multiple exercise_sets
+- Backward compatible: Old quick-add endpoint still works
+- Frontend: 736KB bundle (same as before, no bloat)
+- Backend: TypeScript compiled successfully
+
+**Remaining Work** (Per OpenSpec Proposal):
+- Phase 4: PR detection across multiple exercises
+- Phase 5: Replace alert() with Toast component
+- Phase 6: Unit/integration/E2E tests
+- Phase 7: Documentation updates
+
+**Status**: Core functionality 100% working. Users can retroactively log complete workouts with multiple exercises and sets.
+
+---
+
 ### 2025-10-27 04:16 - [Fix] Timestamp-Based Workout Naming and Date Storage
 
 **Files Changed**:

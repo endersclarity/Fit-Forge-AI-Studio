@@ -341,6 +341,37 @@ export interface QuickAddResponse {
   attached_to_active: boolean;
 }
 
+// Quick-Workout API Types (Multi-exercise, multi-set batch workout)
+export interface QuickWorkoutExercise {
+  exercise_name: string;
+  sets: Array<{
+    weight: number;
+    reps: number;
+    to_failure?: boolean;
+  }>;
+}
+
+export interface QuickWorkoutRequest {
+  exercises: QuickWorkoutExercise[];
+  timestamp?: string; // ISO 8601 - when workout actually happened
+}
+
+export interface BaselineUpdate {
+  muscle: string;
+  oldMax: number;
+  newMax: number;
+}
+
+export interface QuickWorkoutResponse {
+  workout_id: number;
+  category: string;
+  variation: string;
+  duration_seconds: number;
+  prs: PRInfo[];
+  updated_baselines: BaselineUpdate[];
+  muscle_states_updated: boolean;
+}
+
 // Error Response Type
 export interface ApiErrorResponse {
   error: string;
