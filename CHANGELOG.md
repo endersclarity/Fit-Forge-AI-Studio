@@ -7,6 +7,103 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-27 03:15 - [Feature] First-Time User Onboarding (Phases 3-4 Complete)
+
+**Commit**: `998542a`
+**Files Changed**:
+- components/onboarding/ProfileWizard.tsx (wizard state management, navigation)
+- components/onboarding/NameStep.tsx (name input with validation)
+- components/onboarding/ExperienceStep.tsx (experience level selection)
+- components/onboarding/EquipmentStep.tsx (equipment setup form)
+- App.tsx (ProfileWizard integration, handleOnboardingComplete)
+- openspec/changes/2025-10-26-enable-first-time-user-onboarding/tasks.md (Phases 3-4 marked complete)
+
+**Summary**: Completed profile setup wizard UI with three-step flow for first-time users.
+
+**Details**:
+
+**Phase 3 - Profile Setup Wizard UI:**
+- Created `ProfileWizard` component with state management:
+  - `currentStep` state (1-3) for wizard navigation
+  - `wizardData` state for collecting name, experience, equipment
+  - `handleNext()`, `handleBack()` for step navigation
+  - `validateStep()` for per-step validation
+  - `updateWizardData()` helper for partial state updates
+- Implemented progress indicator showing "Step X of 3" with visual bars
+- Each step validates before allowing progression
+- Mobile-responsive layout with brand styling
+
+**Step 1 - Name Input (NameStep.tsx):**
+- Text input with "What's your name?" heading
+- Validation: non-empty, max 50 characters
+- Character counter (X/50 characters)
+- Error message if exceeds 50 chars
+- Auto-focus on mount for better UX
+
+**Step 2 - Experience Level (ExperienceStep.tsx):**
+- Three radio button options: Beginner, Intermediate, Advanced
+- Each option has descriptive text explaining experience level
+- Custom radio button styling with visual selection indicator
+- Validates that one option must be selected before proceeding
+
+**Step 3 - Equipment Setup (EquipmentStep.tsx):**
+- Optional step (user can skip with empty equipment array)
+- "Add Equipment" button reveals form
+- Equipment form fields:
+  - Dropdown selector (Dumbbells, Barbell, Kettlebell, Resistance Bands, Pull-up Bar, Dip Station)
+  - Min weight, Max weight, Increment inputs (numeric with validation)
+- Comprehensive validation:
+  - All fields required when adding equipment
+  - Min < Max weight validation
+  - Increment must be reasonable for range
+  - No duplicate equipment types
+- Equipment list displays added items with remove button
+- Cancel button hides form without saving
+- User can add multiple equipment items
+
+**Phase 4 - Integration:**
+- Integrated `ProfileWizard` into App.tsx replacing placeholder
+- Created `handleOnboardingComplete` callback:
+  - Accepts `WizardData` from ProfileWizard
+  - Calls `profileAPI.init()` with user data
+  - Sets `isFirstTimeUser = false` on success
+  - Reloads page to trigger profile fetch and show Dashboard
+  - Shows toast error message if profile creation fails
+- Wizard completion flow:
+  - User finishes Step 3 → clicks "Finish"
+  - ProfileWizard calls `onComplete(wizardData)`
+  - App.tsx `handleOnboardingComplete` calls backend API
+  - Backend creates user profile with experience-scaled baselines
+  - Page reloads, profile exists, Dashboard displays
+
+**User Experience Impact:**
+- Before: Placeholder "Get Started" button with no actual onboarding
+- After: Complete 3-step wizard collecting name, experience, equipment
+- Equipment setup is optional but encouraged
+- Clear visual feedback at each step (validation, progress indicator)
+- Mobile-friendly responsive design
+
+**Remaining Work (Phase 5):**
+- Polish: Welcome screen before wizard (optional)
+- Polish: Styling refinements and smooth transitions
+- Testing: Accessibility (keyboard nav, screen readers)
+- Testing: End-to-end onboarding flow
+- Documentation: Update project.md with onboarding info
+- Estimated: ~7.5 hours remaining
+
+**Breaking Changes**: None
+
+**Technical Context**:
+- OpenSpec proposal: `enable-first-time-user-onboarding` (Phases 3-4 complete, 1-2 done previously)
+- Proposal priority: Critical Blocker (enables new user adoption)
+- Backend API (Phase 1) and detection (Phase 2) were completed previously
+- ProfileWizard manages all state internally
+- Props-based communication between parent and step components
+- TypeScript interfaces ensure type safety
+- Reuses existing brand colors and styling patterns
+
+---
+
 ### 2025-10-26 22:30 - [Feature] First-Time User Onboarding (Phases 1-2 Complete)
 
 **Commits**: `54c4133`, `f0e1688`, `cfb4ca7`, `4236b94`
