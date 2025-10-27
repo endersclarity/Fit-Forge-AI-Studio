@@ -6,9 +6,31 @@ import {
   EquipmentItem,
   MuscleStatesResponse,
   MuscleReadiness,
-  ExerciseRecommendation
+  ExerciseRecommendation,
+  CalibrationMap
 } from '../types';
 import { EXERCISE_LIBRARY } from '../constants';
+
+/**
+ * Merge user calibrations with default muscle engagements
+ */
+function getMuscleEngagementsWithCalibrations(
+  exercise: Exercise,
+  calibrations?: CalibrationMap
+): Array<{ muscle: Muscle; percentage: number }> {
+  const exerciseCalibrations = calibrations?.[exercise.id];
+
+  if (!exerciseCalibrations) {
+    // No calibrations for this exercise, use defaults
+    return exercise.muscleEngagements;
+  }
+
+  // Merge calibrations with defaults
+  return exercise.muscleEngagements.map(engagement => ({
+    muscle: engagement.muscle,
+    percentage: exerciseCalibrations[engagement.muscle] ?? engagement.percentage
+  }));
+}
 
 /**
  * Check if user has required equipment for an exercise
@@ -41,14 +63,18 @@ function checkEquipmentAvailable(
  */
 function calculateOpportunityScore(
   exercise: Exercise,
-  muscleStates: MuscleStatesResponse
+  muscleStates: MuscleStatesResponse,
+  calibrations?: CalibrationMap
 ): {
   score: number;
   primaryMuscles: MuscleReadiness[];
   limitingFactors: MuscleReadiness[];
 } {
+  // Get muscle engagements with calibrations merged in
+  const muscleEngagements = getMuscleEngagementsWithCalibrations(exercise, calibrations);
+
   // 1. Calculate muscle readiness for all engaged muscles
-  const muscleReadiness: MuscleReadiness[] = exercise.muscleEngagements.map(eng => {
+  const muscleReadiness: MuscleReadiness[] = muscleEngagements.map(eng => {
     const state = muscleStates[eng.muscle];
     const fatigue = state ? state.currentFatiguePercent : 0;
     const recovery = 100 - fatigue;
@@ -152,12 +178,14 @@ function generateExplanation(
  * @param muscleStates Current muscle fatigue states from API
  * @param equipment User's available equipment
  * @param category Optional filter by exercise category
+ * @param calibrations Optional user calibrations for muscle engagement percentages
  * @returns Array of recommendations sorted by opportunity score (highest first)
  */
 export function calculateRecommendations(
   muscleStates: MuscleStatesResponse,
   equipment: EquipmentItem[],
-  category?: ExerciseCategory
+  category?: ExerciseCategory,
+  calibrations?: CalibrationMap
 ): ExerciseRecommendation[] {
   // Filter exercises by category if provided
   const exercises = category
@@ -173,10 +201,11 @@ export function calculateRecommendations(
     // Skip if equipment not available (optional: can show as unavailable instead)
     if (!equipmentAvailable) continue;
 
-    // 2. Calculate opportunity score and muscle readiness
+    // 2. Calculate opportunity score and muscle readiness (using calibrations if available)
     const { score, primaryMuscles, limitingFactors } = calculateOpportunityScore(
       exercise,
-      muscleStates
+      muscleStates,
+      calibrations
     );
 
     // 3. Calculate average freshness for status determination

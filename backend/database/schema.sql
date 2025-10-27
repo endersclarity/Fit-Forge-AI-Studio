@@ -111,6 +111,19 @@ CREATE TABLE IF NOT EXISTS workout_templates (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- User exercise calibrations (personal muscle engagement overrides)
+CREATE TABLE IF NOT EXISTS user_exercise_calibrations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  exercise_id TEXT NOT NULL,
+  muscle_name TEXT NOT NULL,
+  engagement_percentage REAL NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(user_id, exercise_id, muscle_name)
+);
+
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_workouts_user_date ON workouts(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date);
@@ -121,6 +134,8 @@ CREATE INDEX IF NOT EXISTS idx_personal_bests_user ON personal_bests(user_id);
 CREATE INDEX IF NOT EXISTS idx_muscle_baselines_user ON muscle_baselines(user_id);
 CREATE INDEX IF NOT EXISTS idx_muscle_baselines_updated ON muscle_baselines(updated_at);
 CREATE INDEX IF NOT EXISTS idx_workout_templates_user ON workout_templates(user_id);
+CREATE INDEX IF NOT EXISTS idx_calibrations_user_exercise ON user_exercise_calibrations(user_id, exercise_id);
+CREATE INDEX IF NOT EXISTS idx_calibrations_user ON user_exercise_calibrations(user_id);
 
 -- Default user initialization removed - handled by onboarding flow
 -- See: openspec/changes/2025-10-26-enable-first-time-user-onboarding/

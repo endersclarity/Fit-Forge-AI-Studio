@@ -26,7 +26,10 @@ import {
   QuickAddRequest,
   QuickAddResponse,
   QuickWorkoutRequest,
-  QuickWorkoutResponse
+  QuickWorkoutResponse,
+  ExerciseCalibrationData,
+  CalibrationMap,
+  SaveCalibrationRequest
 } from './types';
 
 const app = express();
@@ -550,6 +553,101 @@ app.get('/api/analytics', (req: Request, res: Response<AnalyticsResponse | ApiEr
   } catch (error) {
     console.error('Error getting analytics:', error);
     return res.status(500).json({ error: 'Failed to get analytics data' });
+  }
+});
+
+// ============================================
+// Exercise Calibration Routes
+// ============================================
+
+// GET /api/calibrations - Get all user calibrations
+app.get('/api/calibrations', (_req: Request, res: Response<CalibrationMap | ApiErrorResponse>): Response => {
+  try {
+    const calibrations = db.getUserCalibrations();
+    return res.json(calibrations);
+  } catch (error) {
+    console.error('Error getting calibrations:', error);
+    return res.status(500).json({ error: 'Failed to get calibrations' });
+  }
+});
+
+// GET /api/calibrations/:exerciseId - Get calibrations for specific exercise (merged with defaults)
+app.get('/api/calibrations/:exerciseId', (req: Request, res: Response<ExerciseCalibrationData | ApiErrorResponse>): Response => {
+  try {
+    const { exerciseId } = req.params;
+    const data = db.getExerciseCalibrations(exerciseId);
+    return res.json(data);
+  } catch (error) {
+    console.error('Error getting exercise calibrations:', error);
+    const errorMessage = (error as Error).message;
+    if (errorMessage.includes('not found')) {
+      return res.status(404).json({ error: errorMessage });
+    }
+    return res.status(500).json({ error: 'Failed to get exercise calibrations' });
+  }
+});
+
+// PUT /api/calibrations/:exerciseId - Save calibrations for specific exercise
+app.put('/api/calibrations/:exerciseId', (req: Request<{ exerciseId: string }, ExerciseCalibrationData | ApiErrorResponse, SaveCalibrationRequest>, res: Response<ExerciseCalibrationData | ApiErrorResponse>) => {
+  try {
+    const { exerciseId } = req.params;
+    const { calibrations } = req.body;
+
+    // Validation
+    if (!calibrations || typeof calibrations !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body: calibrations object required' });
+    }
+
+    for (const [muscle, percentage] of Object.entries(calibrations)) {
+      if (typeof percentage !== 'number' || percentage < 0 || percentage > 100) {
+        return res.status(400).json({
+          error: `Invalid percentage for ${muscle}: ${percentage}. Must be between 0 and 100.`
+        });
+      }
+    }
+
+    // Save calibrations
+    db.saveExerciseCalibrations(exerciseId, calibrations);
+
+    // Return updated merged data
+    const updated = db.getExerciseCalibrations(exerciseId);
+    return res.json(updated);
+  } catch (error) {
+    console.error('Error saving calibrations:', error);
+    const errorMessage = (error as Error).message;
+    if (errorMessage.includes('not found')) {
+      return res.status(404).json({ error: errorMessage });
+    }
+    return res.status(500).json({ error: 'Failed to save calibrations' });
+  }
+});
+
+// DELETE /api/calibrations/:exerciseId - Reset exercise to default (remove all calibrations)
+app.delete('/api/calibrations/:exerciseId', (req: Request, res: Response<{ message: string; exerciseId: string } | ApiErrorResponse>) => {
+  try {
+    const { exerciseId } = req.params;
+
+    // Get exercise to verify it exists and get the name
+    try {
+      const exerciseData = db.getExerciseCalibrations(exerciseId);
+
+      // Delete calibrations
+      db.deleteExerciseCalibrations(exerciseId);
+
+      return res.json({
+        message: `Calibrations reset for exercise: ${exerciseData.exerciseName}`,
+        exerciseId
+      });
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      if (errorMessage.includes('not found')) {
+        return res.status(404).json({ error: errorMessage });
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error deleting calibrations:', error);
+    return res.status(500).json({ error: 'Failed to delete calibrations' });
   }
 });
 

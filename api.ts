@@ -232,3 +232,47 @@ export const quickAddAPI = {
  * Health check
  */
 export const healthCheck = () => apiRequest<{ status: string; timestamp: string }>('/health');
+
+// ============================================
+// Exercise Calibration API Functions
+// ============================================
+
+/**
+ * Get all user calibrations
+ */
+export async function getUserCalibrations(): Promise<import('./types').CalibrationMap> {
+  return apiRequest<import('./types').CalibrationMap>('/calibrations');
+}
+
+/**
+ * Get calibrations for specific exercise (merged with defaults)
+ */
+export async function getExerciseCalibrations(
+  exerciseId: string
+): Promise<import('./types').ExerciseCalibrationData> {
+  return apiRequest<import('./types').ExerciseCalibrationData>(`/calibrations/${exerciseId}`);
+}
+
+/**
+ * Save calibrations for exercise
+ */
+export async function saveExerciseCalibrations(
+  exerciseId: string,
+  calibrations: Record<string, number>
+): Promise<import('./types').ExerciseCalibrationData> {
+  return apiRequest<import('./types').ExerciseCalibrationData>(`/calibrations/${exerciseId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ calibrations })
+  });
+}
+
+/**
+ * Reset exercise to defaults (remove all calibrations)
+ */
+export async function deleteExerciseCalibrations(
+  exerciseId: string
+): Promise<{ message: string; exerciseId: string }> {
+  return apiRequest<{ message: string; exerciseId: string }>(`/calibrations/${exerciseId}`, {
+    method: 'DELETE'
+  });
+}

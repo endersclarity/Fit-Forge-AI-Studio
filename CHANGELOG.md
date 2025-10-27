@@ -7,6 +7,89 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-27 - [Feature] Implement Personal Muscle Engagement Calibration
+
+**Files Changed**:
+- backend/database/migrations/003_add_user_exercise_calibrations.sql (new)
+- backend/database/schema.sql (+15 lines - user_exercise_calibrations table)
+- backend/database/database.ts (+120 lines - CRUD functions for calibrations)
+- backend/server.ts (+100 lines - 4 REST API endpoints)
+- backend/types.ts (+19 lines - calibration types)
+- types.ts (+22 lines - frontend calibration types)
+- api.ts (+44 lines - API client functions)
+- utils/exerciseRecommendations.ts (+35 lines - calibration integration)
+- components/EngagementViewer.tsx (new - 170 lines)
+- components/CalibrationEditor.tsx (new - 350 lines)
+- components/CalibrationBadge.tsx (new - 25 lines)
+- components/ExercisePicker.tsx (full integration)
+- components/ExerciseRecommendations.tsx (full integration)
+- components/RecommendationCard.tsx (added badge & button)
+
+**Summary**: Implemented complete personal muscle engagement calibration system allowing users to override default engagement percentages based on their unique biomechanics, form variations, and subjective experience.
+
+**New Capabilities**:
+1. **View Engagement**: Users can view muscle engagement breakdown for any exercise with color-coded bars (red=high, yellow=medium, blue=low)
+2. **Calibrate Values**: Interactive slider-based editor with ±5% buttons, real-time total engagement display, and validation warnings
+3. **Visual Indicators**: "Calibrated" badges appear on exercises with user overrides
+4. **Personalized Recommendations**: Recommendation algorithm uses calibrated values instead of defaults
+5. **Accurate Fatigue Tracking**: Baseline learning system uses calibrated engagement percentages
+
+**API Endpoints**:
+- GET /api/calibrations - Fetch all user calibrations
+- GET /api/calibrations/:exerciseId - Get exercise with merged calibration data
+- PUT /api/calibrations/:exerciseId - Save calibrations with validation
+- DELETE /api/calibrations/:exerciseId - Reset exercise to defaults
+
+**Database Schema**:
+- New table: user_exercise_calibrations (user_id, exercise_id, muscle_name, engagement_percentage)
+- Indexes: idx_calibrations_user_exercise, idx_calibrations_user
+- UNIQUE constraint on (user_id, exercise_id, muscle_name)
+- Foreign key cascade on user deletion
+
+**UI Components**:
+- EngagementViewer: Modal displaying muscle breakdown with "Edit Calibration" button
+- CalibrationEditor: Full-featured editor with sliders, validation, warnings, and reset functionality
+- CalibrationBadge: Subtle indicator showing which exercises have been customized
+
+**Integration Points**:
+- ExercisePicker: Added "View Engagement" button, badge display, modal management
+- ExerciseRecommendations: Pass calibrations to algorithm, show badges on recommendations
+- calculateRecommendations(): Accepts optional calibrations parameter, merges with defaults
+- learnMuscleBaselinesFromWorkout(): Uses calibrated values when calculating muscle volumes
+
+**Validation & Safety**:
+- Percentage range: 0-100% enforced
+- Total engagement warnings: <100% or >300%
+- Large deviation warnings: >50% change from default
+- Confirmation dialog for "Reset to Default"
+- Error handling on all API calls
+
+**Testing Results**:
+- ✅ All API endpoints functional and tested
+- ✅ End-to-end browser testing with Chrome DevTools
+- ✅ Data persistence verified across restarts
+- ✅ Calibration merge logic working correctly
+- ✅ Visual indicators (badges) display properly
+- ✅ Reset functionality confirmed
+- ✅ TypeScript compilation successful (no errors in new code)
+
+**Use Cases**:
+- Long-armed users: Adjust triceps engagement in push-ups
+- Form variations: Wide-grip pull-ups engage lats more
+- Injury adaptations: Shoulder issues shift engagement to traps
+- Mind-muscle connection: Users who've developed better activation patterns
+
+**Impact**: Transforms FitForge from generic population averages to truly personalized training system. Users can now teach the app how exercises actually feel for their unique body mechanics.
+
+**Related Documentation**:
+- openspec/changes/2025-10-26-implement-personal-engagement-calibration/proposal.md
+- openspec/changes/2025-10-26-implement-personal-engagement-calibration/design.md
+- openspec/changes/2025-10-26-implement-personal-engagement-calibration/tasks.md
+
+**Status**: Completed and production-ready. All phases implemented and tested.
+
+---
+
 ### 2025-10-27 - [Fix] Apply EMG Research Corrections to Exercise Library
 
 **Files Changed**:

@@ -372,6 +372,25 @@ export interface QuickWorkoutResponse {
   muscle_states_updated: boolean;
 }
 
+// Exercise Calibration API Types
+export interface ExerciseEngagement {
+  muscle: string;
+  percentage: number;
+  isCalibrated: boolean;
+}
+
+export interface ExerciseCalibrationData {
+  exerciseId: string;
+  exerciseName: string;
+  engagements: ExerciseEngagement[];
+}
+
+export type CalibrationMap = Record<string, Record<string, number>>;
+
+export interface SaveCalibrationRequest {
+  calibrations: Record<string, number>;
+}
+
 // Error Response Type
 export interface ApiErrorResponse {
   error: string;

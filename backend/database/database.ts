@@ -401,8 +401,11 @@ function learnMuscleBaselinesFromWorkout(workoutId: number): BaselineUpdate[] {
     // Calculate total volume for this set
     const totalVolume = set.weight * set.reps;
 
-    // Calculate volume per muscle based on engagement percentages
-    for (const engagement of exercise.muscleEngagements) {
+    // Get calibrated engagement percentages (or defaults if no calibration exists)
+    const exerciseCalibrations = getExerciseCalibrations(exercise.id);
+
+    // Calculate volume per muscle based on engagement percentages (with calibrations)
+    for (const engagement of exerciseCalibrations.engagements) {
       const muscleVolume = totalVolume * (engagement.percentage / 100);
       const muscleName = engagement.muscle;
 
@@ -1252,6 +1255,120 @@ function getLastWorkoutByCategory(category: string): WorkoutResponse | null {
   };
 }
 
+/**
+ * Get all calibrations for user
+ */
+function getUserCalibrations(): Record<string, Record<string, number>> {
+  const calibrations = db.prepare(`
+    SELECT exercise_id, muscle_name, engagement_percentage
+    FROM user_exercise_calibrations
+    WHERE user_id = 1
+  `).all() as Array<{
+    exercise_id: string;
+    muscle_name: string;
+    engagement_percentage: number;
+  }>;
+
+  const result: Record<string, Record<string, number>> = {};
+  for (const cal of calibrations) {
+    if (!result[cal.exercise_id]) {
+      result[cal.exercise_id] = {};
+    }
+    result[cal.exercise_id][cal.muscle_name] = cal.engagement_percentage;
+  }
+
+  return result;
+}
+
+/**
+ * Get calibrations for specific exercise (merged with defaults)
+ */
+function getExerciseCalibrations(exerciseId: string): {
+  exerciseId: string;
+  exerciseName: string;
+  engagements: Array<{
+    muscle: string;
+    percentage: number;
+    isCalibrated: boolean;
+  }>;
+} {
+  // Find exercise in library
+  const exercise = EXERCISE_LIBRARY.find(ex => ex.id === exerciseId);
+  if (!exercise) {
+    throw new Error(`Exercise not found: ${exerciseId}`);
+  }
+
+  // Get user calibrations for this exercise
+  const calibrations = db.prepare(`
+    SELECT muscle_name, engagement_percentage
+    FROM user_exercise_calibrations
+    WHERE user_id = 1 AND exercise_id = ?
+  `).all(exerciseId) as Array<{
+    muscle_name: string;
+    engagement_percentage: number;
+  }>;
+
+  // Create lookup map
+  const calibrationMap: Record<string, number> = {};
+  for (const cal of calibrations) {
+    calibrationMap[cal.muscle_name] = cal.engagement_percentage;
+  }
+
+  // Merge with defaults
+  const engagements = exercise.muscleEngagements.map(engagement => ({
+    muscle: engagement.muscle,
+    percentage: calibrationMap[engagement.muscle] ?? engagement.percentage,
+    isCalibrated: !!calibrationMap[engagement.muscle]
+  }));
+
+  return {
+    exerciseId: exercise.id,
+    exerciseName: exercise.name,
+    engagements
+  };
+}
+
+/**
+ * Save calibrations for exercise
+ */
+function saveExerciseCalibrations(
+  exerciseId: string,
+  calibrations: Record<string, number>
+): void {
+  // Validate exercise exists
+  const exercise = EXERCISE_LIBRARY.find(ex => ex.id === exerciseId);
+  if (!exercise) {
+    throw new Error(`Exercise not found: ${exerciseId}`);
+  }
+
+  // Transaction: upsert all calibrations
+  const upsert = db.prepare(`
+    INSERT INTO user_exercise_calibrations (user_id, exercise_id, muscle_name, engagement_percentage)
+    VALUES (1, ?, ?, ?)
+    ON CONFLICT(user_id, exercise_id, muscle_name) DO UPDATE SET
+      engagement_percentage = excluded.engagement_percentage,
+      updated_at = CURRENT_TIMESTAMP
+  `);
+
+  const saveTransaction = db.transaction(() => {
+    for (const [muscleName, percentage] of Object.entries(calibrations)) {
+      upsert.run(exerciseId, muscleName, percentage);
+    }
+  });
+
+  saveTransaction();
+}
+
+/**
+ * Delete all calibrations for exercise
+ */
+function deleteExerciseCalibrations(exerciseId: string): void {
+  db.prepare(`
+    DELETE FROM user_exercise_calibrations
+    WHERE user_id = 1 AND exercise_id = ?
+  `).run(exerciseId);
+}
+
 // Export database instance and helper functions
 export {
   db,
@@ -1274,5 +1391,9 @@ export {
   getWorkoutTemplateById,
   createWorkoutTemplate,
   updateWorkoutTemplate,
-  deleteWorkoutTemplate
+  deleteWorkoutTemplate,
+  getUserCalibrations,
+  getExerciseCalibrations,
+  saveExerciseCalibrations,
+  deleteExerciseCalibrations
 };

@@ -1,6 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { EXERCISE_LIBRARY } from '../constants';
-import { Exercise, ExerciseCategory } from '../types';
+import { Exercise, ExerciseCategory, CalibrationMap, ExerciseCalibrationData } from '../types';
+import { getUserCalibrations, getExerciseCalibrations } from '../api';
+import { EngagementViewer } from './EngagementViewer';
+import { CalibrationEditor } from './CalibrationEditor';
+import { CalibrationBadge } from './CalibrationBadge';
 
 interface ExercisePickerProps {
   onSelect: (exercise: Exercise) => void;
@@ -11,6 +15,20 @@ const CATEGORIES: ExerciseCategory[] = ['Push', 'Pull', 'Legs', 'Core'];
 const ExercisePicker: React.FC<ExercisePickerProps> = ({ onSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'All'>('All');
+
+  // Calibration state
+  const [calibrations, setCalibrations] = useState<CalibrationMap>({});
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [selectedExerciseId, setSelectedExerciseId] = useState('');
+  const [selectedExerciseData, setSelectedExerciseData] = useState<ExerciseCalibrationData | null>(null);
+
+  // Fetch calibrations on mount
+  useEffect(() => {
+    getUserCalibrations()
+      .then(setCalibrations)
+      .catch(err => console.error('Failed to load calibrations:', err));
+  }, []);
 
   // Get recent exercises from localStorage
   const recentExercises = useMemo(() => {
@@ -86,31 +104,67 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({ onSelect }) => {
     onSelect(exercise);
   };
 
+  const handleViewEngagement = async (e: React.MouseEvent, exerciseId: string) => {
+    e.stopPropagation();
+    setSelectedExerciseId(exerciseId);
+    try {
+      const data = await getExerciseCalibrations(exerciseId);
+      setSelectedExerciseData(data);
+      setViewerOpen(true);
+    } catch (error) {
+      console.error('Failed to load exercise calibrations:', error);
+    }
+  };
+
+  const handleEditCalibration = () => {
+    setViewerOpen(false);
+    setEditorOpen(true);
+  };
+
+  const handleCalibrationSaved = () => {
+    // Refresh calibrations
+    getUserCalibrations()
+      .then(setCalibrations)
+      .catch(err => console.error('Failed to reload calibrations:', err));
+  };
+
   const renderExerciseCard = (exercise: Exercise) => {
     const equipmentText = Array.isArray(exercise.equipment)
       ? exercise.equipment.join(', ')
       : exercise.equipment;
+    const isCalibrated = !!calibrations[exercise.id];
 
     return (
-      <button
+      <div
         key={exercise.id}
-        onClick={() => handleExerciseSelect(exercise)}
-        className="w-full text-left p-3 bg-brand-muted rounded hover:bg-brand-dark transition-colors"
+        className="w-full p-3 bg-brand-muted rounded hover:bg-brand-dark transition-colors"
       >
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="font-medium">{exercise.name}</p>
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex-1" onClick={() => handleExerciseSelect(exercise)} style={{ cursor: 'pointer' }}>
+            <div className="flex items-center gap-2">
+              <p className="font-medium">{exercise.name}</p>
+              <CalibrationBadge show={isCalibrated} />
+            </div>
             <p className="text-xs text-slate-400 mt-1">{equipmentText}</p>
           </div>
-          <span className={`text-xs px-2 py-1 rounded ${
-            exercise.difficulty === 'Beginner' ? 'bg-green-600' :
-            exercise.difficulty === 'Intermediate' ? 'bg-yellow-600' :
-            'bg-red-600'
-          }`}>
-            {exercise.difficulty}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs px-2 py-1 rounded ${
+              exercise.difficulty === 'Beginner' ? 'bg-green-600' :
+              exercise.difficulty === 'Intermediate' ? 'bg-yellow-600' :
+              'bg-red-600'
+            }`}>
+              {exercise.difficulty}
+            </span>
+          </div>
         </div>
-      </button>
+        <button
+          onClick={(e) => handleViewEngagement(e, exercise.id)}
+          className="text-xs text-primary hover:text-primary-hover transition-colors flex items-center gap-1"
+        >
+          <span className="material-symbols-outlined text-sm">analytics</span>
+          View Engagement
+        </button>
+      </div>
     );
   };
 
@@ -196,6 +250,24 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({ onSelect }) => {
           </div>
         )}
       </div>
+
+      {/* Engagement Viewer Modal */}
+      <EngagementViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        exerciseId={selectedExerciseId}
+        onEdit={handleEditCalibration}
+      />
+
+      {/* Calibration Editor Modal */}
+      {selectedExerciseData && (
+        <CalibrationEditor
+          isOpen={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          initialData={selectedExerciseData}
+          onSave={handleCalibrationSaved}
+        />
+      )}
     </div>
   );
 };

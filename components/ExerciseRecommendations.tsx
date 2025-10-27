@@ -1,14 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Exercise,
   ExerciseCategory,
   EquipmentItem,
-  MuscleStatesResponse
+  MuscleStatesResponse,
+  CalibrationMap,
+  ExerciseCalibrationData
 } from '../types';
 import { calculateRecommendations } from '../utils/exerciseRecommendations';
+import { getUserCalibrations, getExerciseCalibrations } from '../api';
 import CategoryTabs from './CategoryTabs';
 import RecommendationCard from './RecommendationCard';
 import CollapsibleSection from './CollapsibleSection';
+import { EngagementViewer } from './EngagementViewer';
+import { CalibrationEditor } from './CalibrationEditor';
 
 interface ExerciseRecommendationsProps {
   muscleStates: MuscleStatesResponse;
@@ -23,10 +28,25 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | null>(null);
 
+  // Calibration state
+  const [calibrations, setCalibrations] = useState<CalibrationMap>({});
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [selectedExerciseId, setSelectedExerciseId] = useState('');
+  const [selectedExerciseData, setSelectedExerciseData] = useState<ExerciseCalibrationData | null>(null);
+
+  // Fetch calibrations on mount
+  useEffect(() => {
+    getUserCalibrations()
+      .then(setCalibrations)
+      .catch(err => console.error('Failed to load calibrations:', err));
+  }, []);
+
   // Calculate recommendations (memoized to avoid recalculation on every render)
+  // Now includes calibrations in the calculation
   const recommendations = useMemo(
-    () => calculateRecommendations(muscleStates, equipment, selectedCategory || undefined),
-    [muscleStates, equipment, selectedCategory]
+    () => calculateRecommendations(muscleStates, equipment, selectedCategory || undefined, calibrations),
+    [muscleStates, equipment, selectedCategory, calibrations]
   );
 
   // Group recommendations by status
@@ -35,9 +55,9 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
   const suboptimal = recommendations.filter(r => r.status === 'suboptimal');
   const notRecommended = recommendations.filter(r => r.status === 'not-recommended');
 
-  // Calculate category counts for tabs
+  // Calculate category counts for tabs (also needs calibrations)
   const categoryCounts = useMemo(() => {
-    const allRecs = calculateRecommendations(muscleStates, equipment);
+    const allRecs = calculateRecommendations(muscleStates, equipment, undefined, calibrations);
     const counts: Record<ExerciseCategory, number> = {
       Push: 0,
       Pull: 0,
@@ -50,7 +70,31 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
     });
 
     return counts;
-  }, [muscleStates, equipment]);
+  }, [muscleStates, equipment, calibrations]);
+
+  // Handlers for calibration modals
+  const handleViewEngagement = async (exerciseId: string) => {
+    setSelectedExerciseId(exerciseId);
+    try {
+      const data = await getExerciseCalibrations(exerciseId);
+      setSelectedExerciseData(data);
+      setViewerOpen(true);
+    } catch (error) {
+      console.error('Failed to load exercise calibrations:', error);
+    }
+  };
+
+  const handleEditCalibration = () => {
+    setViewerOpen(false);
+    setEditorOpen(true);
+  };
+
+  const handleCalibrationSaved = () => {
+    // Refresh calibrations
+    getUserCalibrations()
+      .then(setCalibrations)
+      .catch(err => console.error('Failed to reload calibrations:', err));
+  };
 
   const categories = [
     { label: 'All', value: null, count: recommendations.length },
@@ -109,6 +153,8 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
                 explanation={rec.explanation}
                 equipmentAvailable={rec.equipmentAvailable}
                 onAdd={onAddToWorkout}
+                isCalibrated={!!calibrations[rec.exercise.id]}
+                onViewEngagement={handleViewEngagement}
               />
             ))}
           </div>
@@ -130,6 +176,8 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
                 explanation={rec.explanation}
                 equipmentAvailable={rec.equipmentAvailable}
                 onAdd={onAddToWorkout}
+                isCalibrated={!!calibrations[rec.exercise.id]}
+                onViewEngagement={handleViewEngagement}
               />
             ))}
           </div>
@@ -150,6 +198,8 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
                 explanation={rec.explanation}
                 equipmentAvailable={rec.equipmentAvailable}
                 onAdd={onAddToWorkout}
+                isCalibrated={!!calibrations[rec.exercise.id]}
+                onViewEngagement={handleViewEngagement}
               />
             ))}
           </div>
@@ -170,10 +220,30 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
                 explanation={rec.explanation}
                 equipmentAvailable={rec.equipmentAvailable}
                 onAdd={onAddToWorkout}
+                isCalibrated={!!calibrations[rec.exercise.id]}
+                onViewEngagement={handleViewEngagement}
               />
             ))}
           </div>
         </CollapsibleSection>
+      )}
+
+      {/* Engagement Viewer Modal */}
+      <EngagementViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        exerciseId={selectedExerciseId}
+        onEdit={handleEditCalibration}
+      />
+
+      {/* Calibration Editor Modal */}
+      {selectedExerciseData && (
+        <CalibrationEditor
+          isOpen={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          initialData={selectedExerciseData}
+          onSave={handleCalibrationSaved}
+        />
       )}
     </div>
   );

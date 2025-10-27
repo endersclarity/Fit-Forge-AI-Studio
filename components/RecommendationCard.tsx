@@ -1,5 +1,6 @@
 import React from 'react';
 import { Exercise, MuscleReadiness } from '../types';
+import { CalibrationBadge } from './CalibrationBadge';
 
 interface RecommendationCardProps {
   exercise: Exercise;
@@ -9,6 +10,8 @@ interface RecommendationCardProps {
   explanation: string;
   equipmentAvailable: boolean;
   onAdd: (exercise: Exercise) => void;
+  isCalibrated?: boolean;
+  onViewEngagement?: (exerciseId: string) => void;
 }
 
 const STATUS_CONFIG = {
@@ -49,7 +52,9 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
   limitingFactors,
   explanation,
   equipmentAvailable,
-  onAdd
+  onAdd,
+  isCalibrated = false,
+  onViewEngagement
 }) => {
   const config = STATUS_CONFIG[status];
   const limitingMuscleNames = new Set(limitingFactors.map(lf => lf.muscle));
@@ -61,7 +66,10 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
       {/* Header with exercise name and status badge */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
-          <h4 className="text-lg font-bold">{exercise.name}</h4>
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="text-lg font-bold">{exercise.name}</h4>
+            <CalibrationBadge show={isCalibrated} />
+          </div>
           <p className="text-xs text-slate-400 mt-0.5">
             {exercise.category} • {exercise.difficulty}
           </p>
@@ -115,13 +123,24 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
       {/* Explanation */}
       <p className="text-sm italic text-slate-300">{explanation}</p>
 
-      {/* Add to Workout button */}
-      <button
-        onClick={() => onAdd(exercise)}
-        className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors ${config.buttonStyle}`}
-      >
-        Add to Workout
-      </button>
+      {/* Action buttons */}
+      <div className="flex gap-2">
+        {onViewEngagement && (
+          <button
+            onClick={() => onViewEngagement(exercise.id)}
+            className="flex-1 py-2 px-4 rounded-lg font-semibold transition-colors bg-brand-surface text-slate-300 hover:bg-brand-muted flex items-center justify-center gap-1"
+          >
+            <span className="material-symbols-outlined text-sm">analytics</span>
+            View Engagement
+          </button>
+        )}
+        <button
+          onClick={() => onAdd(exercise)}
+          className={`${onViewEngagement ? 'flex-1' : 'w-full'} py-2 px-4 rounded-lg font-semibold transition-colors ${config.buttonStyle}`}
+        >
+          Add to Workout
+        </button>
+      </div>
     </div>
   );
 };
