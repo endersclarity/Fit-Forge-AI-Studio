@@ -45,7 +45,8 @@ const QuickAddForm: React.FC<QuickAddFormProps> = ({
     ? exercise.equipment.join(', ')
     : exercise.equipment;
 
-  const canSubmit = weight > 0 && reps > 0 && !loading;
+  // Allow weight = 0 for bodyweight exercises, but require reps > 0
+  const canSubmit = reps > 0 && !loading;
 
   return (
     <div className="space-y-4">

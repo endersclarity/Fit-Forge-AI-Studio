@@ -447,11 +447,11 @@ app.post('/api/quick-workout', (req: Request<{}, QuickWorkoutResponse | ApiError
 
     const workout = db.saveWorkout(workoutData);
 
-    // TODO: Implement PR detection across all exercises
-    const prs: import('./types').PRInfo[] = [];
+    // Detect PRs across all exercises in the workout
+    const prs = db.detectPRsForWorkout(workout.id);
 
-    // TODO: Implement baseline updates
-    const updated_baselines: import('./types').BaselineUpdate[] = [];
+    // Baseline updates are returned from saveWorkout if any were made
+    const updated_baselines = workout.updated_baselines || [];
 
     return res.status(201).json({
       workout_id: workout.id,

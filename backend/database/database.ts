@@ -15,7 +15,8 @@ import {
   MuscleBaselinesResponse,
   MuscleBaselinesUpdateRequest,
   WorkoutTemplate,
-  BaselineUpdate
+  BaselineUpdate,
+  PRInfo
 } from '../types';
 import { EXERCISE_LIBRARY } from '../constants';
 
@@ -447,6 +448,104 @@ function learnMuscleBaselinesFromWorkout(workoutId: number): BaselineUpdate[] {
   }
 
   return updates;
+}
+
+/**
+ * Detect personal records (PRs) for all exercises in a workout
+ *
+ * Compares each exercise's performance to historical personal bests:
+ * - Best single set (weight × reps)
+ * - Best session volume (sum of all sets)
+ *
+ * @param workoutId - ID of the workout to analyze
+ * @returns Array of PR info for each exercise with improvements
+ */
+function detectPRsForWorkout(workoutId: number): PRInfo[] {
+  // Get all exercises and their sets from this workout
+  const exerciseSets = db.prepare(`
+    SELECT exercise_name, weight, reps
+    FROM exercise_sets
+    WHERE workout_id = ?
+    ORDER BY exercise_name, set_number
+  `).all(workoutId) as Array<{ exercise_name: string; weight: number; reps: number }>;
+
+  if (exerciseSets.length === 0) {
+    return [];
+  }
+
+  // Group sets by exercise
+  const exerciseGroups: Record<string, Array<{ weight: number; reps: number }>> = {};
+  for (const set of exerciseSets) {
+    if (!exerciseGroups[set.exercise_name]) {
+      exerciseGroups[set.exercise_name] = [];
+    }
+    exerciseGroups[set.exercise_name].push({ weight: set.weight, reps: set.reps });
+  }
+
+  // Get current personal bests
+  const currentPBs = getPersonalBests();
+
+  const prs: PRInfo[] = [];
+
+  // Check each exercise for PRs
+  for (const [exerciseName, sets] of Object.entries(exerciseGroups)) {
+    // Calculate best single set and session volume for this workout
+    const volumes = sets.map(s => s.weight * s.reps);
+    const newBestSingleSet = Math.max(...volumes);
+    const newSessionVolume = volumes.reduce((sum, v) => sum + v, 0);
+
+    // Get previous personal bests for this exercise
+    const previousPB = currentPBs[exerciseName];
+    const previousBestSingleSet = previousPB?.bestSingleSet ?? 0;
+    const previousSessionVolume = previousPB?.bestSessionVolume ?? 0;
+
+    const isFirstTime = !previousPB;
+    let isPR = false;
+    let improvement = 0;
+    let percentIncrease = 0;
+
+    // Check for PR (single set or session volume)
+    if (isFirstTime) {
+      isPR = true;
+      improvement = newBestSingleSet;
+      percentIncrease = 100;
+    } else if (newBestSingleSet > previousBestSingleSet || newSessionVolume > previousSessionVolume) {
+      isPR = true;
+      // Use best single set as primary metric for improvement
+      improvement = newBestSingleSet - previousBestSingleSet;
+      percentIncrease = previousBestSingleSet > 0
+        ? ((newBestSingleSet - previousBestSingleSet) / previousBestSingleSet) * 100
+        : 100;
+    }
+
+    // Update personal bests in database if PR detected
+    if (isPR) {
+      const updatePB = db.prepare(`
+        INSERT INTO personal_bests (user_id, exercise_name, best_single_set, best_session_volume, updated_at)
+        VALUES (1, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(user_id, exercise_name) DO UPDATE SET
+          best_single_set = MAX(best_single_set, excluded.best_single_set),
+          best_session_volume = MAX(best_session_volume, excluded.best_session_volume),
+          updated_at = CURRENT_TIMESTAMP
+      `);
+      updatePB.run(exerciseName, newBestSingleSet, newSessionVolume);
+    }
+
+    // Add to results if PR or first time
+    if (isPR || isFirstTime) {
+      prs.push({
+        isPR,
+        exercise: exerciseName,
+        newVolume: newBestSingleSet,
+        previousVolume: previousBestSingleSet,
+        improvement,
+        percentIncrease: Math.round(percentIncrease * 10) / 10, // Round to 1 decimal
+        isFirstTime
+      });
+    }
+  }
+
+  return prs;
 }
 
 /**
@@ -1163,6 +1262,7 @@ export {
   getLastWorkoutByCategory,
   getLastVariationForCategory,
   saveWorkout,
+  detectPRsForWorkout,
   getProgressiveSuggestions,
   getMuscleStates,
   updateMuscleStates,

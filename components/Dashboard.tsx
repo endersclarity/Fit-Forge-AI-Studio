@@ -11,6 +11,7 @@ import WorkoutHistorySummary from './WorkoutHistorySummary';
 import RecoveryTimelineView from './RecoveryTimelineView';
 import { calculateStreak, calculateWeeklyStats, findRecentPRs } from '../utils/statsHelpers';
 import QuickAdd from './QuickAdd';
+import Toast from './Toast';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -439,6 +440,16 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   // QuickAdd modal state
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
+  // Toast state
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
+
+  // Toast handler
+  const handleToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+  };
+
   // Fetch muscle states, workouts, and personal bests from backend API
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -671,7 +682,17 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
           // Refresh dashboard data after successful quick add
           fetchDashboardData();
         }}
+        onToast={handleToast}
       />
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setToastMessage('')}
+        />
+      )}
     </div>
   );
 };

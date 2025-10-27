@@ -7,6 +7,66 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-27 - [Feature] Enhanced Quick Workout Logger - Phases 4-5 Complete
+
+**Files Changed**:
+- backend/database/database.ts (added detectPRsForWorkout function, exported it)
+- backend/server.ts (integrated PR detection in quick-workout endpoint)
+- components/Toast.tsx (enhanced with type support: success/error/info, duration control)
+- components/QuickAdd.tsx (replaced all alert() with onToast calls)
+- components/Dashboard.tsx (added Toast state and handler, integrated Toast component)
+
+**Summary**: Completed Phase 4 (PR detection across multiple exercises) and Phase 5 (replaced alert() with Toast component). The Quick Workout Logger now detects personal records automatically and provides elegant toast notifications instead of browser alerts.
+
+**Details**:
+
+**Phase 4: PR Detection for Multi-Exercise Workouts**
+- Implemented `detectPRsForWorkout(workoutId)` function in database.ts:
+  - Queries all exercise sets from a workout
+  - Groups sets by exercise name
+  - Calculates best single set (weight × reps) and session volume per exercise
+  - Compares against historical personal bests from `personal_bests` table
+  - Updates personal_bests table when PRs are detected
+  - Returns array of PR info with improvement percentages
+- Integrated PR detection into `/api/quick-workout` endpoint
+- PR detection runs automatically after workout is saved
+- Response now includes accurate PR data for all exercises in the workout
+
+**Phase 5: Toast Notification System**
+- Enhanced Toast component:
+  - Added `type` prop: 'success' | 'error' | 'info' (color-coded: green/red/blue)
+  - Added `duration` prop (milliseconds, 0 = no auto-dismiss)
+  - Added close button for non-auto-dismissing toasts
+  - Increased z-index to z-[60] to ensure visibility above modals
+  - Added max-width and text-center for better readability
+- Updated QuickAdd component:
+  - Added `onToast` prop to interface
+  - Replaced 3 alert() calls with onToast():
+    1. Duplicate exercise warning → info toast
+    2. No exercises logged error → error toast
+    3. Workout saved success + PRs → success toast
+  - Added error handling with toast for API failures
+- Updated Dashboard component:
+  - Added Toast state (toastMessage, toastType)
+  - Added handleToast() function
+  - Passed onToast={handleToast} to QuickAdd
+  - Rendered Toast component conditionally when toastMessage exists
+
+**User Experience Impact:**
+- Before: Browser alert() interrupts flow, blocks interaction, generic appearance
+- After: Elegant in-app toasts, non-blocking, color-coded by severity, auto-dismiss
+- PR notifications now celebrate achievements: "✓ Workout saved! 3 exercises logged. 🎉 2 PRs detected!"
+- Error messages are clear and actionable with red toast
+- Info messages guide users without disruption
+
+**Remaining Work** (Per OpenSpec Proposal):
+- Phase 6: Unit/integration/E2E tests
+- Phase 7: Documentation updates and archive proposal
+
+**Status**: Phases 1-5 complete. Core feature 100% functional with PR detection and elegant notifications.
+
+---
+
 ### 2025-10-27 04:40 - [Feature] Enhanced Quick Workout Logger - Multi-Exercise, Multi-Set Support
 
 **Files Changed**:

@@ -9,6 +9,7 @@ interface QuickAddProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onToast: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 // State machine types for multi-exercise, multi-set logging
@@ -40,7 +41,7 @@ interface QuickAddState {
   error: string | null;
 }
 
-const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess }) => {
+const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess, onToast }) => {
   const [state, setState] = useState<QuickAddState>({
     mode: 'exercise-picker',
     exercises: [],
@@ -136,7 +137,7 @@ const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess }) => {
     // Check if exercise already logged
     const alreadyLogged = state.exercises.some(e => e.exerciseId === exercise.id);
     if (alreadyLogged) {
-      alert(`${exercise.name} is already logged. Use "Another Set" to add more sets.`);
+      onToast(`${exercise.name} is already logged. Use "Another Set" to add more sets.`, 'info');
       return;
     }
 
@@ -225,7 +226,7 @@ const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess }) => {
   // Handler for "Finish Workout" button
   const handleFinishWorkout = async () => {
     if (state.exercises.length === 0) {
-      alert('No exercises logged yet!');
+      onToast('No exercises logged yet!', 'error');
       return;
     }
 
@@ -252,7 +253,7 @@ const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess }) => {
       const prMessage = response.prs.length > 0
         ? ` 🎉 ${response.prs.length} PR${response.prs.length > 1 ? 's' : ''} detected!`
         : '';
-      alert(`✓ Workout saved! ${state.exercises.length} exercises logged.${prMessage}`);
+      onToast(`✓ Workout saved! ${state.exercises.length} exercises logged.${prMessage}`, 'success');
 
       // Reset and close
       setState({
@@ -271,11 +272,13 @@ const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess }) => {
 
     } catch (error) {
       console.error('Failed to save workout:', error);
+      const errorMessage = 'Failed to save workout. Please try again.';
       setState(prev => ({
         ...prev,
         loading: false,
-        error: 'Failed to save workout. Please try again.',
+        error: errorMessage,
       }));
+      onToast(errorMessage, 'error');
     }
   };
 
