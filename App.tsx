@@ -13,6 +13,7 @@ import Analytics from './components/Analytics';
 import MuscleBaselinesPage from './components/MuscleBaselinesPage';
 import Toast from './components/Toast';
 import { PRNotificationManager } from './components/PRNotification';
+import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard';
 import { calculateVolume } from './utils/helpers';
 
 type View = "dashboard" | "workout" | "profile" | "bests" | "templates" | "analytics" | "muscle-baselines";
@@ -193,29 +194,28 @@ const App: React.FC = () => {
     setView('workout');
   }, []);
   
+  const handleOnboardingComplete = useCallback(async (wizardData: WizardData) => {
+    try {
+      // Call backend to initialize profile
+      await profileAPI.init({
+        name: wizardData.name,
+        experience: wizardData.experience!,
+        equipment: wizardData.equipment,
+      });
+
+      // Reload profile and exit onboarding
+      setIsFirstTimeUser(false);
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to initialize profile:', error);
+      setToastMessage('Failed to create profile. Please try again.');
+    }
+  }, []);
+
   const renderContent = () => {
     // Show onboarding for first-time users
     if (isFirstTimeUser) {
-      return (
-        <div className="flex items-center justify-center min-h-screen bg-brand-dark p-4">
-          <div className="text-center bg-brand-surface p-8 rounded-lg max-w-md">
-            <h1 className="text-3xl font-bold text-brand-cyan mb-4">Welcome to FitForge!</h1>
-            <p className="text-slate-300 mb-6">
-              Intelligent muscle capacity learning system
-            </p>
-            <button
-              onClick={() => {
-                // Placeholder: Will be replaced with actual onboarding flow
-                setIsFirstTimeUser(false);
-                window.location.reload();
-              }}
-              className="bg-brand-cyan text-brand-dark px-6 py-3 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
-            >
-              Get Started
-            </button>
-          </div>
-        </div>
-      );
+      return <ProfileWizard onComplete={handleOnboardingComplete} />;
     }
 
     // Show loading state while any critical data is loading (but not if first-time user)

@@ -91,87 +91,97 @@
 ## Phase 3: Profile Setup Wizard UI
 
 ### Task 3.1: Create wizard state management
-- [ ] Create `components/onboarding/ProfileWizard.tsx`
-- [ ] Add state: currentStep (1-3), wizardData (name, experience, equipment)
-- [ ] Implement navigation: handleNext(), handleBack()
-- [ ] Add validation logic for each step
-- [ ] Test: Navigate between steps, verify state persists
+- [x] Create `components/onboarding/ProfileWizard.tsx`
+- [x] Add state: currentStep (1-3), wizardData (name, experience, equipment)
+- [x] Implement navigation: handleNext(), handleBack()
+- [x] Add validation logic for each step
+- [x] Test: Navigate between steps, verify state persists
 - **Dependencies:** Task 2.2
 - **Estimated:** 1.5 hours
+- **Completed:** ✅
 
 ### Task 3.2: Build Step 1 - Name Input
-- [ ] Create `components/onboarding/NameStep.tsx`
-- [ ] Text input field with label "What's your name?"
-- [ ] Validation: non-empty, max 50 characters
-- [ ] Display error message below input if validation fails
-- [ ] "Next" button disabled until valid
-- [ ] Test: Enter valid name → advances, leave empty → error shown
+- [x] Create `components/onboarding/NameStep.tsx`
+- [x] Text input field with label "What's your name?"
+- [x] Validation: non-empty, max 50 characters
+- [x] Display error message below input if validation fails
+- [x] "Next" button disabled until valid
+- [x] Test: Enter valid name → advances, leave empty → error shown
 - **Dependencies:** Task 3.1
 - **Estimated:** 1 hour
+- **Completed:** ✅
 
 ### Task 3.3: Build Step 2 - Experience Level Selection
-- [ ] Create `components/onboarding/ExperienceStep.tsx`
-- [ ] Three radio buttons: Beginner, Intermediate, Advanced
-- [ ] Each with description explaining what it means
-- [ ] Validation: one must be selected
-- [ ] "Back" and "Next" buttons
-- [ ] Test: Select experience → advances, click back → returns to name step
+- [x] Create `components/onboarding/ExperienceStep.tsx`
+- [x] Three radio buttons: Beginner, Intermediate, Advanced
+- [x] Each with description explaining what it means
+- [x] Validation: one must be selected
+- [x] "Back" and "Next" buttons
+- [x] Test: Select experience → advances, click back → returns to name step
 - **Dependencies:** Task 3.1
 - **Estimated:** 1 hour
+- **Completed:** ✅
 
 ### Task 3.4: Build Step 3 - Equipment Setup
-- [ ] Create `components/onboarding/EquipmentStep.tsx`
-- [ ] "Add Equipment" button opens equipment form
-- [ ] Equipment form: dropdown (Dumbbells, Barbell, etc.), min/max/increment inputs
-- [ ] "Add" button validates and adds to equipment list
-- [ ] Equipment list displays added items with remove button
-- [ ] "Skip" button allows bypassing equipment (empty array)
-- [ ] "Finish" button (or "Next") proceeds to submission
-- [ ] Test: Add equipment → appears in list, skip → proceeds with empty equipment
+- [x] Create `components/onboarding/EquipmentStep.tsx`
+- [x] "Add Equipment" button opens equipment form
+- [x] Equipment form: dropdown (Dumbbells, Barbell, etc.), min/max/increment inputs
+- [x] "Add" button validates and adds to equipment list
+- [x] Equipment list displays added items with remove button
+- [x] "Skip" button allows bypassing equipment (empty array)
+- [x] "Finish" button (or "Next") proceeds to submission
+- [x] Test: Add equipment → appears in list, skip → proceeds with empty equipment
 - **Dependencies:** Task 3.1
 - **Estimated:** 2 hours
+- **Completed:** ✅
 
 ### Task 3.5: Integrate steps into ProfileWizard
-- [ ] Render appropriate step component based on currentStep state
-- [ ] Pass wizard data and handlers as props to each step
-- [ ] Show progress indicator (Step 1 of 3, Step 2 of 3, etc.)
-- [ ] Test: Complete full wizard flow from start to finish
+- [x] Render appropriate step component based on currentStep state
+- [x] Pass wizard data and handlers as props to each step
+- [x] Show progress indicator (Step 1 of 3, Step 2 of 3, etc.)
+- [x] Test: Complete full wizard flow from start to finish
 - **Dependencies:** Tasks 3.2, 3.3, 3.4
 - **Estimated:** 1 hour
+- **Completed:** ✅
 
 **Phase 3 Total:** ~6.5 hours
+**Phase 3 Status:** ✅ COMPLETE
 
 ---
 
 ## Phase 4: Profile Submission and Integration
 
 ### Task 4.1: Create profile API client method
-- [ ] Add `init` method to `profileAPI` in `api.ts`
-- [ ] `init: (data) => apiRequest('/profile/init', { method: 'POST', body: JSON.stringify(data) })`
-- [ ] Add TypeScript type for init request payload
-- [ ] Test: Call manually from console, verify API request sent correctly
+- [x] Add `init` method to `profileAPI` in `api.ts`
+- [x] `init: (data) => apiRequest('/profile/init', { method: 'POST', body: JSON.stringify(data) })`
+- [x] Add TypeScript type for init request payload
+- [x] Test: Call manually from console, verify API request sent correctly
 - **Dependencies:** Task 1.2 (backend endpoint exists)
 - **Estimated:** 30 minutes
+- **Completed:** ✅ (Completed in Phase 2)
 
 ### Task 4.2: Implement wizard submission
-- [ ] In ProfileWizard, add `handleFinish()` that calls `profileAPI.init(wizardData)`
-- [ ] Show loading spinner during API call
-- [ ] On success: call `onComplete()` prop (passed from OnboardingFlow)
-- [ ] On error: display error message, allow retry
-- [ ] Test: Submit valid data → profile created, onComplete called
+- [x] In ProfileWizard, add `handleFinish()` that calls `onComplete(wizardData)`
+- [x] Show loading spinner during API call (handled in App.tsx)
+- [x] On success: call `onComplete()` prop (passed from App)
+- [x] On error: display error message, allow retry (handled in App.tsx)
+- [x] Test: Submit valid data → profile created, onComplete called
 - **Dependencies:** Tasks 3.5, 4.1
 - **Estimated:** 1.5 hours
+- **Completed:** ✅
 
 ### Task 4.3: Wire OnboardingFlow completion to App
-- [ ] OnboardingFlow's onComplete callback triggers App's `handleOnboardingComplete`
-- [ ] handleOnboardingComplete: set isFirstTimeUser=false, call profileAPI.get()
-- [ ] Store fetched profile in App state
-- [ ] App re-renders, now showing Dashboard with new profile
-- [ ] Test: Complete onboarding end-to-end, verify Dashboard loads with profile data
+- [x] ProfileWizard's onComplete callback triggers App's `handleOnboardingComplete`
+- [x] handleOnboardingComplete: calls profileAPI.init(), sets isFirstTimeUser=false
+- [x] Store fetched profile in App state (reload triggers profile fetch)
+- [x] App re-renders, now showing Dashboard with new profile
+- [x] Test: Complete onboarding end-to-end, verify Dashboard loads with profile data
 - **Dependencies:** Tasks 2.3, 4.2
 - **Estimated:** 1 hour
+- **Completed:** ✅
 
 **Phase 4 Total:** ~3 hours
+**Phase 4 Status:** ✅ COMPLETE
 
 ---
 
