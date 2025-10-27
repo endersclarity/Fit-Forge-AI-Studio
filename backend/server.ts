@@ -11,6 +11,7 @@ import { getExerciseByName } from './constants';
 import {
   ProfileResponse,
   ProfileUpdateRequest,
+  ProfileInitRequest,
   WorkoutResponse,
   WorkoutSaveRequest,
   MuscleStatesResponse,
@@ -69,9 +70,13 @@ app.get('/api/profile', (_req: Request, res: Response<ProfileResponse | ApiError
   try {
     const profile = db.getProfile();
     res.json(profile);
-  } catch (error) {
-    console.error('Error getting profile:', error);
-    res.status(500).json({ error: 'Failed to get profile' });
+  } catch (error: any) {
+    if (error.code === 'USER_NOT_FOUND') {
+      res.status(404).json({ error: 'User not found', code: 'USER_NOT_FOUND' });
+    } else {
+      console.error('Error getting profile:', error);
+      res.status(500).json({ error: 'Failed to get profile' });
+    }
   }
 });
 
@@ -83,6 +88,41 @@ app.put('/api/profile', (req: Request<{}, ProfileResponse | ApiErrorResponse, Pr
   } catch (error) {
     console.error('Error updating profile:', error);
     res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// Initialize user profile (first-time setup)
+app.post('/api/profile/init', (req: Request<{}, ProfileResponse | ApiErrorResponse, ProfileInitRequest>, res: Response<ProfileResponse | ApiErrorResponse>) => {
+  try {
+    // Validate required fields
+    if (!req.body.name || req.body.name.trim() === '') {
+      res.status(400).json({ error: 'Name is required' });
+      return;
+    }
+    if (!req.body.experience || !['Beginner', 'Intermediate', 'Advanced'].includes(req.body.experience)) {
+      res.status(400).json({ error: 'Valid experience level is required (Beginner, Intermediate, or Advanced)' });
+      return;
+    }
+
+    // Validate equipment if provided
+    if (req.body.equipment) {
+      for (const item of req.body.equipment) {
+        if (!item.name || item.minWeight === undefined || item.maxWeight === undefined || item.increment === undefined) {
+          res.status(400).json({ error: 'Equipment must have name, minWeight, maxWeight, and increment' });
+          return;
+        }
+        if (item.minWeight < 0 || item.maxWeight < item.minWeight || item.increment <= 0) {
+          res.status(400).json({ error: 'Invalid equipment values' });
+          return;
+        }
+      }
+    }
+
+    const profile = db.initializeProfile(req.body);
+    res.status(201).json(profile);
+  } catch (error) {
+    console.error('Error initializing profile:', error);
+    res.status(500).json({ error: 'Failed to initialize profile' });
   }
 });
 

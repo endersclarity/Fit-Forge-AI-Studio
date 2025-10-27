@@ -164,6 +164,17 @@ export interface ProfileUpdateRequest {
   }>;
 }
 
+export interface ProfileInitRequest {
+  name: string;
+  experience: Difficulty;
+  equipment?: Array<{
+    name: string;
+    minWeight: number;
+    maxWeight: number;
+    increment: number;
+  }>;
+}
+
 // Workout API Types
 export interface WorkoutExerciseSet {
   weight: number;
@@ -333,6 +344,7 @@ export interface QuickAddResponse {
 // Error Response Type
 export interface ApiErrorResponse {
   error: string;
+  code?: string;
   message?: string;
   hint?: string;
 }

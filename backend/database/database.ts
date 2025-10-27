@@ -4,6 +4,7 @@ import path from 'path';
 import {
   ProfileResponse,
   ProfileUpdateRequest,
+  ProfileInitRequest,
   WorkoutResponse,
   WorkoutSaveRequest,
   WorkoutExercise,
@@ -78,6 +79,19 @@ interface WorkoutTemplateRow {
 }
 
 // ============================================
+// CUSTOM ERROR TYPES
+// ============================================
+
+class UserNotFoundError extends Error {
+  code: string;
+  constructor(message: string = 'User not found') {
+    super(message);
+    this.name = 'UserNotFoundError';
+    this.code = 'USER_NOT_FOUND';
+  }
+}
+
+// ============================================
 // HELPER FUNCTIONS FOR DATABASE OPERATIONS
 // ============================================
 
@@ -88,7 +102,7 @@ function getProfile(): ProfileResponse {
   const user = db.prepare('SELECT * FROM users WHERE id = 1').get() as UserRow | undefined;
 
   if (!user) {
-    throw new Error('User not found');
+    throw new UserNotFoundError();
   }
 
   const bodyweightHistory = db.prepare(`
@@ -142,6 +156,72 @@ function updateProfile(profile: ProfileUpdateRequest): ProfileResponse {
     });
     insertMany(profile.equipment);
   }
+
+  return getProfile();
+}
+
+/**
+ * Initialize user profile for first-time users
+ */
+function initializeProfile(request: ProfileInitRequest): ProfileResponse {
+  // Check if user already exists (idempotent behavior)
+  const existingUser = db.prepare('SELECT * FROM users WHERE id = 1').get() as UserRow | undefined;
+  if (existingUser) {
+    return getProfile();
+  }
+
+  // Scale baselines based on experience level
+  const baselinesByExperience = {
+    'Beginner': 5000,
+    'Intermediate': 10000,
+    'Advanced': 15000
+  };
+  const baseline = baselinesByExperience[request.experience];
+
+  // All 13 muscles from Muscle enum
+  const muscles = [
+    'Pectoralis', 'Triceps', 'Deltoids', 'Lats', 'Biceps',
+    'Rhomboids', 'Trapezius', 'Forearms', 'Quadriceps',
+    'Glutes', 'Hamstrings', 'Calves', 'Core'
+  ];
+
+  // Transaction to ensure atomicity
+  const initTransaction = db.transaction(() => {
+    // Insert user
+    db.prepare('INSERT INTO users (id, name, experience) VALUES (1, ?, ?)').run(
+      request.name,
+      request.experience
+    );
+
+    // Initialize muscle baselines
+    const insertBaseline = db.prepare(
+      'INSERT INTO muscle_baselines (user_id, muscle_name, max_capacity) VALUES (1, ?, ?)'
+    );
+    for (const muscle of muscles) {
+      insertBaseline.run(muscle, baseline);
+    }
+
+    // Initialize muscle states
+    const insertState = db.prepare(
+      'INSERT INTO muscle_states (user_id, muscle_name, fatigue_percentage, last_trained, recovery_percentage) VALUES (1, ?, 0, NULL, 100)'
+    );
+    for (const muscle of muscles) {
+      insertState.run(muscle);
+    }
+
+    // Insert equipment if provided
+    if (request.equipment && request.equipment.length > 0) {
+      const insertEquipment = db.prepare(
+        'INSERT INTO equipment (user_id, name, min_weight, max_weight, weight_increment) VALUES (1, ?, ?, ?, ?)'
+      );
+      for (const item of request.equipment) {
+        insertEquipment.run(item.name, item.minWeight, item.maxWeight, item.increment);
+      }
+    }
+  });
+
+  // Execute transaction
+  initTransaction();
 
   return getProfile();
 }
@@ -1072,6 +1152,7 @@ export {
   db,
   getProfile,
   updateProfile,
+  initializeProfile,
   getWorkouts,
   getLastWorkoutByCategory,
   getLastVariationForCategory,
