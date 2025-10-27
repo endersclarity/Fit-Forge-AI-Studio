@@ -289,9 +289,15 @@ function saveWorkout(workout: WorkoutSaveRequest): WorkoutResponse {
   `);
 
   const saveTransaction = db.transaction(() => {
+    // Convert date to ISO string if it's a timestamp number
+    let dateValue: string | number = workout.date;
+    if (typeof workout.date === 'number') {
+      dateValue = new Date(workout.date).toISOString();
+    }
+
     // Insert workout
     const result = insertWorkout.run(
-      workout.date,
+      dateValue,
       workout.category || null,
       workout.variation || null,
       workout.progressionMethod || null,

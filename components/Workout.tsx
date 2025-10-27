@@ -186,8 +186,26 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     return 75; // Beginner default
   };
 
+  // Helper to generate timestamp-based workout name
+  const generateWorkoutName = (type: ExerciseCategory, variation: "A" | "B") => {
+    const now = new Date();
+    const timestamp = now.toLocaleString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    return `${type} ${variation} - ${timestamp}`;
+  };
+
   const [stage, setStage] = useState<WorkoutStage>(initialData ? "tracking" : "setup");
-  const [workoutName, setWorkoutName] = useState(initialData ? `${initialData.type} Day ${initialData.variation}` : "");
+  const [workoutName, setWorkoutName] = useState(
+    initialData
+      ? generateWorkoutName(initialData.type, initialData.variation && initialData.variation !== 'Both' ? initialData.variation : 'A')
+      : ""
+  );
   const [workoutType, setWorkoutType] = useState<ExerciseCategory>(initialData?.type || "Push");
   // Fix: Handle cases where the recommended workout variation is "Both" by defaulting to "A".
   const [workoutVariation, setWorkoutVariation] = useState<"A" | "B">(initialData?.variation && initialData.variation !== 'Both' ? initialData.variation : 'A');
@@ -306,6 +324,10 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
   const startWorkout = () => {
     setStartTime(Date.now());
+    // Generate default workout name with timestamp if none provided
+    if (!workoutName || workoutName.trim() === '') {
+      setWorkoutName(generateWorkoutName(workoutType, workoutVariation));
+    }
     setStage("tracking");
     if (loggedExercises.length > 0) {
       setExpandedExerciseId(loggedExercises[0].id);
@@ -315,7 +337,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   // Load template with progressive overload suggestions
   const loadTemplateWithProgression = (variation: 'A' | 'B') => {
     setWorkoutVariation(variation);
-    setWorkoutName(`${selectedCategory} Day ${variation}`);
+    setWorkoutName(generateWorkoutName(selectedCategory, variation));
 
     // TODO: Load template exercises from templatesAPI
     // For now, we'll just set up the workout with the selected variation
@@ -570,7 +592,14 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Workout Name</label>
-              <input type="text" value={workoutName} onChange={e => setWorkoutName(e.target.value)} placeholder="e.g. Morning Push" className="w-full bg-brand-surface border border-brand-muted rounded-md px-3 py-2" />
+              <input
+                type="text"
+                value={workoutName}
+                onChange={e => setWorkoutName(e.target.value)}
+                placeholder={generateWorkoutName(workoutType, workoutVariation)}
+                className="w-full bg-brand-surface border border-brand-muted rounded-md px-3 py-2"
+              />
+              <p className="text-xs text-slate-400 mt-1">Leave blank to use timestamp</p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Workout Variation</label>
@@ -608,7 +637,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
         </div>
         <div className="flex gap-2">
             <button onClick={onCancel} className="w-full bg-brand-surface py-3 rounded-lg font-semibold">Cancel</button>
-            <button onClick={startWorkout} disabled={!workoutName} className="w-full bg-brand-cyan text-brand-dark py-3 rounded-lg font-semibold disabled:bg-brand-muted">Start Workout</button>
+            <button onClick={startWorkout} className="w-full bg-brand-cyan text-brand-dark py-3 rounded-lg font-semibold">Start Workout</button>
         </div>
       </div>
     );

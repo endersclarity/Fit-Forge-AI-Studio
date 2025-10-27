@@ -204,11 +204,11 @@ export function groupMusclesByRecovery(muscleStates: MuscleStatesResponse): Reco
 
 /**
  * Format a date as relative time (Today, Yesterday, X days ago, or absolute date)
- * @param dateString - ISO date string
+ * @param dateValue - ISO date string or timestamp number
  * @returns Formatted relative date string
  */
-export function formatRelativeDate(dateString: string): string {
-  const date = new Date(dateString);
+export function formatRelativeDate(dateValue: string | number): string {
+  const date = typeof dateValue === 'number' ? new Date(dateValue) : new Date(dateValue);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 

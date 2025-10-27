@@ -7,6 +7,76 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-27 04:16 - [Fix] Timestamp-Based Workout Naming and Date Storage
+
+**Files Changed**:
+- components/Workout.tsx (added generateWorkoutName helper, updated name defaults)
+- backend/database/database.ts (fixed date storage to use ISO 8601 format)
+- components/WorkoutHistorySummary.tsx (handle both string and number dates)
+- utils/statsHelpers.ts (updated formatRelativeDate for dual format support)
+
+**Summary**: Fixed critical date/time handling issues. Workout names now default to timestamps, dates stored as ISO strings, and display correctly after container restarts.
+
+**Details**:
+
+**Issue #1: No Timestamp Awareness**
+- Problem: Workout names defaulted to generic text like "Push Day A" with no time context
+- Impact: Users couldn't distinguish between workouts done at different times
+- Fix: Created `generateWorkoutName()` helper function (Workout.tsx:190-201)
+  - Format: "{Type} {Variation} - {MM/DD/YYYY, HH:MM AM/PM}"
+  - Example: "Push A - 10/26/2025, 09:16 PM"
+  - Input field shows timestamp as placeholder
+  - Added "Leave blank to use timestamp" helper text
+  - Removed disabled state from Start Workout button
+
+**Issue #2: Date Stored as Millisecond Timestamp**
+- Problem: Backend stored `workout.date` as raw number (e.g., `1761537981122.0`)
+- Impact: Database queries failed, date display showed "NaNs Invalid Date"
+- Fix: Convert to ISO 8601 before database insert (database.ts:292-296)
+  - Detects if `workout.date` is number type
+  - Converts to ISO string: `new Date(workout.date).toISOString()`
+  - Example: `1761537981122` → `"2025-10-27T04:16:42.262Z"`
+  - SQLite now stores human-readable, sortable date format
+
+**Issue #3: Date Display Bugs**
+- Problem: Frontend assumed dates were always strings
+- Impact: New Date(number) created invalid dates, sorting failed
+- Fix: Updated all date handling to accept `string | number`
+  - `formatRelativeDate()` detects type and converts appropriately
+  - `isToday()` helper handles both formats
+  - Workout sorting handles mixed date formats
+  - Backward compatible with old numeric dates in database
+
+**Database Verification**:
+```
+Old workout (ID 1): date: "1761537981122.0"  ❌ (broken)
+New workout (ID 2): date: "2025-10-27T04:16:42.262Z"  ✅ (correct)
+```
+
+**User Experience Impact:**
+- Before: Generic workout names, dates broken after restart ("NaNs Invalid Date")
+- After: Timestamp-based names, proper date display, persistence works correctly
+- Workout history shows: "Push A - 10/26/2025, 09:16 PM • 16s • 10/26/2025"
+- All exercise data persists correctly across container restarts
+
+**Testing Verified:**
+- Created new workout with timestamp name
+- Saved workout to database with ISO date
+- Restarted containers
+- Verified workout displays with correct date in history
+- Database query confirms ISO 8601 format storage
+- Old workouts still display (backward compatible)
+
+**Breaking Changes**: None (backward compatible)
+
+**Technical Context**:
+- Timestamp format uses `toLocaleString()` with US locale
+- ISO 8601 format ensures international compatibility
+- Dual-format support maintains backward compatibility
+- Future workouts will all use ISO format
+
+---
+
 ### 2025-10-27 04:00 - [Fix] First-Time User Onboarding - Production Ready
 
 **Files Changed**:

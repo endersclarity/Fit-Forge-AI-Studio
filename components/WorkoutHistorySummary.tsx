@@ -18,7 +18,11 @@ const WorkoutHistorySummary: React.FC<WorkoutHistorySummaryProps> = ({
 
   // Get most recent workouts
   const recentWorkouts = [...workouts]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => {
+      const dateA = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
+      const dateB = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
+      return dateB - dateA;
+    })
     .slice(0, maxDisplay);
 
   // Helper to check if workout contains PRs
@@ -27,8 +31,8 @@ const WorkoutHistorySummary: React.FC<WorkoutHistorySummaryProps> = ({
   };
 
   // Helper to check if workout is today
-  const isToday = (dateString: string): boolean => {
-    const workoutDate = new Date(dateString);
+  const isToday = (dateValue: string | number): boolean => {
+    const workoutDate = typeof dateValue === 'number' ? new Date(dateValue) : new Date(dateValue);
     const today = new Date();
     return (
       workoutDate.getDate() === today.getDate() &&
