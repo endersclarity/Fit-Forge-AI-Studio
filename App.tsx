@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAPIState } from './hooks/useAPIState';
 import { profileAPI, workoutsAPI, muscleStatesAPI, personalBestsAPI, muscleBaselinesAPI, templatesAPI } from './api';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
@@ -26,6 +26,7 @@ export interface RecommendedWorkoutData {
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>("dashboard");
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState<boolean>(false);
 
   // Initialize default values
   const defaultProfile: UserProfile = { name: 'Athlete', experience: 'Beginner', bodyweightHistory: [], equipment: [] };
@@ -47,6 +48,12 @@ const App: React.FC = () => {
   const [recommendedWorkout, setRecommendedWorkout] = useState<RecommendedWorkoutData | null>(null);
   const [prNotifications, setPrNotifications] = useState<PRInfo[]>([]);
 
+  // Detect first-time user (USER_NOT_FOUND error)
+  useEffect(() => {
+    if (profileError && (profileError as any).code === 'USER_NOT_FOUND') {
+      setIsFirstTimeUser(true);
+    }
+  }, [profileError]);
 
   const handleFinishWorkout = useCallback(async (session: WorkoutSession) => {
     try {
@@ -187,7 +194,31 @@ const App: React.FC = () => {
   }, []);
   
   const renderContent = () => {
-    // Show loading state while any critical data is loading
+    // Show onboarding for first-time users
+    if (isFirstTimeUser) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-brand-dark p-4">
+          <div className="text-center bg-brand-surface p-8 rounded-lg max-w-md">
+            <h1 className="text-3xl font-bold text-brand-cyan mb-4">Welcome to FitForge!</h1>
+            <p className="text-slate-300 mb-6">
+              Intelligent muscle capacity learning system
+            </p>
+            <button
+              onClick={() => {
+                // Placeholder: Will be replaced with actual onboarding flow
+                setIsFirstTimeUser(false);
+                window.location.reload();
+              }}
+              className="bg-brand-cyan text-brand-dark px-6 py-3 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Show loading state while any critical data is loading (but not if first-time user)
     const isLoading = profileLoading || workoutsLoading || muscleBaselinesLoading;
 
     if (isLoading) {
@@ -201,8 +232,8 @@ const App: React.FC = () => {
       );
     }
 
-    // Show error state if any critical API failed
-    const hasError = profileError || workoutsError || muscleBaselinesError;
+    // Show error state if any critical API failed (excluding USER_NOT_FOUND which is handled above)
+    const hasError = (profileError && (profileError as any).code !== 'USER_NOT_FOUND') || workoutsError || muscleBaselinesError;
     if (hasError) {
       return (
         <div className="flex items-center justify-center min-h-screen bg-brand-dark p-4">

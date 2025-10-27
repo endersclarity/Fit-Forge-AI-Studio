@@ -35,7 +35,18 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.statusText}`);
+    // Try to parse error response body for structured errors
+    try {
+      const errorData = await response.json();
+      const error: any = new Error(errorData.error || `API request failed: ${response.statusText}`);
+      if (errorData.code) {
+        error.code = errorData.code;
+      }
+      throw error;
+    } catch (jsonError) {
+      // If parsing fails, throw generic error
+      throw new Error(`API request failed: ${response.statusText}`);
+    }
   }
 
   return response.json();
@@ -50,6 +61,11 @@ export const profileAPI = {
     method: 'PUT',
     body: JSON.stringify(profile),
   }),
+  init: (data: { name: string; experience: 'Beginner' | 'Intermediate' | 'Advanced'; equipment?: Array<{ name: string; minWeight: number; maxWeight: number; increment: number }> }) =>
+    apiRequest<UserProfile>('/profile/init', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 /**
