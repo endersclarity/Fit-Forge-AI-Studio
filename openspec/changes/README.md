@@ -8,34 +8,7 @@ This directory contains all active and archived OpenSpec change proposals for Fi
 
 ### Medium Priority
 
-#### 1. Research & Validate Muscle Fatigue Model
-**Change ID:** `research-muscle-fatigue-model-validation`
-**Location:** `2025-10-26-research-muscle-fatigue-model-validation/`
-**Status:** Draft - Ready for Review
-**Priority:** Medium
-**Estimated:** 12-17 hours (1.5-2 days)
-
-Formal research sprint to validate scientific foundation of muscle fatigue models.
-
-**Key Deliverables:**
-- `docs/research-findings.md` document
-- Literature review on muscle engagement (EMG studies)
-- Recovery curve validation
-- Baseline learning mathematical specification
-- Confidence assessment (High/Med/Low) for each model
-
-**Why Important:** De-risks advanced features by ensuring scientific foundation is solid.
-
-**Next Steps:**
-1. Review proposal
-2. Create research findings document outline
-3. Begin Phase 1: Muscle Engagement Literature Review
-
-**Note:** This is a research proposal (documentation deliverable), not a coding proposal.
-
----
-
-#### 2. Personal Muscle Engagement Calibration
+#### 1. Personal Muscle Engagement Calibration
 **Change ID:** `implement-personal-engagement-calibration`
 **Location:** `2025-10-26-implement-personal-engagement-calibration/`
 **Status:** Draft - Ready for Review
@@ -62,6 +35,40 @@ Enable users to override default muscle engagement percentages for exercises bas
 ---
 
 ## Recently Implemented (2025-10-27)
+
+### EMG Research Corrections to Exercise Library
+**Change ID:** `apply-emg-research-corrections`
+**Location:** `archive/2025-10-27-2025-10-27-apply-emg-research-corrections/`
+**Status:** ✅ Implemented and Deployed
+**Completed:** 2025-10-27
+
+Applied peer-reviewed EMG research findings to correct muscle engagement percentages for all 40 exercises in constants.ts.
+
+**Delivered:**
+- Updated engagement percentages for 40 exercises based on 189 scientific citations
+- Major corrections: Pull-up biceps (30%→87%), Push-up triceps (50%→75%), Box Step-ups glutes (60%→169%)
+- All values use research-validated midpoints from % MVIC studies
+- TypeScript compilation verified with no errors
+- More accurate exercise recommendations and fatigue tracking
+- Better baseline learning convergence (accurate inputs)
+- ~1 hour implementation time (systematic data updates)
+
+### Muscle Fatigue Model Research & Validation
+**Change ID:** `research-muscle-fatigue-model-validation`
+**Location:** `archive/2025-10-27-2025-10-26-research-muscle-fatigue-model-validation/`
+**Status:** ✅ Research Complete
+**Completed:** 2025-10-27
+
+Comprehensive research sprint validating scientific foundation of FitForge's muscle fatigue model.
+
+**Delivered:**
+- docs/emg-research-reference.md (condensed reference for 40 exercises)
+- docs/research-findings.md (detailed analysis with 189 citations)
+- EMG activation data for 40/40 exercises (95% with specific % MVIC values)
+- Research methodology comparison (Perplexity > Exa > WebSearch)
+- Identified 5 major discrepancies requiring corrections
+- Scientific validation for recommendation algorithm
+- Foundation for personal calibration feature
 
 ### A/B Variation Intelligence
 **Change ID:** `implement-ab-variation-intelligence`
@@ -163,6 +170,6 @@ To create a new proposal:
 ---
 
 **Last Updated:** 2025-10-27
-**Active Proposals:** 2
-**Recently Completed:** 2
-**Archived:** 8+
+**Active Proposals:** 1
+**Recently Completed:** 4
+**Archived:** 10+
