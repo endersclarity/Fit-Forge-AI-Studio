@@ -7,6 +7,69 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-27 04:00 - [Fix] First-Time User Onboarding - Production Ready
+
+**Files Changed**:
+- backend/database/schema.sql (removed default user seed data)
+- backend/database/database.ts (fixed column names in initializeProfile)
+- api.ts (fixed error handling to preserve error.code property)
+- data/ (deleted to clear stale database)
+
+**Summary**: Fixed 5 critical issues preventing onboarding flow from working. Onboarding now fully functional end-to-end.
+
+**Details**:
+
+**Issue #1: Schema Auto-Seeded Default User**
+- Problem: Lines 126-158 in schema.sql inserted default user on every database init
+- Impact: New users never saw onboarding wizard because user always existed
+- Fix: Removed all INSERT statements for default user, muscle states, and baselines
+- Note: initializeProfile() now handles all initial data creation
+
+**Issue #2: Persisted Old Database**
+- Problem: ./data/fitforge.db persisted across container rebuilds with seeded data
+- Impact: Fresh database couldn't be created despite schema fix
+- Fix: Deleted ./data folder to force clean database initialization
+
+**Issue #3: API Error Handling Bug (api.ts:37-50)**
+- Problem: Try-catch block caught its own thrown error
+- Code: `try { error.code = 'USER_NOT_FOUND'; throw error; } catch { ... }`
+- Impact: Error code stripped, frontend couldn't detect first-time users
+- Fix: Separated JSON parsing try-catch from error creation and throw
+
+**Issue #4: Column Name Mismatch - muscle_baselines (database.ts:198)**
+- Problem: INSERT used `max_capacity` but schema has `system_learned_max`
+- Impact: Profile creation failed with "no column named max_capacity"
+- Fix: Changed column name to match schema
+
+**Issue #5: Column Name Mismatch - muscle_states (database.ts:206)**
+- Problem: INSERT used `fatigue_percentage, recovery_percentage` but schema has `initial_fatigue_percent, volume_today, last_trained`
+- Impact: Profile creation failed with "no column named fatigue_percentage"
+- Fix: Changed column names to match schema
+
+**User Experience Impact:**
+- Before: New users saw "User not found" crash or "Failed to connect" error
+- After: New users see 3-step ProfileWizard → profile created → Dashboard loads
+- Personalized greeting: "Welcome back, [Name]!"
+- Experience-based baselines: Beginner=5k, Intermediate=10k, Advanced=15k
+- All 13 muscle groups initialized with 0% fatigue
+
+**Testing Verified:**
+- Backend returns 404 with USER_NOT_FOUND code correctly
+- ProfileWizard renders for new users
+- All 3 steps work with validation
+- Profile creation succeeds (user + baselines + muscle states)
+- Dashboard loads with personalized data
+- Database contains correct profile data
+
+**Breaking Changes**: None
+
+**Technical Context**:
+- OpenSpec proposal: `enable-first-time-user-onboarding` (ready for archive)
+- Phases 1-4 implementation was correct, issues were schema/database bugs
+- Phase 5 (polish) remains optional future work
+
+---
+
 ### 2025-10-27 03:15 - [Feature] First-Time User Onboarding (Phases 3-4 Complete)
 
 **Commit**: `998542a`

@@ -122,37 +122,6 @@ CREATE INDEX IF NOT EXISTS idx_muscle_baselines_user ON muscle_baselines(user_id
 CREATE INDEX IF NOT EXISTS idx_muscle_baselines_updated ON muscle_baselines(updated_at);
 CREATE INDEX IF NOT EXISTS idx_workout_templates_user ON workout_templates(user_id);
 
--- Insert default user
-INSERT OR IGNORE INTO users (id, name, experience) VALUES (1, 'Athlete', 'Beginner');
-
--- Initialize all muscle states with default values
-INSERT OR IGNORE INTO muscle_states (user_id, muscle_name) VALUES
-  (1, 'Pectoralis'),
-  (1, 'Triceps'),
-  (1, 'Deltoids'),
-  (1, 'Lats'),
-  (1, 'Biceps'),
-  (1, 'Rhomboids'),
-  (1, 'Trapezius'),
-  (1, 'Forearms'),
-  (1, 'Quadriceps'),
-  (1, 'Glutes'),
-  (1, 'Hamstrings'),
-  (1, 'Calves'),
-  (1, 'Core');
-
--- Initialize all muscle baselines
-INSERT OR IGNORE INTO muscle_baselines (user_id, muscle_name, system_learned_max) VALUES
-  (1, 'Pectoralis', 10000),
-  (1, 'Triceps', 10000),
-  (1, 'Deltoids', 10000),
-  (1, 'Lats', 10000),
-  (1, 'Biceps', 10000),
-  (1, 'Rhomboids', 10000),
-  (1, 'Trapezius', 10000),
-  (1, 'Forearms', 10000),
-  (1, 'Quadriceps', 10000),
-  (1, 'Glutes', 10000),
-  (1, 'Hamstrings', 10000),
-  (1, 'Calves', 10000),
-  (1, 'Core', 10000);
+-- Default user initialization removed - handled by onboarding flow
+-- See: openspec/changes/2025-10-26-enable-first-time-user-onboarding/
+-- The initializeProfile() function in database.ts creates user + muscle states + baselines

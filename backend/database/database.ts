@@ -195,7 +195,7 @@ function initializeProfile(request: ProfileInitRequest): ProfileResponse {
 
     // Initialize muscle baselines
     const insertBaseline = db.prepare(
-      'INSERT INTO muscle_baselines (user_id, muscle_name, max_capacity) VALUES (1, ?, ?)'
+      'INSERT INTO muscle_baselines (user_id, muscle_name, system_learned_max) VALUES (1, ?, ?)'
     );
     for (const muscle of muscles) {
       insertBaseline.run(muscle, baseline);
@@ -203,7 +203,7 @@ function initializeProfile(request: ProfileInitRequest): ProfileResponse {
 
     // Initialize muscle states
     const insertState = db.prepare(
-      'INSERT INTO muscle_states (user_id, muscle_name, fatigue_percentage, last_trained, recovery_percentage) VALUES (1, ?, 0, NULL, 100)'
+      'INSERT INTO muscle_states (user_id, muscle_name, initial_fatigue_percent, volume_today, last_trained) VALUES (1, ?, 0, 0, NULL)'
     );
     for (const muscle of muscles) {
       insertState.run(muscle);

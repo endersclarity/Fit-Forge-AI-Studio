@@ -17,8 +17,8 @@ import type {
 } from './types';
 import { EXERCISE_LIBRARY } from './constants';
 
-// API base URL - defaults to same origin in production, localhost:3001 in development
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// API base URL - defaults to same origin in production, localhost:3002 in development (npm) or 3001 (Docker)
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 /**
  * Generic API request helper
@@ -36,17 +36,20 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 
   if (!response.ok) {
     // Try to parse error response body for structured errors
+    let errorData: any;
     try {
-      const errorData = await response.json();
-      const error: any = new Error(errorData.error || `API request failed: ${response.statusText}`);
-      if (errorData.code) {
-        error.code = errorData.code;
-      }
-      throw error;
+      errorData = await response.json();
     } catch (jsonError) {
-      // If parsing fails, throw generic error
+      // If JSON parsing fails, throw generic error
       throw new Error(`API request failed: ${response.statusText}`);
     }
+
+    // Create error with code property
+    const error: any = new Error(errorData.error || `API request failed: ${response.statusText}`);
+    if (errorData.code) {
+      error.code = errorData.code;
+    }
+    throw error;
   }
 
   return response.json();
