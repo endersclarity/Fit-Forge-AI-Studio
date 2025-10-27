@@ -1,7 +1,7 @@
 # Spec: Failure Status Tracking
 
 **Capability:** `failure-status-tracking`
-**Status:** Active
+**Status:** Deployed
 
 ---
 
@@ -182,5 +182,31 @@ This capability enables users to mark individual sets as "to failure" (muscular 
 
 ---
 
-*Last updated: 2025-10-25*
-*Change: enable-failure-tracking-and-pr-detection*
+## Implementation
+
+**Deployed:** 2025-10-27
+**Change:** `implement-to-failure-tracking-ui`
+**Commit:** 91d7924
+
+### UI Components
+- Failure checkbox on each set row (44x44px touch target)
+- Info icon with educational tooltip modal
+- Smart defaults: last set auto-marked as failure
+- Visual distinction: cyan checkmark (failure) vs gray border (not failure)
+- Full accessibility: ARIA labels, keyboard navigation
+
+### Files
+- `components/Workout.tsx`: Core tracking implementation
+- `components/Icons.tsx`: InfoIcon component
+- `types.ts`: Type definitions with to_failure field
+
+### Testing
+- 100% test pass rate (11/11 tests)
+- API integration verified
+- Accessibility compliance (WCAG 2.1 AA)
+- Mobile touch targets validated
+
+---
+
+*Last updated: 2025-10-27*
+*Changes: enable-failure-tracking-and-pr-detection, implement-to-failure-tracking-ui*
