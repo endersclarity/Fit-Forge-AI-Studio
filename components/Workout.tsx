@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EXERCISE_LIBRARY, ALL_MUSCLES } from '../constants';
 import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation, Equipment } from '../types';
 import { calculateVolume, findPreviousWorkout, formatDuration } from '../utils/helpers';
-import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon } from './Icons';
+import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon, InfoIcon } from './Icons';
 import WorkoutSummaryModal from './WorkoutSummaryModal';
 import { RecommendedWorkoutData } from '../App';
 import { LastWorkoutSummary } from './LastWorkoutSummary';
@@ -159,6 +159,33 @@ const RestTimer: React.FC<{
     );
 };
 
+const FailureTooltip: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="bg-brand-surface rounded-lg p-6 max-w-sm animate-fade-in" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold mb-2">What is "To Failure"?</h3>
+                <p className="text-sm text-slate-300 mb-3">
+                    Mark a set if you <strong>couldn't do one more rep</strong> with good form.
+                </p>
+                <div className="bg-brand-muted p-3 rounded-md mb-4">
+                    <p className="text-xs text-slate-400 mb-1">Why it matters:</p>
+                    <p className="text-xs text-slate-300">
+                        Helps FitForge learn your true muscle capacity for personalized recommendations.
+                    </p>
+                </div>
+                <p className="text-xs text-brand-cyan mb-4">
+                    <strong>Default:</strong> Last set = failure
+                </p>
+                <button onClick={onClose} className="w-full bg-brand-cyan text-brand-dark py-2 rounded-lg font-semibold">
+                    Got it
+                </button>
+            </div>
+        </div>
+    );
+};
+
 
 const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, allWorkouts, personalBests, userProfile, muscleBaselines, initialData }) => {
   // State for last workout data
@@ -225,6 +252,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
   const [isCapacityPanelOpen, setCapacityPanelOpen] = useState(false);
   const [bodyweightWarning, setBodyweightWarning] = useState<string | null>(null);
+  const [showFailureTooltip, setShowFailureTooltip] = useState(false);
 
   const [finalWorkoutSession, setFinalWorkoutSession] = useState<WorkoutSession | null>(null);
 
@@ -388,9 +416,9 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       id: `${exercise.id}-${Date.now()}`,
       exerciseId: exercise.id,
       sets: [
-        { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id) },
-        { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id) },
-        { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id) }
+        { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id), to_failure: false },
+        { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id), to_failure: false },
+        { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id), to_failure: true }
       ],
     };
     setLoggedExercises(prev => [...prev, newLoggedExercise]);
@@ -683,7 +711,15 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                       </div>
                     )}
                     <div className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 text-center text-xs text-slate-400 font-semibold mb-2">
-                        <span className="col-span-1"></span>
+                        <span className="col-span-1 flex items-center justify-center">
+                            <button
+                                onClick={() => setShowFailureTooltip(true)}
+                                className="text-slate-400 hover:text-brand-cyan p-1"
+                                aria-label="What does to-failure mean?"
+                            >
+                                <InfoIcon className="w-4 h-4" />
+                            </button>
+                        </span>
                         <span className="col-span-1">Set</span>
                         <span className="col-span-1">Weight (lbs)</span>
                         <span className="col-span-1">Reps</span>
@@ -701,10 +737,15 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                           <div className="flex justify-center">
                             <button
                               onClick={() => toggleSetFailure(ex.id, s.id)}
-                              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-brand-cyan border-brand-cyan' : 'border-slate-400'}`}
+                              className="w-11 h-11 p-2 rounded flex items-center justify-center transition-all active:scale-95"
                               title={toFailure ? "Taken to failure" : "Not to failure"}
+                              aria-label={toFailure ? "Set taken to failure. Click to mark as not to failure." : "Set not to failure. Click to mark as taken to failure."}
+                              aria-pressed={toFailure}
+                              role="switch"
                             >
-                              {toFailure && <span className="text-brand-dark font-bold text-sm">✓</span>}
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-brand-cyan border-brand-cyan' : 'border-slate-400'}`}>
+                                {toFailure && <span className="text-brand-dark font-bold text-sm">✓</span>}
+                              </div>
                             </button>
                           </div>
                           <span className="text-center font-bold text-slate-300">{i + 1}</span>
@@ -774,6 +815,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
           </div>
           {activeTimer && <RestTimer timer={activeTimer} onClose={stopRestTimer} onAdd={addRestTime} />}
           {isExerciseSelectorOpen && <ExerciseSelector onSelect={addExercise} onDone={() => setExerciseSelectorOpen(false)} workoutVariation={workoutVariation} />}
+          <FailureTooltip isOpen={showFailureTooltip} onClose={() => setShowFailureTooltip(false)} />
         </div>
     );
   }
