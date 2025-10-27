@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitForge Design System Mockup</title>
+    <style>
+        /* ============================================
+           FITFORGE DESIGN SYSTEM
+           Following Colors.md + Shadow.md + Responsive.md
+           ============================================ */
+
+        :root {
+            /* PRIMARY COLOR: Energetic Orange - 10% of interface */
+            --orange-50: #FFF5F2;
+            --orange-100: #FFE8E0;
+            --orange-200: #FFD2C0;
+            --orange-300: #FFB399;
+            --orange-400: #FF9473;
+            --orange-500: #FF6B35;  /* BASE PRIMARY */
+            --orange-600: #E05D2D;
+            --orange-700: #C14F26;
+            --orange-800: #A2411E;
+            --orange-900: #833316;
+
+            /* SECONDARY COLOR: Vibrant Blue - 30% of interface */
+            --blue-50: #F0F8FF;
+            --blue-100: #E0F1FF;
+            --blue-200: #C2E0FF;
+            --blue-300: #98CCFF;
+            --blue-400: #6EB8FF;
+            --blue-500: #0A84FF;  /* BASE SECONDARY */
+            --blue-600: #0976E0;
+            --blue-700: #0868C1;
+            --blue-800: #075A9E;
+            --blue-900: #064D82;
+
+            /* NEUTRAL COLORS: Warm Cream/Off-White - 60% of interface */
+            --neutral-50: #FDFAF6;   /* Lightest cream - almost white */
+            --neutral-100: #FAF6F0;  /* Very light cream */
+            --neutral-200: #F5EFE6;  /* Light cream */
+            --neutral-300: #E8DFD1;  /* Soft beige */
+            --neutral-400: #C9BCA8;  /* Warm taupe */
+            --neutral-500: #A18F7A;  /* Mid taupe */
+            --neutral-600: #7D6E5C;  /* Dark taupe */
+            --neutral-700: #5C5247;  /* Deep brown-gray */
+            --neutral-800: #3D352E;  /* Rich brown */
+            --neutral-900: #2A2319;  /* Deep espresso */
+            --neutral-950: #1A1510;  /* Almost black brown */
+
+            /* SEMANTIC COLORS: Status communication */
+            --success-light: #D1FAE5;
+            --success: #10B981;
+            --success-dark: #059669;
+
+            --warning-light: #FEF3C7;
+            --warning: #F59E0B;
+            --warning-dark: #D97706;
+
+            --info-light: #DBEAFE;
+            --info: #3B82F6;
+            --info-dark: #2563EB;
+
+            --error-light: #FEE2E2;
+            --error: #EF4444;
+            --error-dark: #DC2626;
+
+            /* SHADOW SYSTEM */
+            --shadow-small: inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.1);
+            --shadow-medium: inset 0 1px 0 rgba(255,255,255,0.15), 0 3px 6px rgba(0,0,0,0.15);
+            --shadow-large: inset 0 2px 0 rgba(255,255,255,0.2), 0 6px 12px rgba(0,0,0,0.2);
+            --shadow-fab: inset 0 1px 0 rgba(255,255,255,0.4), 0 6px 12px rgba(0,0,0,0.6), 0 0 20px rgba(255,107,53,0.4);
+
+            /* RESPONSIVE SPACING - Scales with viewport */
+            --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+            --space-sm: clamp(0.5rem, 1vw, 0.75rem);
+            --space-md: clamp(0.75rem, 1.5vw, 1rem);
+            --space-lg: clamp(1rem, 2vw, 1.5rem);
+            --space-xl: clamp(1.5rem, 3vw, 2rem);
+            --space-2xl: clamp(2rem, 4vw, 3rem);
+            --space-3xl: clamp(3rem, 6vw, 4rem);
+
+            /* CONSISTENT GAPS - Never arbitrary */
+            --gap-tight: var(--space-sm);
+            --gap-normal: var(--space-md);
+            --gap-relaxed: var(--space-lg);
+            --gap-loose: var(--space-xl);
+
+            /* TYPOGRAPHY */
+            --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        /* ============================================
+           RESPONSIVE.MD IMPLEMENTATION
+           Box relationships & breathing behavior
+           ============================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-system);
+            background: var(--neutral-100);
+            color: var(--neutral-900);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* SPATIAL RELATIONSHIPS:
+           - app-shell: Root container, controls max width
+           - top-nav: Fixed at top, priority element
+           - main-content: Flexible middle, scrollable
+           - bottom-nav: Fixed at bottom, priority element
+           - fab: Floating, maintains position relative to viewport
+        */
+
+        .app-shell {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 1440px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .top-nav {
+            /* Priority element - retains size */
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--neutral-50);
+            padding: var(--space-md) var(--space-lg);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .main-content {
+            /* Flexible, grows/shrinks, scrollable */
+            flex: 1;
+            padding: var(--space-lg);
+            overflow-y: auto;
+            padding-bottom: calc(80px + var(--space-lg)); /* Space for bottom-nav */
+        }
+
+        .bottom-nav {
+            /* Priority element - retains size, fixed */
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--neutral-50);
+            padding: var(--space-md) var(--space-lg);
+            box-shadow: inset 0 1px 0 rgba(0,0,0,0.05), 0 -3px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .fab {
+            /* Floating element - maintains position */
+            position: fixed;
+            bottom: calc(80px + var(--space-xl));
+            right: var(--space-xl);
+            z-index: 101;
+        }
+
+        /* BREATHING BEHAVIOR:
+           Margins scale, gaps stay consistent, columns merge to rows
+        */
+
+        .section {
+            margin-bottom: var(--space-2xl);
+        }
+
+        .section-header {
+            margin-bottom: var(--space-lg);
+        }
+
+        .section-title {
+            color: var(--neutral-900);
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: var(--space-sm);
+            padding-bottom: var(--space-sm);
+            border-bottom: 2px solid var(--neutral-300);
+        }
+
+        .section-subtitle {
+            color: var(--neutral-600);
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+        }
+
+        /* GRID SYSTEM - Columns merge to rows on smaller screens */
+        .grid {
+            display: grid;
+            gap: var(--gap-normal);
+        }
+
+        /* Mobile first: 1 column */
+        .grid-auto {
+            grid-template-columns: 1fr;
+        }
+
+        /* Tablet: 2 columns when space allows */
+        @media (min-width: 640px) {
+            .grid-auto {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Desktop: 3 columns when space allows */
+        @media (min-width: 1024px) {
+            .grid-auto {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* FLEX CONTAINERS - Items wrap when space runs out */
+        .flex-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--gap-normal);
+        }
+
+        .flex-wrap > * {
+            flex: 1 1 auto;
+            min-width: min(100%, 200px);
+        }
+
+        /* ============================================
+           COMPONENT STYLES
+           Using depth layering + shadows
+           ============================================ */
+
+        /* TOP NAV */
+        .nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            color: var(--orange-500);
+            font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+            font-weight: bold;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: var(--gap-normal);
+        }
+
+        /* WORKOUT CARD */
+        .workout-card {
+            background: var(--neutral-50); /* Shade 2: Container */
+            padding: var(--space-lg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-medium);
+            transition: all 0.3s ease;
+        }
+
+        .workout-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-large);
+        }
+
+        .workout-card-header {
+            margin-bottom: var(--space-md);
+        }
+
+        .workout-card-title {
+            color: var(--orange-500);
+            font-size: clamp(1.125rem, 2vw, 1.25rem);
+            margin-bottom: var(--space-xs);
+        }
+
+        .workout-card-subtitle {
+            color: var(--neutral-700);
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+        }
+
+        .workout-card-stats {
+            display: flex;
+            gap: var(--gap-tight);
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            flex: 1;
+            min-width: 80px;
+            background: var(--neutral-200); /* Shade 3: Interactive element */
+            padding: var(--space-md);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            color: var(--blue-500);
+            font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: var(--neutral-600);
+            font-size: clamp(0.75rem, 1.25vw, 0.875rem);
+            margin-top: var(--space-xs);
+        }
+
+        /* METRIC CARD */
+        .metric-card {
+            background: var(--neutral-50);
+            padding: var(--space-lg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+            flex-wrap: wrap;
+            gap: var(--gap-tight);
+        }
+
+        .metric-title {
+            color: var(--neutral-800);
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+        }
+
+        .metric-badge {
+            padding: var(--space-xs) var(--space-md);
+            border-radius: 12px;
+            font-size: clamp(0.75rem, 1.25vw, 0.875rem);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-success {
+            background: var(--success-dark);
+            color: var(--success-light);
+        }
+
+        .badge-warning {
+            background: var(--warning-dark);
+            color: var(--warning-light);
+        }
+
+        .metric-value {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-weight: bold;
+            color: var(--blue-500);
+            margin-bottom: var(--space-sm);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--neutral-300);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--orange-600), var(--orange-500));
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* MUSCLE HEAT MAP - Reorganizes from grid to list on mobile */
+        .heatmap {
+            display: grid;
+            gap: var(--gap-tight);
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        }
+
+        .muscle-tile {
+            background: var(--neutral-50);
+            padding: var(--space-md);
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: var(--shadow-small);
+            transition: all 0.2s;
+        }
+
+        .muscle-tile:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .muscle-name {
+            font-size: clamp(0.75rem, 1.25vw, 0.875rem);
+            color: var(--neutral-700);
+            margin-bottom: var(--space-sm);
+        }
+
+        .recovery-indicator {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: var(--space-xs);
+        }
+
+        .recovery-fresh { background: var(--success); }
+        .recovery-moderate { background: var(--warning); }
+        .recovery-fatigued { background: var(--error); }
+
+        .recovery-text {
+            font-size: clamp(0.7rem, 1.1vw, 0.8rem);
+            color: var(--neutral-500);
+        }
+
+        /* TABS - Background uses Shade 2, selected uses Shade 3 */
+        .tabs {
+            display: flex;
+            gap: var(--gap-tight);
+            background: var(--neutral-200); /* Shade 2 */
+            padding: var(--space-sm);
+            border-radius: 8px;
+            margin-bottom: var(--space-md);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: max-content;
+            padding: var(--space-md);
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--neutral-600);
+            background: transparent;
+            white-space: nowrap;
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+        }
+
+        .tab:hover {
+            color: var(--neutral-800);
+        }
+
+        .tab.active {
+            background: var(--neutral-50); /* Shade 3 */
+            color: var(--orange-500);
+            box-shadow: var(--shadow-small);
+        }
+
+        /* BUTTONS - Gradient + inner shadow */
+        .btn {
+            padding: var(--space-md) var(--space-lg);
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            font-weight: 600;
+            transition: all 0.2s;
+            font-family: var(--font-system);
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to bottom, var(--orange-500), var(--orange-600));
+            color: white;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to bottom, var(--orange-400), var(--orange-500));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: var(--neutral-200);
+            color: var(--neutral-800);
+            box-shadow: var(--shadow-small);
+        }
+
+        .btn-secondary:hover {
+            background: var(--neutral-300);
+        }
+
+        /* FAB - Large shadow + gradient + glow */
+        .fab-button {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, var(--orange-500), var(--orange-700));
+            box-shadow: var(--shadow-fab);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            font-size: 2rem;
+            border: none;
+        }
+
+        .fab-button:hover {
+            transform: scale(1.05);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5),
+                        0 8px 16px rgba(0,0,0,0.7),
+                        0 0 30px rgba(255,107,53,0.6);
+        }
+
+        /* BOTTOM NAV - Items wrap on very small screens */
+        .bottom-nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: var(--gap-tight);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--neutral-600);
+            flex: 1;
+            min-width: 60px;
+        }
+
+        .nav-item:hover {
+            background: var(--neutral-200);
+            color: var(--neutral-800);
+        }
+
+        .nav-item.active {
+            background: var(--neutral-300); /* Shade 3 */
+            color: var(--orange-500);
+            box-shadow: var(--shadow-small);
+        }
+
+        .nav-icon {
+            font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+        }
+
+        .nav-label {
+            font-size: clamp(0.7rem, 1.25vw, 0.75rem);
+        }
+
+        /* MODAL */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-lg);
+            z-index: 200;
+        }
+
+        .modal {
+            background: var(--neutral-50);
+            border-radius: 16px;
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-large);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            color: var(--orange-500);
+            font-size: clamp(1.5rem, 3vw, 1.75rem);
+            margin-bottom: var(--space-md);
+        }
+
+        .modal-content {
+            color: var(--neutral-700);
+            margin-bottom: var(--space-lg);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: var(--gap-normal);
+            flex-wrap: wrap;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        /* COLOR SWATCHES - Stack on mobile, grid on larger */
+        .color-grid {
+            display: grid;
+            gap: var(--gap-relaxed);
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 640px) {
+            .color-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .color-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .color-section {
+            background: var(--neutral-50);
+            padding: var(--space-lg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .color-section h4 {
+            color: var(--neutral-900);
+            margin-bottom: var(--space-md);
+            font-size: clamp(1rem, 1.75vw, 1.125rem);
+        }
+
+        .swatch-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap-tight);
+        }
+
+        .swatch {
+            display: flex;
+            align-items: center;
+            gap: var(--gap-normal);
+        }
+
+        .swatch-color {
+            width: 60px;
+            height: 40px;
+            border-radius: 6px;
+            border: 1px solid var(--neutral-300);
+            flex-shrink: 0;
+        }
+
+        .swatch-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .swatch-name {
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            color: var(--neutral-700);
+        }
+
+        .swatch-value {
+            font-size: clamp(0.75rem, 1.25vw, 0.875rem);
+            color: var(--neutral-500);
+            font-family: monospace;
+        }
+
+        /* DEPTH DEMO */
+        .depth-demo {
+            background: var(--neutral-100);
+            padding: var(--space-xl);
+            border-radius: 12px;
+        }
+
+        .layer-1 {
+            background: var(--neutral-200);
+            padding: var(--space-lg);
+            border-radius: 12px;
+            margin-bottom: var(--space-md);
+        }
+
+        .layer-2 {
+            background: var(--neutral-50);
+            padding: var(--space-lg);
+            border-radius: 12px;
+            margin-bottom: var(--space-md);
+        }
+
+        .layer-3 {
+            background: white;
+            padding: var(--space-md);
+            border-radius: 8px;
+            color: var(--neutral-900);
+        }
+
+        .layer-label {
+            color: var(--neutral-600);
+            font-size: clamp(0.75rem, 1.25vw, 0.875rem);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* SEMANTIC STATES */
+        .state-card {
+            padding: var(--space-md);
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .state-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+        }
+
+        .state-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+        }
+
+        .state-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+        }
+
+        .state-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--info);
+        }
+
+        .state-title {
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+        }
+
+        .state-success .state-title { color: var(--success); }
+        .state-warning .state-title { color: var(--warning); }
+        .state-error .state-title { color: var(--error); }
+        .state-info .state-title { color: var(--info); }
+
+        .state-message {
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            color: var(--neutral-600);
+        }
+
+        /* RESPONSIVE BREAKPOINT INDICATOR */
+        .breakpoint-indicator {
+            position: fixed;
+            top: var(--space-md);
+            right: var(--space-md);
+            background: var(--neutral-50);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--orange-500);
+            z-index: 1000;
+            box-shadow: var(--shadow-small);
+        }
+
+        .breakpoint-indicator::before {
+            content: '📱 Mobile';
+        }
+
+        @media (min-width: 640px) {
+            .breakpoint-indicator::before {
+                content: '📱 Tablet';
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .breakpoint-indicator::before {
+                content: '🖥️ Desktop';
+            }
+        }
+
+        /* Utility - hide on mobile */
+        @media (max-width: 639px) {
+            .hide-mobile {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Breakpoint Indicator -->
+    <div class="breakpoint-indicator"></div>
+
+    <!-- App Shell Structure -->
+    <div class="app-shell">
+
+        <!-- TOP NAV: Priority element, stays fixed -->
+        <nav class="top-nav">
+            <div class="nav-header">
+                <div class="nav-logo">🔥 FitForge</div>
+                <div class="nav-actions">
+                    <button class="btn btn-secondary hide-mobile">Profile</button>
+                    <button class="btn btn-primary">Start Workout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT: Flexible, grows/shrinks -->
+        <main class="main-content">
+
+            <!-- HERO SECTION -->
+            <section class="section">
+                <div class="section-header">
+                    <h1 style="color: var(--orange-500); font-size: clamp(2rem, 5vw, 3rem); margin-bottom: var(--space-sm);">
+                        FitForge Design System
+                    </h1>
+                    <p class="section-subtitle">
+                        Complete implementation of Colors.md + Shadow.md + Responsive.md<br>
+                        <strong style="color: var(--neutral-800);">Warm cream aesthetic • Resize your browser to see the layout breathe and reorganize</strong>
+                    </p>
+                </div>
+            </section>
+
+            <!-- COLOR PALETTE -->
+            <section class="section">
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-subtitle" style="margin-bottom: var(--space-lg);">
+                    60-30-10 Rule: 60% Neutrals, 30% Secondary Blue, 10% Primary Orange
+                </p>
+
+                <div class="color-grid">
+                    <!-- Primary Orange -->
+                    <div class="color-section">
+                        <h4>Primary Orange (10%)</h4>
+                        <div class="swatch-container">
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #FFF5F2;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Orange 50</div>
+                                    <div class="swatch-value">#FFF5F2</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #FFE8E0;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Orange 100</div>
+                                    <div class="swatch-value">#FFE8E0</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #FF6B35; border: 2px solid white;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name"><strong>Orange 500 (BASE)</strong></div>
+                                    <div class="swatch-value">#FF6B35</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #833316;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Orange 900</div>
+                                    <div class="swatch-value">#833316</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Blue -->
+                    <div class="color-section">
+                        <h4>Secondary Blue (30%)</h4>
+                        <div class="swatch-container">
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #F0F8FF;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Blue 50</div>
+                                    <div class="swatch-value">#F0F8FF</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #E0F1FF;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Blue 100</div>
+                                    <div class="swatch-value">#E0F1FF</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #0A84FF; border: 2px solid white;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name"><strong>Blue 500 (BASE)</strong></div>
+                                    <div class="swatch-value">#0A84FF</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #064D82;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Blue 900</div>
+                                    <div class="swatch-value">#064D82</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Neutral Creams -->
+                    <div class="color-section">
+                        <h4>Neutral Colors (60%)</h4>
+                        <div class="swatch-container">
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #FDFAF6;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Neutral 50</div>
+                                    <div class="swatch-value">#FDFAF6</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #FAF6F0; border: 2px solid var(--orange-500);"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name"><strong>Neutral 100 (BG)</strong></div>
+                                    <div class="swatch-value">#FAF6F0</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #F5EFE6;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Neutral 200</div>
+                                    <div class="swatch-value">#F5EFE6</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #C9BCA8;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Neutral 400</div>
+                                    <div class="swatch-value">#C9BCA8</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #7D6E5C;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Neutral 600</div>
+                                    <div class="swatch-value">#7D6E5C</div>
+                                </div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-color" style="background: #2A2319;"></div>
+                                <div class="swatch-info">
+                                    <div class="swatch-name">Neutral 900</div>
+                                    <div class="swatch-value">#2A2319</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DEPTH LAYERING -->
+            <section class="section">
+                <h2 class="section-title">Depth Layering System</h2>
+                <p class="section-subtitle" style="margin-bottom: var(--space-lg);">
+                    4-shade technique: Darker recedes, lighter advances. No arbitrary borders.
+                </p>
+
+                <div class="depth-demo">
+                    <div class="layer-label">Layer 1: Page Background (Neutral 100 - Light Cream)</div>
+                    <div class="layer-1">
+                        <div class="layer-label">Layer 2: Container (Neutral 200 - Cream) - Tabs, sections</div>
+                        <div class="layer-2">
+                            <div class="layer-label">Layer 3: Interactive (Neutral 50 - Off-white) - Cards, modals</div>
+                            <div class="layer-3">
+                                Layer 4: Active State (White) - Selected items, highlights
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WORKOUT CARDS -->
+            <section class="section">
+                <h2 class="section-title">Workout Cards (Medium Shadow)</h2>
+                <p class="section-subtitle" style="margin-bottom: var(--space-lg);">
+                    Columns merge to rows on smaller screens. Watch cards stack vertically on mobile.
+                </p>
+
+                <div class="grid grid-auto">
+                    <div class="workout-card">
+                        <div class="workout-card-header">
+                            <h3 class="workout-card-title">Push Day A</h3>
+                            <p class="workout-card-subtitle">Chest, Shoulders, Triceps</p>
+                        </div>
+                        <div class="workout-card-stats">
+                            <div class="stat">
+                                <div class="stat-value">8</div>
+                                <div class="stat-label">Exercises</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">45m</div>
+                                <div class="stat-label">Duration</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">2d</div>
+                                <div class="stat-label">Recovered</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="workout-card">
+                        <div class="workout-card-header">
+                            <h3 class="workout-card-title">Pull Day B</h3>
+                            <p class="workout-card-subtitle">Back, Biceps, Rear Delts</p>
+                        </div>
+                        <div class="workout-card-stats">
+                            <div class="stat">
+                                <div class="stat-value">7</div>
+                                <div class="stat-label">Exercises</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">40m</div>
+                                <div class="stat-label">Duration</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">1d</div>
+                                <div class="stat-label">Recovered</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="workout-card">
+                        <div class="workout-card-header">
+                            <h3 class="workout-card-title">Leg Day</h3>
+                            <p class="workout-card-subtitle">Quads, Hamstrings, Calves</p>
+                        </div>
+                        <div class="workout-card-stats">
+                            <div class="stat">
+                                <div class="stat-value">6</div>
+                                <div class="stat-label">Exercises</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">50m</div>
+                                <div class="stat-label">Duration</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">3d</div>
+                                <div class="stat-label">Recovered</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROGRESS METRICS -->
+            <section class="section">
+                <h2 class="section-title">Progress Metric Cards</h2>
+                <p class="section-subtitle" style="margin-bottom: var(--space-lg);">
+                    Gaps remain consistent, cards compress naturally. Badges wrap when needed.
+                </p>
+
+                <div class="grid grid-auto">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Weekly Volume</div>
+                            <div class="metric-badge badge-success">+12%</div>
+                        </div>
+                        <div class="metric-value">28,450 lbs</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 78%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Recovery Score</div>
+                            <div class="metric-badge badge-warning">Moderate</div>
+                        </div>
+                        <div class="metric-value">6.8/10</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 68%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Progressive Overload</div>
+                            <div class="metric-badge badge-success">On Track</div>
+                        </div>
+                        <div class="metric-value">+3.2%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MUSCLE HEAT MAP -->
+            <section class="section">
+                <h2 class="section-title">Muscle Heat Map</h2>
+                <p class="section-subtitle" style="margin-bottom: var(--space-lg);">
+                    Auto-fit grid: tiles expand/contract but maintain minimum size.
+                </p>
+
+                <div class="color-section">
+                    <div class="heatmap">
+                        <div class="muscle-tile">
+                            <div class="muscle-name">Chest</div>
+                            <div class="recovery-indicator recovery-fresh"></div>
+                            <div class="recovery-text">Fresh</div>
+                        </div>
+                        <div class="muscle-tile">
+                            <div class="muscle-name">Shoulders</div>
+                            <div class="recovery-indicator recovery-fresh"></div>
+                            <div class="recovery-text">Fresh</div>
+                        </div>
+                        <div class="muscle-tile">
+                            <div class="muscle-name">Triceps</div>
+                            <div class="recovery-indicator recovery-moderate"></div>
+                            <div class="recovery-text">Moderate</div>
+                        </div>
+                        <div class="muscle-tile">
+                            <div class="muscle-name">Back</div>
+                            <div class="recovery-indicator recovery-moderate"></div>
+                            <div class="recovery-text">Moderate</div>
+                        </div>
+                        <div class="muscle-tile">
+                            <div class="muscle-name">Biceps</div>
+                            <div class="recovery-indicator recovery-fatigued"></div>
+                            <div class="recovery-text">Fatigued</div>
+                        </div>
+                        <div class="muscle-tile">
+                            <div class="muscle-name">Legs</div>
+                            <div class="recovery-indicator recovery-fresh"></div>
+                            <div class="recovery-text">Fresh</div>
+                        </div>
+                        <div class="muscle-tile">
+                            <div class="muscle-name">Abs</div>
+                            <div class="recovery-indicator recovery-fresh"></div>
+                            <div class="recovery-text">Fresh</div>
+                        </div>
+                        <div class="muscle-tile">
+                            <div class="muscle-name">Lower Back</div>
+                            <div class="recovery-indicator recovery-moderate"></div>
+                            <div class="recovery-text">Moderate</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TABS -->
+            <section class="section">
+                <h2 class="section-title">Tab Navigation</h2>
+                <p class="section-subtitle" style="margin-bottom: var(--space-lg);">
+                    Scrollable on mobile, fits to content on desktop. Active tab = Shade 3.
+                </p>
+
+                <div class="tabs">
+                    <div class="tab active">Recommended</div>
+                    <div class="tab">All Exercises</div>
+                    <div class="tab">History</div>
+                    <div class="tab hide-mobile">Analytics</div>
+                </div>
+            </section>
+
+            <!-- BUTTONS -->
+            <section class="section">
+                <h2 class="section-title">Buttons with Gradients</h2>
+                <p class="section-subtitle" style="margin-bottom: var(--space-lg);">
+                    Gradient + inner shadow for premium feel. Buttons wrap when space runs out.
+                </p>
+
+                <div class="flex-wrap">
+                    <button class="btn btn-primary">Start Workout</button>
+                    <button class="btn btn-primary">Complete Set</button>
+                    <button class="btn btn-secondary">Skip Exercise</button>
+                    <button class="btn btn-secondary">View History</button>
+                </div>
+            </section>
+
+            <!-- SEMANTIC STATES -->
+            <section class="section">
+                <h2 class="section-title">Semantic States</h2>
+                <p class="section-subtitle" style="margin-bottom: var(--space-lg);">
+                    Cards stack on mobile, grid on larger screens. Priority sections retain prominence.
+                </p>
+
+                <div class="grid grid-auto">
+                    <div class="state-card state-success">
+                        <div class="state-title">Success</div>
+                        <div class="state-message">Workout completed! +3% progressive overload achieved.</div>
+                    </div>
+
+                    <div class="state-card state-warning">
+                        <div class="state-title">Warning</div>
+                        <div class="state-message">Muscle group partially fatigued. Reduce volume by 10%.</div>
+                    </div>
+
+                    <div class="state-card state-error">
+                        <div class="state-title">Error</div>
+                        <div class="state-message">Exercise skipped. Muscle group requires 24h recovery.</div>
+                    </div>
+
+                    <div class="state-card state-info">
+                        <div class="state-title">Info</div>
+                        <div class="state-message">A/B variation recommended for next session.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SHADOW REFERENCE -->
+            <section class="section">
+                <h2 class="section-title">Shadow System Reference</h2>
+                <p class="section-subtitle" style="margin-bottom: var(--space-lg);">
+                    Two-layer shadows: top highlight + bottom shadow. Copy-paste ready.
+                </p>
+
+                <div class="grid grid-auto">
+                    <div class="color-section">
+                        <h4 style="margin-bottom: var(--space-md);">Small Shadow</h4>
+                        <div style="background: var(--neutral-50); padding: var(--space-xl); border-radius: 8px; box-shadow: var(--shadow-small);">
+                            <p style="color: var(--neutral-700); font-size: 0.875rem;">Nav items, tabs, subtle cards</p>
+                            <code style="display: block; margin-top: var(--space-sm); color: var(--neutral-500); font-size: 0.75rem; word-break: break-all;">
+                                inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.1)
+                            </code>
+                        </div>
+                    </div>
+
+                    <div class="color-section">
+                        <h4 style="margin-bottom: var(--space-md);">Medium Shadow</h4>
+                        <div style="background: var(--neutral-50); padding: var(--space-xl); border-radius: 8px; box-shadow: var(--shadow-medium);">
+                            <p style="color: var(--neutral-700); font-size: 0.875rem;">Cards, dropdowns, modals</p>
+                            <code style="display: block; margin-top: var(--space-sm); color: var(--neutral-500); font-size: 0.75rem; word-break: break-all;">
+                                inset 0 1px 0 rgba(255,255,255,0.15), 0 3px 6px rgba(0,0,0,0.15)
+                            </code>
+                        </div>
+                    </div>
+
+                    <div class="color-section">
+                        <h4 style="margin-bottom: var(--space-md);">Large Shadow</h4>
+                        <div style="background: var(--neutral-50); padding: var(--space-xl); border-radius: 8px; box-shadow: var(--shadow-large);">
+                            <p style="color: var(--neutral-700); font-size: 0.875rem;">Hover states, focused elements</p>
+                            <code style="display: block; margin-top: var(--space-sm); color: var(--neutral-500); font-size: 0.75rem; word-break: break-all;">
+                                inset 0 2px 0 rgba(255,255,255,0.2), 0 6px 12px rgba(0,0,0,0.2)
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESPONSIVE BEHAVIOR SUMMARY -->
+            <section class="section">
+                <h2 class="section-title">Responsive Behavior Summary</h2>
+                <div class="color-section">
+                    <h4 style="margin-bottom: var(--space-md);">Layout Breathing Philosophy</h4>
+                    <div style="color: var(--neutral-700);">
+                        <p style="margin-bottom: var(--space-sm);"><strong>Spatial Relationships:</strong></p>
+                        <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+                            <li>App Shell → Top Nav → Main Content → Bottom Nav</li>
+                            <li>Priority elements (nav, headers) retain size</li>
+                            <li>Secondary elements (cards, content) compress/reflow</li>
+                        </ul>
+
+                        <p style="margin-bottom: var(--space-sm);"><strong>Breathing & Reorganizing:</strong></p>
+                        <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+                            <li>Margins scale with clamp() - never arbitrary</li>
+                            <li>Gaps stay consistent via CSS variables</li>
+                            <li>Columns merge to rows (3-col → 2-col → 1-col)</li>
+                            <li>Typography scales fluidly with viewport</li>
+                            <li>Elements wrap instead of overflow</li>
+                        </ul>
+
+                        <p style="margin-bottom: var(--space-sm);"><strong>Try It:</strong></p>
+                        <ul style="margin-left: var(--space-lg);">
+                            <li>Resize browser width to see layout reorganize</li>
+                            <li>Watch breakpoint indicator change (top-right)</li>
+                            <li>Notice how cards stack but maintain spacing</li>
+                            <li>See tabs become scrollable on mobile</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- BOTTOM NAV: Priority element, stays fixed -->
+        <nav class="bottom-nav">
+            <div class="bottom-nav-items">
+                <div class="nav-item active">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Home</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">💪</div>
+                    <div class="nav-label">Workout</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📊</div>
+                    <div class="nav-label">Stats</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">⚙️</div>
+                    <div class="nav-label">Settings</div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- FAB: Floating element -->
+        <div class="fab">
+            <button class="fab-button" aria-label="Quick add workout">+</button>
+        </div>
+
+    </div>
+</body>
+</html>

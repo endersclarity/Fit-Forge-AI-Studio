@@ -185,6 +185,7 @@ erDiagram
 
 **Indexes**:
 - idx_workouts_user_date ON (user_id, date)
+- idx_workouts_date ON (date)
 - Foreign key index on user_id
 
 **Location**: `backend/database/schema.sql:29-41`
@@ -202,7 +203,7 @@ erDiagram
 | weight | REAL | NOT NULL | Weight used (lbs) |
 | reps | INTEGER | NOT NULL | Repetitions performed |
 | set_number | INTEGER | NOT NULL | Set sequence number |
-| to_failure | INTEGER | NOT NULL DEFAULT 0 | Boolean flag (0/1) for failure sets |
+| to_failure | INTEGER | DEFAULT 1 | Boolean flag (0/1) for failure sets |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Entry creation time |
 
 **Indexes**:
@@ -278,7 +279,10 @@ currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
 | user_override | REAL | | User-specified override value |
 | updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Last update time |
 
-**Indexes**: idx_muscle_baselines_user ON (user_id)
+**Indexes**:
+- idx_muscle_baselines_user ON (user_id)
+- idx_muscle_baselines_updated ON (updated_at)
+
 **Location**: `backend/database/schema.sql:84-95`
 
 ---
@@ -1359,11 +1363,13 @@ exercise_sets references workouts(id) with CASCADE on DELETE.
 
 ### Performance Indexes
 - idx_workouts_user_date ON workouts(user_id, date)
+- idx_workouts_date ON workouts(date)
 - idx_exercise_sets_workout ON exercise_sets(workout_id)
 - idx_exercise_sets_to_failure ON exercise_sets(to_failure)
 - idx_muscle_states_user ON muscle_states(user_id)
 - idx_personal_bests_user ON personal_bests(user_id)
 - idx_muscle_baselines_user ON muscle_baselines(user_id)
+- idx_muscle_baselines_updated ON muscle_baselines(updated_at)
 - idx_workout_templates_user ON workout_templates(user_id)
 
 ---
