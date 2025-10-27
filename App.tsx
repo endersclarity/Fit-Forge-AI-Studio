@@ -15,6 +15,7 @@ import Toast from './components/Toast';
 import { PRNotificationManager } from './components/PRNotification';
 import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard';
 import { calculateVolume } from './utils/helpers';
+import { detectProgressionMethod } from './utils/progressionMethodDetector';
 
 type View = "dashboard" | "workout" | "profile" | "bests" | "templates" | "analytics" | "muscle-baselines";
 
@@ -144,8 +145,23 @@ const App: React.FC = () => {
       });
       await setPersonalBests(newPbs);
 
-      // 5. Save new workout to database and update local state
-      const savedWorkout = await workoutsAPI.create(session);
+      // 5. Detect progression method by comparing to last workout
+      const category = session.type;
+      const lastWorkoutInCategory = workouts
+        .filter(w => w.type === category)
+        .sort((a, b) => b.endTime - a.endTime)[0] || null;
+
+      const progressionMethod = detectProgressionMethod(session, lastWorkoutInCategory);
+
+      // Add category and progressionMethod to session for API
+      const sessionWithMetadata = {
+        ...session,
+        category,
+        progressionMethod
+      };
+
+      // 7. Save new workout to database and update local state
+      const savedWorkout = await workoutsAPI.create(sessionWithMetadata);
       await setWorkouts(allWorkoutsIncludingCurrent);
 
       // Display PR notifications if any were detected

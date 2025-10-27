@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { WorkoutTemplate, Exercise } from '../types';
-import { templatesAPI } from '../api';
+import { WorkoutTemplate, Exercise, WorkoutResponse } from '../types';
+import { templatesAPI, workoutsAPI } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
 import { ChevronDownIcon } from './Icons';
 
@@ -9,13 +9,20 @@ interface WorkoutTemplatesProps {
   onSelectTemplate: (template: WorkoutTemplate) => void;
 }
 
+interface VariationSuggestion {
+  category: string;
+  suggestedVariation: 'A' | 'B';
+}
+
 const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTemplate }) => {
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Record<string, VariationSuggestion>>({});
 
   useEffect(() => {
     loadTemplates();
+    loadVariationSuggestions();
   }, []);
 
   const loadTemplates = async () => {
@@ -30,6 +37,29 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadVariationSuggestions = async () => {
+    const categories = ['Push', 'Pull', 'Legs', 'Core'];
+    const suggestionsMap: Record<string, VariationSuggestion> = {};
+
+    for (const category of categories) {
+      try {
+        const lastWorkout: WorkoutResponse | null = await workoutsAPI.getLastByCategory(category);
+        if (lastWorkout && lastWorkout.variation) {
+          const suggestedVariation = lastWorkout.variation === 'A' ? 'B' : 'A';
+          suggestionsMap[category] = { category, suggestedVariation: suggestedVariation as 'A' | 'B' };
+        } else {
+          // No previous workout - suggest A as default
+          suggestionsMap[category] = { category, suggestedVariation: 'A' };
+        }
+      } catch (err) {
+        // Default to A if error
+        suggestionsMap[category] = { category, suggestedVariation: 'A' };
+      }
+    }
+
+    setSuggestions(suggestionsMap);
   };
 
   const getExerciseNames = (exerciseIds: string[]): string[] => {
@@ -112,12 +142,18 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
               {categoryTemplates.map(template => {
                 const exerciseNames = getExerciseNames(template.exerciseIds);
                 const equipment = getRequiredEquipment(template.exerciseIds);
+                const suggestion = suggestions[category];
+                const isRecommended = suggestion && template.variation === suggestion.suggestedVariation;
 
                 return (
                   <button
                     key={template.id}
                     onClick={() => onSelectTemplate(template)}
-                    className="w-full bg-brand-surface p-4 rounded-lg hover:bg-opacity-80 transition-colors text-left"
+                    className={`w-full p-4 rounded-lg transition-all text-left ${
+                      isRecommended
+                        ? 'bg-brand-surface border-2 border-brand-cyan shadow-lg shadow-brand-cyan/20'
+                        : 'bg-brand-surface border-2 border-transparent opacity-70 hover:opacity-90'
+                    }`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
@@ -125,6 +161,11 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
                           <h3 className="text-lg font-semibold text-white">
                             {template.name}
                           </h3>
+                          {isRecommended && (
+                            <span className="px-2 py-0.5 bg-brand-cyan text-brand-dark text-xs font-bold rounded">
+                              RECOMMENDED
+                            </span>
+                          )}
                           {template.isFavorite && (
                             <span className="text-yellow-400">⭐</span>
                           )}

@@ -12,6 +12,7 @@ import RecoveryTimelineView from './RecoveryTimelineView';
 import { calculateStreak, calculateWeeklyStats, findRecentPRs } from '../utils/statsHelpers';
 import QuickAdd from './QuickAdd';
 import Toast from './Toast';
+import LastWorkoutContext from './LastWorkoutContext';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -548,6 +549,10 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 onSelectTemplate={onSelectTemplate}
                 onViewAllTemplates={onNavigateToTemplates}
             />
+        </section>
+
+        <section>
+            <LastWorkoutContext />
         </section>
 
         <section className="space-y-3">

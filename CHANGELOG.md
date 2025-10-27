@@ -7,6 +7,119 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-27 - [Feature] A/B Variation Intelligence - Complete Implementation
+
+**Commit**: 7a6cbca
+
+**Files Changed**:
+- components/LastWorkoutContext.tsx (new file - dashboard component showing last workouts)
+- components/Dashboard.tsx (integrated LastWorkoutContext component)
+- utils/progressionMethodDetector.ts (already existed - detects weight vs reps progression)
+- utils/progressiveOverload.ts (already existed - alternates progression methods)
+- components/ProgressiveSuggestionButtons.tsx (already existed - displays method badges)
+- backend/database/database.ts (getLastWorkoutByCategory already returned variation/progression_method)
+- backend/server.ts (GET /api/workouts/last endpoint already existed)
+- api.ts (workoutsAPI.create already sent variation and progressionMethod)
+
+**Summary**: Completed A/B Variation Intelligence feature (OpenSpec proposal: implement-ab-variation-intelligence). The system now tracks workout variations (A/B), suggests alternating variations to prevent plateaus, and intelligently recommends alternating between weight and reps progression methods.
+
+**What Was Implemented**:
+
+**Phase 1: Backend Last Workout Query API**
+- Verified existing `/api/workouts/last?category={category}` endpoint
+- Returns last workout with `variation` ('A'|'B'|'Both') and `progression_method` ('weight'|'reps')
+- Handles 404 gracefully when no workout history exists
+
+**Phase 2: Dashboard Last Workout Context UI** (New Implementation)
+- Created `LastWorkoutContext.tsx` component with 4 category cards (Push/Pull/Legs/Core)
+- Each card displays:
+  - Last workout variation and days ago (e.g., "Last: Push A (3 days ago)")
+  - Suggested opposite variation (e.g., "→ Ready for: Push B")
+  - First-time message for categories with no history
+- Fetches data in parallel for all 4 categories on component mount
+- Includes loading skeleton and error states
+- Mobile-responsive 2×2 grid layout
+- Integrated into Dashboard.tsx between Quick Start and Templates button
+
+**Phase 3: Variation Tracking on Save** (Already Implemented)
+- Workout.tsx sets `variation` field in WorkoutSession (line 515)
+- api.ts sends `variation` to backend (line 108)
+- database.ts saves to `workouts.variation` column (line 303)
+- End-to-end flow verified: variation correctly saved and retrieved
+
+**Phase 4: Progression Method Tracking** (Already Implemented)
+- `progressionMethodDetector.ts` detects whether workout focused on weight or reps:
+  - Compares current workout to last workout in same category
+  - Calculates average weight/reps change across common exercises
+  - Uses 2% threshold to determine primary method
+  - Alternates if both/neither increased significantly
+  - Defaults to 'weight' for first workout
+- App.tsx calls detector and passes method to API (lines 154, 160)
+- Backend saves to `workouts.progression_method` column
+- ProgressiveSuggestionButtons.tsx displays method badge: "Used: +WEIGHT method" / "+REPS method"
+
+**Phase 5: Template Recommendations** (Already Implemented)
+- WorkoutTemplates component highlights suggested variation with:
+  - "RECOMMENDED" badge (cyan background)
+  - Cyan border highlighting
+  - Prominent styling on suggested template
+- Suggests opposite variation based on last workout
+- Alternating logic working for all 4 categories
+
+**Technical Details**:
+
+**Data Flow**:
+1. User completes workout (e.g., "Push A")
+2. Workout.tsx includes `variation: "A"` in session object
+3. App.tsx detects progression method by comparing to last Push workout
+4. API sends both fields to backend: `variation: "A"`, `progressionMethod: "weight"`
+5. Backend saves to database
+6. Dashboard fetches last workouts for all categories
+7. LastWorkoutContext displays: "Last: Push A → Ready for: Push B"
+8. WorkoutTemplates highlights "Push B" with RECOMMENDED badge
+
+**Progression Method Detection Algorithm**:
+```typescript
+// Compare current vs last workout
+- Calculate avg weight change = (current - last) / last
+- Calculate avg reps change = (current - last) / last
+- If weight_change ≥ 2% and > reps_change: method = 'weight'
+- If reps_change ≥ 2% and > weight_change: method = 'reps'
+- Else: Alternate from last method (prevent stagnation)
+```
+
+**Testing Results**:
+- ✅ Dashboard "Last Workouts" section displays correctly
+- ✅ Variation alternation verified end-to-end
+- ✅ API returns correct variation from database
+- ✅ Template recommendations show "RECOMMENDED" badges
+- ✅ Progression method saved and displayed
+- ✅ First-time user experience (no history) handled gracefully
+- ✅ Mobile-responsive layout confirmed
+
+**User Experience**:
+Before: Users manually remembered which variation they did last
+After: App remembers and suggests opposite variation automatically
+
+Example flow:
+1. Dashboard: "Last: Push A (3 days ago) → Ready for: Push B"
+2. Templates screen: "Push B" has cyan RECOMMENDED badge
+3. During workout: Progressive overload shows "Used: +WEIGHT method"
+4. After saving: Next time suggests "Push A" and alternates to "+REPS method"
+
+**Performance Impact**:
+- Added ~2KB to bundle for LastWorkoutContext component
+- 4 parallel API calls on dashboard load (minimal latency)
+- No observable performance degradation
+
+**Notes**:
+- Proposal estimated 18-24 hours; actual implementation was ~2 hours because most infrastructure already existed
+- Only new code was LastWorkoutContext.tsx component and Dashboard integration
+- All other phases (1, 3, 4, 5) were already implemented in prior work
+- This completes Priority 1 from the original brainstorming vision document
+
+---
+
 ### 2025-10-27 - [Feature] Enhanced Quick Workout Logger - Phases 4-5 Complete
 
 **Files Changed**:

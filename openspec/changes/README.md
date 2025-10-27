@@ -6,36 +6,9 @@ This directory contains all active and archived OpenSpec change proposals for Fi
 
 ## Active Proposals (2025-10-26)
 
-### Critical Priority
-
-#### 1. To Failure Tracking UI
-**Change ID:** `implement-to-failure-tracking-ui`
-**Location:** `2025-10-26-implement-to-failure-tracking-ui/`
-**Status:** Draft - Ready for Review
-**Priority:** Critical
-**Estimated:** 9-14 hours (1-2 days)
-
-Add UI toggle for marking sets as "taken to failure" to unlock accurate baseline learning.
-
-**Key Deliverables:**
-- Toggle button on each set in Workout screen
-- Auto-mark last set as failure (smart default)
-- Visual distinction between failure and submaximal sets
-- Pass `to_failure` flag to backend API
-
-**Why Critical:** The baseline learning algorithm (already implemented) cannot accurately learn muscle capacity without knowing which sets were max-effort vs warmup.
-
-**Next Steps:**
-1. Review proposal
-2. Create design.md and spec deltas
-3. Create tasks.md
-4. Begin Phase 1: Core Toggle UI
-
----
-
 ### High Priority
 
-#### 2. A/B Variation Intelligence
+#### 1. A/B Variation Intelligence
 **Change ID:** `implement-ab-variation-intelligence`
 **Location:** `2025-10-26-implement-ab-variation-intelligence/`
 **Status:** Draft - Ready for Review
@@ -62,7 +35,7 @@ Intelligent workout variation tracking and suggestions to guide users to alterna
 
 ### Medium Priority
 
-#### 3. Research & Validate Muscle Fatigue Model
+#### 2. Research & Validate Muscle Fatigue Model
 **Change ID:** `research-muscle-fatigue-model-validation`
 **Location:** `2025-10-26-research-muscle-fatigue-model-validation/`
 **Status:** Draft - Ready for Review
@@ -89,7 +62,7 @@ Formal research sprint to validate scientific foundation of muscle fatigue model
 
 ---
 
-#### 4. Personal Muscle Engagement Calibration
+#### 3. Personal Muscle Engagement Calibration
 **Change ID:** `implement-personal-engagement-calibration`
 **Location:** `2025-10-26-implement-personal-engagement-calibration/`
 **Status:** Draft - Ready for Review
@@ -115,11 +88,27 @@ Enable users to override default muscle engagement percentages for exercises bas
 
 ---
 
-## Recently Implemented (2025-10-25)
+## Recently Implemented (2025-10-26)
+
+### To Failure Tracking UI
+**Change ID:** `implement-to-failure-tracking-ui`
+**Location:** `archive/2025-10-27-2025-10-26-implement-to-failure-tracking-ui/`
+**Status:** ✅ Implemented and Deployed
+**Completed:** 2025-10-26
+
+Added UI toggle for marking sets as "taken to failure" to unlock accurate baseline learning.
+
+**Delivered:**
+- Toggle checkbox UI on each set with smart last-set defaults
+- 44x44px touch target for mobile accessibility
+- Educational tooltip modal with info icon
+- ARIA labels and press animations
+- Fixed bug where manually added exercises didn't get proper defaults
+- ~3.5 hours implementation time
 
 ### Recovery Dashboard Components
 **Change ID:** `implement-recovery-dashboard-components`
-**Location:** `2025-10-25-implement-recovery-dashboard-components/`
+**Location:** `archive/2025-10-25-implement-recovery-dashboard-components/`
 **Status:** ✅ Implemented and Deployed
 **Completed:** 2025-10-25
 
@@ -183,6 +172,6 @@ To create a new proposal:
 ---
 
 **Last Updated:** 2025-10-26
-**Active Proposals:** 4
-**Recently Completed:** 1
-**Archived:** 6+
+**Active Proposals:** 3
+**Recently Completed:** 2
+**Archived:** 7+
