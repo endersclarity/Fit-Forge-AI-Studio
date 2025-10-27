@@ -7,6 +7,38 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-27 - [Fix] Apply EMG Research Corrections to Exercise Library
+
+**Files Changed**:
+- constants.ts (muscle engagement percentages for 40 exercises)
+
+**Summary**: Applied peer-reviewed EMG research findings to correct muscle engagement percentages in exercise library. Based on 189 scientific citations from comprehensive research sprint (see docs/emg-research-reference.md).
+
+**Major Corrections**:
+1. **Pull-up biceps:** 30% → 87% MVIC (2.9x increase)
+2. **Push-up triceps:** 50% → 75% MVIC (1.5x increase)
+3. **Push-up deltoids:** 40% → 30% MVIC (25% decrease)
+4. **Push-up core:** 20% → 35% MVIC (1.75x increase)
+5. **Box Step-ups glutes:** 60% → 169% MVIC (2.8x increase, highest glute activation)
+
+**Coverage**: 40/40 exercises updated with research-validated percentages
+
+**Impact**: More accurate exercise recommendations, improved fatigue tracking, better baseline learning convergence. Users may notice different recommendations due to improved accuracy.
+
+**Research Sources**:
+- docs/emg-research-reference.md (condensed reference, 40 exercises)
+- docs/research-findings.md (detailed analysis, 189 citations)
+
+**Status**: Completed. Ready for user calibration (future enhancement).
+
+**Technical Details**:
+- All values use midpoints where research provides ranges (e.g., 70-80% → 75%)
+- Values >100% MVIC are scientifically valid (dynamic exercise > isometric MVIC testing)
+- TypeScript compilation verified with no errors
+- No breaking changes to API, schema, or UI components
+
+---
+
 ### 2025-10-27 - [Research] Muscle Fatigue Model Validation - Complete
 
 **Files Changed**:
