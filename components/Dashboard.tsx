@@ -13,6 +13,7 @@ import { calculateStreak, calculateWeeklyStats, findRecentPRs } from '../utils/s
 import QuickAdd from './QuickAdd';
 import Toast from './Toast';
 import LastWorkoutContext from './LastWorkoutContext';
+import { MuscleVisualizationDual } from './MuscleVisualization';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -533,6 +534,32 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
           <h2 className="text-xl font-semibold mb-1">Welcome back, {profile.name || 'Athlete'}!</h2>
           <p className="text-slate-400">Ready to forge your strength?</p>
         </section>
+
+        {/* Muscle Visualization Hero Section */}
+        {!loading && !error && Object.keys(muscleStates).length > 0 && (
+          <section className="bg-brand-surface p-6 rounded-lg">
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-center mb-2">Muscle Recovery Status</h2>
+              <p className="text-slate-400 text-center text-sm">
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block w-3 h-3 rounded-full" style={{backgroundColor: '#6bcf7f'}}></span>
+                  <span className="text-xs">Ready</span>
+                  <span className="inline-block w-3 h-3 rounded-full" style={{backgroundColor: '#fdd835'}}></span>
+                  <span className="text-xs">Moderate</span>
+                  <span className="inline-block w-3 h-3 rounded-full" style={{backgroundColor: '#ff6b6b'}}></span>
+                  <span className="text-xs">Fatigued</span>
+                </span>
+              </p>
+            </div>
+            <MuscleVisualizationDual
+              muscleStates={muscleStates}
+              onMuscleClick={(muscle) => {
+                // Could open a modal or navigate to muscle details
+                console.log('Clicked muscle:', muscle);
+              }}
+            />
+          </section>
+        )}
 
         <section>
             <WorkoutRecommender
