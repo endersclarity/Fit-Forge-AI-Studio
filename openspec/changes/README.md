@@ -4,38 +4,11 @@ This directory contains all active and archived OpenSpec change proposals for Fi
 
 ---
 
-## Active Proposals (2025-10-26)
-
-### High Priority
-
-#### 1. A/B Variation Intelligence
-**Change ID:** `implement-ab-variation-intelligence`
-**Location:** `2025-10-26-implement-ab-variation-intelligence/`
-**Status:** Draft - Ready for Review
-**Priority:** High
-**Estimated:** 18-24 hours (2-3 days)
-
-Intelligent workout variation tracking and suggestions to guide users to alternate between A/B templates and weight/reps progression methods.
-
-**Key Deliverables:**
-- Dashboard shows "Last workout: Push A (3 days ago) → Ready for: Push B"
-- Track variation and progression method per workout
-- Suggest opposite variation and alternating method
-- Highlight recommended templates
-
-**Why High Priority:** Completes Priority 1 from brainstorming vision. Anti-plateau design philosophy.
-
-**Next Steps:**
-1. Review proposal
-2. Create design.md for UI and method detection
-3. Create spec deltas for capabilities
-4. Begin Phase 1: Backend Last Workout Query
-
----
+## Active Proposals (2025-10-27)
 
 ### Medium Priority
 
-#### 2. Research & Validate Muscle Fatigue Model
+#### 1. Research & Validate Muscle Fatigue Model
 **Change ID:** `research-muscle-fatigue-model-validation`
 **Location:** `2025-10-26-research-muscle-fatigue-model-validation/`
 **Status:** Draft - Ready for Review
@@ -62,7 +35,7 @@ Formal research sprint to validate scientific foundation of muscle fatigue model
 
 ---
 
-#### 3. Personal Muscle Engagement Calibration
+#### 2. Personal Muscle Engagement Calibration
 **Change ID:** `implement-personal-engagement-calibration`
 **Location:** `2025-10-26-implement-personal-engagement-calibration/`
 **Status:** Draft - Ready for Review
@@ -88,7 +61,25 @@ Enable users to override default muscle engagement percentages for exercises bas
 
 ---
 
-## Recently Implemented (2025-10-26)
+## Recently Implemented (2025-10-27)
+
+### A/B Variation Intelligence
+**Change ID:** `implement-ab-variation-intelligence`
+**Location:** `archive/2025-10-27-2025-10-26-implement-ab-variation-intelligence/`
+**Status:** ✅ Implemented and Deployed
+**Completed:** 2025-10-27
+
+Intelligent workout variation tracking and suggestions to guide users to alternate between A/B templates and weight/reps progression methods.
+
+**Delivered:**
+- Dashboard "Last Workouts" section showing 4 category cards with variation suggestions
+- Each card displays last variation and suggests opposite (e.g., "Last: Push A → Ready for: Push B")
+- Template screen highlights recommended variation with "RECOMMENDED" badge
+- Progression method tracking (weight vs reps) with intelligent alternation
+- Variation and progression_method saved to database on workout complete
+- First-time user experience with "First workout!" messaging
+- Mobile-responsive 2×2 grid layout
+- ~2 hours implementation time (most infrastructure already existed)
 
 ### To Failure Tracking UI
 **Change ID:** `implement-to-failure-tracking-ui`
@@ -171,7 +162,7 @@ To create a new proposal:
 
 ---
 
-**Last Updated:** 2025-10-26
-**Active Proposals:** 3
+**Last Updated:** 2025-10-27
+**Active Proposals:** 2
 **Recently Completed:** 2
-**Archived:** 7+
+**Archived:** 8+
