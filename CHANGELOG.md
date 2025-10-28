@@ -7,9 +7,11 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
-### 2025-10-28 - Fix Muscle Hover Tooltip Feature (COMPLETE - Coordinate-Based)
+### 2025-10-28 - Fix Muscle Hover Tooltip Feature (✅ DEPLOYED - Coordinate-Based)
 
 **Commit**: 9a36287
+**Status**: DEPLOYED & ARCHIVED
+**OpenSpec**: fix-hover-tooltip-muscle-identification
 
 **Files Changed**:
 - components/MuscleVisualization.tsx (modified - replaced color-based with coordinate-based hover detection)
