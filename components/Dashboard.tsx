@@ -13,6 +13,7 @@ import Toast from './Toast';
 import { MuscleVisualizationContainer } from './MuscleVisualization/MuscleVisualizationContainer';
 import WorkoutPlannerModal from './WorkoutPlannerModal';
 import CollapsibleCard from './CollapsibleCard';
+import { MuscleDeepDiveModal } from './MuscleDeepDiveModal';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -448,6 +449,10 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   // QuickAdd modal state
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
+  // Muscle deep dive modal state
+  const [deepDiveModalOpen, setDeepDiveModalOpen] = useState(false);
+  const [selectedMuscleForDeepDive, setSelectedMuscleForDeepDive] = useState<Muscle | null>(null);
+
   // Toast state
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
@@ -456,6 +461,18 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   const handleToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToastMessage(message);
     setToastType(type);
+  };
+
+  // Muscle deep dive modal handlers
+  const handleMuscleClickForDeepDive = (muscle: Muscle) => {
+    setSelectedMuscleForDeepDive(muscle);
+    setDeepDiveModalOpen(true);
+  };
+
+  const handleAddToWorkout = (planned: PlannedExercise) => {
+    // TODO: Integration with WorkoutPlannerModal
+    console.log('Add to workout:', planned);
+    setDeepDiveModalOpen(false);
   };
 
   // Fetch muscle states, workouts, and personal bests from backend API
@@ -563,9 +580,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
               muscleStates={muscleStates}
               loading={loading}
               error={error ? new Error(error) : null}
-              onMuscleSelect={(muscles) => setSelectedMuscles(muscles)}
+              onMuscleClick={handleMuscleClickForDeepDive}
               onRefresh={async () => {
-                await fetchMuscleStates();
+                await fetchDashboardData();
               }}
             />
           </section>
@@ -714,6 +731,19 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
           }
         }}
       />
+
+      {/* Muscle Deep Dive Modal */}
+      {selectedMuscleForDeepDive && (
+        <MuscleDeepDiveModal
+          isOpen={deepDiveModalOpen}
+          muscle={selectedMuscleForDeepDive}
+          muscleStates={muscleStates}
+          muscleBaselines={muscleBaselines}
+          workoutHistory={workouts}
+          onClose={() => setDeepDiveModalOpen(false)}
+          onAddToWorkout={handleAddToWorkout}
+        />
+      )}
 
       {/* Toast Notification */}
       {toastMessage && (
