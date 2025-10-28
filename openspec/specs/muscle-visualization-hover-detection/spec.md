@@ -1,15 +1,9 @@
-# Spec: Muscle Visualization Hover Detection
+# muscle-visualization-hover-detection Specification
 
-**Capability:** `muscle-visualization-hover-detection`
-**Type:** Core Feature (Bug Fix)
-**Status:** Modified
-**Related:** `muscle-visualization-interactions` (parent capability)
-
----
-
-## MODIFIED Requirements
-
-### Requirement: System MUST identify muscle from polygon coordinates
+## Purpose
+TBD - created by archiving change 2025-10-28-fix-hover-tooltip-muscle-identification. Update Purpose after archive.
+## Requirements
+### Requirement: System SHALL identify muscle from polygon coordinates
 
 **Priority:** High
 **Rationale:** Accurate muscle identification is critical for tooltip correctness and user trust
@@ -59,7 +53,7 @@ The muscle visualization hover detection system SHALL use polygon SVG coordinate
 
 ---
 
-### Requirement: System MUST build polygon coordinate map on component mount
+### Requirement: System SHALL build polygon coordinate map on component mount
 
 **Priority:** High
 **Rationale:** One-time initialization prevents repeated map building on every hover
@@ -103,7 +97,7 @@ The system SHALL construct the polygon coordinate mapping once when the muscle v
 
 ---
 
-### Requirement: System MUST handle missing or invalid polygon coordinates gracefully
+### Requirement: System SHALL handle missing or invalid polygon coordinates gracefully
 
 **Priority:** Medium
 **Rationale:** Defensive programming prevents crashes from unexpected data
@@ -147,7 +141,7 @@ When polygon coordinates cannot be found in the mapping or are invalid, the syst
 
 ---
 
-### Requirement: System MUST NOT use color for muscle identification
+### Requirement: System SHALL NOT use color for muscle identification
 
 **Priority:** Critical
 **Rationale:** Color-based matching is fundamentally broken and causes wrong muscle names
@@ -197,7 +191,7 @@ The system SHALL completely remove color-based muscle identification logic and S
 
 ---
 
-### Requirement: System MUST maintain compatibility with existing REVERSE_MUSCLE_MAP
+### Requirement: System SHALL maintain compatibility with existing REVERSE_MUSCLE_MAP
 
 **Priority:** High
 **Rationale:** Consistent muscle name resolution across click and hover interactions
@@ -238,61 +232,3 @@ The hover detection SHALL use the same REVERSE_MUSCLE_MAP that click handlers us
 
 ---
 
-## Implementation Notes
-
-**Import Path:**
-```typescript
-import { anteriorData, posteriorData } from 'react-body-highlighter/src/assets';
-```
-
-**Data Structure:**
-```typescript
-interface ISVGModelData {
-  muscle: Muscle;  // Library muscle ID: "chest", "upper-back", etc.
-  svgPoints: string[];  // Array of coordinate strings
-}
-```
-
-**Polygon Map Type:**
-```typescript
-Map<string, string>  // Map<coordinates, muscleId>
-```
-
-**Lookup Flow:**
-```
-polygon.getAttribute('points')
-  → trim whitespace
-  → polygonMap.get(coordinates)
-  → muscleId ("upper-back")
-  → REVERSE_MUSCLE_MAP[muscleId]
-  → muscleName ("Lats")
-```
-
----
-
-## Testing Requirements
-
-**Manual Testing:**
-- Hover all 13 muscle groups in both views
-- Verify correct names and fatigue percentages
-- Test rapid mouse movements
-- Test muscle boundary transitions
-
-**Production Validation:**
-- Build production bundle
-- Verify import path works in production
-- Test in Chrome, Firefox, Edge
-- Verify no console errors
-
----
-
-## Success Metrics
-
-- **Accuracy:** 100% of hover interactions show correct muscle name
-- **Performance:** <1ms coordinate lookup time
-- **Reliability:** 0 console errors during normal operation
-- **Code Quality:** Net reduction of 15+ lines of code
-
----
-
-*This spec replaces broken color-based muscle identification with accurate coordinate-based lookup.*
