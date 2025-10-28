@@ -7,25 +7,56 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
-### 2025-10-28 - Fix Muscle Hover Tooltip Feature
+### 2025-10-28 - Fix Muscle Hover Tooltip Feature (WIP - Investigating Accuracy)
 
 **Commit**: (pending)
 
 **Files Changed**:
-- components/MuscleVisualization.tsx (modified - implemented working hover tooltips)
+- components/MuscleVisualization.tsx (modified - implemented DOM-based hover tooltips)
 - CHANGELOG.md (updated)
 
-**Summary**: Successfully implemented muscle hover tooltip using DOM-based color mapping. Hovering over any muscle now displays tooltip with muscle name, exact fatigue percentage, and recovery status.
+**Summary**: Implemented muscle hover tooltip using DOM-based color mapping. Tooltip displays when hovering muscles, but showing incorrect muscle names in some cases.
 
-**Technical Solution**:
-- `react-body-highlighter` transforms colors internally, making prediction impossible
-- Solution: Read actual rendered polygon colors from DOM after SVG mounts
-- Group muscles by fatigue frequency and map to actual DOM colors
-- Handles multiple muscles with same color by storing arrays
+**Technical Journey**:
+1. **Initial Bug**: Tooltip UI existed but hover state never set (no event handlers)
+2. **Discovery**: react-body-highlighter transforms colors internally - cannot predict final polygon colors
+3. **Solution Attempt 1**: Try using `data-name` attributes → Not available on polygons
+4. **Solution Attempt 2**: Try matching `colors[frequency]` → Still mismatched due to transformation
+5. **Current Solution**: Read actual rendered polygon colors from DOM, group by frequency, match to muscles
+6. **New Issue**: Color-based matching shows wrong muscle when multiple muscles share same color
 
-**Result**: ✅ Tooltip working - tested showing "Trapezius, 13.3% fatigue, Ready to train"
+**Technical Implementation**:
+- useEffect reads actual polygon fill colors from DOM after SVG renders
+- Groups muscles by fatigue frequency (same frequency = same color)
+- Sorts colors and frequencies, maps them together
+- Attaches mouseenter/mouseleave listeners to all polygons
+- On hover: converts RGB to hex, looks up muscle by color
 
-**Ports**: Frontend 3000, Backend 3001 (unchanged)
+**Known Issues**:
+- ⚠️ Multiple muscles with same fatigue % get same color
+- ⚠️ Code picks first muscle from color group (`musclesWithColor[0]`)
+- ⚠️ Cannot distinguish which specific polygon was hovered (only color)
+- Example: Lats and Rhomboids both map to UPPER_BACK, both at ~13% fatigue
+
+**What Works**:
+- ✅ Tooltip appears on hover
+- ✅ Tooltip follows cursor with 15px offset
+- ✅ Tooltip shows muscle name, fatigue %, recovery status
+- ✅ Clean transitions on mouseleave
+- ✅ Click handler works correctly (uses muscle ID from react-body-highlighter callback)
+
+**Next Steps**:
+- Investigate using polygon-specific data instead of color matching
+- Consider using react-body-highlighter onClick stats.muscle approach for hover
+- May need to access SVG polygon IDs or data attributes
+
+**Debugging Notes**:
+- Multiple Docker rebuilds required due to browser caching
+- Used `docker system prune -f` to clear cache
+- Cache-busting parameter `?v=3` in browser
+- Console logging confirmed event attachment and firing
+
+**Ports**: Frontend 3000, Backend 3001 (unchanged per explicit requirement)
 
 ---
 
