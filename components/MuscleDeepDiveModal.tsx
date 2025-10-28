@@ -25,6 +25,10 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
   onAddToWorkout,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('recommended');
+  const [isolationOnly, setIsolationOnly] = useState(false);
+  const [compoundOnly, setCompoundOnly] = useState(false);
+  const [highEfficiencyOnly, setHighEfficiencyOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<'efficiency' | 'target' | 'alphabetical'>('efficiency');
 
   if (!isOpen) return null;
 
@@ -57,6 +61,44 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
     }))
     .sort((a, b) => b.efficiencyScore - a.efficiencyScore)
     .slice(0, 5);
+
+  // All exercises with filters and sorting
+  const allExercises = exercisesForMuscle
+    .map(ex => ({
+      exercise: ex,
+      efficiencyScore: calculateEfficiencyScore(muscle, ex.muscleEngagements, muscleCapacities),
+      efficiencyBadge: getEfficiencyBadge(calculateEfficiencyScore(muscle, ex.muscleEngagements, muscleCapacities)),
+      bottleneckMuscle: findBottleneckMuscle(muscle, ex.muscleEngagements, muscleCapacities),
+    }))
+    .filter(item => {
+      if (isolationOnly) {
+        const targetEngagement = item.exercise.muscleEngagements.find(e => e.muscle === muscle);
+        const hasLowSupporting = item.exercise.muscleEngagements
+          .filter(e => e.muscle !== muscle)
+          .every(e => e.percentage < 30);
+        if (!targetEngagement || targetEngagement.percentage < 70 || !hasLowSupporting) return false;
+      }
+
+      if (compoundOnly) {
+        const multiMuscle = item.exercise.muscleEngagements.filter(e => e.percentage >= 30).length >= 2;
+        if (!multiMuscle) return false;
+      }
+
+      if (highEfficiencyOnly) {
+        if (item.efficiencyBadge.color !== 'green') return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'efficiency') return b.efficiencyScore - a.efficiencyScore;
+      if (sortBy === 'target') {
+        const aTarget = a.exercise.muscleEngagements.find(e => e.muscle === muscle)?.percentage ?? 0;
+        const bTarget = b.exercise.muscleEngagements.find(e => e.muscle === muscle)?.percentage ?? 0;
+        return bTarget - aTarget;
+      }
+      return a.exercise.name.localeCompare(b.exercise.name);
+    });
 
   return (
     <div
@@ -148,7 +190,73 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
               ))}
             </div>
           )}
-          {activeTab === 'all' && <div>All exercises coming soon...</div>}
+          {activeTab === 'all' && (
+            <div className="space-y-4">
+              {/* Filters */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setIsolationOnly(!isolationOnly)}
+                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                    isolationOnly
+                      ? 'bg-brand-accent text-brand-dark'
+                      : 'bg-brand-muted text-brand-text hover:bg-brand-surface'
+                  }`}
+                >
+                  Isolation Only
+                </button>
+                <button
+                  onClick={() => setCompoundOnly(!compoundOnly)}
+                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                    compoundOnly
+                      ? 'bg-brand-accent text-brand-dark'
+                      : 'bg-brand-muted text-brand-text hover:bg-brand-surface'
+                  }`}
+                >
+                  Compound Only
+                </button>
+                <button
+                  onClick={() => setHighEfficiencyOnly(!highEfficiencyOnly)}
+                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                    highEfficiencyOnly
+                      ? 'bg-brand-accent text-brand-dark'
+                      : 'bg-brand-muted text-brand-text hover:bg-brand-surface'
+                  }`}
+                >
+                  High Efficiency
+                </button>
+              </div>
+
+              {/* Sort */}
+              <div>
+                <label className="text-xs text-brand-muted mr-2">Sort by:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="px-3 py-1 bg-brand-surface border border-brand-muted rounded text-sm text-brand-text"
+                >
+                  <option value="efficiency">Efficiency</option>
+                  <option value="target">Target %</option>
+                  <option value="alphabetical">Alphabetical</option>
+                </select>
+              </div>
+
+              {/* Exercise List */}
+              <div className="space-y-3">
+                {allExercises.map(({ exercise, efficiencyScore, efficiencyBadge, bottleneckMuscle }) => (
+                  <ExerciseCard
+                    key={exercise.id}
+                    exercise={exercise}
+                    targetMuscle={muscle}
+                    muscleStates={muscleCapacities}
+                    efficiencyScore={efficiencyScore}
+                    efficiencyBadge={efficiencyBadge}
+                    bottleneckMuscle={bottleneckMuscle}
+                    onAddToWorkout={onAddToWorkout}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
           {activeTab === 'history' && <div>Exercise history coming soon...</div>}
         </div>
       </div>
