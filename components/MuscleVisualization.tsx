@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import Model, { IExerciseData, IMuscleStats, MuscleType } from 'react-body-highlighter';
+import { anteriorData, posteriorData } from 'react-body-highlighter/src/assets';
 import { MuscleStatesResponse, Muscle } from '../types';
 
 /**
@@ -86,6 +87,31 @@ function interpolateColor(color1: string, color2: string, ratio: number): string
 }
 
 /**
+ * Build a mapping from polygon coordinates to muscle IDs
+ * Uses react-body-highlighter's internal coordinate data to enable accurate hover detection
+ * @returns Map where keys are polygon coordinate strings and values are muscle IDs
+ */
+function buildPolygonMap(): Map<string, string> {
+  const polygonToMuscleMap = new Map<string, string>();
+
+  // Process anterior (front) view polygons
+  anteriorData.forEach(({ muscle, svgPoints }) => {
+    svgPoints.forEach(points => {
+      polygonToMuscleMap.set(points.trim(), muscle);
+    });
+  });
+
+  // Process posterior (back) view polygons
+  posteriorData.forEach(({ muscle, svgPoints }) => {
+    svgPoints.forEach(points => {
+      polygonToMuscleMap.set(points.trim(), muscle);
+    });
+  });
+
+  return polygonToMuscleMap;
+}
+
+/**
  * Convert muscle states to exercise data format for react-body-highlighter
  */
 function convertToExerciseData(muscleStates: MuscleStatesResponse): { data: IExerciseData[], colors: string[] } {
@@ -132,8 +158,14 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
   const [hoveredMuscle, setHoveredMuscle] = useState<{ name: Muscle; fatigue: number } | null>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const polygonMapRef = useRef<Map<string, string>>();
 
   const { data, colors } = useMemo(() => convertToExerciseData(muscleStates), [muscleStates]);
+
+  // Build polygon coordinate map once on mount
+  useEffect(() => {
+    polygonMapRef.current = buildPolygonMap();
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
@@ -170,13 +202,11 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
 
   /**
    * Attach hover event listeners to SVG muscle elements
-   * Since react-body-highlighter doesn't support onHover prop and creates polygons without IDs,
-   * we build a mapping based on the polygon's fill color to determine which muscle is hovered
-   *
-   * We use a slight delay to ensure the SVG is fully rendered before attaching listeners
+   * Uses polygon coordinates to accurately identify muscles
+   * Coordinates are mapped from react-body-highlighter's internal data (anteriorData/posteriorData)
    */
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !polygonMapRef.current) return;
 
     // Wait for the SVG to be rendered (react-body-highlighter renders in its own useEffect)
     const attachListeners = () => {
@@ -187,78 +217,29 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
         return;
       }
 
-      // Build a color-to-muscles map by reading ACTUAL rendered colors from polygons
-      // react-body-highlighter applies transformations to colors, so we can't predict them
-      const colorToMusclesMap = new Map<string, Array<{ name: Muscle; fatigue: number }>>();
-
-      // First pass: collect all unique colors from the rendered polygons
-      const allPolygons = Array.from(svgWrappers).flatMap(wrapper =>
-        Array.from(wrapper.querySelectorAll('polygon'))
-      );
-
-      const uniqueColors = new Set<string>();
-      allPolygons.forEach(polygon => {
-        const fillColor = window.getComputedStyle(polygon).fill;
-        const rgbMatch = fillColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-        if (rgbMatch) {
-          const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
-          const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
-          const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
-          uniqueColors.add(`#${r}${g}${b}`.toLowerCase());
-        }
-      });
-
-      // Now map each unique color to muscles by matching fatigue levels
-      // Group muscles by their fatigue frequency (which determines color)
-      const frequencyGroups = new Map<number, Muscle[]>();
-      Object.entries(muscleStates).forEach(([muscleName, state]) => {
-        const frequency = Math.ceil(state.currentFatiguePercent);
-        if (!frequencyGroups.has(frequency)) {
-          frequencyGroups.set(frequency, []);
-        }
-        frequencyGroups.get(frequency)!.push(muscleName as Muscle);
-      });
-
-      // Map each unique color to its muscles
-      // Since we have same number of unique colors as frequency groups, match them
-      const sortedColors = Array.from(uniqueColors).sort();
-      const sortedFrequencies = Array.from(frequencyGroups.keys()).sort((a, b) => a - b);
-
-      sortedFrequencies.forEach((freq, index) => {
-        const color = sortedColors[index];
-        const muscles = frequencyGroups.get(freq)!;
-
-        colorToMusclesMap.set(color, muscles.map(name => ({
-          name,
-          fatigue: muscleStates[name].currentFatiguePercent
-        })));
-      });
-
-
       // Attach event listeners to all polygons
       svgWrappers.forEach((wrapper) => {
         const polygons = wrapper.querySelectorAll('polygon');
 
         polygons.forEach((polygon) => {
           polygon.addEventListener('mouseenter', () => {
-            // Get the fill color of this polygon
-            const fillColor = window.getComputedStyle(polygon).fill;
-            // Convert rgb(r, g, b) to #rrggbb format
-            const rgbMatch = fillColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-            if (rgbMatch) {
-              const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
-              const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
-              const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
-              const hexColor = `#${r}${g}${b}`;
+            // Get the polygon coordinates and look up the muscle ID
+            const points = polygon.getAttribute('points')?.trim();
 
-              // Look up muscles by color - may return multiple muscles with same color
-              const musclesWithColor = colorToMusclesMap.get(hexColor.toLowerCase());
-              if (musclesWithColor && musclesWithColor.length > 0) {
-                // For now, just show the first muscle with this color
-                // TODO: If multiple muscles share exact same polygon regions, show all in tooltip
-                const muscleInfo = musclesWithColor[0];
-                setHoveredMuscle(muscleInfo);
-                if (onMuscleHover) onMuscleHover(muscleInfo.name);
+            if (points && polygonMapRef.current) {
+              const muscleId = polygonMapRef.current.get(points);
+
+              if (muscleId) {
+                // Convert muscle ID to FitForge muscle name
+                const muscleName = REVERSE_MUSCLE_MAP[muscleId];
+
+                if (muscleName) {
+                  const fatiguePercent = muscleStates[muscleName]?.currentFatiguePercent ?? 0;
+                  setHoveredMuscle({ name: muscleName, fatigue: fatiguePercent });
+                  if (onMuscleHover) onMuscleHover(muscleName);
+                }
+              } else if (process.env.NODE_ENV === 'development') {
+                console.warn('Polygon coordinates not found in map:', points);
               }
             }
           });
@@ -273,7 +254,7 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
 
     // Start trying to attach listeners
     attachListeners();
-  }, [data, colors, muscleStates, onMuscleHover]); // Re-attach when dependencies change
+  }, [muscleStates, onMuscleHover]); // Re-attach when dependencies change
 
   return (
     <div
