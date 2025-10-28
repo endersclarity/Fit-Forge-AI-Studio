@@ -6,7 +6,7 @@ import { MuscleVisualizationDual } from '../MuscleVisualization';
 export interface MuscleVisualizationContainerProps {
   muscleStates: MuscleStatesResponse;
   onRefresh?: () => Promise<void>;
-  onMuscleSelect?: (muscles: Muscle[]) => void;
+  onMuscleClick?: (muscle: Muscle) => void;
   loading?: boolean;
   error?: Error | null;
   className?: string;
@@ -19,32 +19,24 @@ export interface MuscleVisualizationContainerProps {
 export const MuscleVisualizationContainer: React.FC<MuscleVisualizationContainerProps> = ({
   muscleStates,
   onRefresh,
-  onMuscleSelect,
+  onMuscleClick,
   loading = false,
   error = null,
   className = ''
 }) => {
   const {
-    selectedMuscles,
     viewMode,
     isCollapsed,
     showCalibrationIndicators,
-    toggleMuscle,
-    clearSelection,
     setViewMode,
     toggleCollapsed,
     toggleCalibrationIndicators
   } = useMuscleVisualization();
 
-  // Notify parent component when selection changes
-  React.useEffect(() => {
-    if (onMuscleSelect) {
-      onMuscleSelect(Array.from(selectedMuscles));
-    }
-  }, [selectedMuscles, onMuscleSelect]);
-
   const handleMuscleClick = (muscle: Muscle) => {
-    toggleMuscle(muscle);
+    if (onMuscleClick) {
+      onMuscleClick(muscle);
+    }
   };
 
   // Loading state
@@ -99,11 +91,6 @@ export const MuscleVisualizationContainer: React.FC<MuscleVisualizationContainer
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="text-xl font-semibold">Muscle Recovery Status</h2>
-          {selectedMuscles.size > 0 && (
-            <span className="px-2 py-1 bg-brand-primary/20 text-brand-primary text-xs rounded-full">
-              {selectedMuscles.size} selected
-            </span>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -118,17 +105,6 @@ export const MuscleVisualizationContainer: React.FC<MuscleVisualizationContainer
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-            </button>
-          )}
-
-          {/* Clear selection button (appears when muscles selected) */}
-          {selectedMuscles.size > 0 && (
-            <button
-              onClick={clearSelection}
-              className="px-3 py-1.5 text-sm bg-slate-700 text-slate-200 rounded-md hover:bg-slate-600 transition-colors"
-              aria-label="Clear muscle selection"
-            >
-              Clear Selection
             </button>
           )}
         </div>
@@ -153,7 +129,7 @@ export const MuscleVisualizationContainer: React.FC<MuscleVisualizationContainer
           </span>
         </p>
         <p className="text-slate-500 text-center text-xs mt-1">
-          Click muscles to filter exercises
+          Click muscles to view deep-dive modal
         </p>
       </div>
 
@@ -167,13 +143,6 @@ export const MuscleVisualizationContainer: React.FC<MuscleVisualizationContainer
         ) : (
           <div>Single view not yet implemented</div>
         )}
-      </div>
-
-      {/* Selection status announcement for screen readers */}
-      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-        {selectedMuscles.size > 0
-          ? `${Array.from(selectedMuscles).join(', ')} selected. Showing exercises that target ${selectedMuscles.size === 1 ? 'this muscle' : 'these muscles'}.`
-          : 'All selections cleared. Showing all exercises.'}
       </div>
     </div>
   );
