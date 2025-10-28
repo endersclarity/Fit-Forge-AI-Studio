@@ -1,19 +1,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
-import { Muscle, MuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse } from '../types';
+import { Muscle, MuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse, PlannedExercise } from '../types';
 import { formatDuration } from '../utils/helpers';
-import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
+import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon, BarChartIcon, ActivityIcon } from './Icons';
 import { RecommendedWorkoutData } from '../App';
-import DashboardQuickStart from './DashboardQuickStart';
 import ExerciseRecommendations from './ExerciseRecommendations';
 import QuickTrainingStats from './QuickTrainingStats';
 import WorkoutHistorySummary from './WorkoutHistorySummary';
-import RecoveryTimelineView from './RecoveryTimelineView';
 import { calculateStreak, calculateWeeklyStats, findRecentPRs } from '../utils/statsHelpers';
 import QuickAdd from './QuickAdd';
 import Toast from './Toast';
-import LastWorkoutContext from './LastWorkoutContext';
 import { MuscleVisualizationContainer } from './MuscleVisualization/MuscleVisualizationContainer';
+import WorkoutPlannerModal from './WorkoutPlannerModal';
+import CollapsibleCard from './CollapsibleCard';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -21,6 +20,7 @@ interface DashboardProps {
   muscleBaselines: MuscleBaselines;
   templates: WorkoutTemplate[];
   onStartWorkout: () => void;
+  onStartPlannedWorkout?: (plannedExercises: PlannedExercise[]) => void;
   onStartRecommendedWorkout: (data: RecommendedWorkoutData) => void;
   onSelectTemplate: (template: WorkoutTemplate) => void;
   onNavigateToProfile: () => void;
@@ -430,7 +430,7 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
 };
 
 
-const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaselines, templates, onStartWorkout, onStartRecommendedWorkout, onSelectTemplate, onNavigateToProfile, onNavigateToBests, onNavigateToTemplates, onNavigateToAnalytics, onNavigateToMuscleBaselines }) => {
+const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaselines, templates, onStartWorkout, onStartPlannedWorkout, onStartRecommendedWorkout, onSelectTemplate, onNavigateToProfile, onNavigateToBests, onNavigateToTemplates, onNavigateToAnalytics, onNavigateToMuscleBaselines }) => {
 
   // State management for fetching muscle states from API
   const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
@@ -441,6 +441,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
   // Muscle visualization selection state
   const [selectedMuscles, setSelectedMuscles] = useState<Muscle[]>([]);
+
+  // Workout planner modal state
+  const [isPlannerOpen, setIsPlannerOpen] = useState(false);
 
   // QuickAdd modal state
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
@@ -510,23 +513,39 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         </div>
         <div className="flex items-center gap-2">
             {onNavigateToAnalytics && (
-              <button onClick={onNavigateToAnalytics} className="p-2 rounded-full hover:bg-brand-surface" title="Analytics">
-                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+              <button
+                onClick={onNavigateToAnalytics}
+                className="p-2 rounded-full hover:bg-brand-surface min-w-[44px] min-h-[44px] flex items-center justify-center"
+                title="Analytics"
+                aria-label="Analytics"
+              >
+                <BarChartIcon className="w-6 h-6 text-purple-400"/>
               </button>
             )}
-            <button onClick={onNavigateToBests} className="p-2 rounded-full hover:bg-brand-surface" title="Personal Bests">
+            <button
+              onClick={onNavigateToBests}
+              className="p-2 rounded-full hover:bg-brand-surface min-w-[44px] min-h-[44px] flex items-center justify-center"
+              title="Personal Bests"
+              aria-label="Personal Bests"
+            >
                 <TrophyIcon className="w-6 h-6 text-yellow-400"/>
             </button>
             {onNavigateToMuscleBaselines && (
-              <button onClick={onNavigateToMuscleBaselines} className="p-2 rounded-full hover:bg-brand-surface" title="Muscle Baselines">
-                <svg className="w-6 h-6 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+              <button
+                onClick={onNavigateToMuscleBaselines}
+                className="p-2 rounded-full hover:bg-brand-surface min-w-[44px] min-h-[44px] flex items-center justify-center"
+                title="Muscle Baselines"
+                aria-label="Muscle Baselines"
+              >
+                <ActivityIcon className="w-6 h-6 text-brand-cyan"/>
               </button>
             )}
-            <button onClick={onNavigateToProfile} className="p-2 rounded-full hover:bg-brand-surface" title="Profile">
+            <button
+              onClick={onNavigateToProfile}
+              className="p-2 rounded-full hover:bg-brand-surface min-w-[44px] min-h-[44px] flex items-center justify-center"
+              title="Profile"
+              aria-label="Profile"
+            >
                 <UserIcon className="w-6 h-6"/>
             </button>
         </div>
@@ -534,8 +553,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
       <main className="space-y-8">
         <section className="bg-brand-surface p-4 rounded-lg">
-          <h2 className="text-xl font-semibold mb-1">Welcome back, {profile.name || 'Athlete'}!</h2>
-          <p className="text-slate-400">Ready to forge your strength?</p>
+          <h2 className="text-xl font-semibold">Welcome back, {profile.name || 'Athlete'}</h2>
         </section>
 
         {/* Muscle Visualization Hero Section */}
@@ -553,74 +571,55 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
           </section>
         )}
 
-        <section>
-            <WorkoutRecommender
-                muscleStates={muscleStates}
-                workouts={workouts}
-                muscleBaselines={muscleBaselines}
-                onStart={onStartRecommendedWorkout}
-            />
-        </section>
+        <CollapsibleCard title="Workout Recommendations" icon="💪" defaultExpanded={false}>
+          <WorkoutRecommender
+            muscleStates={muscleStates}
+            workouts={workouts}
+            muscleBaselines={muscleBaselines}
+            onStart={onStartRecommendedWorkout}
+          />
+        </CollapsibleCard>
 
-        <section>
-            <DashboardQuickStart
-                templates={templates}
-                onSelectTemplate={onSelectTemplate}
-                onViewAllTemplates={onNavigateToTemplates}
-            />
-        </section>
-
-        <section>
-            <LastWorkoutContext />
-        </section>
-
-        <section className="space-y-3">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <button
-                onClick={onNavigateToTemplates}
-                className="w-full bg-brand-surface text-white font-semibold py-4 px-4 rounded-lg text-lg hover:bg-opacity-80 transition-colors border border-brand-cyan"
+                onClick={() => setIsPlannerOpen(true)}
+                className="w-full bg-brand-accent text-brand-dark font-bold py-4 px-4 rounded-lg text-lg hover:bg-brand-accent/90 transition-colors min-h-[44px]"
             >
-                📋 Browse Workout Templates
+                📊 Plan Workout
             </button>
             <button
                 onClick={onStartWorkout}
-                className="w-full bg-brand-cyan text-brand-dark font-bold py-4 px-4 rounded-lg text-lg hover:bg-cyan-400 transition-colors"
+                className="w-full bg-brand-cyan text-brand-dark font-bold py-4 px-4 rounded-lg text-lg hover:bg-cyan-400 transition-colors min-h-[44px]"
             >
-                Start Custom Workout
+                ➕ Start Custom Workout
             </button>
         </section>
 
         {/* Quick Training Stats */}
         {!loading && !error && workoutHistory.length > 0 && (
-          <QuickTrainingStats
-            streak={streak}
-            weeklyStats={weeklyStats}
-            recentPRs={recentPRs}
-          />
+          <CollapsibleCard title="Quick Stats" icon="📈" defaultExpanded={false}>
+            <QuickTrainingStats
+              streak={streak}
+              weeklyStats={weeklyStats}
+              recentPRs={recentPRs}
+            />
+          </CollapsibleCard>
         )}
 
         {/* Workout History Summary */}
         {!loading && !error && (
-          <WorkoutHistorySummary
-            workouts={workoutHistory}
-            personalBests={personalBests}
-          />
+          <CollapsibleCard title="Recent Workouts" icon="📋" defaultExpanded={false}>
+            <WorkoutHistorySummary
+              workouts={workoutHistory}
+              personalBests={personalBests}
+            />
+          </CollapsibleCard>
         )}
 
-        {/* Recovery Timeline */}
+        {/* Muscle Fatigue Heat Map */}
         {!loading && !error && Object.keys(muscleStates).length > 0 && (
-          <RecoveryTimelineView
-            muscleStates={muscleStates}
-            onMuscleClick={(muscleName) => {
-              // Reuse the existing muscle modal logic from MuscleFatigueHeatMap
-              // For now, this is a placeholder - we'd need to lift the modal state
-              console.log('Muscle clicked:', muscleName);
-            }}
-          />
-        )}
-
-        <section className="bg-brand-surface p-4 rounded-lg">
+          <CollapsibleCard title="Muscle Heat Map" icon="🔥" defaultExpanded={false}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Muscle Fatigue Heat Map</h3>
               <button
                 onClick={fetchDashboardData}
                 disabled={loading}
@@ -633,48 +632,40 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 {loading ? 'Loading...' : '🔄 Refresh'}
               </button>
             </div>
-            {error ? (
-              <div className="text-center py-8">
-                <p className="text-red-400 mb-4">Error: {error}</p>
-                <button
-                  onClick={fetchDashboardData}
-                  className="bg-brand-cyan text-brand-dark px-4 py-2 rounded hover:bg-cyan-400 transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : loading && Object.keys(muscleStates).length === 0 ? (
-              <div className="text-center py-8 text-slate-400">
-                <p>Loading muscle states...</p>
-              </div>
-            ) : (
-              <MuscleFatigueHeatMap muscleStates={muscleStates} workouts={workouts} muscleBaselines={muscleBaselines} />
-            )}
-        </section>
-
-        {/* Exercise Recommendations Section */}
-        {!loading && !error && Object.keys(muscleStates).length > 0 && profile.equipment && (
-          <section>
-            <ExerciseRecommendations
-              muscleStates={muscleStates}
-              equipment={profile.equipment || []}
-              selectedMuscles={selectedMuscles}
-              onAddToWorkout={(exercise) => {
-                // Start a workout with the selected exercise
-                onStartRecommendedWorkout({
-                  type: exercise.category,
-                  variation: 'A', // Default to A variation
-                  suggestedExercises: [exercise]
-                });
-              }}
-            />
-          </section>
+            <MuscleFatigueHeatMap muscleStates={muscleStates} workouts={workouts} muscleBaselines={muscleBaselines} />
+          </CollapsibleCard>
         )}
 
-        <section className="bg-brand-surface p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Workout History</h3>
-            <WorkoutHistory workouts={workouts} />
-        </section>
+        {/* Exercise Recommendations Section */}
+        {!loading && !error && Object.keys(muscleStates).length > 0 && (
+          <CollapsibleCard title="Exercise Finder" icon="🎯" defaultExpanded={false}>
+            {profile.equipment ? (
+              <ExerciseRecommendations
+                muscleStates={muscleStates}
+                equipment={profile.equipment || []}
+                selectedMuscles={selectedMuscles}
+                onAddToWorkout={(exercise) => {
+                  // Start a workout with the selected exercise
+                  onStartRecommendedWorkout({
+                    type: exercise.category,
+                    variation: 'A', // Default to A variation
+                    suggestedExercises: [exercise]
+                  });
+                }}
+              />
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-slate-400 mb-2">Configure equipment in Profile to use Exercise Finder</p>
+                <button
+                  onClick={onNavigateToProfile}
+                  className="text-brand-cyan hover:underline"
+                >
+                  Go to Profile
+                </button>
+              </div>
+            )}
+          </CollapsibleCard>
+        )}
       </main>
 
       {/* Floating Action Button for Quick Add */}
@@ -708,6 +699,20 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
           fetchDashboardData();
         }}
         onToast={handleToast}
+      />
+
+      {/* Workout Planner Modal */}
+      <WorkoutPlannerModal
+        isOpen={isPlannerOpen}
+        onClose={() => setIsPlannerOpen(false)}
+        onStartWorkout={(plannedExercises) => {
+          if (onStartPlannedWorkout) {
+            onStartPlannedWorkout(plannedExercises);
+          } else {
+            // Fallback to regular workout start if no handler provided
+            onStartWorkout();
+          }
+        }}
       />
 
       {/* Toast Notification */}

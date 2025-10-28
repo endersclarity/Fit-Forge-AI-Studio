@@ -7,6 +7,116 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-28 - Streamline Homepage Information Architecture (✅ DEPLOYED)
+
+**Commit**: df69643
+**Status**: DEPLOYED & TESTED
+**OpenSpec**: streamline-homepage-information-architecture
+
+**Files Changed**:
+- components/Dashboard.tsx (removed redundant sections, wrapped sections in CollapsibleCard)
+- components/CollapsibleCard.tsx (new component for progressive disclosure)
+- openspec/changes/2025-10-27-streamline-homepage-information-architecture/ (proposal and tasks)
+
+**Summary**: Restructured homepage to prioritize decision-making over information density using aggressive progressive disclosure. Muscle visualization is now the ONLY always-visible content section (hero element), with all secondary features collapsed behind expandable cards.
+
+**Problem**: First real-world user testing revealed severe information overload on homepage. Workout history appeared THREE times, duplicate buttons ("Browse Templates"), unnecessary tagline, and muscle visualization was not prominent enough. User quote: "Don't need workout recommendations 'up front' - should be progressive disclosure. Homepage should lead with large, clear muscular structure visualization showing current fatigue levels."
+
+**Solution**: Implemented progressive disclosure pattern with CollapsibleCard component. Removed all redundant sections, simplified welcome message, and collapsed all secondary features behind expandable cards (default: collapsed).
+
+**Changes Implemented**:
+1. **Removed Redundant Sections**:
+   - DashboardQuickStart component (4 template cards)
+   - LastWorkoutContext component
+   - RecoveryTimelineView component (redundant with muscle viz color coding)
+   - Duplicate Workout History section (was shown 3 times, now shown once in collapsible card)
+   - "Browse Workout Templates" button (redundant)
+
+2. **Simplified Welcome Message**:
+   - Changed from "Welcome back, {name}, ready to forge strength" to "Welcome back, {name}"
+   - Removed tagline completely
+
+3. **Created CollapsibleCard Component**:
+   - Props: title, icon, defaultExpanded, children
+   - Smooth expand/collapse animation using CSS grid transitions
+   - Accessibility: aria-expanded, keyboard navigation, focus states
+   - Consistent styling across all cards
+
+4. **Wrapped Sections in Collapsible Cards** (all default to collapsed):
+   - 💪 Workout Recommendations
+   - 📈 Quick Stats
+   - 📋 Recent Workouts
+   - 🔥 Muscle Heat Map
+   - 🎯 Exercise Finder
+
+5. **Simplified Primary Actions**:
+   - Reduced from 3 buttons to 2: "Plan Workout" and "Start Custom Workout"
+   - Grid layout for even spacing
+   - Min tap target 44x44px for accessibility
+
+6. **Enhanced Exercise Finder**:
+   - Shows helpful message when equipment not configured
+   - Link to Profile page to configure equipment
+
+**Visual Hierarchy** (Top to Bottom):
+```
+┌─────────────────────────────────────────────────────┐
+│ Welcome back {name}                    [Profile 👤] │
+├─────────────────────────────────────────────────────┤
+│         🧍 LARGE MUSCLE VISUALIZATION               │
+│         (Color-coded fatigue heat map)              │
+│         Interactive hover with percentages          │
+├─────────────────────────────────────────────────────┤
+│ [📊 Plan Workout]  [➕ Start Custom Workout]        │
+├─────────────────────────────────────────────────────┤
+│ 💪 Workout Recommendations                     [▼] │
+│ 📈 Quick Stats                                 [▼] │
+│ 📋 Recent Workouts                             [▼] │
+│ 🔥 Muscle Heat Map                             [▼] │
+│ 🎯 Exercise Finder                             [▼] │
+└─────────────────────────────────────────────────────┘
+                    [+ Quick Add] (FAB)
+```
+
+**Impact**:
+- Muscle visualization now the ONLY always-visible content section
+- Massive reduction in cognitive load
+- User can see muscle viz immediately (no scrolling needed)
+- Clear visual hierarchy prioritizes decision-making
+- All secondary features accessible via progressive disclosure
+- No duplicate sections visible
+- Clean, focused interface
+
+**Technical Details**:
+- CollapsibleCard uses CSS grid `grid-rows-[0fr]` → `grid-rows-[1fr]` for smooth height transitions
+- Chevron icons rotate on expand/collapse
+- All cards have consistent dark background, rounded corners, padding
+- Keyboard accessible (Enter/Space to toggle)
+- Screen reader friendly with aria-expanded attribute
+
+**Testing**:
+- ✅ Muscle viz is ONLY always-visible section
+- ✅ Welcome message shows name only (no tagline)
+- ✅ Recovery Timeline completely removed
+- ✅ DashboardQuickStart removed
+- ✅ LastWorkoutContext removed
+- ✅ Browse Templates button removed
+- ✅ All 5 collapsible cards present and functional
+- ✅ All cards default to collapsed
+- ✅ Smooth expand/collapse animations
+- ✅ Two primary action buttons work correctly
+- ✅ Quick Add FAB still present
+- ✅ Mobile layout clean and readable
+- ✅ No TypeScript compilation errors
+- ✅ No performance regression
+
+**Future Work**:
+- User validation to confirm cognitive load reduction
+- Gather feedback on clean, focused interface
+- Iterate based on user feedback
+
+---
+
 ### 2025-10-27 - Implement React Router Navigation (✅ DEPLOYED)
 
 **Commit**: 8e3b8b8
