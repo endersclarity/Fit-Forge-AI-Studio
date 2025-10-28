@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useAPIState } from './hooks/useAPIState';
 import { profileAPI, workoutsAPI, muscleStatesAPI, personalBestsAPI, muscleBaselinesAPI, templatesAPI } from './api';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
@@ -17,8 +18,6 @@ import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard
 import { calculateVolume } from './utils/helpers';
 import { detectProgressionMethod } from './utils/progressionMethodDetector';
 
-type View = "dashboard" | "workout" | "profile" | "bests" | "templates" | "analytics" | "muscle-baselines";
-
 export interface RecommendedWorkoutData {
     type: ExerciseCategory;
     variation: Variation;
@@ -27,7 +26,7 @@ export interface RecommendedWorkoutData {
 }
 
 const App: React.FC = () => {
-  const [view, setView] = useState<View>("dashboard");
+  const navigate = useNavigate();
   const [isFirstTimeUser, setIsFirstTimeUser] = useState<boolean>(false);
 
   // Initialize default values
@@ -183,17 +182,15 @@ const App: React.FC = () => {
 
   }, [personalBests, muscleBaselines, workouts, setWorkouts, setPersonalBests, setMuscleBaselines]);
 
-  const navigateTo = (newView: View) => setView(newView);
-
   const handleStartRecommendedWorkout = useCallback((data: RecommendedWorkoutData) => {
     setRecommendedWorkout(data);
-    setView('workout');
-  }, []);
+    navigate('/workout');
+  }, [navigate]);
 
   const handleCancelWorkout = useCallback(() => {
     setRecommendedWorkout(null);
-    setView('dashboard');
-  }, []);
+    navigate('/');
+  }, [navigate]);
 
   const handleSelectTemplate = useCallback((template: WorkoutTemplate) => {
     // Convert template to recommended workout format
@@ -207,8 +204,8 @@ const App: React.FC = () => {
       suggestedExercises: exercises,
       sourceTemplate: template
     });
-    setView('workout');
-  }, []);
+    navigate('/workout');
+  }, [navigate]);
   
   const handleOnboardingComplete = useCallback(async (wizardData: WizardData) => {
     try {
@@ -228,111 +225,43 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const renderContent = () => {
-    // Show onboarding for first-time users
-    if (isFirstTimeUser) {
-      return <ProfileWizard onComplete={handleOnboardingComplete} />;
-    }
+  // Show onboarding for first-time users
+  if (isFirstTimeUser) {
+    return <ProfileWizard onComplete={handleOnboardingComplete} />;
+  }
 
-    // Show loading state while any critical data is loading (but not if first-time user)
-    const isLoading = profileLoading || workoutsLoading || muscleBaselinesLoading;
-
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center min-h-screen bg-brand-dark">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-cyan"></div>
-            <p className="mt-4 text-slate-400">Loading your data...</p>
-          </div>
+  // Show loading state while any critical data is loading
+  const isLoading = profileLoading || workoutsLoading || muscleBaselinesLoading;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-brand-dark">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-cyan"></div>
+          <p className="mt-4 text-slate-400">Loading your data...</p>
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
-    // Show error state if any critical API failed (excluding USER_NOT_FOUND which is handled above)
-    const hasError = (profileError && (profileError as any).code !== 'USER_NOT_FOUND') || workoutsError || muscleBaselinesError;
-    if (hasError) {
-      return (
-        <div className="flex items-center justify-center min-h-screen bg-brand-dark p-4">
-          <div className="text-center bg-brand-surface p-6 rounded-lg max-w-md">
-            <p className="text-red-400 font-semibold mb-2">Failed to connect to backend</p>
-            <p className="text-slate-400 text-sm mb-4">
-              Make sure the backend server is running at http://localhost:3001
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-brand-cyan text-brand-dark px-4 py-2 rounded-lg font-semibold"
-            >
-              Retry
-            </button>
-          </div>
+  // Show error state if any critical API failed (excluding USER_NOT_FOUND which is handled above)
+  const hasError = (profileError && (profileError as any).code !== 'USER_NOT_FOUND') || workoutsError || muscleBaselinesError;
+  if (hasError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-brand-dark p-4">
+        <div className="text-center bg-brand-surface p-6 rounded-lg max-w-md">
+          <p className="text-red-400 font-semibold mb-2">Failed to connect to backend</p>
+          <p className="text-slate-400 text-sm mb-4">
+            Make sure the backend server is running at http://localhost:3001
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-brand-cyan text-brand-dark px-4 py-2 rounded-lg font-semibold"
+          >
+            Retry
+          </button>
         </div>
-      );
-    }
-
-    switch(view) {
-        case 'dashboard':
-            return <Dashboard
-                      profile={profile}
-                      workouts={workouts}
-                      muscleBaselines={muscleBaselines}
-                      templates={templates}
-                      onStartWorkout={() => navigateTo('workout')}
-                      onStartRecommendedWorkout={handleStartRecommendedWorkout}
-                      onSelectTemplate={handleSelectTemplate}
-                      onNavigateToProfile={() => navigateTo('profile')}
-                      onNavigateToBests={() => navigateTo('bests')}
-                      onNavigateToTemplates={() => navigateTo('templates')}
-                      onNavigateToAnalytics={() => navigateTo('analytics')}
-                      onNavigateToMuscleBaselines={() => navigateTo('muscle-baselines')}
-                    />;
-        case 'workout':
-            return <WorkoutTracker
-                      onFinishWorkout={handleFinishWorkout}
-                      onCancel={handleCancelWorkout}
-                      allWorkouts={workouts}
-                      personalBests={personalBests}
-                      userProfile={profile}
-                      muscleBaselines={muscleBaselines}
-                      initialData={recommendedWorkout}
-                    />;
-        case 'profile':
-            return <Profile
-                      profile={profile}
-                      setProfile={setProfile}
-                      muscleBaselines={muscleBaselines}
-                      setMuscleBaselines={setMuscleBaselines}
-                      onBack={() => navigateTo('dashboard')}
-                    />;
-        case 'bests':
-            return <PersonalBestsComponent
-                      personalBests={personalBests}
-                      onBack={() => navigateTo('dashboard')}
-                    />;
-        case 'templates':
-            return <WorkoutTemplates
-                      onBack={() => navigateTo('dashboard')}
-                      onSelectTemplate={handleSelectTemplate}
-                    />;
-        case 'analytics':
-            return <Analytics />;
-        case 'muscle-baselines':
-            return <MuscleBaselinesPage />;
-        default:
-            return <Dashboard
-                      profile={profile}
-                      workouts={workouts}
-                      muscleBaselines={muscleBaselines}
-                      templates={templates}
-                      onStartWorkout={() => navigateTo('workout')}
-                      onStartRecommendedWorkout={handleStartRecommendedWorkout}
-                      onSelectTemplate={handleSelectTemplate}
-                      onNavigateToProfile={() => navigateTo('profile')}
-                      onNavigateToBests={() => navigateTo('bests')}
-                      onNavigateToTemplates={() => navigateTo('templates')}
-                      onNavigateToAnalytics={() => navigateTo('analytics')}
-                      onNavigateToMuscleBaselines={() => navigateTo('muscle-baselines')}
-                    />;
-    }
+      </div>
+    );
   }
 
   return (
@@ -344,7 +273,65 @@ const App: React.FC = () => {
           onDismissAll={() => setPrNotifications([])}
         />
       )}
-      {renderContent()}
+
+      <Routes>
+        <Route path="/" element={
+          <Dashboard
+            profile={profile}
+            workouts={workouts}
+            muscleBaselines={muscleBaselines}
+            templates={templates}
+            onStartWorkout={() => navigate('/workout')}
+            onStartRecommendedWorkout={handleStartRecommendedWorkout}
+            onSelectTemplate={handleSelectTemplate}
+            onNavigateToProfile={() => navigate('/profile')}
+            onNavigateToBests={() => navigate('/bests')}
+            onNavigateToTemplates={() => navigate('/templates')}
+            onNavigateToAnalytics={() => navigate('/analytics')}
+            onNavigateToMuscleBaselines={() => navigate('/muscle-baselines')}
+          />
+        } />
+
+        <Route path="/workout" element={
+          <WorkoutTracker
+            onFinishWorkout={handleFinishWorkout}
+            onCancel={handleCancelWorkout}
+            allWorkouts={workouts}
+            personalBests={personalBests}
+            userProfile={profile}
+            muscleBaselines={muscleBaselines}
+            initialData={recommendedWorkout}
+          />
+        } />
+
+        <Route path="/profile" element={
+          <Profile
+            profile={profile}
+            setProfile={setProfile}
+            muscleBaselines={muscleBaselines}
+            setMuscleBaselines={setMuscleBaselines}
+            onBack={() => navigate('/')}
+          />
+        } />
+
+        <Route path="/bests" element={
+          <PersonalBestsComponent
+            personalBests={personalBests}
+            onBack={() => navigate('/')}
+          />
+        } />
+
+        <Route path="/templates" element={
+          <WorkoutTemplates
+            onBack={() => navigate('/')}
+            onSelectTemplate={handleSelectTemplate}
+          />
+        } />
+
+        <Route path="/analytics" element={<Analytics />} />
+
+        <Route path="/muscle-baselines" element={<MuscleBaselinesPage />} />
+      </Routes>
     </div>
   );
 };
