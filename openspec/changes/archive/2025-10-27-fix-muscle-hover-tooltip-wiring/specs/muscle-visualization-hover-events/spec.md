@@ -3,7 +3,7 @@
 **Capability ID:** `muscle-visualization-hover-events`
 **Type:** Bug Fix / Enhancement
 **Related Change:** `fix-muscle-hover-tooltip-wiring`
-**Status:** Draft
+**Status:** Added
 
 ---
 
@@ -13,7 +13,7 @@ Wire up hover event handlers in the MuscleVisualization component to enable the 
 
 ---
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Hover State Management
 
