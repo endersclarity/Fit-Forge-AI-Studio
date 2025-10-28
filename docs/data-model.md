@@ -1186,6 +1186,78 @@ interface CollapsibleSectionProps {
 }
 ```
 
+#### MuscleDeepDiveModal
+**Location**: `components/MuscleDeepDiveModal.tsx`
+
+Interactive modal that opens when clicking any muscle in the visualization. Provides ranked exercise recommendations, real-time volume forecasting, and intelligent set building.
+
+**Features**:
+- **3 Tabs**: Recommended (top 5 by efficiency), All Exercises (filterable/sortable), History (last 3 exercises)
+- Real-time muscle fatigue forecasting based on planned volume
+- "Find Sweet Spot" auto-optimization to max target muscle before bottleneck
+- Interactive volume slider (0-10,000 lbs) with live muscle impact visualization
+- Set builder with locked target volume (adjustments maintain total)
+- Efficiency ranking algorithm: `(target_engagement × target_capacity) ÷ bottleneck_capacity`
+- Bottleneck muscle identification and warnings
+
+**Props**:
+```typescript
+interface MuscleDeepDiveModalProps {
+  isOpen: boolean;
+  muscle: Muscle;
+  muscleStates: MuscleStatesResponse;
+  muscleBaselines: MuscleBaselinesResponse;
+  workoutHistory: WorkoutSession[];
+  onClose: () => void;
+  onAddToWorkout: (exercise: PlannedExercise) => void;
+}
+```
+
+**Tabs**:
+- **Recommended**: Top 5 exercises ranked by efficiency score with badges (Efficient/Limited/Poor choice)
+- **All Exercises**: All exercises engaging target muscle with filters (Isolation/Compound/High Efficiency) and sorting (Efficiency/Target%/Alphabetical)
+- **History**: Last 3 exercises that trained this muscle, sorted by date
+
+**Related Utilities**:
+- `utils/exerciseEfficiency.ts` - Efficiency ranking and bottleneck detection
+- `utils/volumeForecasting.ts` - Volume forecasting and sweet spot optimization
+- `utils/setBuilder.ts` - Set/rep/weight calculations with locked volume
+
+#### ExerciseCard
+**Location**: `components/ExerciseCard.tsx`
+
+Expandable exercise card used within MuscleDeepDiveModal. Shows exercise details, volume slider, muscle impact, and set builder.
+
+**Features**:
+- Expandable card with exercise name, target muscle %, efficiency badge
+- Volume slider (0-10,000 lbs) with live muscle impact visualization
+- "Find Sweet Spot" button for auto-optimization
+- Muscle impact section showing current → forecasted fatigue for all engaged muscles
+- Bottleneck warnings: "⚠️ {muscle} will limit this exercise"
+- Set builder with locked target volume (default: 3 sets, 8-12 reps, rounds to 5 lbs)
+- Grid inputs for sets/reps/weight with real-time recalculation
+- "Add to Workout" button (integration pending)
+
+**Props**:
+```typescript
+interface ExerciseCardProps {
+  exercise: Exercise;
+  targetMuscle: Muscle;
+  muscleStates: Record<Muscle, { currentFatiguePercent: number; baseline: number }>;
+  efficiencyScore: number;
+  efficiencyBadge: { label: string; color: 'green' | 'yellow' | 'red' };
+  bottleneckMuscle: Muscle | null;
+  onAddToWorkout: (planned: PlannedExercise) => void;
+}
+```
+
+**Set Builder Logic**:
+- Locked volume: Total volume remains constant during adjustments
+- If user changes sets → recalculates weight
+- If user changes reps → recalculates weight
+- If user changes weight → recalculates reps
+- Always rounds weight to nearest 5 lbs
+
 ### Analytics Components (Phase 1 & 2 Complete)
 
 #### Analytics
