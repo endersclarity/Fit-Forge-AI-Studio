@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Muscle, MuscleStatesResponse, MuscleBaselinesResponse, PlannedExercise } from '../types';
+import { Muscle, MuscleStatesResponse, MuscleBaselinesResponse, PlannedExercise, WorkoutSession } from '../types';
 import { XIcon } from './Icons';
 import { EXERCISE_LIBRARY } from '../constants';
 import { calculateEfficiencyScore, getEfficiencyBadge, findBottleneckMuscle } from '../utils/exerciseEfficiency';
@@ -10,6 +10,7 @@ interface MuscleDeepDiveModalProps {
   muscle: Muscle;
   muscleStates: MuscleStatesResponse;
   muscleBaselines: MuscleBaselinesResponse;
+  workoutHistory: WorkoutSession[];
   onClose: () => void;
   onAddToWorkout: (exercise: PlannedExercise) => void;
 }
@@ -21,6 +22,7 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
   muscle,
   muscleStates,
   muscleBaselines,
+  workoutHistory,
   onClose,
   onAddToWorkout,
 }) => {
@@ -99,6 +101,30 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
       }
       return a.exercise.name.localeCompare(b.exercise.name);
     });
+
+  // Exercise history for this muscle
+  const exerciseHistory = workoutHistory
+    .flatMap(workout =>
+      workout.loggedExercises.map(logged => {
+        const exercise = EXERCISE_LIBRARY.find(ex => ex.id === logged.exerciseId);
+        if (!exercise) return null;
+
+        const engagesTargetMuscle = exercise.muscleEngagements.some(e => e.muscle === muscle);
+        if (!engagesTargetMuscle) return null;
+
+        const totalVolume = logged.sets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+
+        return {
+          exercise,
+          workout,
+          totalVolume,
+          date: workout.endTime,
+        };
+      })
+    )
+    .filter(Boolean)
+    .sort((a, b) => b!.date - a!.date)
+    .slice(0, 3);
 
   return (
     <div
@@ -257,7 +283,33 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
               </div>
             </div>
           )}
-          {activeTab === 'history' && <div>Exercise history coming soon...</div>}
+          {activeTab === 'history' && (
+            <div className="space-y-3">
+              {exerciseHistory.length === 0 ? (
+                <p className="text-center text-brand-muted py-8">
+                  No training history for {muscle} yet
+                </p>
+              ) : (
+                exerciseHistory.map((item, idx) => {
+                  if (!item) return null;
+                  const daysAgo = Math.floor((Date.now() - item.date) / (1000 * 60 * 60 * 24));
+                  return (
+                    <div key={idx} className="bg-brand-muted rounded-lg p-4">
+                      <h3 className="font-medium text-brand-text">{item.exercise.name}</h3>
+                      <div className="flex items-center gap-3 mt-1 text-sm text-brand-muted">
+                        <span>{daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : `${daysAgo} days ago`}</span>
+                        <span>•</span>
+                        <span>{item.totalVolume.toLocaleString()} lbs total</span>
+                      </div>
+                      <button className="text-xs text-brand-accent hover:underline mt-2">
+                        → View workout
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
