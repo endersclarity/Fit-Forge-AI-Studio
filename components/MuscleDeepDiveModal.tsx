@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Muscle, MuscleStatesResponse, MuscleBaselinesResponse, PlannedExercise } from '../types';
 import { XIcon } from './Icons';
+import { EXERCISE_LIBRARY } from '../constants';
+import { calculateEfficiencyScore, getEfficiencyBadge, findBottleneckMuscle } from '../utils/exerciseEfficiency';
+import { ExerciseCard } from './ExerciseCard';
 
 interface MuscleDeepDiveModalProps {
   isOpen: boolean;
@@ -27,6 +30,33 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
 
   const muscleState = muscleStates[muscle];
   const fatiguePercent = muscleState?.currentFatiguePercent ?? 0;
+
+  // Filter exercises for this muscle
+  const exercisesForMuscle = EXERCISE_LIBRARY.filter(ex =>
+    ex.muscleEngagements.some(e => e.muscle === muscle)
+  );
+
+  // Prepare muscle capacities object
+  const muscleCapacities = Object.fromEntries(
+    Object.entries(muscleStates).map(([m, state]) => [
+      m,
+      {
+        currentFatiguePercent: state.currentFatiguePercent,
+        baseline: muscleBaselines[m as Muscle] ?? 10000,
+      },
+    ])
+  );
+
+  // Rank exercises by efficiency
+  const rankedExercises = exercisesForMuscle
+    .map(ex => ({
+      exercise: ex,
+      efficiencyScore: calculateEfficiencyScore(muscle, ex.muscleEngagements, muscleCapacities),
+      efficiencyBadge: getEfficiencyBadge(calculateEfficiencyScore(muscle, ex.muscleEngagements, muscleCapacities)),
+      bottleneckMuscle: findBottleneckMuscle(muscle, ex.muscleEngagements, muscleCapacities),
+    }))
+    .sort((a, b) => b.efficiencyScore - a.efficiencyScore)
+    .slice(0, 5);
 
   return (
     <div
@@ -99,7 +129,25 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
 
         {/* Tab Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === 'recommended' && <div>Recommended exercises coming soon...</div>}
+          {activeTab === 'recommended' && (
+            <div className="space-y-3">
+              <p className="text-sm text-brand-muted mb-4">
+                Top 5 exercises ranked by efficiency for {muscle}
+              </p>
+              {rankedExercises.map(({ exercise, efficiencyScore, efficiencyBadge, bottleneckMuscle }) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  targetMuscle={muscle}
+                  muscleStates={muscleCapacities}
+                  efficiencyScore={efficiencyScore}
+                  efficiencyBadge={efficiencyBadge}
+                  bottleneckMuscle={bottleneckMuscle}
+                  onAddToWorkout={onAddToWorkout}
+                />
+              ))}
+            </div>
+          )}
           {activeTab === 'all' && <div>All exercises coming soon...</div>}
           {activeTab === 'history' && <div>Exercise history coming soon...</div>}
         </div>
