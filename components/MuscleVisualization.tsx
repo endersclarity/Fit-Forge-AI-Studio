@@ -181,27 +181,59 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
     // Wait for the SVG to be rendered (react-body-highlighter renders in its own useEffect)
     const attachListeners = () => {
       const svgWrappers = containerRef.current?.querySelectorAll('.rbh-wrapper');
-      console.log('[MuscleViz] Attaching listeners, wrappers found:', svgWrappers?.length);
       if (!svgWrappers || svgWrappers.length === 0) {
         // SVG not ready yet, try again shortly
-        console.log('[MuscleViz] SVG not ready, retrying in 50ms');
         setTimeout(attachListeners, 50);
         return;
       }
-      console.log('[MuscleViz] SVG ready, attaching listeners to polygons');
 
-      // Build a color-to-muscle map for lookup
-      const colorToMuscleMap = new Map<string, { name: Muscle; fatigue: number }>();
-      Object.entries(muscleStates).forEach(([muscleName, state]) => {
-        const fatiguePercent = state.currentFatiguePercent;
-        const frequency = Math.ceil(fatiguePercent);
-        const color = colors[frequency] || colors[0];
+      // Build a color-to-muscles map by reading ACTUAL rendered colors from polygons
+      // react-body-highlighter applies transformations to colors, so we can't predict them
+      const colorToMusclesMap = new Map<string, Array<{ name: Muscle; fatigue: number }>>();
 
-        colorToMuscleMap.set(color.toLowerCase(), {
-          name: muscleName as Muscle,
-          fatigue: fatiguePercent
-        });
+      // First pass: collect all unique colors from the rendered polygons
+      const allPolygons = Array.from(svgWrappers).flatMap(wrapper =>
+        Array.from(wrapper.querySelectorAll('polygon'))
+      );
+
+      const uniqueColors = new Set<string>();
+      allPolygons.forEach(polygon => {
+        const fillColor = window.getComputedStyle(polygon).fill;
+        const rgbMatch = fillColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgbMatch) {
+          const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
+          const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
+          const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
+          uniqueColors.add(`#${r}${g}${b}`.toLowerCase());
+        }
       });
+
+      // Now map each unique color to muscles by matching fatigue levels
+      // Group muscles by their fatigue frequency (which determines color)
+      const frequencyGroups = new Map<number, Muscle[]>();
+      Object.entries(muscleStates).forEach(([muscleName, state]) => {
+        const frequency = Math.ceil(state.currentFatiguePercent);
+        if (!frequencyGroups.has(frequency)) {
+          frequencyGroups.set(frequency, []);
+        }
+        frequencyGroups.get(frequency)!.push(muscleName as Muscle);
+      });
+
+      // Map each unique color to its muscles
+      // Since we have same number of unique colors as frequency groups, match them
+      const sortedColors = Array.from(uniqueColors).sort();
+      const sortedFrequencies = Array.from(frequencyGroups.keys()).sort((a, b) => a - b);
+
+      sortedFrequencies.forEach((freq, index) => {
+        const color = sortedColors[index];
+        const muscles = frequencyGroups.get(freq)!;
+
+        colorToMusclesMap.set(color, muscles.map(name => ({
+          name,
+          fatigue: muscleStates[name].currentFatiguePercent
+        })));
+      });
+
 
       // Attach event listeners to all polygons
       svgWrappers.forEach((wrapper) => {
@@ -219,9 +251,12 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
               const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
               const hexColor = `#${r}${g}${b}`;
 
-              // Look up muscle by color
-              const muscleInfo = colorToMuscleMap.get(hexColor.toLowerCase());
-              if (muscleInfo) {
+              // Look up muscles by color - may return multiple muscles with same color
+              const musclesWithColor = colorToMusclesMap.get(hexColor.toLowerCase());
+              if (musclesWithColor && musclesWithColor.length > 0) {
+                // For now, just show the first muscle with this color
+                // TODO: If multiple muscles share exact same polygon regions, show all in tooltip
+                const muscleInfo = musclesWithColor[0];
                 setHoveredMuscle(muscleInfo);
                 if (onMuscleHover) onMuscleHover(muscleInfo.name);
               }
