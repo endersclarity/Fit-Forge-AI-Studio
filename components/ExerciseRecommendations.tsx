@@ -5,7 +5,8 @@ import {
   EquipmentItem,
   MuscleStatesResponse,
   CalibrationMap,
-  ExerciseCalibrationData
+  ExerciseCalibrationData,
+  Muscle
 } from '../types';
 import { calculateRecommendations } from '../utils/exerciseRecommendations';
 import { getUserCalibrations, getExerciseCalibrations } from '../api';
@@ -18,12 +19,14 @@ import { CalibrationEditor } from './CalibrationEditor';
 interface ExerciseRecommendationsProps {
   muscleStates: MuscleStatesResponse;
   equipment: EquipmentItem[];
+  selectedMuscles?: Muscle[];
   onAddToWorkout: (exercise: Exercise) => void;
 }
 
 const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
   muscleStates,
   equipment,
+  selectedMuscles = [],
   onAddToWorkout
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | null>(null);
@@ -44,10 +47,38 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
 
   // Calculate recommendations (memoized to avoid recalculation on every render)
   // Now includes calibrations in the calculation
-  const recommendations = useMemo(
+  const allRecommendations = useMemo(
     () => calculateRecommendations(muscleStates, equipment, selectedCategory || undefined, calibrations),
     [muscleStates, equipment, selectedCategory, calibrations]
   );
+
+  // Filter recommendations by selected muscles (if any)
+  const recommendations = useMemo(() => {
+    if (selectedMuscles.length === 0) return allRecommendations;
+
+    // Filter exercises that target ANY of the selected muscles (OR logic)
+    return allRecommendations
+      .filter(rec => {
+        const exercise = rec.exercise;
+        // Check if exercise targets any of the selected muscles
+        return selectedMuscles.some(muscle => {
+          const engagement = exercise.muscleEngagement[muscle];
+          return engagement && engagement > 0;
+        });
+      })
+      .sort((a, b) => {
+        // Sort by total engagement of selected muscles (descending)
+        const aTotal = selectedMuscles.reduce(
+          (sum, muscle) => sum + (a.exercise.muscleEngagement[muscle] || 0),
+          0
+        );
+        const bTotal = selectedMuscles.reduce(
+          (sum, muscle) => sum + (b.exercise.muscleEngagement[muscle] || 0),
+          0
+        );
+        return bTotal - aTotal;
+      });
+  }, [allRecommendations, selectedMuscles]);
 
   // Group recommendations by status
   const excellent = recommendations.filter(r => r.status === 'excellent');
@@ -55,9 +86,9 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
   const suboptimal = recommendations.filter(r => r.status === 'suboptimal');
   const notRecommended = recommendations.filter(r => r.status === 'not-recommended');
 
-  // Calculate category counts for tabs (also needs calibrations)
+  // Calculate category counts for tabs
+  // Use filtered recommendations if muscles are selected, otherwise use all
   const categoryCounts = useMemo(() => {
-    const allRecs = calculateRecommendations(muscleStates, equipment, undefined, calibrations);
     const counts: Record<ExerciseCategory, number> = {
       Push: 0,
       Pull: 0,
@@ -65,12 +96,13 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
       Core: 0
     };
 
-    allRecs.forEach(rec => {
+    const recsToCount = selectedMuscles.length > 0 ? recommendations : allRecommendations;
+    recsToCount.forEach(rec => {
       counts[rec.exercise.category]++;
     });
 
     return counts;
-  }, [muscleStates, equipment, calibrations]);
+  }, [allRecommendations, recommendations, selectedMuscles]);
 
   // Handlers for calibration modals
   const handleViewEngagement = async (exerciseId: string) => {
@@ -129,7 +161,25 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
 
   return (
     <div className="bg-brand-surface p-4 rounded-lg space-y-4">
-      <h3 className="text-xl font-semibold">Recommended Exercises</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-semibold">
+          {selectedMuscles.length > 0 ? (
+            <>
+              Exercises for{' '}
+              <span className="text-brand-primary">
+                {selectedMuscles.join(', ')}
+              </span>
+            </>
+          ) : (
+            'Recommended Exercises'
+          )}
+        </h3>
+        {selectedMuscles.length > 0 && (
+          <span className="text-sm text-slate-400">
+            {recommendations.length} exercises found
+          </span>
+        )}
+      </div>
 
       {/* Category Tabs */}
       <CategoryTabs

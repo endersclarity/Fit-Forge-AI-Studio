@@ -34,9 +34,14 @@ const REVERSE_MUSCLE_MAP: Record<string, Muscle> = Object.entries(MUSCLE_NAME_MA
 interface MuscleVisualizationProps {
   muscleStates: MuscleStatesResponse;
   type?: 'anterior' | 'posterior';
+  selectedMuscles?: Set<Muscle>;
   onMuscleClick?: (muscle: Muscle) => void;
+  onMuscleHover?: (muscle: Muscle | null) => void;
+  showCalibrationIndicators?: boolean;
   className?: string;
   style?: React.CSSProperties;
+  ariaLabel?: string;
+  tabIndex?: number;
 }
 
 /**
@@ -85,19 +90,22 @@ function interpolateColor(color1: string, color2: string, ratio: number): string
  */
 function convertToExerciseData(muscleStates: MuscleStatesResponse): { data: IExerciseData[], colors: string[] } {
   const exerciseData: IExerciseData[] = [];
-  const colorMap = new Map<number, string>();
 
-  // Create a unique "exercise" for each muscle with its fatigue level
+  // Pre-build complete color array for fatigue percentages 0-100
+  // react-body-highlighter uses colors[frequency-1] to get the color
+  // So colors[i] should be the color for (i+1)% fatigue
+  const colors: string[] = [];
+  for (let i = 0; i <= 100; i++) {
+    colors.push(getFatigueColor(i));
+  }
+
+  // Create exercise data for each muscle with its fatigue level as frequency
   Object.entries(muscleStates).forEach(([muscleName, state]) => {
     const muscleIds = MUSCLE_NAME_MAP[muscleName as Muscle];
     if (!muscleIds) return;
 
     const fatiguePercent = state.currentFatiguePercent;
-    const color = getFatigueColor(fatiguePercent);
-    const frequency = Math.ceil(fatiguePercent); // Use fatigue percent as frequency for color mapping
-
-    // Store the color for this frequency level
-    colorMap.set(frequency, color);
+    const frequency = Math.ceil(fatiguePercent); // Use fatigue percent as frequency
 
     exerciseData.push({
       name: muscleName,
@@ -106,22 +114,20 @@ function convertToExerciseData(muscleStates: MuscleStatesResponse): { data: IExe
     });
   });
 
-  // Create color array based on frequency levels
-  const maxFrequency = Math.max(...Array.from(colorMap.keys()));
-  const colors: string[] = [];
-  for (let i = 0; i <= maxFrequency; i++) {
-    colors.push(colorMap.get(i) || colorMap.get(Math.max(...Array.from(colorMap.keys()).filter(k => k <= i))) || '#B6BDC3');
-  }
-
   return { data: exerciseData, colors };
 }
 
 export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
   muscleStates,
   type = 'anterior',
+  selectedMuscles = new Set<Muscle>(),
   onMuscleClick,
+  onMuscleHover,
+  showCalibrationIndicators = false,
   className = '',
-  style = {}
+  style = {},
+  ariaLabel,
+  tabIndex
 }) => {
   const [hoveredMuscle, setHoveredMuscle] = useState<{ name: Muscle; fatigue: number } | null>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -186,17 +192,51 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
         </div>
       )}
 
-      {/* Custom CSS for hover effects */}
+      {/* Custom CSS for hover effects and selection */}
       <style>{`
         .muscle-viz-container svg polygon,
         .muscle-viz-container svg path {
-          transition: opacity 0.2s ease-in-out;
+          transition: all 0.3s ease-in-out;
           cursor: pointer;
         }
         .muscle-viz-container svg polygon:hover,
         .muscle-viz-container svg path:hover {
           opacity: 0.85 !important;
-          filter: brightness(1.1);
+          filter: brightness(1.2);
+        }
+
+        /* Selection styles - applied via data attribute matching */
+        ${Array.from(selectedMuscles).map(muscle => {
+          const muscleIds = MUSCLE_NAME_MAP[muscle];
+          if (!muscleIds) return '';
+
+          // Generate CSS selectors for selected muscles
+          return muscleIds.map(id => `
+            .muscle-viz-container svg [data-id="${id}"],
+            .muscle-viz-container svg [id*="${id}"] {
+              stroke: white !important;
+              stroke-width: 3px !important;
+              filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8)) brightness(1.1) !important;
+              animation: pulse-glow 2s ease-in-out infinite !important;
+            }
+          `).join('');
+        }).join('')}
+
+        @keyframes pulse-glow {
+          0%, 100% {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6)) brightness(1.1);
+          }
+          50% {
+            filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.9)) brightness(1.15);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .muscle-viz-container svg polygon,
+          .muscle-viz-container svg path {
+            transition: none !important;
+            animation: none !important;
+          }
         }
       `}</style>
     </div>
@@ -211,11 +251,17 @@ export const MuscleVisualizationDual: React.FC<Omit<MuscleVisualizationProps, 't
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
         <h3 className="text-center text-sm font-medium text-slate-400 mb-2">Front View</h3>
-        <MuscleVisualization {...props} type="anterior" />
+        <MuscleVisualization
+          {...props}
+          type="anterior"
+        />
       </div>
       <div>
         <h3 className="text-center text-sm font-medium text-slate-400 mb-2">Back View</h3>
-        <MuscleVisualization {...props} type="posterior" />
+        <MuscleVisualization
+          {...props}
+          type="posterior"
+        />
       </div>
     </div>
   );
