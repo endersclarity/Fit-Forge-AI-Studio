@@ -67,8 +67,8 @@ export function useMuscleStates(): UseMuscleStatesReturn {
 
 // Helper to determine muscle category
 function determineMuscleCategory(muscleName: string): 'PUSH' | 'PULL' | 'LEGS' | 'CORE' {
-  const pushMuscles = ['Pectoralis', 'Triceps', 'Deltoids', 'Anterior Deltoids'];
-  const pullMuscles = ['Latissimus Dorsi', 'Biceps', 'Rhomboids', 'Trapezius', 'Forearms'];
+  const pushMuscles = ['Pectoralis', 'Triceps', 'Deltoids'];
+  const pullMuscles = ['Lats', 'Biceps', 'Rhomboids', 'Trapezius', 'Forearms'];
   const legMuscles = ['Quadriceps', 'Hamstrings', 'Glutes', 'Calves'];
 
   if (pushMuscles.some(m => muscleName.includes(m))) return 'PUSH';

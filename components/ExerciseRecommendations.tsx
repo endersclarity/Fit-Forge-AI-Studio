@@ -62,18 +62,24 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
         const exercise = rec.exercise;
         // Check if exercise targets any of the selected muscles
         return selectedMuscles.some(muscle => {
-          const engagement = exercise.muscleEngagement[muscle];
-          return engagement && engagement > 0;
+          const engagementObj = exercise.muscleEngagements.find(e => e.muscle === muscle);
+          return engagementObj && engagementObj.percentage > 0;
         });
       })
       .sort((a, b) => {
         // Sort by total engagement of selected muscles (descending)
         const aTotal = selectedMuscles.reduce(
-          (sum, muscle) => sum + (a.exercise.muscleEngagement[muscle] || 0),
+          (sum, muscle) => {
+            const engagementObj = a.exercise.muscleEngagements.find(e => e.muscle === muscle);
+            return sum + (engagementObj?.percentage || 0);
+          },
           0
         );
         const bTotal = selectedMuscles.reduce(
-          (sum, muscle) => sum + (b.exercise.muscleEngagement[muscle] || 0),
+          (sum, muscle) => {
+            const engagementObj = b.exercise.muscleEngagements.find(e => e.muscle === muscle);
+            return sum + (engagementObj?.percentage || 0);
+          },
           0
         );
         return bTotal - aTotal;

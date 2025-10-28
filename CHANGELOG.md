@@ -7,6 +7,50 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-28 - [WIP] Implement Muscle Hover Tooltip Event Listeners
+
+**Commit**: (pending)
+
+**Files Changed**:
+- components/MuscleVisualization.tsx (modified - added hover event listeners)
+- openspec/changes/2025-10-27-fix-muscle-hover-tooltip-wiring/ (active proposal)
+
+**Summary**: Implemented hover event listener infrastructure for muscle visualization tooltip feature. Event listeners successfully attach to SVG polygons and detect hover events. Tooltip UI already exists but currently not displaying due to color mapping bug.
+
+**Changes Made**:
+1. Added `useEffect` hook to attach DOM event listeners to SVG polygon elements (lines 178-241)
+2. Implemented color-to-muscle mapping logic for hover detection (lines 193-204)
+3. Added `handleHover` callback function with muscle name and fatigue lookup (lines 154-169)
+4. Added `containerRef` to track component mount state
+5. Console logging confirms listeners attach successfully to 66 polygons across 2 SVG wrappers
+
+**Current Status**:
+- ✅ Event listeners attach successfully (confirmed via console logs)
+- ✅ SVG rendering with 66 polygons (front/back views)
+- ✅ Color conversion logic implemented (RGB → Hex)
+- ❌ **BUG IDENTIFIED**: Color-to-muscle Map overwrite issue - when multiple muscles share same fatigue % (thus same color), only last muscle is stored in Map
+- ❌ Tooltip not displaying in browser (due to Map bug)
+
+**Bug Details**:
+- **Issue**: `colorToMuscleMap` uses color as unique key, but multiple muscles can have identical colors
+- **Example**: Pectoralis (88%), Deltoids (88%), Triceps (88%) all map to `#e44646` - only Triceps survives in Map
+- **Impact**: Hovering over any red muscle would only show the last muscle processed with that color
+- **Next Step**: Fix Map to handle multiple muscles per color OR use alternative lookup strategy
+
+**Technical Context**:
+- React component successfully mounts and renders
+- `react-body-highlighter` library creates polygons without IDs, requiring color-based lookup
+- Production build confirmed deployed (bundle hash: `index-NajfPj9h.js`)
+- Docker containers rebuilt successfully with new code
+
+**Testing Notes**:
+- Containers running on correct ports (frontend: 3000, backend: 3001)
+- No port configuration changes made
+- Event dispatch tests confirm mouseenter fires but doesn't trigger React state update
+- Color mapping bug prevents tooltip from appearing
+
+---
+
 ### 2025-10-27 - [OpenSpec] Completed Phase 1 Research for Muscle Visualization POC
 
 **Files Changed**:

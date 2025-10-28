@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import Model, { IExerciseData, IMuscleStats, MuscleType } from 'react-body-highlighter';
 import { MuscleStatesResponse, Muscle } from '../types';
 
@@ -7,7 +7,7 @@ import { MuscleStatesResponse, Muscle } from '../types';
  */
 const MUSCLE_NAME_MAP: Record<Muscle, string[]> = {
   'Pectoralis': [MuscleType.CHEST],
-  'Latissimus Dorsi': [MuscleType.UPPER_BACK, MuscleType.LOWER_BACK],
+  'Lats': [MuscleType.UPPER_BACK, MuscleType.LOWER_BACK],
   'Trapezius': [MuscleType.TRAPEZIUS],
   'Rhomboids': [MuscleType.UPPER_BACK],
   'Deltoids': [MuscleType.FRONT_DELTOIDS, MuscleType.BACK_DELTOIDS],
@@ -131,6 +131,7 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
 }) => {
   const [hoveredMuscle, setHoveredMuscle] = useState<{ name: Muscle; fatigue: number } | null>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { data, colors } = useMemo(() => convertToExerciseData(muscleStates), [muscleStates]);
 
@@ -146,8 +147,102 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
     }
   };
 
+  /**
+   * Handle mouse hover over muscle regions
+   * Updates hoveredMuscle state to show tooltip with muscle name and fatigue percentage
+   */
+  const handleHover = useCallback((stats: IMuscleStats | null) => {
+    if (!stats) {
+      // Mouse left muscle region - clear hover state
+      setHoveredMuscle(null);
+      if (onMuscleHover) onMuscleHover(null);
+      return;
+    }
+
+    // Mouse entered muscle region - set hover state
+    const muscleName = REVERSE_MUSCLE_MAP[stats.muscle];
+    if (muscleName) {
+      const fatiguePercent = muscleStates[muscleName]?.currentFatiguePercent ?? 0;
+      setHoveredMuscle({ name: muscleName, fatigue: fatiguePercent });
+      if (onMuscleHover) onMuscleHover(muscleName);
+    }
+  }, [muscleStates, onMuscleHover]);
+
+  /**
+   * Attach hover event listeners to SVG muscle elements
+   * Since react-body-highlighter doesn't support onHover prop and creates polygons without IDs,
+   * we build a mapping based on the polygon's fill color to determine which muscle is hovered
+   *
+   * We use a slight delay to ensure the SVG is fully rendered before attaching listeners
+   */
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Wait for the SVG to be rendered (react-body-highlighter renders in its own useEffect)
+    const attachListeners = () => {
+      const svgWrappers = containerRef.current?.querySelectorAll('.rbh-wrapper');
+      console.log('[MuscleViz] Attaching listeners, wrappers found:', svgWrappers?.length);
+      if (!svgWrappers || svgWrappers.length === 0) {
+        // SVG not ready yet, try again shortly
+        console.log('[MuscleViz] SVG not ready, retrying in 50ms');
+        setTimeout(attachListeners, 50);
+        return;
+      }
+      console.log('[MuscleViz] SVG ready, attaching listeners to polygons');
+
+      // Build a color-to-muscle map for lookup
+      const colorToMuscleMap = new Map<string, { name: Muscle; fatigue: number }>();
+      Object.entries(muscleStates).forEach(([muscleName, state]) => {
+        const fatiguePercent = state.currentFatiguePercent;
+        const frequency = Math.ceil(fatiguePercent);
+        const color = colors[frequency] || colors[0];
+
+        colorToMuscleMap.set(color.toLowerCase(), {
+          name: muscleName as Muscle,
+          fatigue: fatiguePercent
+        });
+      });
+
+      // Attach event listeners to all polygons
+      svgWrappers.forEach((wrapper) => {
+        const polygons = wrapper.querySelectorAll('polygon');
+
+        polygons.forEach((polygon) => {
+          polygon.addEventListener('mouseenter', () => {
+            // Get the fill color of this polygon
+            const fillColor = window.getComputedStyle(polygon).fill;
+            // Convert rgb(r, g, b) to #rrggbb format
+            const rgbMatch = fillColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+            if (rgbMatch) {
+              const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
+              const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
+              const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
+              const hexColor = `#${r}${g}${b}`;
+
+              // Look up muscle by color
+              const muscleInfo = colorToMuscleMap.get(hexColor.toLowerCase());
+              if (muscleInfo) {
+                setHoveredMuscle(muscleInfo);
+                if (onMuscleHover) onMuscleHover(muscleInfo.name);
+              }
+            }
+          });
+
+          polygon.addEventListener('mouseleave', () => {
+            setHoveredMuscle(null);
+            if (onMuscleHover) onMuscleHover(null);
+          });
+        });
+      });
+    };
+
+    // Start trying to attach listeners
+    attachListeners();
+  }, [data, colors, muscleStates, onMuscleHover]); // Re-attach when dependencies change
+
   return (
     <div
+      ref={containerRef}
       className={`relative ${className}`}
       style={style}
       onMouseMove={handleMouseMove}
