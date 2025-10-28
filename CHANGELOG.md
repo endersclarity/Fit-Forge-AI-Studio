@@ -9,7 +9,7 @@ Audience: AI-assisted debugging and developer reference.
 
 ### 2025-10-27 - Implement React Router Navigation (✅ DEPLOYED)
 
-**Commit**: 7586c8d
+**Commit**: 8e3b8b8
 **Status**: DEPLOYED & TESTED
 **OpenSpec**: implement-react-router-navigation
 
