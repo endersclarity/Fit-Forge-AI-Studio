@@ -7,6 +7,122 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-28 - Interactive Muscle Deep Dive Modal (✅ IMPLEMENTED)
+
+**Commit Range**: 44aa1dd → d0bc1b3 (10 commits)
+**Status**: IMPLEMENTED - Ready for testing
+**Feature**: Click any muscle to open interactive deep-dive modal with exercise recommendations
+
+**Files Changed**:
+- `utils/exerciseEfficiency.ts` (new - efficiency ranking algorithm)
+- `utils/volumeForecasting.ts` (new - volume forecasting with sweet spot finder)
+- `utils/setBuilder.ts` (new - set builder with locked target volume)
+- `components/MuscleDeepDiveModal.tsx` (new - modal shell with 3 tabs)
+- `components/ExerciseCard.tsx` (new - interactive exercise card)
+- `components/MuscleVisualization/MuscleVisualizationContainer.tsx` (refactored to single-click)
+- `components/Dashboard.tsx` (integrated modal)
+
+**Summary**: Implemented interactive muscle deep-dive modal that opens when clicking any muscle in the visualization. Provides ranked exercise recommendations, real-time volume forecasting, and intelligent set building with locked target volume.
+
+**Problem**: Users needed smarter exercise selection beyond simple muscle filtering. When choosing exercises, they couldn't see:
+- Which exercises would efficiently max out the target muscle before hitting bottlenecks
+- Real-time impact on muscle fatigue from planned volume
+- Optimal "sweet spot" volume that maxes target muscle without overloading support muscles
+- Set/rep/weight combinations that maintain specific volume targets
+
+**Solution**: Built complete deep-dive modal with efficiency-based ranking, real-time forecasting, and interactive volume planning.
+
+**Core Algorithms**:
+
+1. **Efficiency Ranking** (`utils/exerciseEfficiency.ts`):
+   - Formula: `(target_engagement × target_capacity) ÷ bottleneck_capacity`
+   - Scores exercises by how much target muscle can be pushed before hitting bottleneck
+   - Badges: "Efficient" (score > 5.0), "Limited" (2.0-5.0), "Poor choice" (< 2.0)
+   - Identifies bottleneck muscle that will limit the exercise
+
+2. **Volume Forecasting** (`utils/volumeForecasting.ts`):
+   - Real-time calculation: `forecastedFatigue = currentFatigue + (volumeAdded / baseline × 100)`
+   - "Find Sweet Spot": Auto-optimizes volume to max target muscle before any supporting muscle hits 100%
+   - Shows forecasted fatigue for all engaged muscles given planned volume
+
+3. **Set Builder** (`utils/setBuilder.ts`):
+   - Locked target volume: Adjustments maintain total volume
+   - Defaults: 3 sets, 8-12 rep range, rounds to nearest 5 lbs
+   - If user changes sets: recalculates weight to maintain volume
+   - If user changes reps: recalculates weight to maintain volume
+   - If user changes weight: recalculates reps to maintain volume
+
+**UI Components**:
+
+1. **MuscleDeepDiveModal** (`components/MuscleDeepDiveModal.tsx`):
+   - Header: Shows muscle name and current fatigue % with color-coded bar
+   - 3 tabs: Recommended, All Exercises, History
+   - Close on Escape key, click outside, or X button
+   - Full-screen overlay with max-w-4xl centered modal
+
+2. **ExerciseCard** (`components/ExerciseCard.tsx`):
+   - Expandable card showing exercise name, target muscle %, efficiency badge
+   - **Volume Slider**: 0-10,000 lbs with live muscle impact visualization
+   - **"Find Sweet Spot"** button: Auto-sets optimal volume
+   - **Muscle Impact Section**: Shows current → forecasted fatigue for all engaged muscles
+   - **Bottleneck Warning**: "⚠️ {muscle} will limit this exercise"
+   - **Set Builder**: Grid of sets/reps/weight inputs with locked volume
+   - **"Add to Workout"** button (currently logs to console - integration pending)
+
+3. **Tab Features**:
+   - **Recommended Tab**: Top 5 exercises ranked by efficiency score
+   - **All Exercises Tab**:
+     - Filters: Isolation Only (target >70%, support <30%), Compound Only (2+ muscles >30%), High Efficiency (green badge)
+     - Sorting: Efficiency (default), Target %, Alphabetical
+     - Shows all exercises that engage the target muscle
+   - **History Tab**: Last 3 exercises that trained this muscle, sorted by date
+     - Shows exercise name, "X days ago", total volume
+     - Empty state: "No training history for {muscle} yet"
+
+**Integration Changes**:
+
+1. **MuscleVisualizationContainer** (refactored):
+   - Changed from `onMuscleSelect?: (muscles: Muscle[]) => void` to `onMuscleClick?: (muscle: Muscle) => void`
+   - Removed multi-select state management (no longer filtering exercises)
+   - Removed "Clear Selection" button and selection count badge
+   - Updated legend text: "Click muscles to view deep-dive modal"
+   - Removed selection status announcement for screen readers
+
+2. **Dashboard** (integrated):
+   - Added state: `deepDiveModalOpen`, `selectedMuscleForDeepDive`
+   - Added handler: `handleMuscleClickForDeepDive(muscle)` opens modal
+   - Added handler: `handleAddToWorkout(planned)` logs to console (TODO: WorkoutPlannerModal integration)
+   - Updated MuscleVisualizationContainer: `onMuscleClick={handleMuscleClickForDeepDive}`
+   - Rendered modal conditionally when muscle selected
+
+**User Flow**:
+1. User clicks any muscle in visualization → Modal opens
+2. **Recommended tab** shows top 5 exercises ranked by efficiency
+3. User clicks exercise card → Expands to show volume slider
+4. User drags slider → Real-time muscle impact updates
+5. User clicks "Find Sweet Spot" → Auto-optimizes to max target before bottleneck
+6. User clicks "Build Sets" → Set builder appears with default 3 sets
+7. User adjusts sets/reps/weight → Total volume remains locked
+8. User clicks "Add to Workout" → (Currently logs to console)
+
+**Not Yet Connected**:
+- WorkoutPlannerModal integration (modal exists standalone)
+- "Add to Workout" button doesn't actually add to planned workout yet
+- No entry point from "Add Exercise" button in WorkoutPlannerModal
+
+**Bundle Impact**: +12 KB (848.60 KB total, up from 836 KB)
+
+**Testing Notes**:
+- All utilities have passing unit tests (5 tests total)
+- Modal fully functional at http://localhost:3000
+- Click any muscle to verify modal opens with correct data
+- Test volume slider and "Find Sweet Spot" auto-optimization
+- Test set builder maintains locked volume during adjustments
+- Verify filters and sorting work in All Exercises tab
+- Check History tab shows workout data correctly
+
+---
+
 ### 2025-10-28 - Streamline Homepage Information Architecture (✅ DEPLOYED)
 
 **Commit**: df69643
