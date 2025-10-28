@@ -301,6 +301,41 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
                     </div>
                 </section>
 
+                {/* Recovery Settings */}
+                <section className="bg-brand-surface p-4 rounded-lg">
+                    <h2 className="text-lg font-semibold mb-4">Recovery Settings</h2>
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="recoveryDays" className="block text-sm font-medium text-slate-300 mb-2">
+                                Recovery Speed
+                            </label>
+                            <div className="flex items-center gap-4">
+                                <input
+                                    type="range"
+                                    id="recoveryDays"
+                                    min="3"
+                                    max="10"
+                                    step="1"
+                                    value={profile.recoveryDaysToFull || 5}
+                                    onChange={e => handleProfileChange('recoveryDaysToFull', parseInt(e.target.value))}
+                                    className="flex-grow h-2 bg-brand-dark rounded-lg appearance-none cursor-pointer accent-brand-cyan"
+                                />
+                                <span className="text-2xl font-bold text-brand-cyan min-w-[3rem] text-right">
+                                    {profile.recoveryDaysToFull || 5}
+                                </span>
+                            </div>
+                            <p className="text-sm text-slate-400 mt-2">
+                                Days to recover from 100% muscle fatigue to 0%. Faster recovery (3-5 days) suits experienced lifters with good recovery habits. Slower recovery (7-10 days) is more conservative.
+                            </p>
+                            <div className="flex justify-between text-xs text-slate-500 mt-2">
+                                <span>Faster (3 days)</span>
+                                <span>Default (5 days)</span>
+                                <span>Slower (10 days)</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 {/* Equipment Inventory */}
                 <section className="bg-brand-surface p-4 rounded-lg">
                     <div className="flex justify-between items-center mb-4">

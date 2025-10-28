@@ -4,7 +4,7 @@
   "description": "FitForge local backend API with SQLite",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc && shx mkdir -p dist/database && shx cp database/schema.sql dist/database/",
+    "build": "tsc && shx mkdir -p dist/database/migrations && shx cp database/schema.sql dist/database/ && shx cp -r database/migrations dist/database/",
     "start": "node dist/server.js",
     "dev": "ts-node server.ts",
     "dev:watch": "nodemon --exec ts-node server.ts",

@@ -119,6 +119,7 @@ export interface UserProfile {
   experience: Difficulty;
   bodyweightHistory?: WeightEntry[];
   equipment?: EquipmentItem[];
+  recoveryDaysToFull?: number; // Days to recover from 100% fatigue to 0% (default: 5, range: 3-10)
 }
 
 // MUSCLE FATIGUE & CAPACITY
@@ -512,4 +513,39 @@ export type CalibrationMap = Record<string, Record<string, number>>;
 
 export interface SaveCalibrationRequest {
   calibrations: Record<string, number>;
+}
+
+// ============================================
+// WORKOUT PLANNER TYPES
+// ============================================
+
+/**
+ * A planned exercise with specific sets/reps/weight configuration
+ * Used in workout planning before execution
+ */
+export interface PlannedExercise {
+  exercise: Exercise;  // Exercise definition from library
+  sets: number;        // Number of sets planned
+  reps: number;        // Reps per set
+  weight: number;      // Weight per set (lbs)
+}
+
+/**
+ * Forecasted state for a single muscle after planned workout
+ */
+export interface ForecastedMuscleState {
+  muscle: Muscle;
+  currentFatiguePercent: number;    // Before workout
+  forecastedFatiguePercent: number; // After planned workout
+  volumeAdded: number;              // Volume from planned exercises (lbs)
+  baseline: number;                 // Muscle baseline capacity (lbs)
+}
+
+/**
+ * Complete workout plan with current and forecasted states
+ */
+export interface WorkoutPlan {
+  plannedExercises: PlannedExercise[];
+  currentMuscleStates: MuscleStatesResponse;
+  forecastedMuscleStates: Record<Muscle, ForecastedMuscleState>;
 }

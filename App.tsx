@@ -4,7 +4,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useAPIState } from './hooks/useAPIState';
 import { profileAPI, workoutsAPI, muscleStatesAPI, personalBestsAPI, muscleBaselinesAPI, templatesAPI } from './api';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
-import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, ExerciseCategory, Exercise, Variation, ExerciseMaxes, WorkoutTemplate, PRInfo } from './types';
+import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, ExerciseCategory, Exercise, Variation, ExerciseMaxes, WorkoutTemplate, PRInfo, PlannedExercise } from './types';
 import Dashboard from './components/Dashboard';
 import WorkoutTracker from './components/Workout';
 import Profile from './components/Profile';
@@ -47,6 +47,7 @@ const App: React.FC = () => {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [recommendedWorkout, setRecommendedWorkout] = useState<RecommendedWorkoutData | null>(null);
+  const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[] | null>(null);
   const [prNotifications, setPrNotifications] = useState<PRInfo[]>([]);
 
   // Detect first-time user (USER_NOT_FOUND error)
@@ -187,8 +188,15 @@ const App: React.FC = () => {
     navigate('/workout');
   }, [navigate]);
 
+  const handleStartPlannedWorkout = useCallback((planned: PlannedExercise[]) => {
+    setPlannedExercises(planned);
+    setRecommendedWorkout(null); // Clear recommended workout if present
+    navigate('/workout');
+  }, [navigate]);
+
   const handleCancelWorkout = useCallback(() => {
     setRecommendedWorkout(null);
+    setPlannedExercises(null);
     navigate('/');
   }, [navigate]);
 
@@ -282,6 +290,7 @@ const App: React.FC = () => {
             muscleBaselines={muscleBaselines}
             templates={templates}
             onStartWorkout={() => navigate('/workout')}
+            onStartPlannedWorkout={handleStartPlannedWorkout}
             onStartRecommendedWorkout={handleStartRecommendedWorkout}
             onSelectTemplate={handleSelectTemplate}
             onNavigateToProfile={() => navigate('/profile')}
@@ -301,6 +310,7 @@ const App: React.FC = () => {
             userProfile={profile}
             muscleBaselines={muscleBaselines}
             initialData={recommendedWorkout}
+            plannedExercises={plannedExercises}
           />
         } />
 

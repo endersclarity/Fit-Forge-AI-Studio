@@ -147,6 +147,7 @@ export interface ProfileResponse {
     maxWeight: number;
     increment: number;
   }>;
+  recovery_days_to_full?: number; // Days to recover from 100% fatigue to 0% (default: 5)
 }
 
 export interface ProfileUpdateRequest {
@@ -162,6 +163,7 @@ export interface ProfileUpdateRequest {
     maxWeight: number;
     increment: number;
   }>;
+  recovery_days_to_full?: number; // Days to recover from 100% fatigue to 0% (range: 3-10)
 }
 
 export interface ProfileInitRequest {
@@ -389,6 +391,39 @@ export type CalibrationMap = Record<string, Record<string, number>>;
 
 export interface SaveCalibrationRequest {
   calibrations: Record<string, number>;
+}
+
+// Workout Rotation Types
+export interface WorkoutRotationState {
+  id?: number;
+  userId: number;
+  currentCycle: 'A' | 'B';
+  currentPhase: number; // Position in rotation sequence (0-5)
+  lastWorkoutDate: string | null; // ISO 8601
+  lastWorkoutCategory: ExerciseCategory | null;
+  lastWorkoutVariation: 'A' | 'B' | null;
+  restDaysCount: number;
+  updatedAt?: string;
+}
+
+export interface RotationSequenceItem {
+  category: ExerciseCategory;
+  variation: 'A' | 'B';
+  restAfter: number; // Number of rest days after this workout
+}
+
+export interface WorkoutRecommendation {
+  isRestDay: boolean;
+  reason?: string;
+  category?: ExerciseCategory;
+  variation?: 'A' | 'B';
+  phase?: number;
+  lastWorkout?: {
+    category: ExerciseCategory;
+    variation: 'A' | 'B';
+    date: string;
+    daysAgo: number;
+  };
 }
 
 // Error Response Type

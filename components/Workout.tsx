@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EXERCISE_LIBRARY, ALL_MUSCLES } from '../constants';
-import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation, Equipment } from '../types';
+import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation, Equipment, PlannedExercise } from '../types';
 import { calculateVolume, findPreviousWorkout, formatDuration } from '../utils/helpers';
 import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon, InfoIcon } from './Icons';
 import WorkoutSummaryModal from './WorkoutSummaryModal';
@@ -22,6 +22,7 @@ interface WorkoutProps {
   userProfile: UserProfile;
   muscleBaselines: MuscleBaselines;
   initialData?: RecommendedWorkoutData | null;
+  plannedExercises?: PlannedExercise[] | null;
 }
 
 const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDone: () => void, workoutVariation: Variation }> = ({ onSelect, onDone, workoutVariation }) => {
@@ -187,7 +188,7 @@ const FailureTooltip: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
 };
 
 
-const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, allWorkouts, personalBests, userProfile, muscleBaselines, initialData }) => {
+const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, allWorkouts, personalBests, userProfile, muscleBaselines, initialData, plannedExercises }) => {
   // State for last workout data
   const [lastWorkout, setLastWorkout] = useState<WorkoutResponse | null>(null);
   const [loadingLastWorkout, setLoadingLastWorkout] = useState(false);
@@ -227,18 +228,25 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     return `${type} ${variation} - ${timestamp}`;
   };
 
-  const [stage, setStage] = useState<WorkoutStage>(initialData ? "tracking" : "setup");
+  // Determine if we have any pre-populated data
+  const hasPrePopulatedData = !!initialData || !!plannedExercises;
+
+  const [stage, setStage] = useState<WorkoutStage>(hasPrePopulatedData ? "tracking" : "setup");
   const [workoutName, setWorkoutName] = useState(
     initialData
       ? generateWorkoutName(initialData.type, initialData.variation && initialData.variation !== 'Both' ? initialData.variation : 'A')
+      : plannedExercises
+      ? generateWorkoutName("Push", 'A') // Default for planned workouts
       : ""
   );
   const [workoutType, setWorkoutType] = useState<ExerciseCategory>(initialData?.type || "Push");
   // Fix: Handle cases where the recommended workout variation is "Both" by defaulting to "A".
   const [workoutVariation, setWorkoutVariation] = useState<"A" | "B">(initialData?.variation && initialData.variation !== 'Both' ? initialData.variation : 'A');
-  const [startTime, setStartTime] = useState<number>(initialData ? Date.now() : 0);
-  const [loggedExercises, setLoggedExercises] = useState<LoggedExercise[]>(
-     initialData ? initialData.suggestedExercises.map(ex => ({
+  const [startTime, setStartTime] = useState<number>(hasPrePopulatedData ? Date.now() : 0);
+  const [loggedExercises, setLoggedExercises] = useState<LoggedExercise[]>(() => {
+    // Priority 1: Use initialData (recommended workout)
+    if (initialData) {
+      return initialData.suggestedExercises.map(ex => ({
         id: `${ex.id}-${Date.now()}`,
         exerciseId: ex.id,
         sets: [
@@ -246,8 +254,26 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
           { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: false },
           { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: true }
         ]
-    })) : []
-  );
+      }));
+    }
+
+    // Priority 2: Use plannedExercises (from workout planner)
+    if (plannedExercises && plannedExercises.length > 0) {
+      return plannedExercises.map(planned => ({
+        id: `${planned.exercise.id}-${Date.now()}`,
+        exerciseId: planned.exercise.id,
+        sets: Array.from({ length: planned.sets }, (_, i) => ({
+          id: `set-${i + 1}-${Date.now()}-${Math.random()}`,
+          reps: planned.reps,
+          weight: planned.weight,
+          to_failure: i === planned.sets - 1 // Last set defaults to failure
+        }))
+      }));
+    }
+
+    // Default: Empty array
+    return [];
+  });
   const [isExerciseSelectorOpen, setExerciseSelectorOpen] = useState(false);
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
   const [isCapacityPanelOpen, setCapacityPanelOpen] = useState(false);

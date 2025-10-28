@@ -59,11 +59,30 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
  * Profile API
  */
 export const profileAPI = {
-  get: () => apiRequest<UserProfile>('/profile'),
-  update: (profile: UserProfile) => apiRequest<UserProfile>('/profile', {
-    method: 'PUT',
-    body: JSON.stringify(profile),
-  }),
+  get: async (): Promise<UserProfile> => {
+    const response = await apiRequest<any>('/profile');
+    // Transform snake_case from backend to camelCase for frontend
+    return {
+      ...response,
+      recoveryDaysToFull: response.recovery_days_to_full
+    };
+  },
+  update: async (profile: UserProfile): Promise<UserProfile> => {
+    // Transform camelCase to snake_case for backend
+    const backendProfile = {
+      ...profile,
+      recovery_days_to_full: profile.recoveryDaysToFull
+    };
+    const response = await apiRequest<any>('/profile', {
+      method: 'PUT',
+      body: JSON.stringify(backendProfile),
+    });
+    // Transform response back to camelCase
+    return {
+      ...response,
+      recoveryDaysToFull: response.recovery_days_to_full
+    };
+  },
   init: (data: { name: string; experience: 'Beginner' | 'Intermediate' | 'Advanced'; equipment?: Array<{ name: string; minWeight: number; maxWeight: number; increment: number }> }) =>
     apiRequest<UserProfile>('/profile/init', {
       method: 'POST',

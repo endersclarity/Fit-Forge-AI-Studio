@@ -29,7 +29,8 @@ import {
   QuickWorkoutResponse,
   ExerciseCalibrationData,
   CalibrationMap,
-  SaveCalibrationRequest
+  SaveCalibrationRequest,
+  WorkoutRecommendation
 } from './types';
 
 const app = express();
@@ -88,6 +89,18 @@ app.get('/api/profile', (_req: Request, res: Response<ProfileResponse | ApiError
 // Update user profile
 app.put('/api/profile', (req: Request<{}, ProfileResponse | ApiErrorResponse, ProfileUpdateRequest>, res: Response<ProfileResponse | ApiErrorResponse>) => {
   try {
+    // Validate recovery_days_to_full if provided (range: 3-10 days)
+    if (req.body.recovery_days_to_full !== undefined) {
+      const recoveryDays = req.body.recovery_days_to_full;
+      if (!Number.isInteger(recoveryDays) || recoveryDays < 3 || recoveryDays > 10) {
+        res.status(400).json({
+          error: 'Invalid recovery_days_to_full',
+          message: 'Recovery days must be an integer between 3 and 10'
+        });
+        return;
+      }
+    }
+
     const profile = db.updateProfile(req.body);
     res.json(profile);
   } catch (error) {
@@ -200,6 +213,12 @@ app.get('/api/progressive-suggestions', (req: Request, res: Response) => {
 app.post('/api/workouts', (req: Request<{}, WorkoutResponse | ApiErrorResponse, WorkoutSaveRequest>, res: Response<WorkoutResponse | ApiErrorResponse>) => {
   try {
     const workout = db.saveWorkout(req.body);
+
+    // Advance rotation if category and variation are provided
+    if (workout.category && workout.variation) {
+      db.advanceRotation(1, workout.category as any, workout.variation as 'A' | 'B', workout.date);
+    }
+
     res.status(201).json(workout);
   } catch (error) {
     console.error('Error saving workout:', error);
@@ -300,6 +319,25 @@ app.get('/api/workouts/last-two-sets', (req: Request, res: Response): Response =
     return res.status(500).json({ error: 'Failed to get last two sets' });
   }
 });
+
+// ============================================
+// WORKOUT ROTATION ENDPOINTS
+// ============================================
+
+// Get next recommended workout
+app.get('/api/rotation/next', (_req: Request, res: Response<WorkoutRecommendation | ApiErrorResponse>): Response => {
+  try {
+    const recommendation = db.getNextWorkout(1);
+    return res.json(recommendation);
+  } catch (error) {
+    console.error('Error getting next workout:', error);
+    return res.status(500).json({ error: 'Failed to get next workout recommendation' });
+  }
+});
+
+// ============================================
+// QUICK-ADD / QUICK-WORKOUT ENDPOINTS
+// ============================================
 
 // Quick-add workout
 app.post('/api/quick-add', (req: Request<{}, QuickAddResponse | ApiErrorResponse, QuickAddRequest>, res: Response<QuickAddResponse | ApiErrorResponse>): Response => {
@@ -449,6 +487,9 @@ app.post('/api/quick-workout', (req: Request<{}, QuickWorkoutResponse | ApiError
     };
 
     const workout = db.saveWorkout(workoutData);
+
+    // Advance rotation
+    db.advanceRotation(1, detectedCategory as any, detectedVariation, workoutDate);
 
     // Detect PRs across all exercises in the workout
     const prs = db.detectPRsForWorkout(workout.id);

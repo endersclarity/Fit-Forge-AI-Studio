@@ -532,3 +532,26 @@ export function getExerciseByName(name: string): Exercise | undefined {
 export function getExerciseById(id: string): Exercise | undefined {
   return EXERCISE_LIBRARY.find(ex => ex.id === id);
 }
+
+// ============================================
+// WORKOUT ROTATION SEQUENCE
+// ============================================
+
+import { RotationSequenceItem } from './types';
+
+/**
+ * Defines the user's workout rotation sequence:
+ * Push A → Legs A → [rest] → Pull A → [rest] → Push B → Legs B → [rest] → Pull B → [cycle repeats]
+ *
+ * Pattern: 2 days on, 1 day off, 1 day on, 1 day off (repeating)
+ * Rule: Never more than 5 days before hitting same muscle group again
+ * Core workouts are optional and don't advance the rotation phase
+ */
+export const ROTATION_SEQUENCE: RotationSequenceItem[] = [
+  { category: 'Push', variation: 'A', restAfter: 0 },  // Day 1
+  { category: 'Legs', variation: 'A', restAfter: 1 },  // Day 2 → rest on Day 3
+  { category: 'Pull', variation: 'A', restAfter: 1 },  // Day 4 → rest on Day 5 (or Core)
+  { category: 'Push', variation: 'B', restAfter: 0 },  // Day 6
+  { category: 'Legs', variation: 'B', restAfter: 1 },  // Day 7 → rest on Day 8
+  { category: 'Pull', variation: 'B', restAfter: 0 },  // Day 9 → cycle repeats
+];

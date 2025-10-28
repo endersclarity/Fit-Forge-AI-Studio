@@ -16,9 +16,12 @@ import {
   MuscleBaselinesUpdateRequest,
   WorkoutTemplate,
   BaselineUpdate,
-  PRInfo
+  PRInfo,
+  WorkoutRotationState,
+  WorkoutRecommendation,
+  ExerciseCategory
 } from '../types';
-import { EXERCISE_LIBRARY } from '../constants';
+import { EXERCISE_LIBRARY, ROTATION_SEQUENCE } from '../constants';
 
 // Database file location (persisted in data/ folder)
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/fitforge.db');
@@ -43,6 +46,28 @@ db.exec(schema);
 
 console.log('Database schema initialized');
 
+// Run migrations
+const migrationsDir = path.join(__dirname, 'migrations');
+if (fs.existsSync(migrationsDir)) {
+  const migrationFiles = fs.readdirSync(migrationsDir)
+    .filter(file => file.endsWith('.sql') && !file.includes('rollback'))
+    .sort();
+
+  for (const file of migrationFiles) {
+    const migrationPath = path.join(migrationsDir, file);
+    const migration = fs.readFileSync(migrationPath, 'utf8');
+    try {
+      db.exec(migration);
+      console.log(`Migration applied: ${file}`);
+    } catch (error: any) {
+      // Ignore errors for migrations that have already been applied
+      if (!error.message.includes('already exists') && !error.message.includes('duplicate')) {
+        console.error(`Error applying migration ${file}:`, error);
+      }
+    }
+  }
+}
+
 // ============================================
 // DATABASE ROW TYPES (internal to database layer)
 // ============================================
@@ -51,7 +76,20 @@ interface UserRow {
   id: number;
   name: string;
   experience: string;
+  recovery_days_to_full: number;
   created_at: string;
+  updated_at: string;
+}
+
+interface WorkoutRotationStateRow {
+  id: number;
+  user_id: number;
+  current_cycle: 'A' | 'B';
+  current_phase: number;
+  last_workout_date: string | null;
+  last_workout_category: string | null;
+  last_workout_variation: 'A' | 'B' | null;
+  rest_days_count: number;
   updated_at: string;
 }
 
@@ -123,7 +161,8 @@ function getProfile(): ProfileResponse {
     name: user.name,
     experience: user.experience as 'Beginner' | 'Intermediate' | 'Advanced',
     bodyweightHistory,
-    equipment
+    equipment,
+    recovery_days_to_full: user.recovery_days_to_full || 5
   };
 }
 
@@ -131,8 +170,29 @@ function getProfile(): ProfileResponse {
  * Update user profile
  */
 function updateProfile(profile: ProfileUpdateRequest): ProfileResponse {
-  const updateUser = db.prepare('UPDATE users SET name = ?, experience = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1');
-  updateUser.run(profile.name, profile.experience);
+  // Build dynamic SQL based on provided fields
+  const updates: string[] = [];
+  const params: any[] = [];
+
+  if (profile.name !== undefined) {
+    updates.push('name = ?');
+    params.push(profile.name);
+  }
+  if (profile.experience !== undefined) {
+    updates.push('experience = ?');
+    params.push(profile.experience);
+  }
+  if (profile.recovery_days_to_full !== undefined) {
+    updates.push('recovery_days_to_full = ?');
+    params.push(profile.recovery_days_to_full);
+  }
+
+  updates.push('updated_at = CURRENT_TIMESTAMP');
+
+  if (updates.length > 1) { // More than just updated_at
+    const sql = `UPDATE users SET ${updates.join(', ')} WHERE id = 1`;
+    db.prepare(sql).run(...params);
+  }
 
   // Clear and re-insert bodyweight history
   db.prepare('DELETE FROM bodyweight_history WHERE user_id = 1').run();
@@ -733,6 +793,10 @@ function getProgressiveSuggestions(exerciseName: string): {
  * state based on time elapsed and recovery formulas.
  */
 function getMuscleStates(): MuscleStatesResponse {
+  // Get user's recovery days setting
+  const user = db.prepare('SELECT recovery_days_to_full FROM users WHERE id = 1').get() as { recovery_days_to_full: number } | undefined;
+  const recoveryDaysToFull = user?.recovery_days_to_full || 5;
+
   const states = db.prepare(`
     SELECT muscle_name, initial_fatigue_percent, last_trained
     FROM muscle_states
@@ -765,10 +829,10 @@ function getMuscleStates(): MuscleStatesResponse {
     const lastTrainedTime = new Date(state.last_trained).getTime();
     const daysElapsed = (now - lastTrainedTime) / (1000 * 60 * 60 * 24);
 
-    // Calculate recovery time using linear formula
-    // recoveryDays = 1 + (initialFatigue / 100) * 6
-    // Range: 1 day (0% fatigue) to 7 days (100% fatigue)
-    const estimatedRecoveryDays = 1 + (state.initial_fatigue_percent / 100) * 6;
+    // Calculate recovery time using user's configured recovery days
+    // Use user's recovery_days_to_full setting instead of hardcoded 7 days
+    // Formula: currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
+    const estimatedRecoveryDays = recoveryDaysToFull;
 
     // Calculate current fatigue using linear decay
     // currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
@@ -1395,5 +1459,177 @@ export {
   getUserCalibrations,
   getExerciseCalibrations,
   saveExerciseCalibrations,
-  deleteExerciseCalibrations
+  deleteExerciseCalibrations,
+  getRotationState,
+  getNextWorkout,
+  advanceRotation
 };
+
+// ============================================
+// WORKOUT ROTATION ENGINE
+// ============================================
+
+/**
+ * Get the current rotation state for a user
+ */
+function getRotationState(userId: number = 1): WorkoutRotationState {
+  const row = db.prepare(`
+    SELECT * FROM workout_rotation_state WHERE user_id = ?
+  `).get(userId) as WorkoutRotationStateRow | undefined;
+
+  if (!row) {
+    // Initialize default state if not exists
+    db.prepare(`
+      INSERT INTO workout_rotation_state (user_id, current_cycle, current_phase, rest_days_count)
+      VALUES (?, 'A', 0, 0)
+    `).run(userId);
+
+    return {
+      userId,
+      currentCycle: 'A',
+      currentPhase: 0,
+      lastWorkoutDate: null,
+      lastWorkoutCategory: null,
+      lastWorkoutVariation: null,
+      restDaysCount: 0
+    };
+  }
+
+  return {
+    id: row.id,
+    userId: row.user_id,
+    currentCycle: row.current_cycle,
+    currentPhase: row.current_phase,
+    lastWorkoutDate: row.last_workout_date,
+    lastWorkoutCategory: row.last_workout_category as ExerciseCategory | null,
+    lastWorkoutVariation: row.last_workout_variation,
+    restDaysCount: row.rest_days_count,
+    updatedAt: row.updated_at
+  };
+}
+
+/**
+ * Get the next recommended workout based on rotation state
+ */
+function getNextWorkout(userId: number = 1): WorkoutRecommendation {
+  const state = getRotationState(userId);
+
+  // Calculate days since last workout
+  let daysAgo = 0;
+  if (state.lastWorkoutDate) {
+    const lastDate = new Date(state.lastWorkoutDate);
+    const now = new Date();
+    daysAgo = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  // If this is the first workout ever, start at Push A
+  if (!state.lastWorkoutDate) {
+    const firstWorkout = ROTATION_SEQUENCE[0];
+    return {
+      isRestDay: false,
+      category: firstWorkout.category,
+      variation: firstWorkout.variation,
+      phase: 0
+    };
+  }
+
+  // Check if rest days are needed
+  const lastWorkout = ROTATION_SEQUENCE[state.currentPhase];
+  if (state.restDaysCount < lastWorkout.restAfter) {
+    return {
+      isRestDay: true,
+      reason: 'Scheduled rest day',
+      lastWorkout: state.lastWorkoutCategory && state.lastWorkoutVariation ? {
+        category: state.lastWorkoutCategory,
+        variation: state.lastWorkoutVariation,
+        date: state.lastWorkoutDate!,
+        daysAgo
+      } : undefined
+    };
+  }
+
+  // Get next workout in sequence
+  const nextPhase = (state.currentPhase + 1) % ROTATION_SEQUENCE.length;
+  const nextWorkout = ROTATION_SEQUENCE[nextPhase];
+
+  // Validate 5-day rule: same muscle group shouldn't be hit within 5 days
+  if (state.lastWorkoutCategory && state.lastWorkoutDate) {
+    // Push/Pull/Legs are the main categories, Core doesn't count for 5-day rule
+    if (state.lastWorkoutCategory !== 'Core' && nextWorkout.category !== 'Core') {
+      if (state.lastWorkoutCategory === nextWorkout.category && daysAgo < 5) {
+        return {
+          isRestDay: true,
+          reason: 'Muscle group needs more recovery (5-day rule)',
+          lastWorkout: {
+            category: state.lastWorkoutCategory,
+            variation: state.lastWorkoutVariation!,
+            date: state.lastWorkoutDate,
+            daysAgo
+          }
+        };
+      }
+    }
+  }
+
+  return {
+    isRestDay: false,
+    category: nextWorkout.category,
+    variation: nextWorkout.variation,
+    phase: nextPhase,
+    lastWorkout: state.lastWorkoutCategory && state.lastWorkoutVariation ? {
+      category: state.lastWorkoutCategory,
+      variation: state.lastWorkoutVariation,
+      date: state.lastWorkoutDate!,
+      daysAgo
+    } : undefined
+  };
+}
+
+/**
+ * Advance the rotation state after completing a workout
+ */
+function advanceRotation(
+  userId: number,
+  completedCategory: ExerciseCategory,
+  completedVariation: 'A' | 'B',
+  workoutDate: string
+): void {
+  const state = getRotationState(userId);
+
+  // Core workouts don't advance the rotation phase
+  if (completedCategory === 'Core') {
+    db.prepare(`
+      UPDATE workout_rotation_state
+      SET last_workout_date = ?,
+          last_workout_category = ?,
+          last_workout_variation = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = ?
+    `).run(workoutDate, completedCategory, completedVariation, userId);
+    return;
+  }
+
+  // Advance to next phase
+  const nextPhase = (state.currentPhase + 1) % ROTATION_SEQUENCE.length;
+
+  // Determine cycle: transitions happen after Pull B (phase 5 → phase 0)
+  let newCycle = state.currentCycle;
+  if (state.currentPhase === 5 && nextPhase === 0) {
+    // Cycle repeats, stay in current cycle pattern
+    // The sequence itself handles A/B variation
+  }
+
+  db.prepare(`
+    UPDATE workout_rotation_state
+    SET current_phase = ?,
+        current_cycle = ?,
+        last_workout_date = ?,
+        last_workout_category = ?,
+        last_workout_variation = ?,
+        rest_days_count = 0,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE user_id = ?
+  `).run(nextPhase, newCycle, workoutDate, completedCategory, completedVariation, userId);
+
+  console.log(`Rotation advanced: Phase ${state.currentPhase} → ${nextPhase}, Category: ${completedCategory} ${completedVariation}`);
+}

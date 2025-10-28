@@ -39,3 +39,41 @@ This project maintains a living document (`USER_FEEDBACK.md`) that captures raw 
 - Low friction to encourage consistent use
 
 See `USER_FEEDBACK.md` for the active log and usage guidelines.
+
+---
+
+# CRITICAL: Container/Server Restart Protocol
+
+## ⚠️ NEVER CHANGE PORTS - ALWAYS USE 3000 AND 3001
+
+**MANDATORY RULES:**
+1. Frontend MUST ALWAYS run on port **3000**
+2. Backend MUST ALWAYS run on port **3001**
+3. NEVER let Vite or any process run on different ports (3002, 3003, 3005, etc.)
+4. If ports are busy, it means containers/processes are still running - STOP THEM FIRST
+
+## Correct Restart Procedure:
+
+**Step 1: Stop Everything**
+```bash
+# Kill any background shells
+# Then stop Docker containers
+docker-compose down
+```
+
+**Step 2: Restart Containers**
+```bash
+docker-compose up -d
+```
+
+**NEVER:**
+- ❌ Start npm manually without stopping Docker first
+- ❌ Let Vite auto-select different ports
+- ❌ Run multiple instances on different ports
+- ❌ Change port configuration
+
+**ALWAYS:**
+- ✅ Stop Docker containers first with `docker-compose down`
+- ✅ Restart with `docker-compose up -d`
+- ✅ Verify services are on ports 3000 and 3001
+- ✅ Kill processes if ports conflict before restarting
