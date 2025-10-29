@@ -521,6 +521,21 @@ export interface DetailedMuscleStateData {
 
 export type DetailedMuscleStatesResponse = Record<string, DetailedMuscleStateData>;
 
+// Exercise History API Types
+export interface ExerciseHistoryResponse {
+  exerciseId: string;
+  lastPerformed: string | null; // ISO 8601 timestamp
+  sets: Array<{
+    weight: number;
+    reps: number;
+  }>;
+  totalVolume: number;
+  personalRecord: {
+    weight: number;
+    reps: number;
+  } | null;
+}
+
 // Error Response Type
 export interface ApiErrorResponse {
   error: string;

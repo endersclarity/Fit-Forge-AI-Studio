@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate } from '../types';
-import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI } from '../api';
+import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
 import SetConfigurator from './SetConfigurator';
 import SetCard from './SetCard';
 import SetEditModal from './SetEditModal';
 import CurrentSetDisplay from './CurrentSetDisplay';
 import SimpleMuscleVisualization from './SimpleMuscleVisualization';
+import TargetModePanel, { MuscleTargets } from './TargetModePanel';
+import { generateWorkoutFromTargets, ExerciseRecommendation } from '../utils/targetDrivenGeneration';
+import { generateSetsFromVolume } from '../utils/setBuilder';
 
 interface WorkoutBuilderProps {
   isOpen: boolean;
@@ -17,6 +20,7 @@ interface WorkoutBuilderProps {
 }
 
 type BuilderMode = 'planning' | 'executing';
+type PlanningMode = 'forward' | 'target';
 
 const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   isOpen,
@@ -26,6 +30,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   loadedTemplate = null,
 }) => {
   const [mode, setMode] = useState<BuilderMode>('planning');
+  const [planningMode, setPlanningMode] = useState<PlanningMode>('forward');
   const [workout, setWorkout] = useState<BuilderWorkout>({
     sets: [],
     currentSetIndex: 0,
@@ -35,6 +40,8 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
   const [muscleBaselines, setMuscleBaselines] = useState<MuscleBaselines>({} as MuscleBaselines);
   const [loading, setLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [recommendations, setRecommendations] = useState<ExerciseRecommendation[]>([]);
 
   // Execution mode state
   const [restTimerEndTime, setRestTimerEndTime] = useState<number | null>(null);
@@ -363,6 +370,85 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     }
   };
 
+  const handleGenerateFromTargets = async (targets: MuscleTargets) => {
+    setIsGenerating(true);
+    try {
+      // Generate recommendations using the algorithm
+      const recs = generateWorkoutFromTargets(
+        targets,
+        muscleStates,
+        muscleBaselines
+      );
+
+      if (recs.length === 0) {
+        onToast('No valid exercises found for your targets', 'error');
+        setRecommendations([]);
+        return;
+      }
+
+      setRecommendations(recs);
+      onToast(`Generated ${recs.length} exercise recommendations`, 'success');
+    } catch (error) {
+      console.error('Failed to generate workout:', error);
+      onToast('Failed to generate workout', 'error');
+      setRecommendations([]);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleAcceptRecommendations = async () => {
+    if (recommendations.length === 0) return;
+
+    setLoading(true);
+    try {
+      // For each recommendation, fetch exercise history and generate sets
+      for (const rec of recommendations) {
+        let history;
+        try {
+          history = await getExerciseHistory(rec.exercise.id);
+        } catch {
+          history = null;
+        }
+
+        const breakdown = generateSetsFromVolume(
+          rec.targetVolume,
+          history?.lastPerformance
+        );
+
+        // Add as a set to the workout
+        const newSet: BuilderSet = {
+          id: `${Date.now()}-${Math.random()}`,
+          exerciseId: rec.exercise.id,
+          exerciseName: rec.exercise.name,
+          weight: breakdown.weight,
+          reps: breakdown.reps,
+          restTimerSeconds: 90, // Default rest timer
+        };
+
+        setWorkout(prev => ({
+          ...prev,
+          sets: [...prev.sets, newSet],
+        }));
+      }
+
+      // Clear recommendations and switch back to forward planning mode
+      setRecommendations([]);
+      setPlanningMode('forward');
+      onToast('Recommendations added to workout!', 'success');
+    } catch (error) {
+      console.error('Failed to add recommendations:', error);
+      onToast('Failed to add recommendations', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegenerateRecommendations = () => {
+    setRecommendations([]);
+    onToast('Cleared recommendations. Adjust targets and generate again.', 'info');
+  };
+
   const handleClose = () => {
     if (workout.sets.length > 0) {
       const confirm = window.confirm('Discard workout?');
@@ -375,6 +461,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
       muscleStatesSnapshot: null,
     });
     setMode('planning');
+    setPlanningMode('forward');
     onClose();
   };
 
@@ -498,7 +585,103 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           <div className="text-center py-8 text-slate-400">Loading...</div>
         ) : (
           <>
-            <SetConfigurator onAddSet={handleAddSet} />
+            {/* Planning Mode Toggle */}
+            <div className="flex items-center justify-center gap-2 bg-brand-muted p-2 rounded-lg mb-4">
+              <button
+                onClick={() => setPlanningMode('forward')}
+                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                  planningMode === 'forward'
+                    ? 'bg-brand-cyan text-brand-dark'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Forward Planning
+              </button>
+              <button
+                onClick={() => setPlanningMode('target')}
+                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                  planningMode === 'target'
+                    ? 'bg-brand-cyan text-brand-dark'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Target-Driven
+              </button>
+            </div>
+
+            {planningMode === 'forward' ? (
+              <SetConfigurator onAddSet={handleAddSet} />
+            ) : (
+              <>
+                <TargetModePanel
+                  currentMuscleStates={muscleStates}
+                  muscleBaselines={muscleBaselines}
+                  onGenerate={handleGenerateFromTargets}
+                  isGenerating={isGenerating}
+                />
+
+                {/* Recommendations Display */}
+                {recommendations.length > 0 && (
+                  <div className="mt-4 bg-brand-muted p-4 rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-white">Recommendations</h4>
+                      <button
+                        onClick={handleRegenerateRecommendations}
+                        className="text-sm text-brand-cyan hover:underline"
+                      >
+                        Clear & Regenerate
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {recommendations.map((rec, idx) => (
+                        <div key={idx} className="bg-brand-dark p-3 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="font-medium text-white">
+                              {rec.exercise.name}
+                            </div>
+                            <div className="text-sm text-slate-400">
+                              Score: {rec.efficiencyScore.toFixed(1)}
+                            </div>
+                          </div>
+
+                          <div className="text-sm text-slate-300 mb-2">
+                            Target Volume: {rec.targetVolume.toFixed(0)} lbs
+                          </div>
+
+                          {/* Muscle impacts */}
+                          <div className="flex flex-wrap gap-2">
+                            {Object.entries(rec.muscleImpacts)
+                              .filter(([_, impact]) => impact > 1) // Only show significant impacts
+                              .sort(([_, a], [__, b]) => b - a) // Sort by impact
+                              .map(([muscle, impact]) => (
+                                <div
+                                  key={muscle}
+                                  className="text-xs px-2 py-1 bg-brand-muted rounded"
+                                >
+                                  <span className="text-slate-400">{muscle}:</span>{' '}
+                                  <span className="text-brand-cyan">
+                                    +{impact.toFixed(1)}%
+                                  </span>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={handleAcceptRecommendations}
+                      disabled={loading}
+                      className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg
+                                 hover:bg-green-700 transition-colors disabled:opacity-50"
+                    >
+                      {loading ? 'Adding...' : 'Accept All Recommendations'}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
 
             {workout.sets.length > 0 ? (
               <>

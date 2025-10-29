@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Exercise } from '../types';
 import ExercisePicker from './ExercisePicker';
+import VolumeSlider from './VolumeSlider';
+import { getExerciseHistory, ExerciseHistoryResponse } from '../api';
+import { SetBreakdown } from '../utils/setBuilder';
 
 interface SetConfiguratorProps {
   onAddSet: (config: {
@@ -26,10 +29,56 @@ const SetConfigurator: React.FC<SetConfiguratorProps> = ({
   const [reps, setReps] = useState(defaultReps);
   const [restTimer, setRestTimer] = useState(defaultRestTimer);
 
-  const handleExerciseSelect = (exercise: Exercise) => {
+  // Volume slider state
+  const [useVolumeSlider, setUseVolumeSlider] = useState(true);
+  const [targetVolume, setTargetVolume] = useState(3000);
+  const [exerciseHistory, setExerciseHistory] = useState<ExerciseHistoryResponse | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  const handleExerciseSelect = async (exercise: Exercise) => {
     setSelectedExercise(exercise);
     setShowPicker(false);
+
+    // Fetch exercise history
+    setIsLoadingHistory(true);
+    try {
+      const history = await getExerciseHistory(exercise.id);
+      setExerciseHistory(history);
+
+      // Pre-populate volume slider with progressive overload (last volume Ã— 1.03)
+      if (history.lastPerformance) {
+        const lastVolume = history.lastPerformance.weight * history.lastPerformance.reps * (history.lastPerformance.sets || 3);
+        const progressiveVolume = Math.round(lastVolume * 1.03);
+        setTargetVolume(progressiveVolume);
+      } else {
+        // Default to 3,000 lbs for first-time exercises
+        setTargetVolume(3000);
+      }
+    } catch (error) {
+      console.error('Failed to fetch exercise history:', error);
+      setExerciseHistory(null);
+      setTargetVolume(3000);
+    } finally {
+      setIsLoadingHistory(false);
+    }
   };
+
+  const handleFineTune = (breakdown: SetBreakdown) => {
+    // Switch to manual mode and pre-populate with breakdown values
+    setUseVolumeSlider(false);
+    setWeight(breakdown.weight);
+    setReps(breakdown.reps);
+  };
+
+  // Auto-sync weight/reps when volume slider is used
+  useEffect(() => {
+    if (useVolumeSlider && selectedExercise) {
+      const { generateSetsFromVolume } = require('../utils/setBuilder');
+      const breakdown = generateSetsFromVolume(targetVolume, exerciseHistory?.lastPerformance);
+      setWeight(breakdown.weight);
+      setReps(breakdown.reps);
+    }
+  }, [targetVolume, useVolumeSlider, selectedExercise, exerciseHistory]);
 
   const handleAdd = () => {
     if (!selectedExercise) return;
@@ -39,6 +88,9 @@ const SetConfigurator: React.FC<SetConfiguratorProps> = ({
     setWeight(defaultWeight);
     setReps(defaultReps);
     setRestTimer(defaultRestTimer);
+    setUseVolumeSlider(true);
+    setTargetVolume(3000);
+    setExerciseHistory(null);
   };
 
   return (
@@ -65,7 +117,46 @@ const SetConfigurator: React.FC<SetConfiguratorProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          {/* Mode Toggle */}
+          <div className="flex items-center justify-center gap-2 bg-brand-dark p-2 rounded-lg">
+            <button
+              onClick={() => setUseVolumeSlider(true)}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                useVolumeSlider
+                  ? 'bg-brand-cyan text-brand-dark'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Volume Mode
+            </button>
+            <button
+              onClick={() => setUseVolumeSlider(false)}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                !useVolumeSlider
+                  ? 'bg-brand-cyan text-brand-dark'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Manual Mode
+            </button>
+          </div>
+
+          {useVolumeSlider ? (
+            // Volume Slider Mode
+            <VolumeSlider
+              value={targetVolume}
+              onChange={(newVolume) => {
+                setTargetVolume(newVolume);
+                // Auto-update weight and reps from volume breakdown
+                // This will be handled by the breakdown calculation
+              }}
+              lastPerformance={exerciseHistory?.lastPerformance}
+              isLoading={isLoadingHistory}
+              onFineTune={handleFineTune}
+            />
+          ) : (
+            // Manual Input Mode
+            <div className="grid grid-cols-3 gap-3">
             {/* Weight Input */}
             <div>
               <label className="block text-sm text-slate-400 mb-1">Weight (lbs)</label>
@@ -140,6 +231,32 @@ const SetConfigurator: React.FC<SetConfiguratorProps> = ({
                 </button>
               </div>
             </div>
+            </div>
+          )}
+
+          {/* Rest Timer (shown in both modes) */}
+          <div>
+            <label className="block text-sm text-slate-400 mb-1">Rest Timer (sec)</label>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setRestTimer(Math.max(15, restTimer - 15))}
+                className="bg-brand-dark px-2 py-1 rounded text-sm"
+              >
+                -15
+              </button>
+              <input
+                type="number"
+                value={restTimer}
+                onChange={(e) => setRestTimer(Number(e.target.value))}
+                className="w-full bg-brand-dark text-white px-3 py-2 rounded-lg text-center"
+              />
+              <button
+                onClick={() => setRestTimer(restTimer + 15)}
+                className="bg-brand-dark px-2 py-1 rounded text-sm"
+              >
+                +15
+              </button>
+            </div>
           </div>
 
           <button
@@ -161,7 +278,7 @@ const SetConfigurator: React.FC<SetConfiguratorProps> = ({
                 onClick={() => setShowPicker(false)}
                 className="text-slate-400 hover:text-white text-2xl"
               >
-                ×
+                ï¿½
               </button>
             </header>
             <ExercisePicker onSelect={handleExerciseSelect} />

@@ -31,7 +31,8 @@ import {
   ExerciseCalibrationData,
   CalibrationMap,
   SaveCalibrationRequest,
-  WorkoutRecommendation
+  WorkoutRecommendation,
+  ExerciseHistoryResponse
 } from './types';
 
 const app = express();
@@ -207,6 +208,23 @@ app.get('/api/progressive-suggestions', (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error getting progressive suggestions:', error);
     return res.status(500).json({ error: 'Failed to get progressive suggestions' });
+  }
+});
+
+// Get exercise history
+app.get('/api/exercise-history/:exerciseId/latest', (req: Request, res: Response<ExerciseHistoryResponse | ApiErrorResponse>) => {
+  try {
+    const { exerciseId } = req.params;
+
+    if (!exerciseId) {
+      return res.status(400).json({ error: 'Exercise ID is required' });
+    }
+
+    const history = db.getExerciseHistory(exerciseId);
+    return res.json(history);
+  } catch (error) {
+    console.error('Error getting exercise history:', error);
+    return res.status(500).json({ error: 'Failed to get exercise history' });
   }
 });
 

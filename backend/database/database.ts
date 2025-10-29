@@ -1659,6 +1659,78 @@ function deleteExerciseCalibrations(exerciseId: string): void {
   `).run(exerciseId);
 }
 
+/**
+ * Get exercise history for a specific exercise
+ * Returns last performance data and personal records
+ */
+function getExerciseHistory(exerciseId: string): {
+  exerciseId: string;
+  lastPerformed: string | null;
+  sets: Array<{ weight: number; reps: number }>;
+  totalVolume: number;
+  personalRecord: { weight: number; reps: number } | null;
+} {
+  const userId = 1;
+
+  // Query to get the most recent workout for this exercise
+  const lastWorkout = db.prepare(`
+    SELECT w.date as completed_at, es.weight, es.reps
+    FROM exercise_sets es
+    JOIN workouts w ON es.workout_id = w.id
+    WHERE w.user_id = ? AND es.exercise_name = ?
+    ORDER BY w.date DESC
+    LIMIT 1
+  `).get(userId, exerciseId) as { completed_at: string; weight: number; reps: number } | undefined;
+
+  if (!lastWorkout) {
+    // No history found
+    return {
+      exerciseId,
+      lastPerformed: null,
+      sets: [],
+      totalVolume: 0,
+      personalRecord: null
+    };
+  }
+
+  // Get all sets from the last workout session
+  const lastSessionSets = db.prepare(`
+    SELECT es.weight, es.reps
+    FROM exercise_sets es
+    JOIN workouts w ON es.workout_id = w.id
+    WHERE w.user_id = ? AND es.exercise_name = ? AND w.date = ?
+    ORDER BY es.set_number
+  `).all(userId, exerciseId, lastWorkout.completed_at) as Array<{ weight: number; reps: number }>;
+
+  // Calculate total volume from last session
+  const totalVolume = lastSessionSets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
+
+  // Find personal record (highest weight × reps product)
+  const allSets = db.prepare(`
+    SELECT es.weight, es.reps
+    FROM exercise_sets es
+    JOIN workouts w ON es.workout_id = w.id
+    WHERE w.user_id = ? AND es.exercise_name = ?
+  `).all(userId, exerciseId) as Array<{ weight: number; reps: number }>;
+
+  let personalRecord: { weight: number; reps: number } | null = null;
+  if (allSets.length > 0) {
+    personalRecord = allSets.reduce((best, set) => {
+      const currentVolume = set.weight * set.reps;
+      const bestVolume = best.weight * best.reps;
+      return currentVolume > bestVolume ? set : best;
+    });
+  }
+
+  return {
+    exerciseId,
+    lastPerformed: lastWorkout.completed_at,
+    sets: lastSessionSets,
+    totalVolume,
+    personalRecord
+  };
+}
+
 // Export database instance and helper functions
 export {
   db,
@@ -1688,6 +1760,7 @@ export {
   getExerciseCalibrations,
   saveExerciseCalibrations,
   deleteExerciseCalibrations,
+  getExerciseHistory,
   getRotationState,
   getNextWorkout,
   advanceRotation

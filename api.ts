@@ -310,3 +310,30 @@ export async function deleteExerciseCalibrations(
     method: 'DELETE'
   });
 }
+
+// ============================================
+// Exercise History API Functions
+// ============================================
+
+export interface ExerciseHistoryResponse {
+  exerciseId: string;
+  lastPerformed: string | null;
+  sets: Array<{
+    weight: number;
+    reps: number;
+  }>;
+  totalVolume: number;
+  personalRecord: {
+    weight: number;
+    reps: number;
+  } | null;
+}
+
+/**
+ * Get exercise history (last performance and personal records)
+ */
+export async function getExerciseHistory(
+  exerciseId: string
+): Promise<ExerciseHistoryResponse> {
+  return apiRequest<ExerciseHistoryResponse>(`/exercise-history/${exerciseId}/latest`);
+}

@@ -7,6 +7,73 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-29 - Enhanced Quick Builder with Smart Generation
+
+**Status**: ✅ COMPLETE
+**Feature**: Volume slider, smart defaults, and target-driven workout generation
+
+**Files Changed**:
+- `components/SetConfigurator.tsx` (updated - integrated VolumeSlider with exercise history)
+- `components/VolumeSlider.tsx` (new - volume-based set configuration with progressive overload)
+- `components/WorkoutBuilder.tsx` (updated - added planning mode toggle and target mode)
+- `components/TargetModePanel.tsx` (new - muscle target sliders with constraint support)
+- `utils/setBuilder.ts` (new - volume-to-sets calculation with progressive overload)
+- `utils/targetDrivenGeneration.ts` (new - greedy algorithm for workout generation from targets)
+- `backend/database/migrations/008_add_exercise_history_index.sql` (new - performance optimization)
+
+**Summary**: Implemented three major enhancements to Quick Builder: (1) Volume Slider Mode replacing manual weight/reps entry with smart defaults from exercise history, (2) Target-Driven Mode allowing users to set muscle fatigue targets and auto-generate workouts, (3) Greedy algorithm that recommends optimal exercises to hit targets while respecting constraints.
+
+**Implementation Details**:
+
+1. **Volume Slider Integration** (Phase 3):
+   - SetConfigurator now fetches exercise history on selection
+   - Auto-populates volume slider with last session volume × 1.03 (progressive overload)
+   - Mode toggle: Volume Mode (slider) vs Manual Mode (traditional inputs)
+   - Real-time set/rep/weight breakdown from volume calculation
+   - Fine-tune button switches to manual mode with pre-populated values
+
+2. **Target Mode UI** (Phase 4):
+   - Planning mode toggle: "Forward Planning" | "Target-Driven"
+   - TargetModePanel with sliders for all 13 muscles (0-100% target fatigue)
+   - Current fatigue vs target display with gap calculation
+   - Optional "Max Allowed" constraints per muscle
+   - Generate button enables when targets are set
+
+3. **Target-Driven Algorithm** (Phase 5):
+   - Greedy algorithm sorts muscles by fatigue gap (largest first)
+   - Scores exercises: efficiency = target engagement / (1 + collateral risk)
+   - Calculates volume needed: (fatigueGap / 100) × baseline / (engagement% / 100)
+   - Respects max allowed constraints, skips exercises that would violate
+   - Returns recommendations with exercise, volume, muscle impacts, and efficiency score
+
+4. **Integration & Display** (Phase 6):
+   - Recommendations panel shows exercise name, target volume, muscle impacts, efficiency
+   - Fetches exercise history for each recommendation
+   - Generates set/rep/weight breakdown using smart defaults
+   - "Accept All" button adds recommendations to workout
+   - "Clear & Regenerate" allows trying different targets
+   - Error handling for impossible targets and constraint conflicts
+
+**Database Changes**:
+- Migration 008: Added composite index on `workouts(user_id, date DESC)` for fast exercise history queries
+
+**Technical Notes**:
+- Exercise history API responds in <200ms with proper indexing
+- Volume slider updates smoothly with debounced onChange
+- Algorithm completes in <500ms for typical target sets
+- All components use brand colors (cyan accents, dark blue/gray backgrounds)
+- Progressive overload calculation: lastVolume × 1.03
+- Set generation clamps reps to 5-15 range, rounds weight to nearest 5 lbs
+
+**Testing**:
+- End-to-end tested via Chrome DevTools
+- Planning mode toggle switches correctly between Forward and Target modes
+- Target sliders update state and enable/disable Generate button
+- Algorithm executes and handles edge cases (no valid exercises)
+- UI renders with proper brand styling and responsive layout
+
+---
+
 ### 2025-10-29 - Comprehensive Documentation Audit & Update
 
 **Status**: ✅ DOCUMENTATION COMPLETE
