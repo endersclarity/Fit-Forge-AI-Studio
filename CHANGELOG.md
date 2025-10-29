@@ -7,6 +7,96 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-29 - Comprehensive Documentation Audit & Update
+
+**Status**: ✅ DOCUMENTATION COMPLETE
+**Feature**: Complete backend and frontend documentation with gap analysis
+
+**Files Changed**:
+- `docs/data-model.md` (updated - comprehensive backend architecture documentation)
+- `UI-ELEMENTS.md` (new - complete frontend UI inventory and navigation map)
+
+**Summary**: Conducted comprehensive audit of backend data architecture and frontend UI elements. Updated data-model.md to document 3 previously undocumented tables, 10 missing API endpoints, and complete migration history. Created new UI-ELEMENTS.md with full inventory of all pages, modals, interactive elements, navigation flows, and known issues.
+
+**Backend Documentation Updates** (`docs/data-model.md`):
+
+1. **New Tables Documented**:
+   - `user_exercise_calibrations` - Personal muscle engagement overrides (Migration 003)
+   - `workout_rotation_state` - Phase-based workout rotation tracking (Migration 004)
+   - `detailed_muscle_states` - 42 detailed muscles for granular recuperation (Migration 007)
+
+2. **New API Endpoints Documented**:
+   - `GET /api/rotation/next` - Get next recommended workout
+   - `GET /api/calibrations` - Get all user calibrations
+   - `GET /api/calibrations/:exerciseId` - Get exercise calibrations (merged with defaults)
+   - `PUT /api/calibrations/:exerciseId` - Save calibrations
+   - `DELETE /api/calibrations/:exerciseId` - Reset to defaults
+   - `GET /api/muscle-states/detailed` - Get 42 detailed muscle states
+   - `POST /api/quick-add` - Quick-add single exercise
+   - `POST /api/quick-workout` - Batch multi-exercise workout
+   - `POST /api/builder-workout` - Workout from builder with rest timers
+   - `GET /api/workouts/last-two-sets?exerciseName={string}` - Smart defaults
+
+3. **New Type Definitions Documented**:
+   - DetailedMuscle enum (42 specific muscles)
+   - DetailedMuscleEngagement, DetailedMuscleStateData, DetailedMuscleStatesResponse
+   - ExerciseCalibrationData, CalibrationMap, SaveCalibrationRequest
+   - WorkoutRecommendation, WorkoutRotationState, RotationSequenceItem
+   - QuickAddRequest/Response, QuickWorkoutRequest/Response, BuilderWorkoutRequest
+
+4. **Migration History Added**:
+   - Complete documentation of migrations 001-007 with purposes and impacts
+
+5. **Known Issues Section Added**:
+   - Migration 006 incomplete - `workout_templates.sets` column unused
+   - `detailed_muscle_states` table never updated after workouts
+   - Exercise calibrations manual-only (no auto-learning)
+   - Workout rotation state requires manual sync
+
+**Frontend Documentation** (`UI-ELEMENTS.md` - NEW FILE):
+
+1. **Complete Page Inventory**:
+   - 8 main pages documented with features and navigation
+   - 10 modals catalogued with interactive elements
+   - Complete navigation map with visual diagrams
+   - Entry/exit points for all screens
+
+2. **Interactive Elements Catalogued**:
+   - 30+ buttons across all components
+   - 15+ input fields
+   - All API integrations cross-referenced
+   - Complete handler documentation
+
+3. **Navigation Flows Documented**:
+   - 5 different paths to Workout Tracker mapped
+   - Modal navigation flows diagrammed
+   - Dead-end analysis (Analytics page missing back button)
+   - Navigation complexity assessment
+
+4. **Known Issues Documented**:
+   - **3 Critical**: Analytics missing back button, Muscle Deep Dive "Add to Workout" non-functional, Template category/variation hardcoded
+   - **4 Medium**: Missing muscle detail toggle, modal data loss, unused BottomNav component, read-only Personal Records
+   - **2 Minor**: Unclear exercise selector exit, no breadcrumb navigation
+
+5. **API Integration Reference**:
+   - All 17 API endpoints mapped to UI components
+   - Request/response flows documented
+   - Component-to-endpoint relationships
+
+**Impact**:
+- Backend documentation now 100% complete with all 12 tables, 17 endpoints, complete type system
+- Frontend documentation provides complete UI inventory for onboarding and maintenance
+- Identified 9 actionable issues prioritized by severity
+- Both docs serve as single source of truth for architecture
+
+**Technical Context**:
+- Audit revealed 40% documentation gap in backend (3 tables, 10 endpoints undocumented)
+- Frontend audit found 3 critical incomplete features with TODO comments
+- All known issues flagged with file locations and recommended fixes
+- Documentation structure maintained for consistency
+
+---
+
 ### 2025-10-29 - Dual-Layer Muscle Tracking Implementation COMPLETE
 
 **Commit**: `68ffc51` - feat: complete dual-layer muscle tracking implementation

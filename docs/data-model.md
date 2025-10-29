@@ -20,6 +20,9 @@ erDiagram
     users ||--o{ personal_bests : "achieves"
     users ||--o{ muscle_baselines : "has"
     users ||--o{ workout_templates : "creates"
+    users ||--o{ user_exercise_calibrations : "customizes"
+    users ||--o{ workout_rotation_state : "tracks"
+    users ||--o{ detailed_muscle_states : "has"
 
     workouts ||--o{ exercise_sets : "contains"
 
@@ -27,6 +30,7 @@ erDiagram
         int id PK
         text name
         text experience
+        int recovery_days_to_full
         timestamp created_at
         timestamp updated_at
     }
@@ -107,8 +111,47 @@ erDiagram
         text category
         text variation
         text exercise_ids
+        text sets
         int is_favorite
         int times_used
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    user_exercise_calibrations {
+        int id PK
+        int user_id FK
+        text exercise_id UK
+        text muscle_name UK
+        real engagement_percentage
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    workout_rotation_state {
+        int id PK
+        int user_id UK
+        text current_cycle
+        int current_phase
+        text last_workout_date
+        text last_workout_category
+        text last_workout_variation
+        int rest_days_count
+        timestamp updated_at
+    }
+
+    detailed_muscle_states {
+        int id PK
+        int user_id FK
+        text detailed_muscle_name UK
+        text visualization_muscle_name
+        text role
+        real fatigue_percent
+        real volume_today
+        text last_trained
+        real baseline_capacity
+        text baseline_source
+        text baseline_confidence
         timestamp created_at
         timestamp updated_at
     }
@@ -128,10 +171,15 @@ erDiagram
 | id | INTEGER | PRIMARY KEY | User identifier (always 1 for single-user app) |
 | name | TEXT | NOT NULL | User's name |
 | experience | TEXT | NOT NULL | Experience level: Beginner/Intermediate/Advanced |
+| recovery_days_to_full | INTEGER | DEFAULT 5 | Days to recover from 100% fatigue (range 3-10) |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Account creation time |
 | updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Last profile update |
 
-**Location**: `backend/database/schema.sql:1-7`
+**Notes**:
+- `recovery_days_to_full` added in migration 005
+- Used in recovery formula: `estimatedRecoveryDays = recovery_days_to_full * (initialFatiguePercent / 100)`
+
+**Location**: `backend/database/schema.sql:5-11`
 
 ---
 
@@ -147,7 +195,7 @@ erDiagram
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Entry creation time |
 
 **Indexes**: Foreign key index on user_id
-**Location**: `backend/database/schema.sql:9-16`
+**Location**: `backend/database/schema.sql:14-21`
 
 ---
 
@@ -165,7 +213,7 @@ erDiagram
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Entry creation time |
 
 **Indexes**: Foreign key index on user_id
-**Location**: `backend/database/schema.sql:18-27`
+**Location**: `backend/database/schema.sql:24-33`
 
 ---
 
@@ -188,7 +236,7 @@ erDiagram
 - idx_workouts_date ON (date)
 - Foreign key index on user_id
 
-**Location**: `backend/database/schema.sql:29-41`
+**Location**: `backend/database/schema.sql:36-46`
 
 ---
 
@@ -211,7 +259,10 @@ erDiagram
 - idx_exercise_sets_to_failure ON (to_failure)
 - Foreign key index on workout_id
 
-**Location**: `backend/database/schema.sql:43-55`
+**Notes**:
+- `to_failure` column added in migration 001
+
+**Location**: `backend/database/schema.sql:49-59`
 
 ---
 
@@ -233,19 +284,23 @@ erDiagram
 **Calculated Fields** (computed at read time, not stored):
 - `currentFatiguePercent`: Current fatigue based on recovery formula
 - `daysElapsed`: Days since last_trained
-- `estimatedRecoveryDays`: Total days needed for recovery (1-7 days)
+- `estimatedRecoveryDays`: Total days needed for recovery (based on user's recovery_days_to_full setting)
 - `daysUntilRecovered`: Remaining recovery days
 - `recoveryStatus`: "ready" | "recovering" | "fatigued"
 
 **Recovery Formula**:
 ```typescript
-recoveryDays = 1 + (initialFatigue / 100) * 6
+recoveryDays = users.recovery_days_to_full * (initialFatiguePercent / 100)
 currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
 ```
 
 **13 Muscles**: Pectoralis, Triceps, Deltoids, Lats, Biceps, Rhomboids, Trapezius, Forearms, Quadriceps, Glutes, Hamstrings, Calves, Core
 
-**Location**: `backend/database/schema.sql:57-69`
+**Notes**:
+- Refactored in migration 002 to remove calculated fields
+- Schema changed from storing calculated values to storing immutable historical facts
+
+**Location**: `backend/database/schema.sql:62-72`
 
 ---
 
@@ -263,7 +318,7 @@ currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
 | updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Last update time |
 
 **Indexes**: idx_personal_bests_user ON (user_id)
-**Location**: `backend/database/schema.sql:71-82`
+**Location**: `backend/database/schema.sql:75-85`
 
 ---
 
@@ -283,11 +338,58 @@ currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
 - idx_muscle_baselines_user ON (user_id)
 - idx_muscle_baselines_updated ON (updated_at)
 
-**Location**: `backend/database/schema.sql:84-95`
+**Location**: `backend/database/schema.sql:88-97`
 
 ---
 
-#### 9. workout_templates
+#### 9. detailed_muscle_states
+**Purpose**: Granular tracking of 42 specific muscles for dual-layer recuperation system
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | INTEGER | PRIMARY KEY | State identifier |
+| user_id | INTEGER | FK → users(id) | User reference |
+| detailed_muscle_name | TEXT | NOT NULL, UNIQUE(user_id, detailed_muscle_name) | DetailedMuscle enum value |
+| visualization_muscle_name | TEXT | NOT NULL | Maps to Muscle enum (aggregation) |
+| role | TEXT | NOT NULL CHECK | 'primary' \| 'secondary' \| 'stabilizer' |
+| fatigue_percent | REAL | NOT NULL DEFAULT 0 | Current fatigue percentage |
+| volume_today | REAL | NOT NULL DEFAULT 0 | Training volume from last session |
+| last_trained | TEXT | | Last training date (ISO 8601) |
+| baseline_capacity | REAL | NOT NULL | Learned capacity threshold |
+| baseline_source | TEXT | DEFAULT 'inherited' CHECK | 'inherited' \| 'learned' \| 'user_override' |
+| baseline_confidence | TEXT | DEFAULT 'low' CHECK | 'low' \| 'medium' \| 'high' |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Creation time |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Last update time |
+
+**Indexes**:
+- idx_detailed_muscle_states_user ON (user_id)
+- idx_detailed_muscle_states_viz ON (visualization_muscle_name)
+- idx_detailed_muscle_states_role ON (role)
+- idx_detailed_muscle_states_updated ON (updated_at)
+
+**42 Detailed Muscles**:
+- **Chest**: Pectoralis Major (Clavicular, Sternal)
+- **Shoulders**: Anterior/Medial/Posterior Deltoid
+- **Rotator Cuff**: Infraspinatus, Supraspinatus, Teres Minor, Subscapularis
+- **Scapular**: Serratus Anterior, Rhomboids, Levator Scapulae
+- **Back**: Latissimus Dorsi, Upper/Middle/Lower Trapezius, Erector Spinae
+- **Arms**: Biceps Brachii, Brachialis, Brachioradialis, Triceps (3 heads), Wrist Flexors/Extensors
+- **Core**: Rectus Abdominis, Obliques (External/Internal), Transverse Abdominis, Iliopsoas
+- **Quadriceps**: Vastus Lateralis/Medialis/Intermedius, Rectus Femoris
+- **Glutes**: Gluteus Maximus/Medius/Minimus
+- **Hamstrings**: Biceps Femoris, Semitendinosus, Semimembranosus
+- **Calves**: Gastrocnemius (Medial/Lateral), Soleus
+
+**Notes**:
+- Added in migration 007
+- **INCOMPLETE FEATURE**: Table is initialized but never updated after workouts
+- Dual-layer architecture: Detailed tracking for recuperation, aggregated display for UI
+
+**Location**: `backend/database/schema.sql:99-131`
+
+---
+
+#### 10. workout_templates
 **Purpose**: Stores saved workout configurations for reuse
 
 | Column | Type | Constraints | Description |
@@ -297,14 +399,80 @@ currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
 | name | TEXT | NOT NULL | Template name |
 | category | TEXT | NOT NULL | Push/Pull/Legs/Core |
 | variation | TEXT | NOT NULL | A/B/Both |
-| exercise_ids | TEXT | NOT NULL | JSON array of exercise IDs |
+| exercise_ids | TEXT | | **DEPRECATED**: JSON array of exercise IDs (kept for compatibility) |
+| sets | TEXT | | JSON array of TemplateSet objects with rest timers |
 | is_favorite | INTEGER | DEFAULT 0 | Boolean favorite flag |
 | times_used | INTEGER | DEFAULT 0 | Usage counter |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Creation time |
 | updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Last update time |
 
 **Indexes**: idx_workout_templates_user ON (user_id)
-**Location**: `backend/database/schema.sql:97-111`
+
+**Notes**:
+- `sets` column added in migration 006
+- **INCOMPLETE MIGRATION**: Code still uses `exercise_ids`, `sets` column is unused
+- `sets` format: `[{exerciseId, weight, reps, restTimerSeconds}, ...]`
+
+**Location**: `backend/database/schema.sql:136-149`
+
+---
+
+#### 11. user_exercise_calibrations
+**Purpose**: Personal muscle engagement overrides for exercises
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | INTEGER | PRIMARY KEY | Calibration identifier |
+| user_id | INTEGER | FK → users(id) | User reference |
+| exercise_id | TEXT | NOT NULL, UNIQUE(user_id, exercise_id, muscle_name) | Exercise ID (e.g., "ex03") |
+| muscle_name | TEXT | NOT NULL | Muscle enum value (e.g., "Pectoralis") |
+| engagement_percentage | REAL | NOT NULL | Custom engagement % (0-100) |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Creation time |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Last update time |
+
+**Indexes**:
+- idx_calibrations_user_exercise ON (user_id, exercise_id)
+- idx_calibrations_user ON (user_id)
+
+**Notes**:
+- Added in migration 003
+- Used in baseline learning but never auto-learned (manual only)
+- Overrides default muscle engagement percentages from EXERCISE_LIBRARY
+
+**Location**: `backend/database/schema.sql:152-162`
+
+---
+
+#### 12. workout_rotation_state
+**Purpose**: Phase-based workout rotation tracking
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | INTEGER | PRIMARY KEY | State identifier |
+| user_id | INTEGER | NOT NULL UNIQUE | User reference |
+| current_cycle | TEXT | NOT NULL DEFAULT 'A' CHECK | 'A' \| 'B' |
+| current_phase | INTEGER | NOT NULL DEFAULT 0 CHECK | 0-5 (position in rotation) |
+| last_workout_date | TEXT | | ISO 8601 date |
+| last_workout_category | TEXT | CHECK | 'Push' \| 'Pull' \| 'Legs' \| 'Core' \| NULL |
+| last_workout_variation | TEXT | CHECK | 'A' \| 'B' \| NULL |
+| rest_days_count | INTEGER | DEFAULT 0 CHECK | Rest days accumulated (>= 0) |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Last update time |
+
+**Indexes**: idx_rotation_state_user ON (user_id)
+
+**Rotation Sequence** (6-phase cycle):
+1. Phase 0: Push A
+2. Phase 1: Pull A
+3. Phase 2: Legs A (2-day rest after)
+4. Phase 3: Push B
+5. Phase 4: Pull B
+6. Phase 5: Legs B (2-day rest after) → Loop to Phase 0
+
+**Notes**:
+- Added in migration 004
+- Initialized with default state for user_id = 1
+
+**Location**: `backend/database/schema.sql:5-16` (migration 004)
 
 ---
 
@@ -316,35 +484,45 @@ currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
 
 ```typescript
 interface ProfileResponse {
-  id: number;
   name: string;
-  experience: string;
-  equipment: Array<{
-    id: number;
-    name: string;
-    min_weight: number;
-    max_weight: number;
-    weight_increment: number;
-  }>;
-  bodyweight_history: Array<{
+  experience: Difficulty;
+  bodyweightHistory: Array<{
     date: string;
     weight: number;
   }>;
+  equipment: Array<{
+    name: string;
+    minWeight: number;
+    maxWeight: number;
+    increment: number;
+  }>;
+  recovery_days_to_full?: number; // Days to recover from 100% fatigue (default: 5)
 }
 
 interface ProfileUpdateRequest {
   name?: string;
-  experience?: string;
-  equipment?: Array<{
-    id?: number;
-    name: string;
-    min_weight: number;
-    max_weight: number;
-    weight_increment: number;
-  }>;
-  bodyweight_history?: Array<{
+  experience?: Difficulty;
+  bodyweightHistory?: Array<{
     date: string;
     weight: number;
+  }>;
+  equipment?: Array<{
+    name: string;
+    minWeight: number;
+    maxWeight: number;
+    increment: number;
+  }>;
+  recovery_days_to_full?: number; // Range: 3-10
+}
+
+interface ProfileInitRequest {
+  name: string;
+  experience: Difficulty;
+  equipment?: Array<{
+    name: string;
+    minWeight: number;
+    maxWeight: number;
+    increment: number;
   }>;
 }
 ```
@@ -363,6 +541,12 @@ interface WorkoutExercise {
   sets: WorkoutExerciseSet[];
 }
 
+interface BaselineUpdate {
+  muscle: string;
+  oldMax: number;
+  newMax: number;
+}
+
 interface WorkoutResponse {
   id: number;
   date: string;
@@ -372,7 +556,7 @@ interface WorkoutResponse {
   duration_seconds?: number | null;
   exercises: WorkoutExercise[];
   created_at?: string;
-  prs?: PRInfo[];  // PRs attached to workout response
+  updated_baselines?: BaselineUpdate[];
 }
 
 interface WorkoutSaveRequest {
@@ -399,43 +583,64 @@ interface PRInfo {
 
 ```typescript
 interface MuscleStateData {
-  currentFatiguePercent: number;      // Calculated
-  daysElapsed: number;                 // Calculated
-  estimatedRecoveryDays: number;       // Calculated
-  daysUntilRecovered: number;          // Calculated
-  recoveryStatus: 'ready' | 'recovering' | 'fatigued';  // Calculated
-  initialFatiguePercent: number;       // Stored
-  lastTrained: string | null;          // Stored (UTC ISO 8601)
+  // Calculated fields (derived from stored fields and current time)
+  currentFatiguePercent: number;       // Current fatigue after time-based decay (0-100)
+  daysElapsed: number | null;          // Days since last workout (null if never trained)
+  estimatedRecoveryDays: number;       // Total days needed for full recovery
+  daysUntilRecovered: number;          // Days remaining until full recovery
+  recoveryStatus: 'ready' | 'recovering' | 'fatigued';
+
+  // Stored fields (from database)
+  initialFatiguePercent: number;       // Fatigue at time of workout (immutable fact)
+  lastTrained: string | null;          // UTC ISO 8601 timestamp
 }
 
 type MuscleStatesResponse = Record<string, MuscleStateData>;
 
 interface MuscleStatesUpdateRequest {
-  states: Record<string, {
+  [muscleName: string]: {
     initial_fatigue_percent: number;
-    volume_today: number;
-    last_trained: string;
-  }>;
+    last_trained: string;               // UTC ISO 8601
+    volume_today?: number;
+  };
 }
+```
+
+### Detailed Muscle States
+
+```typescript
+interface DetailedMuscleStateData {
+  detailedMuscleName: string;           // DetailedMuscle enum value
+  visualizationMuscleName: string;      // Muscle enum value (for aggregation)
+  role: 'primary' | 'secondary' | 'stabilizer';
+  currentFatiguePercent: number;
+  volumeToday: number;
+  lastTrained: string | null;
+  baselineCapacity: number;
+  baselineSource: 'inherited' | 'learned' | 'user_override';
+  baselineConfidence: 'low' | 'medium' | 'high';
+}
+
+type DetailedMuscleStatesResponse = Record<string, DetailedMuscleStateData>;
 ```
 
 ### Performance Tracking
 
 ```typescript
 interface PersonalBestData {
-  best_single_set: number;
-  best_session_volume: number;
-  rolling_average_max: number;
+  bestSingleSet: number | null;
+  bestSessionVolume: number | null;
+  rollingAverageMax: number | null;
 }
 
 type PersonalBestsResponse = Record<string, PersonalBestData>;
 
 interface PersonalBestsUpdateRequest {
-  bests: Record<string, {
-    best_single_set: number;
-    best_session_volume: number;
-    rolling_average_max: number;
-  }>;
+  [exerciseName: string]: {
+    bestSingleSet?: number | null;
+    bestSessionVolume?: number | null;
+    rollingAverageMax?: number | null;
+  };
 }
 ```
 
@@ -443,17 +648,133 @@ interface PersonalBestsUpdateRequest {
 
 ```typescript
 interface MuscleBaselineData {
-  system_learned_max: number;
-  user_override: number | null;
+  systemLearnedMax: number;
+  userOverride: number | null;
 }
 
 type MuscleBaselinesResponse = Record<string, MuscleBaselineData>;
 
 interface MuscleBaselinesUpdateRequest {
-  baselines: Record<string, {
-    system_learned_max?: number;
-    user_override?: number;
+  [muscleName: string]: {
+    systemLearnedMax?: number;
+    userOverride?: number | null;
+  };
+}
+```
+
+### Exercise Calibrations
+
+```typescript
+interface ExerciseEngagement {
+  muscle: string;
+  percentage: number;
+  isCalibrated: boolean;
+}
+
+interface ExerciseCalibrationData {
+  exerciseId: string;
+  exerciseName: string;
+  engagements: ExerciseEngagement[];
+}
+
+type CalibrationMap = Record<string, Record<string, number>>;
+
+interface SaveCalibrationRequest {
+  calibrations: Record<string, number>;
+}
+```
+
+### Workout Rotation
+
+```typescript
+interface WorkoutRotationState {
+  id?: number;
+  userId: number;
+  currentCycle: 'A' | 'B';
+  currentPhase: number;                 // 0-5 (position in sequence)
+  lastWorkoutDate: string | null;       // ISO 8601
+  lastWorkoutCategory: ExerciseCategory | null;
+  lastWorkoutVariation: 'A' | 'B' | null;
+  restDaysCount: number;
+  updatedAt?: string;
+}
+
+interface RotationSequenceItem {
+  category: ExerciseCategory;
+  variation: 'A' | 'B';
+  restAfter: number;                    // Rest days after workout
+}
+
+interface WorkoutRecommendation {
+  isRestDay: boolean;
+  reason?: string;
+  category?: ExerciseCategory;
+  variation?: 'A' | 'B';
+  phase?: number;
+  lastWorkout?: {
+    category: ExerciseCategory;
+    variation: 'A' | 'B';
+    date: string;
+    daysAgo: number;
+  };
+}
+```
+
+### Quick-Add and Quick-Workout
+
+```typescript
+interface QuickAddRequest {
+  exercise_name: string;
+  weight: number;
+  reps: number;
+  to_failure?: boolean;
+  date?: string;                        // ISO 8601
+}
+
+interface QuickAddResponse {
+  workout: WorkoutResponse;
+  muscle_states: MuscleStatesResponse;
+  pr_info?: PRInfo;
+  attached_to_active: boolean;
+}
+
+interface QuickWorkoutExercise {
+  exercise_name: string;
+  sets: Array<{
+    weight: number;
+    reps: number;
+    to_failure?: boolean;
   }>;
+}
+
+interface QuickWorkoutRequest {
+  exercises: QuickWorkoutExercise[];
+  timestamp?: string;                   // ISO 8601
+}
+
+interface QuickWorkoutResponse {
+  workout_id: number;
+  category: string;
+  variation: string;
+  duration_seconds: number;
+  prs: PRInfo[];
+  updated_baselines: BaselineUpdate[];
+  muscle_states_updated: boolean;
+}
+```
+
+### Builder-Workout
+
+```typescript
+interface BuilderWorkoutRequest {
+  sets: Array<{
+    exercise_name: string;
+    weight: number;
+    reps: number;
+    rest_timer_seconds: number;
+  }>;
+  timestamp: string;
+  was_executed: boolean;
 }
 ```
 
@@ -480,6 +801,63 @@ enum Muscle {
   Hamstrings = 'Hamstrings',
   Calves = 'Calves',
   Core = 'Core'
+}
+
+enum DetailedMuscle {
+  // CHEST
+  PectoralisMajorClavicular = "Pectoralis Major (Clavicular)",
+  PectoralisMajorSternal = "Pectoralis Major (Sternal)",
+  // SHOULDERS
+  AnteriorDeltoid = "Anterior Deltoid",
+  MedialDeltoid = "Medial Deltoid",
+  PosteriorDeltoid = "Posterior Deltoid",
+  // ROTATOR CUFF
+  Infraspinatus = "Infraspinatus",
+  Supraspinatus = "Supraspinatus",
+  TeresMinor = "Teres Minor",
+  Subscapularis = "Subscapularis",
+  // SCAPULAR STABILIZERS
+  SerratusAnterior = "Serratus Anterior",
+  RhomboidsDetailed = "Rhomboids",
+  LevatorScapulae = "Levator Scapulae",
+  // BACK
+  LatissimusDorsi = "Latissimus Dorsi",
+  UpperTrapezius = "Upper Trapezius",
+  MiddleTrapezius = "Middle Trapezius",
+  LowerTrapezius = "Lower Trapezius",
+  ErectorSpinae = "Erector Spinae",
+  // ARMS
+  BicepsBrachii = "Biceps Brachii",
+  Brachialis = "Brachialis",
+  Brachioradialis = "Brachioradialis",
+  TricepsLongHead = "Triceps (Long Head)",
+  TricepsLateralHead = "Triceps (Lateral Head)",
+  TricepsMedialHead = "Triceps (Medial Head)",
+  WristFlexors = "Wrist Flexors",
+  WristExtensors = "Wrist Extensors",
+  // CORE
+  RectusAbdominis = "Rectus Abdominis",
+  ExternalObliques = "External Obliques",
+  InternalObliques = "Internal Obliques",
+  TransverseAbdominis = "Transverse Abdominis",
+  Iliopsoas = "Iliopsoas",
+  // LEGS - QUADRICEPS
+  VastusLateralis = "Vastus Lateralis",
+  VastusMedialis = "Vastus Medialis",
+  VastusIntermedius = "Vastus Intermedius",
+  RectusFemoris = "Rectus Femoris",
+  // LEGS - GLUTES
+  GluteusMaximus = "Gluteus Maximus",
+  GluteusMedius = "Gluteus Medius",
+  GluteusMinimus = "Gluteus Minimus",
+  // LEGS - HAMSTRINGS
+  BicepsFemoris = "Biceps Femoris",
+  Semitendinosus = "Semitendinosus",
+  Semimembranosus = "Semimembranosus",
+  // LEGS - CALVES
+  GastrocnemiusMedial = "Gastrocnemius (Medial)",
+  GastrocnemiusLateral = "Gastrocnemius (Lateral)",
+  Soleus = "Soleus",
 }
 
 enum ExerciseCategory {
@@ -522,6 +900,13 @@ interface MuscleEngagement {
   percentage: number;
 }
 
+interface DetailedMuscleEngagement {
+  muscle: DetailedMuscle;
+  percentage: number;
+  role: 'primary' | 'secondary' | 'stabilizer';
+  citation?: string;
+}
+
 interface Exercise {
   id: string;
   name: string;
@@ -529,6 +914,7 @@ interface Exercise {
   equipment: Equipment | Equipment[];
   difficulty: Difficulty;
   muscleEngagements: MuscleEngagement[];
+  detailedMuscleEngagements?: DetailedMuscleEngagement[];
   variation: Variation;
 }
 ```
@@ -748,16 +1134,34 @@ interface AnalyticsResponse {
 ### Profile Management
 - `GET /api/profile` → `ProfileResponse`
 - `PUT /api/profile` (body: `ProfileUpdateRequest`) → `ProfileResponse`
+- `POST /api/profile/init` (body: `ProfileInitRequest`) → `ProfileResponse`
 
 ### Workouts
 - `GET /api/workouts` → `WorkoutResponse[]`
 - `GET /api/workouts/last?category={string}` → `WorkoutResponse`
-- `POST /api/workouts` (body: `WorkoutSaveRequest`) → `{ workout: WorkoutResponse, prs: PRInfo[] }`
+- `GET /api/workouts/last-two-sets?exerciseName={string}` → Get last 2 sets for smart defaults
+- `POST /api/workouts` (body: `WorkoutSaveRequest`) → `WorkoutResponse`
+
+### Quick-Add and Quick-Workout
 - `POST /api/quick-add` (body: `QuickAddRequest`) → `QuickAddResponse`
+  - Quick-add single exercise (single set)
+  - Attaches to active workout or creates new one
+  - Returns PR info and muscle states
+
+- `POST /api/quick-workout` (body: `QuickWorkoutRequest`) → `QuickWorkoutResponse`
+  - Batch multi-exercise workout
+  - Supports multiple sets per exercise
+  - Returns PRs, baseline updates, muscle states
+
+- `POST /api/builder-workout` (body: `BuilderWorkoutRequest`) → `QuickWorkoutResponse`
+  - Workout from builder with rest timers
+  - Includes rest_timer_seconds per set
+  - Returns same response as quick-workout
 
 ### Muscle States (Backend-Driven)
 - `GET /api/muscle-states` → `MuscleStatesResponse` (with calculated fields)
 - `PUT /api/muscle-states` (body: `MuscleStatesUpdateRequest`) → `MuscleStatesResponse`
+- `GET /api/muscle-states/detailed` → `DetailedMuscleStatesResponse`
 
 ### Personal Bests
 - `GET /api/personal-bests` → `PersonalBestsResponse`
@@ -766,6 +1170,28 @@ interface AnalyticsResponse {
 ### Muscle Baselines
 - `GET /api/muscle-baselines` → `MuscleBaselinesResponse`
 - `PUT /api/muscle-baselines` (body: `MuscleBaselinesUpdateRequest`) → `MuscleBaselinesResponse`
+
+### Exercise Calibrations
+- `GET /api/calibrations` → `CalibrationMap`
+  - Get all user calibrations
+
+- `GET /api/calibrations/:exerciseId` → `ExerciseCalibrationData`
+  - Get exercise calibrations (merged with defaults)
+
+- `PUT /api/calibrations/:exerciseId` (body: `SaveCalibrationRequest`) → `ExerciseCalibrationData`
+  - Save calibrations for exercise
+
+- `DELETE /api/calibrations/:exerciseId` → `{ message: string; exerciseId: string }`
+  - Reset exercise to defaults
+
+### Workout Rotation
+- `GET /api/rotation/next` → `WorkoutRecommendation`
+  - Get next recommended workout based on rotation sequence
+  - Returns rest day recommendation if needed
+  - Follows 6-phase rotation: Push A → Pull A → Legs A (2-day rest) → Push B → Pull B → Legs B (2-day rest)
+
+### Progressive Overload Suggestions
+- `GET /api/progressive-suggestions?exerciseName={string}&category={string}` → `ProgressiveSuggestion`
 
 ### Workout Templates
 - `GET /api/templates` → `WorkoutTemplate[]`
@@ -787,6 +1213,216 @@ interface AnalyticsResponse {
 
 ---
 
+## Migration History
+
+**Location**: `backend/database/migrations/`
+
+### Migration 001: Add to_failure Column
+**File**: `001_add_to_failure_column.sql`
+**Date**: 2025-10-24
+**Purpose**: Enable failure tracking for PR detection
+
+**Changes**:
+- Added `to_failure` INTEGER column to exercise_sets (DEFAULT 1)
+- Created idx_exercise_sets_to_failure index
+- All existing sets default to to_failure = 1 (TRUE)
+
+**Rollback**: `001_rollback_to_failure_column.sql`
+
+---
+
+### Migration 002: Refactor Muscle States
+**File**: `002_refactor_muscle_states.sql`
+**Date**: 2025-10-25
+**Purpose**: Transition to backend-driven muscle state calculations
+
+**Changes**:
+- **DESTRUCTIVE**: Dropped and recreated muscle_states table
+- Removed calculated fields: `current_fatigue_percent`, `days_since_trained`, `estimated_recovery_days`, `days_until_recovered`, `recovery_status`
+- Added `initial_fatigue_percent` (renamed from `fatigue_percent`)
+- Added `volume_today` field
+- Kept `last_trained` as UTC ISO 8601 timestamp
+- Re-initialized 13 muscle groups for user_id = 1
+
+**Schema Change**:
+```
+OLD: fatigue_percent, days_since_trained, estimated_recovery_days, ...
+NEW: initial_fatigue_percent, volume_today, last_trained
+```
+
+---
+
+### Migration 003: Add User Exercise Calibrations
+**File**: `003_add_user_exercise_calibrations.sql`
+**Date**: 2025-10-26
+**Purpose**: Enable personal muscle engagement overrides
+
+**Changes**:
+- Created user_exercise_calibrations table
+- Columns: user_id, exercise_id, muscle_name, engagement_percentage
+- UNIQUE constraint on (user_id, exercise_id, muscle_name)
+- Indexes: idx_calibrations_user_exercise, idx_calibrations_user
+
+**Related**: openspec/changes/2025-10-26-implement-personal-engagement-calibration
+
+---
+
+### Migration 004: Add Workout Rotation State
+**File**: `004_add_workout_rotation_state.sql`
+**Date**: 2025-10-27
+**Purpose**: Track user's position in workout rotation sequence
+
+**Changes**:
+- Created workout_rotation_state table
+- Columns: user_id (UNIQUE), current_cycle, current_phase, last_workout_date, last_workout_category, last_workout_variation, rest_days_count
+- current_cycle CHECK: 'A' | 'B'
+- current_phase CHECK: 0-5
+- Initialized default state for user_id = 1 (cycle='A', phase=0)
+
+**Rotation Logic**:
+- 6-phase sequence with 2-day rest after Legs workouts
+- Phases 0-2 (Cycle A): Push A → Pull A → Legs A
+- Phases 3-5 (Cycle B): Push B → Pull B → Legs B
+
+---
+
+### Migration 005: Add Recovery Days Setting
+**File**: `005_add_recovery_days_setting.sql`
+**Date**: 2025-10-27
+**Purpose**: Add configurable recovery time to users table
+
+**Changes**:
+- Added `recovery_days_to_full` INTEGER column to users table (DEFAULT 5)
+- Valid range: 3-10 days
+- Updated existing users to have explicit default value (5)
+
+**Related**: openspec/changes/implement-configurable-recovery-system
+
+**Usage**:
+```typescript
+estimatedRecoveryDays = users.recovery_days_to_full * (initialFatiguePercent / 100)
+```
+
+---
+
+### Migration 006: Update Workout Templates
+**File**: `006_update_workout_templates.sql`
+**Date**: 2025-10-27 (estimated)
+**Purpose**: Store set configurations with rest timers
+
+**Changes**:
+- Added `sets` TEXT column to workout_templates
+- Initialized as empty array '[]' for existing templates
+- Kept `exercise_ids` column for backward compatibility
+
+**⚠️ INCOMPLETE MIGRATION**:
+- `sets` column added but **NEVER USED** in code
+- Application still uses `exercise_ids` field
+- Existing templates became unusable after migration
+- Users need to recreate templates with new WorkoutBuilder
+
+**Intended Format**:
+```json
+[
+  {
+    "exerciseId": "ex02",
+    "weight": 25,
+    "reps": 10,
+    "restTimerSeconds": 90
+  }
+]
+```
+
+---
+
+### Migration 007: Add Detailed Muscle States
+**File**: `007_add_detailed_muscle_states.sql`
+**Date**: 2025-10-29
+**Purpose**: Enable granular tracking of 42 specific muscles
+
+**Changes**:
+- Created detailed_muscle_states table
+- Columns: detailed_muscle_name, visualization_muscle_name, role, fatigue_percent, volume_today, last_trained, baseline_capacity, baseline_source, baseline_confidence
+- role CHECK: 'primary' | 'secondary' | 'stabilizer'
+- baseline_source CHECK: 'inherited' | 'learned' | 'user_override'
+- baseline_confidence CHECK: 'low' | 'medium' | 'high'
+- UNIQUE constraint on (user_id, detailed_muscle_name)
+- Indexes: user, visualization_muscle_name, role, updated_at
+
+**⚠️ INCOMPLETE FEATURE**:
+- Table is initialized but **NEVER UPDATED** after workouts
+- API endpoint exists (`GET /api/muscle-states/detailed`) but returns empty data
+- Dual-layer architecture planned but not implemented
+- No baseline learning logic implemented
+
+**Related**: openspec/changes/2025-10-29-implement-dual-layer-muscle-tracking
+
+---
+
+## Known Issues
+
+### 1. Unused workout_templates.sets Column
+**Issue**: Migration 006 added `sets` column but code still uses `exercise_ids`
+
+**Impact**:
+- New column is unused in application code
+- Existing templates were set to empty array '[]'
+- No migration to convert old format to new format
+
+**Status**: ⚠️ INCOMPLETE MIGRATION
+
+---
+
+### 2. Detailed Muscle States Never Updated
+**Issue**: detailed_muscle_states table exists but is never populated after workouts
+
+**Impact**:
+- GET /api/muscle-states/detailed returns empty/stale data
+- Dual-layer tracking architecture incomplete
+- No baseline learning for detailed muscles
+- 42 specific muscles tracked in schema but not in practice
+
+**Missing Implementation**:
+- Workout save logic doesn't update detailed_muscle_states
+- No aggregation from detailed → visualization muscles
+- No baseline capacity learning
+- No confidence scoring
+
+**Status**: ⚠️ INCOMPLETE FEATURE
+
+---
+
+### 3. Exercise Calibrations Never Auto-Learned
+**Issue**: user_exercise_calibrations table exists but only supports manual entry
+
+**Impact**:
+- Calibrations are used in baseline learning calculations
+- But system never learns/suggests calibrations automatically
+- User must manually override every muscle engagement
+
+**Missing Implementation**:
+- No ML/statistical analysis to suggest calibrations
+- No "suggested calibrations" based on workout history
+- No confidence scoring for user overrides
+
+**Status**: ⚠️ MANUAL ONLY
+
+---
+
+### 4. Workout Rotation State Manual Management
+**Issue**: workout_rotation_state requires manual API calls to update
+
+**Impact**:
+- State can become out of sync with actual workouts
+- No automatic progression after workout completion
+- Rest day tracking is manual
+
+**Workaround**: Frontend must call rotation API after saving workouts
+
+**Status**: ⚠️ REQUIRES MANUAL SYNC
+
+---
+
 ## Data Flow Architecture
 
 ### Layer 1: Database (SQLite)
@@ -803,6 +1439,8 @@ interface AnalyticsResponse {
   - Personal record detection
   - Progressive overload calculations
   - Template management
+  - Exercise calibration merging
+  - Workout rotation recommendations
 
 ### Layer 3: Frontend (React + TypeScript)
 - **API Client**: `api.ts`
@@ -828,7 +1466,8 @@ Backend: saveWorkout() in database.ts
   ├─ Insert workout row
   ├─ Insert exercise_sets rows
   ├─ Detect personal records (PRInfo[])
-  └─ Update muscle_states (initial_fatigue, last_trained)
+  ├─ Update muscle_states (initial_fatigue, last_trained)
+  └─ Learn muscle baselines (if volume exceeds current max)
   ↓
 Response: { workout: WorkoutResponse, prs: PRInfo[] }
   ↓
@@ -843,6 +1482,7 @@ API GET /api/muscle-states
   ↓
 Backend: getMuscleStates() in database.ts
   ├─ Read muscle_states rows (stored facts)
+  ├─ Read user's recovery_days_to_full setting
   ├─ Calculate current fatigue using recovery formula
   ├─ Calculate days elapsed, recovery status
   └─ Return MuscleStatesResponse with calculated fields
@@ -910,507 +1550,55 @@ Frontend: Display recommendations with RecommendationCard components
 User selects recommended exercise → Start workout with optimal recovery
 ```
 
----
-
-## Database Migrations
-
-**Location**: `backend/database/migrations/`
-
-### Migration 001: Add to_failure Column
-- **File**: `001_add_to_failure_column.sql`
-- **Purpose**: Add `to_failure` flag to exercise_sets
-- **Rollback**: `001_rollback_to_failure_column.sql`
-
-### Migration 002: Refactor Muscle States
-- **File**: `002_refactor_muscle_states.sql`
-- **Purpose**: Transition to backend-driven muscle state calculations
-- **Changes**:
-  - Remove `current_fatigue_percent`, `days_since_trained`, `estimated_recovery_days`, `days_until_recovered`, `recovery_status`
-  - Add `initial_fatigue_percent`, `volume_today`
-  - Keep `last_trained` as UTC ISO 8601 timestamp
-
----
-
-## Exercise Library
-
-**Location**: `constants.ts`
-
-The `EXERCISE_LIBRARY` constant defines 50+ exercises with:
-- Unique IDs (ex02, ex03, ex05, etc.)
-- Exercise names
-- Category assignment (Push/Pull/Legs/Core)
-- Equipment requirements
-- Difficulty levels
-- Muscle engagement percentages
-- Variation assignments (A/B/Both)
-
-**Example**:
-```typescript
-{
-  id: 'ex02',
-  name: 'Dumbbell Bench Press',
-  category: ExerciseCategory.Push,
-  equipment: Equipment.Dumbbells,
-  difficulty: Difficulty.Intermediate,
-  muscleEngagements: [
-    { muscle: Muscle.Pectoralis, percentage: 70 },
-    { muscle: Muscle.Triceps, percentage: 20 },
-    { muscle: Muscle.Deltoids, percentage: 10 }
-  ],
-  variation: Variation.A
-}
+### 6. Exercise Calibration Flow
+```
+User opens Calibration UI for exercise
+  ↓
+API GET /api/calibrations/:exerciseId
+  ↓
+Backend: getExerciseCalibrations()
+  ├─ Fetch user calibrations for exercise
+  ├─ Fetch default engagements from EXERCISE_LIBRARY
+  ├─ Merge: user overrides take precedence
+  └─ Return ExerciseCalibrationData with isCalibrated flags
+  ↓
+Frontend: Display sliders with default/custom values
+  ↓
+User adjusts muscle engagement percentages
+  ↓
+API PUT /api/calibrations/:exerciseId (SaveCalibrationRequest)
+  ↓
+Backend: saveCalibrations()
+  ├─ Validate percentages sum to 100%
+  ├─ UPSERT user_exercise_calibrations rows
+  └─ Return updated ExerciseCalibrationData
+  ↓
+Frontend: Reflect changes in recommendations
 ```
 
----
-
-## Utility Functions
-
-### Progressive Overload Calculations
-**Location**: `utils/progressiveOverload.ts`
-
-```typescript
-// 3% progression formula
-function calculateProgressiveOverload(
-  lastPerformance: LoggedExercise,
-  lastMethod: 'weight' | 'reps',
-  personalBest: ExerciseMaxes
-): ProgressiveOverloadSuggestion
+### 7. Workout Rotation Recommendation Flow
 ```
-
-### Helpers
-**Location**: `utils/helpers.ts`
-
-```typescript
-getUserLevel(workoutCount: number): number         // DEPRECATED: Level 1-4 (removed from UI)
-formatDuration(milliseconds: number): string       // "Xh Ym Zs"
-calculateVolume(reps: number, weight: number): number  // reps × weight
-findPreviousWorkout(current, all): WorkoutSession | null
+User opens Dashboard
+  ↓
+API GET /api/rotation/next
+  ↓
+Backend: getWorkoutRecommendation()
+  ├─ Fetch workout_rotation_state for user
+  ├─ Calculate days since last workout
+  ├─ Check if rest days required (after Legs workouts)
+  ├─ If rest day needed:
+  │   └─ Return { isRestDay: true, reason: "..." }
+  ├─ Else determine next workout:
+  │   ├─ Use rotation sequence (6 phases)
+  │   ├─ Increment phase after each workout
+  │   └─ Reset to phase 0 after completing cycle
+  └─ Return WorkoutRecommendation
+  ↓
+Frontend: Display "Next Workout" or "Rest Day" card
+  ├─ Show category + variation (e.g., "Push A")
+  ├─ Show phase position (e.g., "Phase 1 of 6")
+  └─ Show last workout info + days ago
 ```
-
-**Note**: `getUserLevel()` has been deprecated as of the "remove-gamification-gates" change. Level-based gamification has been removed from the UI to provide users with unrestricted access to their training data. The function is kept for backward compatibility but should not be used in new code.
-
-### Exercise Recommendation Engine
-**Location**: `utils/exerciseRecommendations.ts`
-
-The recommendation engine intelligently suggests exercises based on muscle recovery states and available equipment.
-
-```typescript
-// Main recommendation function
-function calculateRecommendations(
-  muscleStates: MuscleStatesResponse,
-  equipment: EquipmentItem[],
-  category?: ExerciseCategory
-): ExerciseRecommendation[]
-
-// Equipment availability checker
-function checkEquipmentAvailable(
-  requiredEquipment: Equipment | Equipment[],
-  userEquipment: EquipmentItem[]
-): boolean
-
-// Opportunity scoring algorithm
-function calculateOpportunityScore(
-  exercise: Exercise,
-  muscleStates: MuscleStatesResponse
-): {
-  score: number;
-  primaryMuscles: MuscleReadiness[];
-  limitingFactors: MuscleReadiness[];
-}
-```
-
-**Recommendation Algorithm**:
-1. Filter exercises by category (if specified) and equipment availability
-2. For each exercise:
-   - Calculate muscle readiness scores (recovery % for all engaged muscles)
-   - Identify primary muscles (engagement >= 50%)
-   - Identify limiting factors (fatigued muscles >= 67%)
-   - Calculate opportunity score: `avgFreshness - (maxFatigue × 0.5)`
-3. Classify exercise status:
-   - **excellent**: No limiting factors, avgFreshness >= 90%
-   - **good**: No limiting factors, avgFreshness >= 70%
-   - **suboptimal**: Has limiting factors, avgFreshness >= 50%
-   - **not-recommended**: Primary muscles too fatigued
-4. Sort by opportunity score (descending)
-
-**Types**:
-```typescript
-interface MuscleReadiness {
-  muscle: Muscle;
-  recovery: number;        // 0-100% (100% = fully recovered)
-  fatigue: number;         // 0-100% (0% = no fatigue)
-  engagement: number;      // Exercise-specific engagement %
-  isPrimary: boolean;      // engagement >= 50%
-}
-
-interface ExerciseRecommendation {
-  exercise: Exercise;
-  opportunityScore: number;
-  primaryMuscles: MuscleReadiness[];
-  limitingFactors: MuscleReadiness[];
-  status: 'excellent' | 'good' | 'suboptimal' | 'not-recommended';
-  explanation: string;
-  equipmentAvailable: boolean;
-}
-```
-
-### Stats Helpers
-**Location**: `utils/statsHelpers.ts`
-
-```typescript
-// Calculate consecutive workout streak
-function calculateStreak(workouts: WorkoutResponse[]): number
-
-// Weekly workout count comparison
-function calculateWeeklyStats(workouts: WorkoutResponse[]): WeeklyStats
-
-// Find recent PRs (last 7 days)
-function findRecentPRs(
-  personalBests: PersonalBestsResponse,
-  workouts: WorkoutResponse[]
-): PRHighlight[]
-
-// Group muscles by recovery status
-function groupMusclesByRecovery(
-  muscleStates: MuscleStatesResponse
-): RecoveryGroups
-
-// Format relative dates (Today, Yesterday, X days ago)
-function formatRelativeDate(dateString: string): string
-
-// Types
-interface PRHighlight {
-  exercise: string;
-  type: 'single' | 'volume';
-  improvement: number; // percentage increase
-  date: string;
-}
-
-interface WeeklyStats {
-  thisWeek: number;  // workout count this week
-  lastWeek: number;  // workout count last week
-}
-
-interface RecoveryGroups {
-  ready: Array<{ muscle: string; data: MuscleStateData }>;
-  recovering: Array<{ muscle: string; data: MuscleStateData; daysUntil: number }>;
-  fatigued: Array<{ muscle: string; data: MuscleStateData; daysUntil: number }>;
-}
-```
-
----
-
-## Frontend Components
-
-**Location**: `components/`
-
-### Dashboard Components
-
-#### ExerciseRecommendations
-**Location**: `components/ExerciseRecommendations.tsx`
-
-Displays intelligent exercise recommendations based on muscle recovery states and available equipment.
-
-**Features**:
-- Real-time recommendation calculations using `calculateRecommendations()`
-- Category filtering (Push/Pull/Legs/Core)
-- Status-based styling (excellent/good/suboptimal/not-recommended)
-- Equipment availability indicators
-- Collapsible sections for organized display
-
-**Props**:
-```typescript
-interface ExerciseRecommendationsProps {
-  muscleStates: MuscleStatesResponse;
-  equipment: EquipmentItem[];
-  category?: ExerciseCategory;
-}
-```
-
-#### RecommendationCard
-**Location**: `components/RecommendationCard.tsx`
-
-Displays individual exercise recommendations with detailed muscle readiness information.
-
-**Features**:
-- Visual status indicators (color-coded)
-- Primary muscle highlights
-- Limiting factor warnings
-- Opportunity score display
-- Equipment requirements
-
-**Props**:
-```typescript
-interface RecommendationCardProps {
-  recommendation: ExerciseRecommendation;
-  onClick?: () => void;
-}
-```
-
-#### CategoryTabs
-**Location**: `components/CategoryTabs.tsx`
-
-Tab navigation component for filtering exercises by category.
-
-**Features**:
-- Push/Pull/Legs/Core tabs
-- Active state styling
-- Click handlers for category selection
-- Responsive design
-
-**Props**:
-```typescript
-interface CategoryTabsProps {
-  activeCategory: ExerciseCategory | 'All';
-  onCategoryChange: (category: ExerciseCategory | 'All') => void;
-}
-```
-
-#### CollapsibleSection
-**Location**: `components/CollapsibleSection.tsx`
-
-Reusable collapsible section component for organizing dashboard content.
-
-**Features**:
-- Expand/collapse animation
-- Custom header content
-- Configurable default state (open/closed)
-- Smooth transitions
-
-**Props**:
-```typescript
-interface CollapsibleSectionProps {
-  title: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}
-```
-
-#### MuscleDeepDiveModal
-**Location**: `components/MuscleDeepDiveModal.tsx`
-
-Interactive modal that opens when clicking any muscle in the visualization. Provides ranked exercise recommendations, real-time volume forecasting, and intelligent set building.
-
-**Features**:
-- **3 Tabs**: Recommended (top 5 by efficiency), All Exercises (filterable/sortable), History (last 3 exercises)
-- Real-time muscle fatigue forecasting based on planned volume
-- "Find Sweet Spot" auto-optimization to max target muscle before bottleneck
-- Interactive volume slider (0-10,000 lbs) with live muscle impact visualization
-- Set builder with locked target volume (adjustments maintain total)
-- Efficiency ranking algorithm: `(target_engagement × target_capacity) ÷ bottleneck_capacity`
-- Bottleneck muscle identification and warnings
-
-**Props**:
-```typescript
-interface MuscleDeepDiveModalProps {
-  isOpen: boolean;
-  muscle: Muscle;
-  muscleStates: MuscleStatesResponse;
-  muscleBaselines: MuscleBaselinesResponse;
-  workoutHistory: WorkoutSession[];
-  onClose: () => void;
-  onAddToWorkout: (exercise: PlannedExercise) => void;
-}
-```
-
-**Tabs**:
-- **Recommended**: Top 5 exercises ranked by efficiency score with badges (Efficient/Limited/Poor choice)
-- **All Exercises**: All exercises engaging target muscle with filters (Isolation/Compound/High Efficiency) and sorting (Efficiency/Target%/Alphabetical)
-- **History**: Last 3 exercises that trained this muscle, sorted by date
-
-**Related Utilities**:
-- `utils/exerciseEfficiency.ts` - Efficiency ranking and bottleneck detection
-- `utils/volumeForecasting.ts` - Volume forecasting and sweet spot optimization
-- `utils/setBuilder.ts` - Set/rep/weight calculations with locked volume
-
-#### ExerciseCard
-**Location**: `components/ExerciseCard.tsx`
-
-Expandable exercise card used within MuscleDeepDiveModal. Shows exercise details, volume slider, muscle impact, and set builder.
-
-**Features**:
-- Expandable card with exercise name, target muscle %, efficiency badge
-- Volume slider (0-10,000 lbs) with live muscle impact visualization
-- "Find Sweet Spot" button for auto-optimization
-- Muscle impact section showing current → forecasted fatigue for all engaged muscles
-- Bottleneck warnings: "⚠️ {muscle} will limit this exercise"
-- Set builder with locked target volume (default: 3 sets, 8-12 reps, rounds to 5 lbs)
-- Grid inputs for sets/reps/weight with real-time recalculation
-- "Add to Workout" button (integration pending)
-
-**Props**:
-```typescript
-interface ExerciseCardProps {
-  exercise: Exercise;
-  targetMuscle: Muscle;
-  muscleStates: Record<Muscle, { currentFatiguePercent: number; baseline: number }>;
-  efficiencyScore: number;
-  efficiencyBadge: { label: string; color: 'green' | 'yellow' | 'red' };
-  bottleneckMuscle: Muscle | null;
-  onAddToWorkout: (planned: PlannedExercise) => void;
-}
-```
-
-**Set Builder Logic**:
-- Locked volume: Total volume remains constant during adjustments
-- If user changes sets → recalculates weight
-- If user changes reps → recalculates weight
-- If user changes weight → recalculates reps
-- Always rounds weight to nearest 5 lbs
-
-### Analytics Components (Phase 1 & 2 Complete)
-
-#### Analytics
-**Location**: `components/Analytics.tsx`
-
-Main analytics dashboard component that displays comprehensive performance tracking and visualization.
-
-**Features**:
-- Time-range filtering (7/30/90/365 days, all-time)
-- Summary statistics cards
-- Empty state handling for new users
-- Loading and error states
-- Responsive layout
-
-**Props**:
-```typescript
-// Standalone component, fetches data via /api/analytics
-```
-
-#### ExerciseProgressionChart
-**Location**: `components/ExerciseProgressionChart.tsx`
-
-Interactive chart showing weight and rep progression for selected exercises over time.
-
-**Features**:
-- Exercise selector dropdown
-- Line chart visualization
-- Hover tooltips with detailed data
-- Percentage change calculations
-
-#### MuscleCapacityChart
-**Location**: `components/MuscleCapacityChart.tsx`
-
-Displays muscle capacity baseline growth trends over time.
-
-**Features**:
-- Muscle group selector
-- Trend line visualization
-- Growth rate statistics
-- Current vs starting capacity comparison
-
-#### VolumeTrendsChart
-**Location**: `components/VolumeTrendsChart.tsx`
-
-Stacked bar chart showing training volume by category over weeks.
-
-**Features**:
-- Category breakdown (Push/Pull/Legs/Core)
-- Weekly aggregation
-- Color-coded categories
-- Total volume trends
-
-#### ActivityCalendarHeatmap
-**Location**: `components/ActivityCalendarHeatmap.tsx`
-
-Visual workout frequency calendar showing training consistency.
-
-**Features**:
-- Heatmap visualization
-- Daily workout indicators
-- Category color coding
-- Streak highlighting
-
----
-
-## React Hooks
-
-### useAPIState Hook
-**Location**: `hooks/useAPIState.ts`
-
-A custom React hook that manages API state with automatic fetching, optimistic updates, and error handling.
-
-```typescript
-function useAPIState<T>(
-  fetchFn: () => Promise<T>,
-  updateFn: (value: T) => Promise<T>,
-  initialValue: T
-): [
-  T,                                          // Current state value
-  (value: T | ((prev: T) => T)) => Promise<void>,  // Update function
-  boolean,                                    // Loading state
-  Error | null                               // Error state
-]
-```
-
-**Features**:
-- Automatic data fetching on mount
-- Optimistic UI updates
-- Automatic rollback on API errors
-- Loading and error state management
-- Support for functional updates `setState(prev => newValue)`
-
-**Usage Example**:
-```typescript
-const [muscleStates, setMuscleStates, loading, error] = useAPIState(
-  muscleStatesAPI.get,
-  muscleStatesAPI.update,
-  {}
-);
-
-// Optimistic update with automatic rollback on error
-await setMuscleStates(prev => ({
-  ...prev,
-  Pectoralis: { ...prev.Pectoralis, currentFatiguePercent: 50 }
-}));
-```
-
----
-
-## Architecture Highlights
-
-### 1. Type Safety Throughout Stack
-- Database schema → Backend types → Frontend types
-- No type casting or `any` usage
-- Compile-time safety from DB to UI
-
-### 2. Backend-Driven Calculations
-- Muscle states calculated on read (not stored)
-- Single source of truth for recovery formulas
-- Frontend receives ready-to-display data
-
-### 3. Single-User Local Application
-- All queries hardcode `user_id = 1`
-- No authentication/authorization layer
-- SQLite file-based persistence
-
-### 4. Immutable Historical Facts
-- `muscle_states` stores what happened (initial fatigue, last trained date)
-- Current state calculated from facts + time elapsed
-- Never mutate historical data
-
-### 5. Progressive Overload Intelligence
-- 3% increase per session
-- Alternates weight vs. reps progression
-- Respects equipment constraints
-
-### 6. Personal Record Tracking
-- Automatic PR detection on workout save
-- Multiple record types (single-set, session volume, rolling average)
-- Real-time notification on achievement
-
-### 7. Intelligent Exercise Recommendations
-- Real-time opportunity scoring based on muscle recovery
-- Equipment availability filtering
-- Category-specific recommendations (Push/Pull/Legs/Core)
-- Status classification (excellent/good/suboptimal/not-recommended)
-- Primary muscle and limiting factor analysis
-
-### 8. Performance Analytics
-- Weekly workout statistics and comparisons
-- PR highlight tracking
-- Recovery status grouping (ready/recovering/fatigued)
-- Volume and duration analysis
 
 ---
 
@@ -1425,6 +1613,9 @@ All child tables reference `users(id)` with CASCADE on DELETE:
 - personal_bests.user_id
 - muscle_baselines.user_id
 - workout_templates.user_id
+- user_exercise_calibrations.user_id
+- workout_rotation_state.user_id
+- detailed_muscle_states.user_id
 
 exercise_sets references workouts(id) with CASCADE on DELETE.
 
@@ -1432,6 +1623,9 @@ exercise_sets references workouts(id) with CASCADE on DELETE.
 - muscle_states: UNIQUE(user_id, muscle_name)
 - personal_bests: UNIQUE(user_id, exercise_name)
 - muscle_baselines: UNIQUE(user_id, muscle_name)
+- user_exercise_calibrations: UNIQUE(user_id, exercise_id, muscle_name)
+- workout_rotation_state: UNIQUE(user_id)
+- detailed_muscle_states: UNIQUE(user_id, detailed_muscle_name)
 
 ### Performance Indexes
 - idx_workouts_user_date ON workouts(user_id, date)
@@ -1443,6 +1637,13 @@ exercise_sets references workouts(id) with CASCADE on DELETE.
 - idx_muscle_baselines_user ON muscle_baselines(user_id)
 - idx_muscle_baselines_updated ON muscle_baselines(updated_at)
 - idx_workout_templates_user ON workout_templates(user_id)
+- idx_calibrations_user_exercise ON user_exercise_calibrations(user_id, exercise_id)
+- idx_calibrations_user ON user_exercise_calibrations(user_id)
+- idx_rotation_state_user ON workout_rotation_state(user_id)
+- idx_detailed_muscle_states_user ON detailed_muscle_states(user_id)
+- idx_detailed_muscle_states_viz ON detailed_muscle_states(visualization_muscle_name)
+- idx_detailed_muscle_states_role ON detailed_muscle_states(role)
+- idx_detailed_muscle_states_updated ON detailed_muscle_states(updated_at)
 
 ---
 
@@ -1461,10 +1662,14 @@ This data model supports a comprehensive fitness tracking application with:
 - **Muscle fatigue tracking** with backend-driven recovery calculations
 - **Personal record detection** across multiple metrics
 - **Intelligent exercise recommendations** based on recovery states and equipment
-- **Template system** for workout reuse
+- **Template system** for workout reuse (partially implemented)
 - **Equipment management** for progressive resistance
 - **Bodyweight tracking** for contextual performance analysis
 - **Performance analytics** with weekly stats and PR highlights
+- **Exercise calibration system** for personalized muscle engagement
+- **Workout rotation system** with 6-phase sequence and rest day tracking
+- **Dual-layer muscle tracking** (42 detailed muscles - incomplete)
+- **Configurable recovery system** with user-adjustable recovery days
 - **Analytics dashboard** (Phase 1 & 2 Complete) with:
   - Exercise progression charts (weight/reps over time)
   - Muscle capacity trend analysis
@@ -1477,6 +1682,16 @@ The three-layer architecture ensures type safety, separation of concerns, and ma
 
 ### Recent Updates
 
+**2025-10-29**: Added dual-layer muscle tracking system with detailed_muscle_states table (42 specific muscles). **Note**: Table created but feature incomplete - never updated after workouts.
+
+**2025-10-27**: Added workout rotation tracking with workout_rotation_state table. Implements 6-phase rotation sequence: Push A → Pull A → Legs A (2-day rest) → Push B → Pull B → Legs B (2-day rest).
+
+**2025-10-27**: Added configurable recovery system with recovery_days_to_full setting on users table (range 3-10 days, default 5).
+
+**2025-10-26**: Added exercise calibration system with user_exercise_calibrations table. Enables personal muscle engagement overrides but calibrations are manual-only (no auto-learning).
+
 **2025-10-25**: Added Analytics Dashboard (Phase 1 & 2) - `/api/analytics` endpoint with comprehensive performance tracking and visualization support.
 
 **2025-10-25**: Removed gamification barriers - Deprecated `getUserLevel()` function and removed level-based UI elements to provide unrestricted access to user data.
+
+**2025-10-24**: Added failure tracking with to_failure column on exercise_sets for accurate PR detection.
