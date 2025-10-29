@@ -25,8 +25,32 @@ const SimpleMuscleVisualization: React.FC<SimpleMuscleVisualizationProps> = ({
     );
   }
 
+  // Calculate summary stats
+  const highFatigueMuscles = activeMuscles.filter(([_, state]) => (state.currentFatiguePercent || 0) > 80).length;
+  const mediumFatigueMuscles = activeMuscles.filter(([_, state]) => {
+    const fatigue = state.currentFatiguePercent || 0;
+    return fatigue > 50 && fatigue <= 80;
+  }).length;
+
   return (
     <div className="bg-brand-muted p-4 rounded-lg" style={{ opacity }}>
+      {/* Summary Stats */}
+      <div className="flex gap-3 mb-3 text-xs">
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          <span className="text-slate-400">{activeMuscles.length - highFatigueMuscles - mediumFatigueMuscles} low</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+          <span className="text-slate-400">{mediumFatigueMuscles} medium</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+          <span className="text-slate-400">{highFatigueMuscles} high</span>
+        </div>
+      </div>
+
+      {/* Individual Muscle Bars */}
       <div className="space-y-2">
         {activeMuscles.map(([muscleName, state]) => {
           const fatiguePercent = state.currentFatiguePercent || 0;

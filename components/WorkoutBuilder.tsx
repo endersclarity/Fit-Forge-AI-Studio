@@ -500,30 +500,34 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           <>
             <SetConfigurator onAddSet={handleAddSet} />
 
-            {workout.sets.length > 0 && (
-              <div className="mt-4 space-y-2">
-                <h4 className="font-semibold mb-2">Planned Sets ({workout.sets.length})</h4>
-                {workout.sets.map((set, idx) => (
-                  <SetCard
-                    key={set.id}
-                    set={set}
-                    setNumber={idx + 1}
-                    onEdit={handleEditSet}
-                    onDelete={handleDeleteSet}
-                    onDuplicate={handleDuplicateSet}
-                  />
-                ))}
-              </div>
-            )}
+            {workout.sets.length > 0 ? (
+              <>
+                <div className="mt-4 space-y-2">
+                  <h4 className="font-semibold mb-2">Planned Sets ({workout.sets.length})</h4>
+                  {workout.sets.map((set, idx) => (
+                    <SetCard
+                      key={set.id}
+                      set={set}
+                      setNumber={idx + 1}
+                      onEdit={handleEditSet}
+                      onDelete={handleDeleteSet}
+                      onDuplicate={handleDuplicateSet}
+                    />
+                  ))}
+                </div>
 
-            {/* Forecasted Muscle Fatigue */}
-            {workout.sets.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-semibold mb-2">Forecasted Muscle Fatigue</h4>
-                <SimpleMuscleVisualization
-                  muscleStates={calculateForecastedMuscleStates()}
-                  muscleBaselines={muscleBaselines}
-                />
+                {/* Forecasted Muscle Fatigue */}
+                <div className="mt-4">
+                  <h4 className="font-semibold mb-2">Forecasted Muscle Fatigue</h4>
+                  <SimpleMuscleVisualization
+                    muscleStates={calculateForecastedMuscleStates()}
+                    muscleBaselines={muscleBaselines}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="mt-4 bg-brand-muted p-6 rounded-lg text-center text-slate-400">
+                <p className="text-sm">No sets added yet. Select an exercise above to build your workout.</p>
               </div>
             )}
 

@@ -21,31 +21,31 @@ const SetCard: React.FC<SetCardProps> = ({
       <div className="flex-1">
         <div className="font-semibold">{set.exerciseName}</div>
         <div className="text-sm text-slate-400">
-          Set {setNumber}: {set.reps} reps @ {set.weight} lbs " {set.restTimerSeconds}s rest
+          Set {setNumber}: {set.reps} reps @ {set.weight} lbs â€¢ {set.restTimerSeconds}s rest
         </div>
       </div>
 
       <div className="flex gap-2">
         <button
-          onClick={() => onDuplicate(set)}
-          className="text-brand-cyan hover:text-cyan-400 text-xl"
-          title="Duplicate set"
-        >
-          +
-        </button>
-        <button
           onClick={() => onEdit(set)}
-          className="text-slate-400 hover:text-white text-xl"
+          className="bg-brand-dark text-slate-300 hover:text-white px-3 py-1 rounded text-sm font-semibold transition-colors"
           title="Edit set"
         >
-          
+          Edit
+        </button>
+        <button
+          onClick={() => onDuplicate(set)}
+          className="bg-brand-dark text-brand-cyan hover:text-cyan-400 px-3 py-1 rounded text-sm font-semibold transition-colors"
+          title="Duplicate set"
+        >
+          Dup
         </button>
         <button
           onClick={() => onDelete(set.id)}
-          className="text-red-500 hover:text-red-400 text-xl"
+          className="bg-brand-dark text-red-500 hover:text-red-400 px-3 py-1 rounded text-sm font-semibold transition-colors"
           title="Delete set"
         >
-          =Ñ
+          Del
         </button>
       </div>
     </div>
