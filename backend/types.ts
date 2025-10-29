@@ -374,6 +374,18 @@ export interface QuickWorkoutResponse {
   muscle_states_updated: boolean;
 }
 
+// Builder-Workout API Types (Workout from the builder with rest timers)
+export interface BuilderWorkoutRequest {
+  sets: Array<{
+    exercise_name: string;
+    weight: number;
+    reps: number;
+    rest_timer_seconds: number;
+  }>;
+  timestamp: string;
+  was_executed: boolean;
+}
+
 // Exercise Calibration API Types
 export interface ExerciseEngagement {
   muscle: string;

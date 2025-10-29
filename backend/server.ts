@@ -27,6 +27,7 @@ import {
   QuickAddResponse,
   QuickWorkoutRequest,
   QuickWorkoutResponse,
+  BuilderWorkoutRequest,
   ExerciseCalibrationData,
   CalibrationMap,
   SaveCalibrationRequest,
@@ -509,6 +510,127 @@ app.post('/api/quick-workout', (req: Request<{}, QuickWorkoutResponse | ApiError
   } catch (error) {
     console.error('Error in quick-workout:', error);
     return res.status(500).json({ error: 'Failed to save workout' });
+  }
+});
+
+// Builder-workout (workout from WorkoutBuilder with rest timer metadata)
+app.post('/api/builder-workout', (req: Request<{}, QuickWorkoutResponse | ApiErrorResponse, BuilderWorkoutRequest>, res: Response<QuickWorkoutResponse | ApiErrorResponse>): Response => {
+  try {
+    const { sets, timestamp, was_executed } = req.body;
+
+    // Validation
+    if (!sets || !Array.isArray(sets) || sets.length === 0) {
+      return res.status(400).json({ error: 'At least one set is required' });
+    }
+
+    // Group sets by exercise_name
+    const exerciseGroups: Map<string, any[]> = new Map();
+
+    for (const set of sets) {
+      // Validate exercise exists
+      const exerciseInfo = getExerciseByName(set.exercise_name);
+      if (!exerciseInfo) {
+        return res.status(400).json({ error: `Invalid exercise name: ${set.exercise_name}` });
+      }
+
+      // Validate set data
+      if (set.weight === undefined || set.weight === null || set.weight < 0 || set.weight > 10000) {
+        return res.status(400).json({ error: `Weight must be between 0 and 10000 lbs for ${set.exercise_name}` });
+      }
+      if (!set.reps || set.reps <= 0 || set.reps > 1000 || !Number.isInteger(set.reps)) {
+        return res.status(400).json({ error: `Reps must be a positive integer between 1 and 1000 for ${set.exercise_name}` });
+      }
+
+      // Group sets by exercise
+      if (!exerciseGroups.has(set.exercise_name)) {
+        exerciseGroups.set(set.exercise_name, []);
+      }
+      exerciseGroups.get(set.exercise_name)!.push({
+        weight: set.weight,
+        reps: set.reps,
+        to_failure: false,  // Builder doesn't track to_failure yet
+      });
+    }
+
+    // Convert to QuickWorkout format
+    const exercises = Array.from(exerciseGroups.entries()).map(([name, sets]) => ({
+      exercise_name: name,
+      sets: sets,
+    }));
+
+    // Reuse quick-workout logic by calling it internally
+    const workoutDate = timestamp ? new Date(timestamp).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+    // Category auto-detection
+    const categoryCounts: Record<string, number> = {};
+    let firstCategory = '';
+    for (const [exerciseName] of exerciseGroups.entries()) {
+      const exerciseInfo = getExerciseByName(exerciseName)!;
+      const category = exerciseInfo.category;
+      if (!firstCategory) firstCategory = category;
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    }
+
+    const detectedCategory = Object.keys(categoryCounts).reduce((a, b) =>
+      categoryCounts[a] > categoryCounts[b] ? a : b
+    ) || firstCategory;
+
+    // Variation auto-detection
+    const lastWorkouts = db.getWorkouts();
+    const lastWorkoutOfCategory = lastWorkouts
+      .filter((w: any) => w.category === detectedCategory)
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+    let detectedVariation: 'A' | 'B' = 'A';
+    if (lastWorkoutOfCategory) {
+      const lastVariation = lastWorkoutOfCategory.variation;
+      detectedVariation = lastVariation === 'A' ? 'B' : 'A';
+    }
+
+    // Duration estimation
+    const totalSets = sets.length;
+    const durationSeconds = was_executed
+      ? sets.reduce((sum, s) => sum + (s.rest_timer_seconds || 90), 0) + (totalSets * 30)
+      : (totalSets * 30) + (Math.max(0, totalSets - 1) * 60);
+
+    // Create workout
+    const workoutData: WorkoutSaveRequest = {
+      date: workoutDate,
+      category: detectedCategory,
+      variation: detectedVariation,
+      durationSeconds,
+      exercises: exercises.map(ex => ({
+        exercise: ex.exercise_name,
+        sets: ex.sets.map(s => ({
+          weight: s.weight,
+          reps: s.reps,
+          to_failure: s.to_failure
+        }))
+      }))
+    };
+
+    const workout = db.saveWorkout(workoutData);
+
+    // Advance rotation
+    db.advanceRotation(1, detectedCategory as any, detectedVariation, workoutDate);
+
+    // Detect PRs
+    const prs = db.detectPRsForWorkout(workout.id);
+
+    // Baseline updates
+    const updated_baselines = workout.updated_baselines || [];
+
+    return res.status(201).json({
+      workout_id: workout.id,
+      category: detectedCategory,
+      variation: detectedVariation,
+      duration_seconds: durationSeconds,
+      prs,
+      updated_baselines,
+      muscle_states_updated: true
+    });
+  } catch (error) {
+    console.error('Error in builder-workout:', error);
+    return res.status(500).json({ error: 'Failed to save builder workout' });
   }
 });
 

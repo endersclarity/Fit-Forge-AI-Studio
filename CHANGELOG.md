@@ -7,6 +7,182 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-28 - Quick Builder + Execution Mode (✅ IMPLEMENTED)
+
+**Status**: IMPLEMENTED - Production ready
+**Feature**: Complete workout planning and execution system with guided timers and real-time muscle fatigue tracking
+
+**Files Changed**:
+- `components/WorkoutBuilder.tsx` (new - main builder with planning + execution modes)
+- `components/TemplateSelector.tsx` (new - template browser modal)
+- `components/SetConfigurator.tsx` (new - set configuration form)
+- `components/SetCard.tsx` (new - individual set display with actions)
+- `components/SetEditModal.tsx` (new - set editing modal)
+- `components/CurrentSetDisplay.tsx` (new - execution mode set display with timer)
+- `components/SimpleMuscleVisualization.tsx` (new - bar chart muscle fatigue viz)
+- `components/FABMenu.tsx` (existing - already created in Phase 2)
+- `components/TemplateCard.tsx` (existing - already created in Phase 3)
+- `components/Dashboard.tsx` (updated - integrated WorkoutBuilder and TemplateSelector)
+- `types.ts` (updated - BuilderSet, BuilderWorkout, BuilderWorkoutRequest types already added)
+- `backend/database/migrations/006_update_workout_templates.sql` (created - updated templates schema)
+
+**Summary**: Implemented complete workout planning and execution system that allows users to pre-plan workouts with custom sets/weights/reps/rest timers, then execute them with guided countdown timers, auto-advance, and real-time muscle fatigue visualization. Includes template system for saving and reusing workout plans.
+
+**Problem**: Users could only log completed workouts retroactively (Quick Add). No way to plan workouts ahead of time, execute with guided timers, or see forecasted muscle impact before starting. No template system for reusing favorite workout configurations.
+
+**Solution**: Built comprehensive Quick Builder system with two distinct modes:
+1. **Planning Mode**: Configure workout sets, see forecasted muscle fatigue, save as templates
+2. **Execution Mode**: Guided timer countdown, auto-advance between sets, real-time fatigue tracking
+
+**User Decisions Made**:
+1. **Template Saving**: Always create new (no update existing) - simpler UX
+2. **Execution Visualization**: Show current + forecast (dual view) - better feedback
+3. **Drag-Drop Reordering**: Deferred to v2 (use array position) - faster MVP
+4. **Mid-Workout Edits**: Keep completed sets counted - maintains data integrity
+
+**Core Features**:
+
+1. **FAB Menu System**:
+   - 3 options: Log Workout (Quick Add), Build Workout (new), Load Template (new)
+   - Slide-up animation modal
+   - Clear action hierarchy
+
+2. **Workout Planning** (`WorkoutBuilder.tsx` Planning Mode):
+   - Add sets via `SetConfigurator`: exercise picker, weight, reps, rest timer (90s default)
+   - View all planned sets in `SetCard` list with set number and details
+   - Actions: Edit (opens modal), Duplicate (creates copy), Delete
+   - **Forecasted Muscle Fatigue**: Bar chart showing projected fatigue from all planned sets
+   - Save as Template, Log as Completed (without execution), or Start Workout
+
+3. **Template System**:
+   - Save workouts as templates with name, category, variation
+   - Browse templates via "My Templates" button or FAB menu
+   - Load template into builder (pre-fills all sets)
+   - Delete templates
+   - Templates store: exerciseId, weight, reps, restTimerSeconds (no orderIndex - array position)
+
+4. **Workout Execution** (`WorkoutBuilder.tsx` Execution Mode):
+   - Display current set only with exercise name, weight, reps
+   - Rest timer countdown with animated progress bar
+   - **Auto-advance**: After rest timer completes, automatically moves to next set
+   - Actions: Complete Set (starts timer), Skip Set (no rest)
+   - **Real-Time Muscle Tracking**: Updates fatigue after each completed set
+   - **Dual Visualization**: Current progress (full opacity) + Forecasted end (60% opacity)
+   - Mid-workout flexibility: "Edit Plan" switches back to planning mode
+   - Finish Workout (saves only completed sets) or Finish Early
+
+5. **Muscle Fatigue Calculations**:
+   - **Forecasted**: `volume = weight × reps × (engagement % / 100)`, summed per muscle
+   - **Fatigue Increase**: `(volume / baseline) × 100`
+   - **Real-Time**: Updates after each completed set during execution
+   - **Color Coding**: Green (<50%), Yellow (50-80%), Red (>80%)
+
+**Technical Implementation**:
+
+1. **State Management**:
+   - `BuilderWorkout`: sets array, currentSetIndex, startTime, muscleStatesSnapshot
+   - Mode state machine: `'planning' | 'executing'`
+   - Execution state: restTimerEndTime, completedSets (Set<string>), autoAdvanceTimeoutId
+   - Separate `executionMuscleStates` from planning `muscleStates`
+
+2. **Auto-Advance with Cleanup**:
+   - `setTimeout` with timeout ID stored in state
+   - `useEffect` cleanup clears timeout on unmount/mode switch
+   - Prevents memory leaks and duplicate timers
+
+3. **Muscle Fatigue Algorithm**:
+   ```typescript
+   calculateForecastedMuscleStates():
+     for each set:
+       volume = weight × reps
+       for each muscle engagement:
+         muscleVolume += volume × (percentage / 100)
+
+     for each muscle with volume:
+       baseline = userOverride || systemLearnedMax || 1000
+       fatigueIncrease = (volume / baseline) × 100
+       forecastedFatigue = currentFatigue + fatigueIncrease
+   ```
+
+4. **Template Data Model**:
+   - Changed from `exerciseIds: string[]` to `sets: TemplateSet[]`
+   - Migration `006_update_workout_templates.sql` updates existing data
+   - TemplateSet: exerciseId, weight, reps, restTimerSeconds
+
+**Components Architecture**:
+
+1. **SetConfigurator**: Exercise picker + weight/reps/rest inputs with +/- buttons
+2. **SetCard**: Display set info with Edit/Duplicate/Delete actions
+3. **SetEditModal**: Fine-grained editing (±2.5/±5 lbs for weight, ±1 for reps, ±15s for rest)
+4. **CurrentSetDisplay**: Large set display with countdown timer and progress bar
+5. **SimpleMuscleVisualization**: Horizontal bars showing muscle fatigue (filters to active muscles only)
+6. **TemplateSelector**: Grid of template cards with Load/Delete actions
+7. **WorkoutBuilder**: Main container coordinating all components with mode switching
+
+**User Flow**:
+
+**Planning & Starting**:
+1. FAB button → "Build Workout"
+2. Select exercise, configure weight/reps/rest → Add Set
+3. Repeat for all sets → See forecasted muscle fatigue update
+4. Options: Start Workout, Save as Template, Log as Completed
+
+**Execution**:
+1. Start Workout → Enters execution mode
+2. View current set details → Complete Set
+3. Rest timer counts down with progress bar
+4. Auto-advances to next set when timer completes
+5. See real-time muscle fatigue + forecasted end state
+6. Options: Edit Plan (switch to planning), Skip Set, Finish Early
+7. After last set → Celebration screen → Finish Workout
+
+**Template Loading**:
+1. "My Templates" button or FAB → Load Template
+2. Select template → Opens WorkoutBuilder with pre-filled sets
+3. Edit if needed → Start Workout
+
+**Integration Points**:
+
+1. **Dashboard.tsx**:
+   - Added 3-column grid with "My Templates" button
+   - Integrated WorkoutBuilder and TemplateSelector modals
+   - State: `loadedTemplate` passed to WorkoutBuilder
+   - Callbacks: onSuccess refreshes dashboard data
+
+2. **Backend API** (`builderAPI`):
+   - `POST /api/builder-workout`: Saves completed workout
+   - Payload: sets array (exercise_name, weight, reps, rest_timer_seconds), timestamp, was_executed
+   - `was_executed: true` for executed workouts, `false` for logged-as-completed
+
+3. **Templates API** (`templatesAPI`):
+   - Updated to use `sets` field instead of `exerciseIds`
+   - JSON.stringify on save, JSON.parse on load
+   - Backwards compatible via migration
+
+**Not Implemented (Deferred to v2)**:
+- Drag-drop set reordering (use delete/re-add for now)
+- Complex muscle visualization (using simple bar chart)
+- Template categories/search/filtering
+- Mid-workout template creation
+- Sound notifications for timer completion
+
+**Bundle Impact**: +2.5 KB (873.31 KB total, up from 870.75 KB)
+
+**Testing Notes**:
+- All components build without TypeScript errors
+- FAB menu opens with 3 action buttons
+- Can add/edit/duplicate/delete sets in planning mode
+- Forecasted muscle fatigue updates as sets change
+- Templates save/load/delete correctly
+- Execution mode displays current set with countdown timer
+- Auto-advance works after rest timer completes
+- Real-time muscle fatigue updates after completing sets
+- Dual visualization shows current vs forecasted during execution
+- Finish workout saves only completed sets with was_executed flag
+- Edit Plan mid-workout preserves completed sets
+
+---
+
 ### 2025-10-28 - Interactive Muscle Deep Dive Modal (✅ IMPLEMENTED)
 
 **Commit Range**: 44aa1dd → d0bc1b3 (10 commits)

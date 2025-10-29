@@ -248,6 +248,21 @@ export const quickAddAPI = {
 };
 
 /**
+ * Workout Builder API
+ */
+export const builderAPI = {
+  /**
+   * Save a builder workout (executed or logged as completed)
+   */
+  saveBuilderWorkout: async (request: import('./types').BuilderWorkoutRequest): Promise<import('./types').QuickWorkoutResponse> => {
+    return await apiRequest<import('./types').QuickWorkoutResponse>('/builder-workout', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+};
+
+/**
  * Health check
  */
 export const healthCheck = () => apiRequest<{ status: string; timestamp: string }>('/health');

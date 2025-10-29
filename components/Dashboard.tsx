@@ -14,6 +14,9 @@ import { MuscleVisualizationContainer } from './MuscleVisualization/MuscleVisual
 import WorkoutPlannerModal from './WorkoutPlannerModal';
 import CollapsibleCard from './CollapsibleCard';
 import { MuscleDeepDiveModal } from './MuscleDeepDiveModal';
+import FABMenu from './FABMenu';
+import TemplateSelector from './TemplateSelector';
+import WorkoutBuilder from './WorkoutBuilder';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -449,6 +452,12 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   // QuickAdd modal state
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
+  // FAB Menu and Builder state
+  const [isFABMenuOpen, setIsFABMenuOpen] = useState(false);
+  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
+  const [loadedTemplate, setLoadedTemplate] = useState<WorkoutTemplate | null>(null);
+
   // Muscle deep dive modal state
   const [deepDiveModalOpen, setDeepDiveModalOpen] = useState(false);
   const [selectedMuscleForDeepDive, setSelectedMuscleForDeepDive] = useState<Muscle | null>(null);
@@ -597,7 +606,13 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
           />
         </CollapsibleCard>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <button
+                onClick={() => setIsTemplateSelectorOpen(true)}
+                className="w-full bg-brand-muted text-white font-bold py-4 px-4 rounded-lg text-lg hover:bg-brand-dark transition-colors min-h-[44px]"
+            >
+                📋 My Templates
+            </button>
             <button
                 onClick={() => setIsPlannerOpen(true)}
                 className="w-full bg-brand-accent text-brand-dark font-bold py-4 px-4 rounded-lg text-lg hover:bg-brand-accent/90 transition-colors min-h-[44px]"
@@ -685,11 +700,11 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         )}
       </main>
 
-      {/* Floating Action Button for Quick Add */}
+      {/* Floating Action Button for Quick Actions */}
       <button
-        onClick={() => setIsQuickAddOpen(true)}
+        onClick={() => setIsFABMenuOpen(true)}
         className="fixed bottom-6 right-6 w-14 h-14 bg-brand-cyan text-brand-dark rounded-full shadow-lg hover:bg-cyan-400 transition-all hover:scale-110 flex items-center justify-center z-40"
-        aria-label="Quick Add Exercise"
+        aria-label="Quick Actions"
       >
         <svg
           className="w-8 h-8"
@@ -744,6 +759,52 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
           onAddToWorkout={handleAddToWorkout}
         />
       )}
+
+      {/* FAB Menu */}
+      <FABMenu
+        isOpen={isFABMenuOpen}
+        onClose={() => setIsFABMenuOpen(false)}
+        onLogWorkout={() => {
+          setIsFABMenuOpen(false);
+          setIsQuickAddOpen(true);
+        }}
+        onBuildWorkout={() => {
+          setIsFABMenuOpen(false);
+          setIsBuilderOpen(true);
+        }}
+        onLoadTemplate={() => {
+          setIsFABMenuOpen(false);
+          setIsTemplateSelectorOpen(true);
+        }}
+      />
+
+      {/* Workout Builder Modal (placeholder for now) */}
+      {/* Workout Builder */}
+      <WorkoutBuilder
+        isOpen={isBuilderOpen}
+        onClose={() => {
+          setIsBuilderOpen(false);
+          setLoadedTemplate(null);
+        }}
+        onSuccess={() => {
+          fetchDashboardData();
+          setLoadedTemplate(null);
+        }}
+        onToast={handleToast}
+        loadedTemplate={loadedTemplate}
+      />
+
+      {/* Template Selector Modal */}
+      <TemplateSelector
+        isOpen={isTemplateSelectorOpen}
+        onClose={() => setIsTemplateSelectorOpen(false)}
+        onLoad={(template) => {
+          setLoadedTemplate(template);
+          setIsTemplateSelectorOpen(false);
+          setIsBuilderOpen(true);
+        }}
+        onToast={handleToast}
+      />
 
       {/* Toast Notification */}
       {toastMessage && (

@@ -141,16 +141,51 @@ export interface ExerciseMaxes {
 }
 
 // WORKOUT TEMPLATES
+export interface TemplateSet {
+  exerciseId: string;
+  weight: number;
+  reps: number;
+  restTimerSeconds: number;
+}
+
 export interface WorkoutTemplate {
   id: string;
   name: string;
   category: ExerciseCategory;
   variation: "A" | "B";
-  exerciseIds: string[]; // Array of exercise IDs
+  sets: TemplateSet[]; // CHANGED from exerciseIds
   isFavorite: boolean;
   timesUsed: number;
   createdAt: number; // timestamp
   updatedAt: number; // timestamp
+}
+
+// WORKOUT BUILDER TYPES
+export interface BuilderSet {
+  id: string;
+  exerciseId: string;
+  exerciseName: string;
+  weight: number;
+  reps: number;
+  restTimerSeconds: number;
+}
+
+export interface BuilderWorkout {
+  sets: BuilderSet[];
+  currentSetIndex: number;
+  startTime: number | null;
+  muscleStatesSnapshot: MuscleStatesResponse | null;
+}
+
+export interface BuilderWorkoutRequest {
+  sets: Array<{
+    exercise_name: string;
+    weight: number;
+    reps: number;
+    rest_timer_seconds: number;
+  }>;
+  timestamp: string;
+  was_executed: boolean;
 }
 
 // ============================================

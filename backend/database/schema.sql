@@ -103,7 +103,8 @@ CREATE TABLE IF NOT EXISTS workout_templates (
   name TEXT NOT NULL,
   category TEXT NOT NULL,
   variation TEXT NOT NULL,
-  exercise_ids TEXT NOT NULL, -- JSON array of exercise IDs
+  exercise_ids TEXT, -- DEPRECATED: Old format (JSON array of exercise IDs) - kept for migration compatibility
+  sets TEXT, -- JSON array of TemplateSet objects: [{exerciseId, weight, reps, restTimerSeconds}, ...]
   is_favorite INTEGER DEFAULT 0,
   times_used INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
