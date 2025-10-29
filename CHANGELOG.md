@@ -7,6 +7,107 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-29 - Personal Records Sync & Dual-Layer Tracking Proposal
+
+**Status**: IN PROGRESS - Research & Planning
+**Feature**: Personal records backup system and dual-layer muscle tracking architecture
+
+**Files Changed**:
+- `personal-records.json` (created - backup of 36 exercises with protocols, volumes, muscle engagements)
+- `scripts/sync-personal-records.ts` (created - script to sync personal records to muscle_baselines table)
+- `scripts/compare-exercises.ts` (created - compares personal records with exercise library)
+- `scripts/analyze-muscle-responsibilities-v2.ts` (created - analyzes muscle roles from EMG data)
+- `docs/emg-research-reference.md` (referenced - 40+ exercises with EMG % MVIC data)
+- `docs/dual-layer-muscle-tracking-REFINED.md` (created - design document for dual-layer system)
+- `docs/dual-layer-muscle-tracking-design.md` (created - initial design exploration)
+- `openspec/changes/2025-10-29-implement-dual-layer-muscle-tracking/` (created - formal OpenSpec proposal)
+- `data/fitforge.db` (modified - muscle_baselines updated with personal record volumes)
+
+**Summary**: Created comprehensive personal records backup system and formal proposal for dual-layer muscle tracking that tracks 40+ specific muscles behind the scenes while maintaining simple 13-muscle UI visualization.
+
+**Changes Made**:
+
+1. **Personal Records Backup System**:
+   - Created `personal-records.json` with 36 exercises including:
+     - Exercise protocols (sets × reps @ weight)
+     - Total volumes (up to 6,300 lb for RDLs)
+     - Muscle engagement lists
+     - Training notes and adaptations
+   - Total session volume: 43,800 lb across all exercises
+   - Serves as version-controlled backup outside database
+
+2. **Baseline Sync Script** (`scripts/sync-personal-records.ts`):
+   - Reads personal-records.json and calculates per-muscle volumes
+   - Maps muscle names (e.g., "latissimus dorsi" → "Lats")
+   - Distributes exercise volume across engaged muscles
+   - Updates `muscle_baselines` table with `user_override` values
+   - **Known Issue**: Bodyweight exercises (pull-ups, chin-ups) are skipped (totalVolume=null)
+   - **Known Issue**: Equal distribution across muscles undervalues primary movers (e.g., Lats calculated at 1,300 lb when should be ~5,000+ lb based on pull-up work)
+   - Successfully synced 12 muscle baselines on 2025-10-29
+
+3. **Muscle Analysis Tools**:
+   - `compare-exercises.ts`: Identifies 12 exercises in app library but missing from personal records
+   - `analyze-muscle-responsibilities-v2.ts`: Categorizes muscle roles (MAJOR ≥50%, MODERATE 30-49%, MINOR <30%)
+   - Analysis revealed muscles with highest training load: Biceps (9 exercises), Lats (8), Glutes/Core (7 each)
+
+4. **Dual-Layer Tracking Proposal** (OpenSpec):
+   - **Problem**: Current system only tracks 13 visualization muscles, but EMG research shows 40+ muscles engaged
+   - **Solution**: Layer 1 (Visualization) = 13 muscles for UI, Layer 2 (Detailed) = 42 muscles for recuperation
+   - **Key Capabilities**:
+     1. `detailed-muscle-tracking`: Track rotator cuff, scapular stabilizers, core subdivisions, muscle heads
+     2. `muscle-specific-recommendations`: Recommend posterior delt work when anterior is fatigued
+     3. `advanced-muscle-visualization`: Optional detailed view for power users
+   - **Design Decisions**:
+     - Conservative baseline initialization (all detailed muscles inherit full parent baseline)
+     - Primary movers only shown in visualization (stabilizers hidden)
+     - Uniform recovery within muscle groups
+     - Smart recommendations target fresh muscles within groups
+     - Optional advanced toggle in settings
+   - **Timeline**: 16-24 hours across 4 phases
+   - **Files**: `proposal.md`, `design.md`, `tasks.md`, 3 capability specs
+
+5. **Database Updates**:
+   - Synced following baselines (as user_overrides):
+     - Biceps: 4,325 lb (+1,400 from additions)
+     - Glutes: 9,190 lb (highest capacity)
+     - Hamstrings: 7,500 lb
+     - Core: 6,740 lb
+     - Deltoids: 4,350 lb
+     - Trapezius: 3,750 lb
+     - Triceps: 3,600 lb
+     - Pectoralis: 3,100 lb
+     - Quadriceps: 1,690 lb
+     - Forearms: 1,300 lb
+     - Lats: 1,300 lb (⚠️ UNDERESTIMATED - see known issues)
+     - Rhomboids: 1,050 lb
+
+**Known Issues & Next Steps**:
+
+⚠️ **Baseline Calculation Issues**:
+- Bodyweight exercises (pull-ups, dips, planks) contribute zero volume (need bodyweight × reps × sets calculation)
+- Equal distribution across muscles doesn't reflect primary vs secondary movers
+- Lats showing 1,300 lb when pull-up work suggests 5,000+ lb capacity
+- Core stabilizers like obliques and erector spinae not tracked separately
+
+**Resolution Plan**:
+- Dual-layer system will use EMG % MVIC for weighted distribution
+- Bodyweight exercises will get proper volume calculations
+- Phase 2 of dual-layer implementation will fix baseline accuracy
+
+**Research References**:
+- EMG research: `docs/emg-research-reference.md` (189 peer-reviewed studies)
+- Pull-ups: Lats 117-130% MVIC, Biceps 78-96% MVIC
+- Push-ups: Serratus anterior 40-50% MVIC (currently not tracked)
+- Planks: External obliques 99-108% MVIC (currently lumped into "Core")
+
+**Next Actions**:
+- [ ] Review and approve OpenSpec proposal
+- [ ] Implement Phase 1: Foundation & Schema (DetailedMuscle enum, database table)
+- [ ] Implement Phase 2: Populate all 40 exercises with EMG data
+- [ ] Fix baseline calculations to use weighted EMG percentages
+
+---
+
 ### 2025-10-28 - Phase 7: UI Polish & Refinements (✅ IMPLEMENTED)
 
 **Status**: IMPLEMENTED - Production ready

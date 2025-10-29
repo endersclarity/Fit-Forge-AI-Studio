@@ -1,0 +1,375 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-10-29",
+  "muscleBaselines": [
+    {
+      "exercise": "Dumbbell Bench Press",
+      "category": "Chest / Push",
+      "protocol": "3×10 @ 52.5 lb/hand",
+      "totalVolume": 3150,
+      "volumeUnit": "lb",
+      "muscles": ["pectoralis major", "anterior deltoid", "triceps brachii"],
+      "notes": "bilateral, horizontal press, stable base",
+      "adaptation": "hypertrophy, balanced upper-body strength"
+    },
+    {
+      "exercise": "Incline Dumbbell Bench Press",
+      "category": "Chest / Push",
+      "protocol": "3×10 @ 45 lb/hand",
+      "totalVolume": 2700,
+      "volumeUnit": "lb",
+      "muscles": ["upper pectorals", "anterior deltoid", "triceps"],
+      "notes": "higher shoulder angle shifts emphasis upward",
+      "adaptation": "upper chest development, pressing endurance"
+    },
+    {
+      "exercise": "Single-Arm Incline Dumbbell Bench Press",
+      "category": "Chest / Push",
+      "protocol": "3×10 @ 40 lb",
+      "totalVolume": 1200,
+      "volumeUnit": "lb",
+      "muscles": ["upper pectorals", "anterior deltoid", "triceps", "core stabilizers"],
+      "notes": "unilateral, high anti-rotation demand",
+      "adaptation": "asymmetry correction, core control"
+    },
+    {
+      "exercise": "TRX Push-ups",
+      "category": "Chest / Push",
+      "protocol": "3×20, bodyweight fraction (~60–70%)",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["chest", "shoulders", "triceps", "stabilizers"],
+      "notes": "unstable platform; tension constant throughout range",
+      "adaptation": "shoulder stability, endurance"
+    },
+    {
+      "exercise": "TRX Tricep Extensions",
+      "category": "Chest / Push",
+      "protocol": "3×15, bodyweight fraction (~40%)",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["triceps", "core", "anterior delts"],
+      "notes": "isolated elbow extension on suspension straps",
+      "adaptation": "triceps hypertrophy, joint stability"
+    },
+    {
+      "exercise": "TRX Dips",
+      "category": "Chest / Push",
+      "protocol": "3×8, bodyweight",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["triceps", "chest", "anterior deltoid"],
+      "notes": "open kinetic chain, high shoulder stress if form breaks",
+      "adaptation": "pressing strength"
+    },
+    {
+      "exercise": "Dumbbell Shoulder Press",
+      "category": "Chest / Push",
+      "protocol": "3×10 @ 30 lb/hand",
+      "totalVolume": 1800,
+      "volumeUnit": "lb",
+      "muscles": ["deltoids", "triceps", "upper pectorals"],
+      "notes": "vertical pressing pattern, overhead shoulder strength",
+      "adaptation": "shoulder hypertrophy, pressing power"
+    },
+    {
+      "exercise": "Kettlebell Press",
+      "category": "Chest / Push",
+      "protocol": "3×10 @ 30 lb",
+      "totalVolume": 900,
+      "volumeUnit": "lb",
+      "muscles": ["deltoids", "triceps", "core"],
+      "notes": "similar to dumbbell press but with core stabilization demands",
+      "adaptation": "functional shoulder strength"
+    },
+    {
+      "exercise": "TRX Reverse Flys",
+      "category": "Chest / Push",
+      "protocol": "3×13, bodyweight",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["rear deltoids", "rhomboids", "trapezius"],
+      "notes": "horizontal pull pattern emphasizing rear delts",
+      "adaptation": "posterior shoulder strength, posture"
+    },
+    {
+      "exercise": "Dumbbell Bent-Over Row",
+      "category": "Back / Pull",
+      "protocol": "3×10 @ 40 lb/hand",
+      "totalVolume": 2400,
+      "volumeUnit": "lb",
+      "muscles": ["latissimus dorsi", "rhomboids", "posterior deltoid", "biceps"],
+      "notes": "hinge stance, neutral spine",
+      "adaptation": "back hypertrophy, postural strength"
+    },
+    {
+      "exercise": "Dumbbell Upright Row",
+      "category": "Back / Pull",
+      "protocol": "3×10 @ 30 lb/hand",
+      "totalVolume": 1800,
+      "volumeUnit": "lb",
+      "muscles": ["deltoids", "upper traps", "biceps"],
+      "notes": "vertical pull path; shoulder width grip preferred",
+      "adaptation": "upper-back definition"
+    },
+    {
+      "exercise": "Renegade Rows",
+      "category": "Back / Pull",
+      "protocol": "3×10 @ 30 lb/hand",
+      "totalVolume": 1800,
+      "volumeUnit": "lb",
+      "muscles": ["lats", "rhomboids", "triceps", "obliques"],
+      "notes": "plank-based pull; core stabilization under rotation",
+      "adaptation": "anti-rotation control, compound pulling"
+    },
+    {
+      "exercise": "Shoulder Shrugs",
+      "category": "Back / Pull",
+      "protocol": "3×10 @ 52.5 lb/hand",
+      "totalVolume": 3150,
+      "volumeUnit": "lb",
+      "muscles": ["trapezius"],
+      "notes": "short range, high load",
+      "adaptation": "neck/upper-trap hypertrophy"
+    },
+    {
+      "exercise": "Dumbbell Pullover",
+      "category": "Back / Pull",
+      "protocol": "3×10 @ 25 lb",
+      "totalVolume": 750,
+      "volumeUnit": "lb",
+      "muscles": ["lats", "chest", "serratus anterior"],
+      "notes": "bridge between push and pull patterns",
+      "adaptation": "shoulder mobility, chest expansion"
+    },
+    {
+      "exercise": "Pull-ups (Neutral)",
+      "category": "Back / Pull",
+      "protocol": "3×8, bodyweight",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["lats", "biceps", "rhomboids", "rear delts"],
+      "notes": "neutral grip",
+      "adaptation": "upper back strength, endurance"
+    },
+    {
+      "exercise": "Pull-ups (Wide)",
+      "category": "Back / Pull",
+      "protocol": "3×7, bodyweight",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["lats", "biceps", "rhomboids", "rear delts"],
+      "notes": "wide grip alters fiber emphasis",
+      "adaptation": "upper back strength, endurance"
+    },
+    {
+      "exercise": "Pull-ups (TRX)",
+      "category": "Back / Pull",
+      "protocol": "3×10, bodyweight",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["lats", "biceps", "rhomboids", "rear delts"],
+      "notes": "TRX variation",
+      "adaptation": "upper back strength, endurance"
+    },
+    {
+      "exercise": "TRX Bicep Curl",
+      "category": "Arms",
+      "protocol": "3×15, bodyweight fraction (~30–40%)",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["biceps brachii", "brachialis", "forearms"],
+      "notes": "variable resistance by angle",
+      "adaptation": "arm endurance"
+    },
+    {
+      "exercise": "Concentration Curl",
+      "category": "Arms",
+      "protocol": "3×10 @ 27.5 lb",
+      "totalVolume": 825,
+      "volumeUnit": "lb",
+      "muscles": ["biceps"],
+      "notes": "strict form, minimizes shoulder assistance",
+      "adaptation": "peak contraction strength"
+    },
+    {
+      "exercise": "Dumbbell Bicep Curl",
+      "category": "Arms",
+      "protocol": "3×10 @ 30 lb/hand",
+      "totalVolume": 900,
+      "volumeUnit": "lb",
+      "muscles": ["biceps", "brachialis"],
+      "notes": "full supination for maximal activation",
+      "adaptation": "arm hypertrophy"
+    },
+    {
+      "exercise": "Chin-Ups",
+      "category": "Back / Pull",
+      "protocol": "3×10, bodyweight",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["lats", "biceps", "pectoralis", "core"],
+      "notes": "supinated grip emphasizes biceps more than pull-ups",
+      "adaptation": "upper back and arm strength"
+    },
+    {
+      "exercise": "Face Pull",
+      "category": "Back / Pull",
+      "protocol": "3×15, bodyweight",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["rear deltoids", "trapezius", "rhomboids"],
+      "notes": "horizontal pull to face level, external rotation emphasis",
+      "adaptation": "shoulder health, upper back definition"
+    },
+    {
+      "exercise": "Incline Hammer Curl",
+      "category": "Arms",
+      "protocol": "3×10 @ 35 lb/hand",
+      "totalVolume": 2100,
+      "volumeUnit": "lb",
+      "muscles": ["biceps", "brachialis", "forearms"],
+      "notes": "incline position stretches biceps, hammer grip targets brachialis",
+      "adaptation": "bicep peak development, forearm strength"
+    },
+    {
+      "exercise": "Kettlebell Goblet Squat",
+      "category": "Legs / Glutes",
+      "protocol": "3×16 @ 40 lb",
+      "totalVolume": 1920,
+      "volumeUnit": "lb",
+      "muscles": ["quadriceps", "glutes", "core"],
+      "notes": "upright torso, front load improves posture",
+      "adaptation": "lower-body strength, stability"
+    },
+    {
+      "exercise": "Dumbbell Goblet Squat",
+      "category": "Legs / Glutes",
+      "protocol": "3×10 @ 70 lb",
+      "totalVolume": 2100,
+      "volumeUnit": "lb",
+      "muscles": ["quads", "glutes"],
+      "notes": "heavier variation; more axial load",
+      "adaptation": "maximal hypertrophy stimulus"
+    },
+    {
+      "exercise": "Dumbbell Romanian Deadlift",
+      "category": "Legs / Glutes",
+      "protocol": "3×20 @ 52.5 lb/hand",
+      "totalVolume": 6300,
+      "volumeUnit": "lb",
+      "muscles": ["hamstrings", "glutes", "spinal erectors"],
+      "notes": "hip hinge, constant hamstring tension",
+      "adaptation": "posterior chain hypertrophy"
+    },
+    {
+      "exercise": "Stiff-Leg Deadlift",
+      "category": "Legs / Glutes",
+      "protocol": "3×20 @ 52.5 lb/hand",
+      "totalVolume": 6300,
+      "volumeUnit": "lb",
+      "muscles": ["hamstrings", "glutes", "spinal erectors"],
+      "notes": "same as RDL, greater stretch",
+      "adaptation": "hamstring length-tension improvement"
+    },
+    {
+      "exercise": "Glute Bridge",
+      "category": "Legs / Glutes",
+      "protocol": "3×20 @ 90 lb",
+      "totalVolume": 5400,
+      "volumeUnit": "lb",
+      "muscles": ["glutes", "hamstrings"],
+      "notes": "hip thrust motion, stable back",
+      "adaptation": "glute strength, hypertrophy"
+    },
+    {
+      "exercise": "Kettlebell Swing",
+      "category": "Legs / Glutes",
+      "protocol": "3×20 @ 40 lb",
+      "totalVolume": 2400,
+      "volumeUnit": "lb",
+      "muscles": ["glutes", "hamstrings", "spinal erectors", "grip"],
+      "notes": "explosive hip hinge",
+      "adaptation": "power and metabolic conditioning"
+    },
+    {
+      "exercise": "Box Step-Ups",
+      "category": "Legs / Glutes",
+      "protocol": "3×20/leg (40 total), bodyweight",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["glutes", "quads", "hamstrings", "core"],
+      "notes": "unilateral control and balance",
+      "adaptation": "functional single-leg strength"
+    },
+    {
+      "exercise": "Calf Raises",
+      "category": "Legs / Glutes",
+      "protocol": "3×60, bodyweight",
+      "totalVolume": null,
+      "volumeUnit": "bodyweight",
+      "muscles": ["gastrocnemius", "soleus"],
+      "notes": "high-rep endurance protocol",
+      "adaptation": "lower-leg conditioning"
+    },
+    {
+      "exercise": "Plank",
+      "category": "Core / Stability",
+      "protocol": "2 min hold",
+      "totalVolume": null,
+      "volumeUnit": "time",
+      "muscles": ["rectus abdominis", "obliques", "shoulders"],
+      "notes": "isometric anti-extension",
+      "adaptation": "static core endurance"
+    },
+    {
+      "exercise": "Spider Plank",
+      "category": "Core / Stability",
+      "protocol": "15 reps per side",
+      "totalVolume": null,
+      "volumeUnit": "reps",
+      "muscles": ["core", "hip flexors", "shoulders"],
+      "notes": "dynamic plank variant",
+      "adaptation": "mobility with stability"
+    },
+    {
+      "exercise": "Bench Sit-ups",
+      "category": "Core / Stability",
+      "protocol": "3×30",
+      "totalVolume": null,
+      "volumeUnit": "reps",
+      "muscles": ["rectus abdominis", "hip flexors"],
+      "notes": "anchored position increases resistance",
+      "adaptation": "abdominal endurance"
+    },
+    {
+      "exercise": "TRX Mountain Climbers",
+      "category": "Core / Stability",
+      "protocol": "3×30 s",
+      "totalVolume": null,
+      "volumeUnit": "time",
+      "muscles": ["core", "hip flexors", "shoulders"],
+      "notes": "continuous dynamic tension",
+      "adaptation": "metabolic conditioning"
+    },
+    {
+      "exercise": "Hanging Leg Raises",
+      "category": "Core / Stability",
+      "protocol": "3×13",
+      "totalVolume": null,
+      "volumeUnit": "reps",
+      "muscles": ["lower abs", "hip flexors"],
+      "notes": "full hanging ROM, high coordination",
+      "adaptation": "lower abdominal control"
+    }
+  ],
+  "sessionSummary": {
+    "totalLoadedVolume": 43800,
+    "volumeUnit": "lb",
+    "avgTempo": "5 s/rep",
+    "restIntervals": "75–90 s",
+    "focus": "Hypertrophy + endurance, balanced push/pull ratio, high posterior-chain workload",
+    "coreLoad": "Bodyweight, continuous tension >6 minutes total per session",
+    "note": "Updated 2025-10-29: Added shoulder press variations, reverse flys, chin-ups, face pulls, and incline hammer curls"
+  }
+}
