@@ -96,6 +96,42 @@ CREATE TABLE IF NOT EXISTS muscle_baselines (
   UNIQUE(user_id, muscle_name)
 );
 
+-- Detailed muscle states (granular tracking for 42+ specific muscles)
+-- Dual-layer architecture: Detailed tracking for recuperation, aggregated display for UI
+CREATE TABLE IF NOT EXISTS detailed_muscle_states (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+
+  -- Muscle identification
+  detailed_muscle_name TEXT NOT NULL,      -- DetailedMuscle enum value
+  visualization_muscle_name TEXT NOT NULL, -- Maps to Muscle enum (for aggregation)
+  role TEXT NOT NULL CHECK(role IN ('primary', 'secondary', 'stabilizer')),
+
+  -- Current state (same structure as muscle_states)
+  fatigue_percent REAL NOT NULL DEFAULT 0,
+  volume_today REAL NOT NULL DEFAULT 0,
+  last_trained TEXT,  -- ISO 8601 date
+
+  -- Baseline capacity
+  baseline_capacity REAL NOT NULL,
+  baseline_source TEXT DEFAULT 'inherited' CHECK(
+    baseline_source IN ('inherited', 'learned', 'user_override')
+  ),
+  baseline_confidence TEXT DEFAULT 'low' CHECK(
+    baseline_confidence IN ('low', 'medium', 'high')
+  ),
+
+  -- Metadata
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  -- Constraints
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(user_id, detailed_muscle_name)
+);
+
+-- Note: Foreign key to muscle_baselines enforced at application level due to SQLite ALTER TABLE limitations
+
 -- Workout templates (saved workout configurations)
 CREATE TABLE IF NOT EXISTS workout_templates (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -134,6 +170,10 @@ CREATE INDEX IF NOT EXISTS idx_muscle_states_user ON muscle_states(user_id);
 CREATE INDEX IF NOT EXISTS idx_personal_bests_user ON personal_bests(user_id);
 CREATE INDEX IF NOT EXISTS idx_muscle_baselines_user ON muscle_baselines(user_id);
 CREATE INDEX IF NOT EXISTS idx_muscle_baselines_updated ON muscle_baselines(updated_at);
+CREATE INDEX IF NOT EXISTS idx_detailed_muscle_states_user ON detailed_muscle_states(user_id);
+CREATE INDEX IF NOT EXISTS idx_detailed_muscle_states_viz ON detailed_muscle_states(visualization_muscle_name);
+CREATE INDEX IF NOT EXISTS idx_detailed_muscle_states_role ON detailed_muscle_states(role);
+CREATE INDEX IF NOT EXISTS idx_detailed_muscle_states_updated ON detailed_muscle_states(updated_at);
 CREATE INDEX IF NOT EXISTS idx_workout_templates_user ON workout_templates(user_id);
 CREATE INDEX IF NOT EXISTS idx_calibrations_user_exercise ON user_exercise_calibrations(user_id, exercise_id);
 CREATE INDEX IF NOT EXISTS idx_calibrations_user ON user_exercise_calibrations(user_id);

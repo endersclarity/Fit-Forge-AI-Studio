@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 // Fix: Import ALL_MUSCLES from constants instead of types
-import { UserProfile, WeightEntry, Equipment, EquipmentItem, EquipmentIncrement, MuscleBaselines, Muscle, Difficulty } from '../types';
+import { UserProfile, WeightEntry, Equipment, EquipmentItem, EquipmentIncrement, MuscleBaselines, Muscle, Difficulty, MuscleDetailSettings } from '../types';
 import { ALL_MUSCLES } from '../constants';
 import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon, EditIcon, PlusIcon, SaveIcon, TrashIcon, XIcon } from './Icons';
 
@@ -168,13 +168,24 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
     const [editingName, setEditingName] = useState(false);
     const [currentName, setCurrentName] = useState(profile.name);
 
+    // Muscle detail level setting (persisted to localStorage)
+    const [muscleDetailLevel, setMuscleDetailLevel] = useState<'simple' | 'detailed'>(() => {
+        const saved = localStorage.getItem('muscleDetailLevel');
+        return (saved === 'simple' || saved === 'detailed') ? saved : 'simple';
+    });
+
+    // Persist muscle detail level to localStorage
+    useEffect(() => {
+        localStorage.setItem('muscleDetailLevel', muscleDetailLevel);
+    }, [muscleDetailLevel]);
+
     const latestWeightEntry = useMemo(() => {
         if (!profile.bodyweightHistory || profile.bodyweightHistory.length === 0) {
             return { weight: 150, date: Date.now() };
         }
         return [...profile.bodyweightHistory].sort((a,b) => b.date - a.date)[0];
     }, [profile.bodyweightHistory]);
-    
+
     const [currentWeight, setCurrentWeight] = useState(latestWeightEntry.weight);
 
     const handleProfileChange = (field: keyof UserProfile, value: any) => {
@@ -259,16 +270,54 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
                         </div>
                         <div>
                             <label htmlFor="experience" className="block text-sm font-medium text-slate-300 mb-1">Experience Level</label>
-                            <select 
-                                id="experience" 
-                                value={profile.experience} 
-                                onChange={e => handleProfileChange('experience', e.target.value as Difficulty)} 
+                            <select
+                                id="experience"
+                                value={profile.experience}
+                                onChange={e => handleProfileChange('experience', e.target.value as Difficulty)}
                                 className="w-full bg-brand-dark border border-brand-muted rounded-md px-3 py-2"
                             >
                                 <option>Beginner</option>
                                 <option>Intermediate</option>
                                 <option>Advanced</option>
                             </select>
+                        </div>
+
+                        {/* Muscle Detail Level Toggle */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">Muscle Detail Level</label>
+                            <div className="space-y-2">
+                                <label className="flex items-center p-3 bg-brand-dark rounded-md cursor-pointer hover:bg-opacity-80 border border-brand-muted">
+                                    <input
+                                        type="radio"
+                                        name="muscleDetailLevel"
+                                        value="simple"
+                                        checked={muscleDetailLevel === 'simple'}
+                                        onChange={(e) => setMuscleDetailLevel(e.target.value as 'simple' | 'detailed')}
+                                        className="mr-3"
+                                    />
+                                    <div className="flex-1">
+                                        <div className="font-medium">Simple (13 muscle groups)</div>
+                                        <div className="text-xs text-slate-400 mt-1">Clean dashboard view with major muscle groups</div>
+                                    </div>
+                                </label>
+                                <label className="flex items-center p-3 bg-brand-dark rounded-md cursor-pointer hover:bg-opacity-80 border border-brand-muted">
+                                    <input
+                                        type="radio"
+                                        name="muscleDetailLevel"
+                                        value="detailed"
+                                        checked={muscleDetailLevel === 'detailed'}
+                                        onChange={(e) => setMuscleDetailLevel(e.target.value as 'simple' | 'detailed')}
+                                        className="mr-3"
+                                    />
+                                    <div className="flex-1">
+                                        <div className="font-medium">Detailed (43 specific muscles)</div>
+                                        <div className="text-xs text-slate-400 mt-1">Show muscle subdivisions, rotator cuff, and stabilizers</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-2">
+                                Detailed view shows specific muscle fatigue for advanced training insights
+                            </p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-300">Current Bodyweight (lbs)</label>

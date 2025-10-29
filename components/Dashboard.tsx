@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
-import { Muscle, MuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse, PlannedExercise } from '../types';
+import { Muscle, MuscleStatesResponse, DetailedMuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse, PlannedExercise } from '../types';
 import { formatDuration } from '../utils/helpers';
 import { DumbbellIcon, UserIcon, TrophyIcon, ChevronDownIcon, ChevronUpIcon, BarChartIcon, ActivityIcon } from './Icons';
 import { RecommendedWorkoutData } from '../App';
@@ -17,6 +17,7 @@ import { MuscleDeepDiveModal } from './MuscleDeepDiveModal';
 import FABMenu from './FABMenu';
 import TemplateSelector from './TemplateSelector';
 import WorkoutBuilder from './WorkoutBuilder';
+import { DetailedMuscleCard } from './fitness/DetailedMuscleCard';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -204,7 +205,13 @@ const getExercisesForMuscle = (muscle: Muscle): ExerciseForMuscle[] => {
     .sort((a, b) => b.engagement - a.engagement);
 };
 
-const MuscleFatigueHeatMap: React.FC<{ muscleStates: MuscleStatesResponse, workouts: WorkoutSession[], muscleBaselines: MuscleBaselines }> = ({ muscleStates, workouts, muscleBaselines }) => {
+const MuscleFatigueHeatMap: React.FC<{
+  muscleStates: MuscleStatesResponse;
+  detailedMuscleStates: DetailedMuscleStatesResponse;
+  workouts: WorkoutSession[];
+  muscleBaselines: MuscleBaselines;
+  muscleDetailLevel: 'simple' | 'detailed';
+}> = ({ muscleStates, detailedMuscleStates, workouts, muscleBaselines, muscleDetailLevel }) => {
   const [selectedMuscle, setSelectedMuscle] = useState<Muscle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -285,6 +292,26 @@ const MuscleFatigueHeatMap: React.FC<{ muscleStates: MuscleStatesResponse, worko
               {muscles.map(({ muscle, daysSince, fatiguePercent, daysUntilRecovered, lastTrained }) => {
                 const isReady = fatiguePercent <= 33;
 
+                // Get detailed muscle data for this visualization muscle
+                const detailedMuscles = Object.values(detailedMuscleStates).filter(
+                  (dm) => dm.visualizationMuscleName === muscle
+                );
+
+                // Conditional rendering based on detail level
+                if (muscleDetailLevel === 'detailed' && detailedMuscles.length > 0) {
+                  return (
+                    <DetailedMuscleCard
+                      key={muscle}
+                      muscleName={muscle}
+                      aggregateFatigue={fatiguePercent}
+                      detailedMuscles={detailedMuscles}
+                      lastTrained={lastTrained ? new Date(lastTrained) : null}
+                      onClick={() => handleMuscleClick(muscle)}
+                    />
+                  );
+                }
+
+                // Default simple view
                 return (
                   <div key={muscle} className="bg-brand-muted rounded-md">
                     <button
@@ -438,10 +465,17 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
   // State management for fetching muscle states from API
   const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
+  const [detailedMuscleStates, setDetailedMuscleStates] = useState<DetailedMuscleStatesResponse>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutResponse[]>([]);
   const [personalBests, setPersonalBests] = useState<PersonalBestsResponse>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Get muscle detail preference from localStorage
+  const [muscleDetailLevel, setMuscleDetailLevel] = useState<'simple' | 'detailed'>(() => {
+    const saved = localStorage.getItem('muscleDetailLevel');
+    return (saved === 'simple' || saved === 'detailed') ? saved : 'simple';
+  });
 
   // Muscle visualization selection state
   const [selectedMuscles, setSelectedMuscles] = useState<Muscle[]>([]);
@@ -493,23 +527,27 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
       // Fetch all data in parallel
-      const [muscleStatesRes, workoutsRes, personalBestsRes] = await Promise.all([
+      const [muscleStatesRes, detailedMuscleStatesRes, workoutsRes, personalBestsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/muscle-states`),
+        fetch(`${API_BASE_URL}/muscle-states/detailed`),
         fetch(`${API_BASE_URL}/workouts`),
         fetch(`${API_BASE_URL}/personal-bests`)
       ]);
 
       if (!muscleStatesRes.ok) throw new Error('Failed to fetch muscle states');
+      if (!detailedMuscleStatesRes.ok) throw new Error('Failed to fetch detailed muscle states');
       if (!workoutsRes.ok) throw new Error('Failed to fetch workouts');
       if (!personalBestsRes.ok) throw new Error('Failed to fetch personal bests');
 
-      const [muscleStatesData, workoutsData, personalBestsData] = await Promise.all([
+      const [muscleStatesData, detailedMuscleStatesData, workoutsData, personalBestsData] = await Promise.all([
         muscleStatesRes.json(),
+        detailedMuscleStatesRes.json(),
         workoutsRes.json(),
         personalBestsRes.json()
       ]);
 
       setMuscleStates(muscleStatesData);
+      setDetailedMuscleStates(detailedMuscleStatesData);
       setWorkoutHistory(workoutsData);
       setPersonalBests(personalBestsData);
     } catch (err) {
@@ -664,7 +702,13 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 {loading ? 'Loading...' : '🔄 Refresh'}
               </button>
             </div>
-            <MuscleFatigueHeatMap muscleStates={muscleStates} workouts={workouts} muscleBaselines={muscleBaselines} />
+            <MuscleFatigueHeatMap
+              muscleStates={muscleStates}
+              detailedMuscleStates={detailedMuscleStates}
+              workouts={workouts}
+              muscleBaselines={muscleBaselines}
+              muscleDetailLevel={muscleDetailLevel}
+            />
           </CollapsibleCard>
         )}
 

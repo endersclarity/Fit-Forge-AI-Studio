@@ -15,9 +15,76 @@ export enum Muscle {
   Core = "Core",
 }
 
+/**
+ * Detailed muscle tracking enum - 42 specific muscles for granular recuperation tracking
+ */
+export enum DetailedMuscle {
+  // CHEST
+  PectoralisMajorClavicular = "Pectoralis Major (Clavicular)",
+  PectoralisMajorSternal = "Pectoralis Major (Sternal)",
+  // SHOULDERS
+  AnteriorDeltoid = "Anterior Deltoid",
+  MedialDeltoid = "Medial Deltoid",
+  PosteriorDeltoid = "Posterior Deltoid",
+  // ROTATOR CUFF
+  Infraspinatus = "Infraspinatus",
+  Supraspinatus = "Supraspinatus",
+  TeresMinor = "Teres Minor",
+  Subscapularis = "Subscapularis",
+  // SCAPULAR STABILIZERS
+  SerratusAnterior = "Serratus Anterior",
+  RhomboidsDetailed = "Rhomboids",
+  LevatorScapulae = "Levator Scapulae",
+  // BACK
+  LatissimusDorsi = "Latissimus Dorsi",
+  UpperTrapezius = "Upper Trapezius",
+  MiddleTrapezius = "Middle Trapezius",
+  LowerTrapezius = "Lower Trapezius",
+  ErectorSpinae = "Erector Spinae",
+  // ARMS
+  BicepsBrachii = "Biceps Brachii",
+  Brachialis = "Brachialis",
+  Brachioradialis = "Brachioradialis",
+  TricepsLongHead = "Triceps (Long Head)",
+  TricepsLateralHead = "Triceps (Lateral Head)",
+  TricepsMedialHead = "Triceps (Medial Head)",
+  WristFlexors = "Wrist Flexors",
+  WristExtensors = "Wrist Extensors",
+  // CORE
+  RectusAbdominis = "Rectus Abdominis",
+  ExternalObliques = "External Obliques",
+  InternalObliques = "Internal Obliques",
+  TransverseAbdominis = "Transverse Abdominis",
+  Iliopsoas = "Iliopsoas",
+  // LEGS - QUADRICEPS
+  VastusLateralis = "Vastus Lateralis",
+  VastusMedialis = "Vastus Medialis",
+  VastusIntermedius = "Vastus Intermedius",
+  RectusFemoris = "Rectus Femoris",
+  // LEGS - GLUTES
+  GluteusMaximus = "Gluteus Maximus",
+  GluteusMedius = "Gluteus Medius",
+  GluteusMinimus = "Gluteus Minimus",
+  // LEGS - HAMSTRINGS
+  BicepsFemoris = "Biceps Femoris",
+  Semitendinosus = "Semitendinosus",
+  Semimembranosus = "Semimembranosus",
+  // LEGS - CALVES
+  GastrocnemiusMedial = "Gastrocnemius (Medial)",
+  GastrocnemiusLateral = "Gastrocnemius (Lateral)",
+  Soleus = "Soleus",
+}
+
 export type MuscleEngagement = {
   muscle: Muscle;
   percentage: number;
+};
+
+export type DetailedMuscleEngagement = {
+  muscle: DetailedMuscle;
+  percentage: number;
+  role: 'primary' | 'secondary' | 'stabilizer';
+  citation?: string;
 };
 
 export type ExerciseCategory = "Push" | "Pull" | "Legs" | "Core";
@@ -32,6 +99,7 @@ export interface Exercise {
   equipment: Equipment | Equipment[]; // Can be single or multiple equipment options
   difficulty: Difficulty;
   muscleEngagements: MuscleEngagement[];
+  detailedMuscleEngagements?: DetailedMuscleEngagement[]; // Optional: granular muscle tracking
   variation: Variation; // New field
 }
 
@@ -437,6 +505,21 @@ export interface WorkoutRecommendation {
     daysAgo: number;
   };
 }
+
+// Detailed Muscle State Types (Dual-Layer Architecture)
+export interface DetailedMuscleStateData {
+  detailedMuscleName: string;
+  visualizationMuscleName: string;
+  role: 'primary' | 'secondary' | 'stabilizer';
+  currentFatiguePercent: number;
+  volumeToday: number;
+  lastTrained: string | null;
+  baselineCapacity: number;
+  baselineSource: 'inherited' | 'learned' | 'user_override';
+  baselineConfidence: 'low' | 'medium' | 'high';
+}
+
+export type DetailedMuscleStatesResponse = Record<string, DetailedMuscleStateData>;
 
 // Error Response Type
 export interface ApiErrorResponse {

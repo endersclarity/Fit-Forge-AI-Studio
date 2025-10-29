@@ -15,9 +15,93 @@ export enum Muscle {
   Core = "Core",
 }
 
+/**
+ * Detailed muscle tracking enum - 42 specific muscles for granular recuperation tracking
+ * Maps to 13 visualization muscles (Muscle enum) via DETAILED_TO_VIZ_MAP
+ * Enables precise fatigue tracking of stabilizers, rotator cuff, and muscle subdivisions
+ */
+export enum DetailedMuscle {
+  // CHEST (2 divisions)
+  PectoralisMajorClavicular = "Pectoralis Major (Clavicular)",
+  PectoralisMajorSternal = "Pectoralis Major (Sternal)",
+
+  // SHOULDERS (3 divisions)
+  AnteriorDeltoid = "Anterior Deltoid",
+  MedialDeltoid = "Medial Deltoid",
+  PosteriorDeltoid = "Posterior Deltoid",
+
+  // ROTATOR CUFF (4 muscles)
+  Infraspinatus = "Infraspinatus",
+  Supraspinatus = "Supraspinatus",
+  TeresMinor = "Teres Minor",
+  Subscapularis = "Subscapularis",
+
+  // SCAPULAR STABILIZERS (3 muscles)
+  SerratusAnterior = "Serratus Anterior",
+  RhomboidsDetailed = "Rhomboids",
+  LevatorScapulae = "Levator Scapulae",
+
+  // BACK (5 divisions)
+  LatissimusDorsi = "Latissimus Dorsi",
+  UpperTrapezius = "Upper Trapezius",
+  MiddleTrapezius = "Middle Trapezius",
+  LowerTrapezius = "Lower Trapezius",
+  ErectorSpinae = "Erector Spinae",
+
+  // ARMS (8 muscles - biceps, triceps heads, forearms)
+  BicepsBrachii = "Biceps Brachii",
+  Brachialis = "Brachialis",
+  Brachioradialis = "Brachioradialis",
+  TricepsLongHead = "Triceps (Long Head)",
+  TricepsLateralHead = "Triceps (Lateral Head)",
+  TricepsMedialHead = "Triceps (Medial Head)",
+  WristFlexors = "Wrist Flexors",
+  WristExtensors = "Wrist Extensors",
+
+  // CORE (5 divisions)
+  RectusAbdominis = "Rectus Abdominis",
+  ExternalObliques = "External Obliques",
+  InternalObliques = "Internal Obliques",
+  TransverseAbdominis = "Transverse Abdominis",
+  Iliopsoas = "Iliopsoas",
+
+  // LEGS - QUADRICEPS (4 heads)
+  VastusLateralis = "Vastus Lateralis",
+  VastusMedialis = "Vastus Medialis",
+  VastusIntermedius = "Vastus Intermedius",
+  RectusFemoris = "Rectus Femoris",
+
+  // LEGS - GLUTES (3 divisions)
+  GluteusMaximus = "Gluteus Maximus",
+  GluteusMedius = "Gluteus Medius",
+  GluteusMinimus = "Gluteus Minimus",
+
+  // LEGS - HAMSTRINGS (3 muscles)
+  BicepsFemoris = "Biceps Femoris",
+  Semitendinosus = "Semitendinosus",
+  Semimembranosus = "Semimembranosus",
+
+  // LEGS - CALVES (3 divisions)
+  GastrocnemiusMedial = "Gastrocnemius (Medial)",
+  GastrocnemiusLateral = "Gastrocnemius (Lateral)",
+  Soleus = "Soleus",
+}
+
 export type MuscleEngagement = {
   muscle: Muscle;
   percentage: number;
+};
+
+/**
+ * Detailed muscle engagement for granular tracking
+ * Includes percentage of Maximum Voluntary Isometric Contraction (MVIC) from EMG research
+ * Role determines whether muscle is primary mover, synergist, or stabilizer
+ */
+export type DetailedMuscleEngagement = {
+  muscle: DetailedMuscle;
+  percentage: number; // % MVIC from EMG research
+  role: 'primary' | 'secondary' | 'stabilizer';
+  citation?: string; // Optional research reference
 };
 
 export type ExerciseCategory = "Push" | "Pull" | "Legs" | "Core";
@@ -32,6 +116,7 @@ export interface Exercise {
   equipment: Equipment | Equipment[]; // Can be single or multiple equipment options
   difficulty: Difficulty;
   muscleEngagements: MuscleEngagement[];
+  detailedMuscleEngagements?: DetailedMuscleEngagement[]; // Optional: granular muscle tracking
   variation: Variation; // New field
 }
 
@@ -583,4 +668,52 @@ export interface WorkoutPlan {
   plannedExercises: PlannedExercise[];
   currentMuscleStates: MuscleStatesResponse;
   forecastedMuscleStates: Record<Muscle, ForecastedMuscleState>;
+}
+
+// ============================================
+// DETAILED MUSCLE TRACKING TYPES
+// ============================================
+
+/**
+ * Database row type for detailed muscle states
+ * Stores granular tracking for 42+ specific muscles
+ */
+export interface DetailedMuscleStateRow {
+  id: number;
+  user_id: number;
+  detailed_muscle_name: string;  // DetailedMuscle enum value
+  visualization_muscle_name: string; // Maps to Muscle enum
+  role: 'primary' | 'secondary' | 'stabilizer';
+  fatigue_percent: number;
+  volume_today: number;
+  last_trained: string | null;
+  baseline_capacity: number;
+  baseline_source: 'inherited' | 'learned' | 'user_override';
+  baseline_confidence: 'low' | 'medium' | 'high';
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * API response type for detailed muscle states
+ */
+export interface DetailedMuscleStateData {
+  detailedMuscleName: string;
+  visualizationMuscleName: string;
+  role: 'primary' | 'secondary' | 'stabilizer';
+  currentFatiguePercent: number;
+  volumeToday: number;
+  lastTrained: string | null;
+  baselineCapacity: number;
+  baselineSource: 'inherited' | 'learned' | 'user_override';
+  baselineConfidence: 'low' | 'medium' | 'high';
+}
+
+export type DetailedMuscleStatesResponse = Record<string, DetailedMuscleStateData>;
+
+/**
+ * User settings for muscle detail level display
+ */
+export interface MuscleDetailSettings {
+  muscleDetailLevel: 'simple' | 'detailed';
 }

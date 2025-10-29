@@ -10,6 +10,7 @@ import {
   WorkoutExercise,
   MuscleStatesResponse,
   MuscleStatesUpdateRequest,
+  DetailedMuscleStatesResponse,
   PersonalBestsResponse,
   PersonalBestsUpdateRequest,
   MuscleBaselinesResponse,
@@ -19,9 +20,11 @@ import {
   PRInfo,
   WorkoutRotationState,
   WorkoutRecommendation,
-  ExerciseCategory
+  ExerciseCategory,
+  Muscle
 } from '../types';
 import { EXERCISE_LIBRARY, ROTATION_SEQUENCE } from '../constants';
+import { getDetailedMuscles, determineDefaultRole } from './mappings';
 
 // Database file location (persisted in data/ folder)
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/fitforge.db');
@@ -284,7 +287,68 @@ function initializeProfile(request: ProfileInitRequest): ProfileResponse {
   // Execute transaction
   initTransaction();
 
+  // Initialize detailed muscle states (Phase 1 of dual-layer muscle tracking)
+  initializeDetailedMuscleStates(1, baseline);
+
   return getProfile();
+}
+
+/**
+ * Initialize detailed muscle states for dual-layer muscle tracking
+ * Creates 42 detailed muscle records inheriting baselines from visualization muscles
+ *
+ * Called during profile initialization and can be used for migration of existing users
+ */
+function initializeDetailedMuscleStates(userId: number, baselineValue: number): void {
+  // Get all visualization muscles
+  const muscles = [
+    'Pectoralis', 'Triceps', 'Deltoids', 'Lats', 'Biceps',
+    'Rhomboids', 'Trapezius', 'Forearms', 'Quadriceps',
+    'Glutes', 'Hamstrings', 'Calves', 'Core'
+  ];
+
+  const insertDetailedState = db.prepare(`
+    INSERT INTO detailed_muscle_states (
+      user_id,
+      detailed_muscle_name,
+      visualization_muscle_name,
+      role,
+      fatigue_percent,
+      volume_today,
+      last_trained,
+      baseline_capacity,
+      baseline_source,
+      baseline_confidence
+    ) VALUES (?, ?, ?, ?, 0, 0, NULL, ?, 'inherited', 'low')
+  `);
+
+  // For each visualization muscle, create detailed muscle records
+  for (const vizMuscleName of muscles) {
+    const vizMuscle = vizMuscleName as Muscle;
+    const detailedMuscles = getDetailedMuscles(vizMuscle);
+
+    for (const detailedMuscle of detailedMuscles) {
+      const role = determineDefaultRole(detailedMuscle);
+      const detailedMuscleName = detailedMuscle as string;
+
+      // Check if detailed muscle state already exists (for idempotency)
+      const existing = db.prepare(
+        'SELECT id FROM detailed_muscle_states WHERE user_id = ? AND detailed_muscle_name = ?'
+      ).get(userId, detailedMuscleName);
+
+      if (!existing) {
+        insertDetailedState.run(
+          userId,
+          detailedMuscleName,
+          vizMuscleName,
+          role,
+          baselineValue
+        );
+      }
+    }
+  }
+
+  console.log(`Initialized detailed muscle states for user ${userId} (42 detailed muscles)`);
 }
 
 /**
@@ -786,11 +850,97 @@ function getProgressiveSuggestions(exerciseName: string): {
 }
 
 /**
+ * Calculate visualization muscle fatigue from detailed muscle states
+ *
+ * Aggregates fatigue from detailed muscles (primary and secondary movers only)
+ * Excludes stabilizers to avoid inflating fatigue display
+ *
+ * @param userId User ID (default: 1)
+ * @param vizMuscleName Name of visualization muscle (e.g., "Deltoids")
+ * @param recoveryDaysToFull User's recovery days setting
+ * @returns Weighted average fatigue percentage
+ */
+function calculateVisualizationFatigue(
+  userId: number,
+  vizMuscleName: string,
+  recoveryDaysToFull: number
+): number {
+  // Query detailed muscle states for this visualization muscle
+  const detailedStates = db.prepare(`
+    SELECT detailed_muscle_name, role, fatigue_percent, last_trained
+    FROM detailed_muscle_states
+    WHERE user_id = ? AND visualization_muscle_name = ?
+      AND role IN ('primary', 'secondary')
+    ORDER BY fatigue_percent DESC
+  `).all(userId, vizMuscleName) as Array<{
+    detailed_muscle_name: string;
+    role: 'primary' | 'secondary' | 'stabilizer';
+    fatigue_percent: number;
+    last_trained: string | null;
+  }>;
+
+  // If no detailed states exist, fall back to visualization muscle state
+  if (detailedStates.length === 0) {
+    const vizState = db.prepare(`
+      SELECT initial_fatigue_percent, last_trained
+      FROM muscle_states
+      WHERE user_id = ? AND muscle_name = ?
+    `).get(userId, vizMuscleName) as {
+      initial_fatigue_percent: number;
+      last_trained: string | null;
+    } | undefined;
+
+    if (!vizState || !vizState.last_trained) {
+      return 0;
+    }
+
+    // Calculate current fatigue using linear decay
+    const now = Date.now();
+    const lastTrainedTime = new Date(vizState.last_trained).getTime();
+    const daysElapsed = (now - lastTrainedTime) / (1000 * 60 * 60 * 24);
+    let currentFatigue = vizState.initial_fatigue_percent * (1 - daysElapsed / recoveryDaysToFull);
+    currentFatigue = Math.max(0, Math.min(100, currentFatigue));
+
+    return Math.round(currentFatigue * 10) / 10;
+  }
+
+  // Calculate time-decayed fatigue for each detailed muscle
+  const now = Date.now();
+  const currentFatigues: number[] = [];
+
+  for (const state of detailedStates) {
+    if (!state.last_trained) {
+      currentFatigues.push(0);
+      continue;
+    }
+
+    const lastTrainedTime = new Date(state.last_trained).getTime();
+    const daysElapsed = (now - lastTrainedTime) / (1000 * 60 * 60 * 24);
+
+    // Apply linear decay: currentFatigue = initialFatigue * (1 - daysElapsed / recoveryDays)
+    let currentFatigue = state.fatigue_percent * (1 - daysElapsed / recoveryDaysToFull);
+    currentFatigue = Math.max(0, Math.min(100, currentFatigue));
+
+    currentFatigues.push(currentFatigue);
+  }
+
+  // Calculate weighted average
+  // TODO: In future, could weight by typical engagement percentage
+  const totalWeight = currentFatigues.length;
+  const weightedSum = currentFatigues.reduce((sum, fatigue) => sum + fatigue, 0);
+
+  const aggregatedFatigue = totalWeight > 0 ? weightedSum / totalWeight : 0;
+  return Math.round(aggregatedFatigue * 10) / 10;
+}
+
+/**
  * Get muscle states with calculated fields
  *
  * This function implements the backend calculation engine for muscle state.
  * It reads immutable historical facts from the database and calculates current
  * state based on time elapsed and recovery formulas.
+ *
+ * When detailed muscle states are available, uses aggregation for more accurate display.
  */
 function getMuscleStates(): MuscleStatesResponse {
   // Get user's recovery days setting
@@ -901,6 +1051,82 @@ function updateMuscleStates(states: MuscleStatesUpdateRequest): MuscleStatesResp
 
   // Return calculated muscle states with all fields
   return getMuscleStates();
+}
+
+/**
+ * Get detailed muscle states with current fatigue calculations
+ *
+ * Returns all 43 detailed muscle states with time-decayed fatigue,
+ * grouped by visualization muscle for easy UI consumption.
+ */
+function getDetailedMuscleStates(userId: number = 1): DetailedMuscleStatesResponse {
+  // Get user's recovery days setting
+  const user = db.prepare('SELECT recovery_days_to_full FROM users WHERE id = ?').get(userId) as { recovery_days_to_full: number } | undefined;
+  const recoveryDaysToFull = user?.recovery_days_to_full || 5;
+
+  const states = db.prepare(`
+    SELECT
+      detailed_muscle_name,
+      visualization_muscle_name,
+      role,
+      fatigue_percent,
+      volume_today,
+      last_trained,
+      baseline_capacity,
+      baseline_source,
+      baseline_confidence
+    FROM detailed_muscle_states
+    WHERE user_id = ?
+    ORDER BY visualization_muscle_name,
+      CASE role
+        WHEN 'primary' THEN 1
+        WHEN 'secondary' THEN 2
+        WHEN 'stabilizer' THEN 3
+      END,
+      detailed_muscle_name
+  `).all(userId) as Array<{
+    detailed_muscle_name: string;
+    visualization_muscle_name: string;
+    role: 'primary' | 'secondary' | 'stabilizer';
+    fatigue_percent: number;
+    volume_today: number;
+    last_trained: string | null;
+    baseline_capacity: number;
+    baseline_source: 'inherited' | 'learned' | 'user_override';
+    baseline_confidence: 'low' | 'medium' | 'high';
+  }>;
+
+  const now = Date.now();
+  const result: DetailedMuscleStatesResponse = {};
+
+  for (const state of states) {
+    // Calculate time-decayed fatigue
+    let currentFatiguePercent = 0;
+
+    if (state.last_trained) {
+      const lastTrainedTime = new Date(state.last_trained).getTime();
+      const daysElapsed = (now - lastTrainedTime) / (1000 * 60 * 60 * 24);
+
+      // Apply linear decay
+      currentFatiguePercent = state.fatigue_percent * (1 - daysElapsed / recoveryDaysToFull);
+      currentFatiguePercent = Math.max(0, Math.min(100, currentFatiguePercent));
+      currentFatiguePercent = Math.round(currentFatiguePercent * 10) / 10;
+    }
+
+    result[state.detailed_muscle_name] = {
+      detailedMuscleName: state.detailed_muscle_name,
+      visualizationMuscleName: state.visualization_muscle_name,
+      role: state.role,
+      currentFatiguePercent,
+      volumeToday: state.volume_today,
+      lastTrained: state.last_trained,
+      baselineCapacity: state.baseline_capacity,
+      baselineSource: state.baseline_source,
+      baselineConfidence: state.baseline_confidence
+    };
+  }
+
+  return result;
 }
 
 /**
@@ -1447,6 +1673,8 @@ export {
   getProgressiveSuggestions,
   getMuscleStates,
   updateMuscleStates,
+  getDetailedMuscleStates,
+  calculateVisualizationFatigue,
   getPersonalBests,
   updatePersonalBests,
   getMuscleBaselines,

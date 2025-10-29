@@ -249,6 +249,17 @@ app.put('/api/muscle-states', (req: Request<{}, MuscleStatesResponse | ApiErrorR
   }
 });
 
+// Get detailed muscle states (43 detailed muscles with current fatigue)
+app.get('/api/muscle-states/detailed', (_req: Request, res: Response) => {
+  try {
+    const states = db.getDetailedMuscleStates();
+    res.json(states);
+  } catch (error) {
+    console.error('Error getting detailed muscle states:', error);
+    res.status(500).json({ error: 'Failed to get detailed muscle states' });
+  }
+});
+
 // Get personal bests
 app.get('/api/personal-bests', (_req: Request, res: Response<PersonalBestsResponse | ApiErrorResponse>) => {
   try {

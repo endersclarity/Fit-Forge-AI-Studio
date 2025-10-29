@@ -1,6 +1,7 @@
 import {
   Exercise,
   Muscle,
+  DetailedMuscle,
   ExerciseCategory,
   Equipment,
   EquipmentItem,
@@ -60,6 +61,7 @@ function checkEquipmentAvailable(
 
 /**
  * Calculate opportunity score for a single exercise
+ * Uses detailed muscle data when available for more accurate scoring
  */
 function calculateOpportunityScore(
   exercise: Exercise,
@@ -69,49 +71,203 @@ function calculateOpportunityScore(
   score: number;
   primaryMuscles: MuscleReadiness[];
   limitingFactors: MuscleReadiness[];
+  usesDetailedData: boolean;
+  detailedMuscles?: Array<{
+    muscle: string;
+    role: string;
+    fatigue: number;
+    engagement: number;
+  }>;
 } {
-  // Get muscle engagements with calibrations merged in
-  const muscleEngagements = getMuscleEngagementsWithCalibrations(exercise, calibrations);
+  // Check if exercise has detailed muscle engagements
+  const hasDetailedData = exercise.detailedMuscleEngagements && exercise.detailedMuscleEngagements.length > 0;
 
-  // 1. Calculate muscle readiness for all engaged muscles
-  const muscleReadiness: MuscleReadiness[] = muscleEngagements.map(eng => {
-    const state = muscleStates[eng.muscle];
-    const fatigue = state ? state.currentFatiguePercent : 0;
-    const recovery = 100 - fatigue;
+  if (hasDetailedData) {
+    // Use detailed muscle tracking for more accurate recommendations
+    const detailedEngagements = exercise.detailedMuscleEngagements!;
+    let totalFatigueLoad = 0;
+    let maxFatigue = 0;
+    const detailedMuscles: Array<{muscle: string; role: string; fatigue: number; engagement: number}> = [];
+    const limitingFactorsList: MuscleReadiness[] = [];
+
+    // Calculate fatigue-weighted score based on detailed muscles
+    for (const engagement of detailedEngagements) {
+      // For now, we aggregate detailed muscle fatigue from their visualization muscle
+      // TODO: In future phases, query detailed_muscle_states table directly
+      const vizMuscle = getVisualizationMuscleForDetailed(engagement.muscle);
+      const state = muscleStates[vizMuscle];
+      const fatigue = state ? state.currentFatiguePercent : 0;
+
+      // Weight fatigue by engagement percentage and role
+      const roleWeight = engagement.role === 'primary' ? 1.0
+        : engagement.role === 'secondary' ? 0.5
+        : 0.2; // stabilizers have minimal impact
+
+      const fatigueContribution = (fatigue / 100) * (engagement.percentage / 100) * roleWeight;
+      totalFatigueLoad += fatigueContribution;
+
+      if (fatigue > maxFatigue) {
+        maxFatigue = fatigue;
+      }
+
+      detailedMuscles.push({
+        muscle: engagement.muscle,
+        role: engagement.role,
+        fatigue: fatigue,
+        engagement: engagement.percentage
+      });
+
+      // Track limiting factors (primary movers with high fatigue)
+      if (fatigue > 66 && engagement.role === 'primary') {
+        limitingFactorsList.push({
+          muscle: vizMuscle as Muscle,
+          recovery: 100 - fatigue,
+          fatigue: fatigue,
+          engagement: engagement.percentage,
+          isPrimary: true
+        });
+      }
+    }
+
+    // Calculate opportunity score: higher when fresh, lower when fatigued
+    const opportunityScore = 100 - (totalFatigueLoad * 100);
+
+    // Calculate primary muscle readiness for UI display
+    const primaryMuscles = detailedEngagements
+      .filter(e => e.role === 'primary')
+      .map(e => {
+        const vizMuscle = getVisualizationMuscleForDetailed(e.muscle);
+        const state = muscleStates[vizMuscle];
+        const fatigue = state ? state.currentFatiguePercent : 0;
+        return {
+          muscle: vizMuscle as Muscle,
+          recovery: 100 - fatigue,
+          fatigue: fatigue,
+          engagement: e.percentage,
+          isPrimary: true
+        };
+      });
 
     return {
-      muscle: eng.muscle,
-      recovery,
-      fatigue,
-      engagement: eng.percentage,
-      isPrimary: eng.percentage >= 50
+      score: Math.max(0, opportunityScore),
+      primaryMuscles,
+      limitingFactors: limitingFactorsList,
+      usesDetailedData: true,
+      detailedMuscles
     };
-  });
+  } else {
+    // Fall back to visualization muscle tracking for legacy exercises
+    const muscleEngagements = getMuscleEngagementsWithCalibrations(exercise, calibrations);
 
-  // 2. Identify primary muscles (>= 50% engagement)
-  const primaryMuscles = muscleReadiness.filter(m => m.isPrimary);
+    // 1. Calculate muscle readiness for all engaged muscles
+    const muscleReadiness: MuscleReadiness[] = muscleEngagements.map(eng => {
+      const state = muscleStates[eng.muscle];
+      const fatigue = state ? state.currentFatiguePercent : 0;
+      const recovery = 100 - fatigue;
 
-  // 3. Calculate average freshness of primary muscles
-  const avgFreshness = primaryMuscles.length > 0
-    ? primaryMuscles.reduce((sum, m) => sum + m.recovery, 0) / primaryMuscles.length
-    : 0;
+      return {
+        muscle: eng.muscle,
+        recovery,
+        fatigue,
+        engagement: eng.percentage,
+        isPrimary: eng.percentage >= 50
+      };
+    });
 
-  // 4. Find limiting factors (muscles with fatigue > 66%)
-  const limitingFactors = muscleReadiness.filter(m => m.fatigue > 66);
+    // 2. Identify primary muscles (>= 50% engagement)
+    const primaryMuscles = muscleReadiness.filter(m => m.isPrimary);
 
-  // 5. Find max fatigue across all engaged muscles
-  const maxFatigue = Math.max(...muscleReadiness.map(m => m.fatigue), 0);
+    // 3. Calculate average freshness of primary muscles
+    const avgFreshness = primaryMuscles.length > 0
+      ? primaryMuscles.reduce((sum, m) => sum + m.recovery, 0) / primaryMuscles.length
+      : 0;
 
-  // 6. Calculate opportunity score
-  // Formula: avgFreshness - (maxFatigue × 0.5)
-  // This penalizes exercises where ANY muscle is fatigued
-  const opportunityScore = avgFreshness - (maxFatigue * 0.5);
+    // 4. Find limiting factors (muscles with fatigue > 66%)
+    const limitingFactors = muscleReadiness.filter(m => m.fatigue > 66);
 
-  return {
-    score: opportunityScore,
-    primaryMuscles,
-    limitingFactors
+    // 5. Find max fatigue across all engaged muscles
+    const maxFatigue = Math.max(...muscleReadiness.map(m => m.fatigue), 0);
+
+    // 6. Calculate opportunity score
+    // Formula: avgFreshness - (maxFatigue × 0.5)
+    // This penalizes exercises where ANY muscle is fatigued
+    const opportunityScore = avgFreshness - (maxFatigue * 0.5);
+
+    return {
+      score: opportunityScore,
+      primaryMuscles,
+      limitingFactors,
+      usesDetailedData: false
+    };
+  }
+}
+
+/**
+ * Map detailed muscle to its visualization muscle group
+ * TODO: Move to shared utility file or import from backend/database/mappings.ts
+ */
+function getVisualizationMuscleForDetailed(detailedMuscle: DetailedMuscle): string {
+  // Simplified mapping - in production, import from backend/database/mappings.ts
+  const mapping: Record<string, string> = {
+    // CHEST
+    "Pectoralis Major (Clavicular)": "Pectoralis",
+    "Pectoralis Major (Sternal)": "Pectoralis",
+    // SHOULDERS
+    "Anterior Deltoid": "Deltoids",
+    "Medial Deltoid": "Deltoids",
+    "Posterior Deltoid": "Deltoids",
+    // ROTATOR CUFF
+    "Infraspinatus": "Deltoids",
+    "Supraspinatus": "Deltoids",
+    "Teres Minor": "Deltoids",
+    "Subscapularis": "Deltoids",
+    // SCAPULAR STABILIZERS
+    "Serratus Anterior": "Pectoralis",
+    "Rhomboids": "Rhomboids",
+    "Levator Scapulae": "Trapezius",
+    // BACK
+    "Latissimus Dorsi": "Lats",
+    "Upper Trapezius": "Trapezius",
+    "Middle Trapezius": "Trapezius",
+    "Lower Trapezius": "Trapezius",
+    "Erector Spinae": "Core",
+    // ARMS - Biceps
+    "Biceps Brachii": "Biceps",
+    "Brachialis": "Biceps",
+    "Brachioradialis": "Forearms",
+    // ARMS - Triceps
+    "Triceps (Long Head)": "Triceps",
+    "Triceps (Lateral Head)": "Triceps",
+    "Triceps (Medial Head)": "Triceps",
+    // ARMS - Forearms
+    "Wrist Flexors": "Forearms",
+    "Wrist Extensors": "Forearms",
+    // CORE
+    "Rectus Abdominis": "Core",
+    "External Obliques": "Core",
+    "Internal Obliques": "Core",
+    "Transverse Abdominis": "Core",
+    "Iliopsoas": "Core",
+    // LEGS - Quadriceps
+    "Vastus Lateralis": "Quadriceps",
+    "Vastus Medialis": "Quadriceps",
+    "Vastus Intermedius": "Quadriceps",
+    "Rectus Femoris": "Quadriceps",
+    // LEGS - Glutes
+    "Gluteus Maximus": "Glutes",
+    "Gluteus Medius": "Glutes",
+    "Gluteus Minimus": "Glutes",
+    // LEGS - Hamstrings
+    "Biceps Femoris": "Hamstrings",
+    "Semitendinosus": "Hamstrings",
+    "Semimembranosus": "Hamstrings",
+    // LEGS - Calves
+    "Gastrocnemius (Medial)": "Calves",
+    "Gastrocnemius (Lateral)": "Calves",
+    "Soleus": "Calves",
   };
+
+  return mapping[detailedMuscle as string] || "Core"; // Default fallback
 }
 
 /**
@@ -144,21 +300,58 @@ function determineStatus(
 
 /**
  * Generate human-readable explanation for recommendation
+ * Includes detailed muscle information when available
  */
 function generateExplanation(
   status: 'excellent' | 'good' | 'suboptimal' | 'not-recommended',
   primaryMuscles: MuscleReadiness[],
-  limitingFactors: MuscleReadiness[]
+  limitingFactors: MuscleReadiness[],
+  detailedMuscles?: Array<{muscle: string; role: string; fatigue: number; engagement: number}>
 ): string {
   if (status === 'excellent') {
+    // If we have detailed data, mention specific fresh muscles
+    if (detailedMuscles && detailedMuscles.length > 0) {
+      const freshPrimary = detailedMuscles
+        .filter(m => m.role === 'primary' && m.fatigue < 30)
+        .map(m => m.muscle);
+
+      if (freshPrimary.length > 0) {
+        const topMuscles = freshPrimary.slice(0, 2).join(', ');
+        return `Targets fresh: ${topMuscles} - excellent opportunity`;
+      }
+    }
     return 'All muscles fully recovered - maximum training potential';
   }
 
   if (status === 'good') {
+    // If we have detailed data, mention specific fresh primary movers
+    if (detailedMuscles && detailedMuscles.length > 0) {
+      const freshPrimary = detailedMuscles
+        .filter(m => m.role === 'primary' && m.fatigue < 40)
+        .map(m => m.muscle);
+
+      if (freshPrimary.length > 0) {
+        const topMuscles = freshPrimary.slice(0, 2).join(', ');
+        return `Fresh primary movers: ${topMuscles}`;
+      }
+    }
     return 'Primary muscles ready - good training opportunity';
   }
 
   if (status === 'suboptimal') {
+    // If we have detailed data, mention specific limiting muscles
+    if (detailedMuscles && detailedMuscles.length > 0) {
+      const fatiguedPrimary = detailedMuscles
+        .filter(m => m.role === 'primary' && m.fatigue > 60)
+        .sort((a, b) => b.fatigue - a.fatigue);
+
+      if (fatiguedPrimary.length > 0) {
+        const mostFatigued = fatiguedPrimary[0];
+        return `${mostFatigued.muscle} is ${mostFatigued.fatigue.toFixed(0)}% fatigued - may limit performance`;
+      }
+    }
+
+    // Fall back to visualization muscle explanation
     if (limitingFactors.length > 0) {
       const mostFatigued = limitingFactors.reduce((prev, curr) =>
         curr.fatigue > prev.fatigue ? curr : prev
@@ -169,6 +362,17 @@ function generateExplanation(
   }
 
   // not-recommended
+  if (detailedMuscles && detailedMuscles.length > 0) {
+    const fatiguedMuscles = detailedMuscles
+      .filter(m => m.role === 'primary' && m.fatigue > 70)
+      .map(m => m.muscle)
+      .slice(0, 2)
+      .join(', ');
+
+    if (fatiguedMuscles) {
+      return `May overtrain: ${fatiguedMuscles} need recovery`;
+    }
+  }
   return 'Primary muscles need more recovery time';
 }
 
@@ -202,7 +406,7 @@ export function calculateRecommendations(
     if (!equipmentAvailable) continue;
 
     // 2. Calculate opportunity score and muscle readiness (using calibrations if available)
-    const { score, primaryMuscles, limitingFactors } = calculateOpportunityScore(
+    const { score, primaryMuscles, limitingFactors, usesDetailedData, detailedMuscles } = calculateOpportunityScore(
       exercise,
       muscleStates,
       calibrations
@@ -216,8 +420,8 @@ export function calculateRecommendations(
     // 4. Determine status
     const status = determineStatus(avgFreshness, limitingFactors);
 
-    // 5. Generate explanation
-    const explanation = generateExplanation(status, primaryMuscles, limitingFactors);
+    // 5. Generate explanation (pass detailedMuscles for enhanced messaging)
+    const explanation = generateExplanation(status, primaryMuscles, limitingFactors, detailedMuscles);
 
     // 6. Build recommendation object
     recommendations.push({
