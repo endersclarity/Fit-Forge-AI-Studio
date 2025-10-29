@@ -7,9 +7,103 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-29 - Dual-Layer Muscle Tracking Implementation COMPLETE
+
+**Commit**: `68ffc51` - feat: complete dual-layer muscle tracking implementation
+**Status**: ✅ SHIPPED TO PRODUCTION
+**Feature**: Dual-layer muscle tracking with 42 detailed muscles + 13 visualization muscles
+
+**Files Changed**:
+- `backend/database/migrations/007_add_detailed_muscle_states.sql` (new - creates detailed_muscle_states table)
+- `backend/database/mappings.ts` (new - maps 42 detailed muscles to 13 visualization groups)
+- `backend/database/database.ts` (modified - added detailed muscle state queries)
+- `backend/database/schema.sql` (modified - updated with migration 007)
+- `backend/server.ts` (modified - added /api/muscle-states/detailed endpoint)
+- `backend/types.ts` (modified - added DetailedMuscle enum, DetailedMuscleStatesResponse)
+- `backend/constants.ts` (modified - added detailedMuscleEngagements to exercises)
+- `components/fitness/DetailedMuscleCard.tsx` (new - expandable muscle card with role grouping)
+- `components/Profile.tsx` (modified - added Muscle Detail Level toggle)
+- `components/Dashboard.tsx` (modified - integrated DetailedMuscleCard with conditional rendering)
+- `types.ts` (modified - added DetailedMuscle enum, DetailedMuscleStateData)
+- `utils/exerciseRecommendations.ts` (modified - updated for detailed muscle tracking)
+- `TEST_REPORT_DUAL_LAYER_MUSCLE_TRACKING.md` (new - comprehensive test report)
+
+**Summary**: Successfully implemented and tested dual-layer muscle tracking system that tracks 42 specific muscles (including rotator cuff, scapular stabilizers, muscle subdivisions) while maintaining simple 13-muscle visualization for typical users. Power users can enable detailed view to see muscle breakdowns.
+
+**Implementation Details**:
+
+1. **Database Layer** (Migration 007):
+   - Created `detailed_muscle_states` table with 42 muscle records per user
+   - Columns: detailed_muscle_name, visualization_muscle_name, role, fatigue_percent, volume_today, baseline_capacity
+   - Role categorization: primary, secondary, stabilizer
+   - Baseline source tracking: inherited, learned, user_override
+   - Baseline confidence: low, medium, high
+   - Indexes on user_id, visualization_muscle_name, role, updated_at
+
+2. **Muscle Mapping System** (`backend/database/mappings.ts`):
+   - 42 DetailedMuscle enum values mapped to 13 Muscle visualization groups
+   - Examples:
+     - Pectoralis Major (Clavicular + Sternal) → Pectoralis
+     - Rotator cuff (Infraspinatus, Supraspinatus, Teres Minor, Subscapularis) → Deltoids
+     - Triceps heads (Long, Lateral, Medial) → Triceps
+     - Core subdivisions (Rectus Abdominis, External/Internal Obliques, Transverse, Erector Spinae) → Core
+   - Helper functions: getVisualizationMuscle(), getDetailedMuscles(), determineDefaultRole()
+
+3. **Backend API**:
+   - `GET /api/muscle-states` - Returns 13 visualization muscles (backward compatible)
+   - `GET /api/muscle-states/detailed` - Returns all 42 detailed muscles with roles
+   - Conservative baseline initialization: all detailed muscles inherit full baseline from visualization group
+   - All detailed muscles start at 10,000 lb baseline with source='inherited', confidence='low'
+
+4. **Frontend Components**:
+   - **Profile Toggle**: Radio buttons for "Simple (13 muscle groups)" vs "Detailed (43 specific muscles)"
+   - **DetailedMuscleCard**: Expandable card component with sections:
+     - Header: Muscle name + aggregate fatigue % + expand/collapse chevron
+     - Progress bar showing aggregate fatigue
+     - Last trained timestamp
+     - Expandable sections:
+       - PRIMARY MOVERS (with individual progress bars)
+       - SECONDARY MOVERS (text list with percentages)
+       - STABILIZERS (collapsible sub-section)
+   - **Dashboard Integration**: Conditional rendering based on localStorage preference
+
+5. **Exercise Library Updates**:
+   - Backend exercises populated with `detailedMuscleEngagements` from EMG research
+   - Each engagement includes: muscle, percentage, role, citation
+   - Example (Push-up):
+     - Pectoralis Major Sternal: 75% MVIC, primary
+     - Triceps Long/Lateral/Medial Heads: 75% MVIC, primary
+     - Anterior Deltoid: 30% MVIC, secondary
+     - Serratus Anterior: 45% MVIC, secondary
+     - Rectus Abdominis: 35% MVIC, secondary
+
+**Testing Results**:
+- ✅ Migration 007 applied successfully
+- ✅ All 42 detailed muscles initialized in database
+- ✅ Profile toggle renders and persists to localStorage
+- ✅ DetailedMuscleCard expands/collapses correctly
+- ✅ Role-based grouping (Primary/Secondary/Stabilizer) working
+- ✅ API endpoint returns correct data structure
+- ✅ Zero console errors
+- ✅ Backward compatibility maintained (simple view unchanged)
+
+**User Experience**:
+- Default: Users see simple 13-muscle view (no UX change)
+- Power users: Enable "Detailed" in Profile → Dashboard shows expandable cards with muscle subdivisions
+- Clean categorization by role (Primary Movers highlighted, Stabilizers collapsed by default)
+- Ready to train indicators and fatigue percentages per detailed muscle
+
+**Technical Context**:
+- Implements OpenSpec proposal: `openspec/changes/2025-10-29-implement-dual-layer-muscle-tracking`
+- Enables accurate recuperation tracking while keeping UI simple
+- Foundation for smart recommendations (e.g., "Try posterior delt work - anterior is fatigued")
+- System can learn actual baselines over time (baseline_source can move from 'inherited' → 'learned')
+
+---
+
 ### 2025-10-29 - Personal Records Sync & Dual-Layer Tracking Proposal
 
-**Status**: IN PROGRESS - Research & Planning
+**Status**: COMPLETED - Implemented Above
 **Feature**: Personal records backup system and dual-layer muscle tracking architecture
 
 **Files Changed**:
