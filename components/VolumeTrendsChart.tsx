@@ -39,10 +39,11 @@ const VolumeTrendsChart: React.FC<VolumeTrendsChartProps> = ({ volumeTrends }) =
 
   // Format volume in thousands
   const formatVolume = (value: number) => {
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}k`;
+    const safeValue = value || 0;
+    if (safeValue >= 1000) {
+      return `${(safeValue / 1000).toFixed(1)}k`;
     }
-    return value.toFixed(0);
+    return safeValue.toFixed(0);
   };
 
   // Calculate total volume
@@ -65,9 +66,9 @@ const VolumeTrendsChart: React.FC<VolumeTrendsChartProps> = ({ volumeTrends }) =
           <div className="text-lg font-bold text-red-400">
             {formatVolume(volumeTrends.byCategory.Push.total)}
           </div>
-          {volumeTrends.byCategory.Push.percentChange !== 0 && (
-            <div className={`text-xs ${volumeTrends.byCategory.Push.percentChange > 0 ? 'text-green-400' : 'text-red-300'}`}>
-              {volumeTrends.byCategory.Push.percentChange > 0 ? '+' : ''}{volumeTrends.byCategory.Push.percentChange.toFixed(0)}%
+          {(volumeTrends.byCategory.Push.percentChange || 0) !== 0 && (
+            <div className={`text-xs ${(volumeTrends.byCategory.Push.percentChange || 0) > 0 ? 'text-green-400' : 'text-red-300'}`}>
+              {(volumeTrends.byCategory.Push.percentChange || 0) > 0 ? '+' : ''}{(volumeTrends.byCategory.Push.percentChange || 0).toFixed(0)}%
             </div>
           )}
         </div>
@@ -77,9 +78,9 @@ const VolumeTrendsChart: React.FC<VolumeTrendsChartProps> = ({ volumeTrends }) =
           <div className="text-lg font-bold text-blue-400">
             {formatVolume(volumeTrends.byCategory.Pull.total)}
           </div>
-          {volumeTrends.byCategory.Pull.percentChange !== 0 && (
-            <div className={`text-xs ${volumeTrends.byCategory.Pull.percentChange > 0 ? 'text-green-400' : 'text-red-300'}`}>
-              {volumeTrends.byCategory.Pull.percentChange > 0 ? '+' : ''}{volumeTrends.byCategory.Pull.percentChange.toFixed(0)}%
+          {(volumeTrends.byCategory.Pull.percentChange || 0) !== 0 && (
+            <div className={`text-xs ${(volumeTrends.byCategory.Pull.percentChange || 0) > 0 ? 'text-green-400' : 'text-red-300'}`}>
+              {(volumeTrends.byCategory.Pull.percentChange || 0) > 0 ? '+' : ''}{(volumeTrends.byCategory.Pull.percentChange || 0).toFixed(0)}%
             </div>
           )}
         </div>
@@ -89,9 +90,9 @@ const VolumeTrendsChart: React.FC<VolumeTrendsChartProps> = ({ volumeTrends }) =
           <div className="text-lg font-bold text-yellow-400">
             {formatVolume(volumeTrends.byCategory.Legs.total)}
           </div>
-          {volumeTrends.byCategory.Legs.percentChange !== 0 && (
-            <div className={`text-xs ${volumeTrends.byCategory.Legs.percentChange > 0 ? 'text-green-400' : 'text-red-300'}`}>
-              {volumeTrends.byCategory.Legs.percentChange > 0 ? '+' : ''}{volumeTrends.byCategory.Legs.percentChange.toFixed(0)}%
+          {(volumeTrends.byCategory.Legs.percentChange || 0) !== 0 && (
+            <div className={`text-xs ${(volumeTrends.byCategory.Legs.percentChange || 0) > 0 ? 'text-green-400' : 'text-red-300'}`}>
+              {(volumeTrends.byCategory.Legs.percentChange || 0) > 0 ? '+' : ''}{(volumeTrends.byCategory.Legs.percentChange || 0).toFixed(0)}%
             </div>
           )}
         </div>
@@ -101,9 +102,9 @@ const VolumeTrendsChart: React.FC<VolumeTrendsChartProps> = ({ volumeTrends }) =
           <div className="text-lg font-bold text-green-400">
             {formatVolume(volumeTrends.byCategory.Core.total)}
           </div>
-          {volumeTrends.byCategory.Core.percentChange !== 0 && (
-            <div className={`text-xs ${volumeTrends.byCategory.Core.percentChange > 0 ? 'text-green-400' : 'text-red-300'}`}>
-              {volumeTrends.byCategory.Core.percentChange > 0 ? '+' : ''}{volumeTrends.byCategory.Core.percentChange.toFixed(0)}%
+          {(volumeTrends.byCategory.Core.percentChange || 0) !== 0 && (
+            <div className={`text-xs ${(volumeTrends.byCategory.Core.percentChange || 0) > 0 ? 'text-green-400' : 'text-red-300'}`}>
+              {(volumeTrends.byCategory.Core.percentChange || 0) > 0 ? '+' : ''}{(volumeTrends.byCategory.Core.percentChange || 0).toFixed(0)}%
             </div>
           )}
         </div>

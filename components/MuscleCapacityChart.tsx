@@ -42,10 +42,11 @@ const MuscleCapacityChart: React.FC<MuscleCapacityChartProps> = ({
 
   // Format capacity in thousands for display
   const formatCapacity = (value: number) => {
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}k`;
+    const safeValue = value || 0;
+    if (safeValue >= 1000) {
+      return `${(safeValue / 1000).toFixed(1)}k`;
     }
-    return value.toFixed(0);
+    return safeValue.toFixed(0);
   };
 
   return (
@@ -83,9 +84,9 @@ const MuscleCapacityChart: React.FC<MuscleCapacityChartProps> = ({
         <div className="bg-brand-dark/50 rounded p-3 text-center">
           <div className="text-xs text-slate-400 mb-1">Total Growth</div>
           <div className={`text-lg font-bold ${
-            trend.percentGrowth >= 0 ? 'text-green-400' : 'text-red-400'
+            (trend.percentGrowth || 0) >= 0 ? 'text-green-400' : 'text-red-400'
           }`}>
-            {trend.percentGrowth >= 0 ? '+' : ''}{trend.percentGrowth.toFixed(1)}%
+            {(trend.percentGrowth || 0) >= 0 ? '+' : ''}{(trend.percentGrowth || 0).toFixed(1)}%
           </div>
         </div>
         <div className="bg-brand-dark/50 rounded p-3 text-center">

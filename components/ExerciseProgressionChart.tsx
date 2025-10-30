@@ -71,15 +71,15 @@ const ExerciseProgressionChart: React.FC<ExerciseProgressionChartProps> = ({
         <div className="bg-brand-dark/50 rounded p-3 text-center">
           <div className="text-xs text-slate-400 mb-1">Best Set</div>
           <div className="text-lg font-bold text-brand-cyan">
-            {progression.bestSingleSet.toFixed(0)} lbs
+            {(progression.bestSingleSet || 0).toFixed(0)} lbs
           </div>
         </div>
         <div className="bg-brand-dark/50 rounded p-3 text-center">
           <div className="text-xs text-slate-400 mb-1">Progress</div>
           <div className={`text-lg font-bold ${
-            progression.percentChange >= 0 ? 'text-green-400' : 'text-red-400'
+            (progression.percentChange || 0) >= 0 ? 'text-green-400' : 'text-red-400'
           }`}>
-            {progression.percentChange >= 0 ? '+' : ''}{progression.percentChange.toFixed(1)}%
+            {(progression.percentChange || 0) >= 0 ? '+' : ''}{(progression.percentChange || 0).toFixed(1)}%
           </div>
         </div>
         <div className="bg-brand-dark/50 rounded p-3 text-center">
@@ -119,9 +119,9 @@ const ExerciseProgressionChart: React.FC<ExerciseProgressionChartProps> = ({
               }}
               labelStyle={{ color: '#06b6d4', fontWeight: 'bold' }}
               formatter={(value: any, name: string) => {
-                if (name === 'volume') return [`${value.toFixed(0)} lbs`, 'Volume'];
-                if (name === 'weight') return [`${value.toFixed(1)} lbs`, 'Weight'];
-                if (name === 'reps') return [value, 'Reps'];
+                if (name === 'volume') return [`${(value || 0).toFixed(0)} lbs`, 'Volume'];
+                if (name === 'weight') return [`${(value || 0).toFixed(1)} lbs`, 'Weight'];
+                if (name === 'reps') return [value || 0, 'Reps'];
                 return [value, name];
               }}
             />
@@ -165,10 +165,10 @@ const ExerciseProgressionChart: React.FC<ExerciseProgressionChartProps> = ({
             </div>
             <div className="text-right">
               <div className="text-green-400 font-bold">
-                {progression.latestPR.weight.toFixed(1)} lbs × {progression.latestPR.reps} reps
+                {(progression.latestPR.weight || 0).toFixed(1)} lbs × {progression.latestPR.reps || 0} reps
               </div>
               <div className="text-slate-400 text-xs">
-                {(progression.latestPR.weight * progression.latestPR.reps).toFixed(0)} lbs total
+                {((progression.latestPR.weight || 0) * (progression.latestPR.reps || 0)).toFixed(0)} lbs total
               </div>
             </div>
           </div>

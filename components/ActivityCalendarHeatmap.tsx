@@ -66,7 +66,7 @@ const ActivityCalendarHeatmap: React.FC<ActivityCalendarHeatmapProps> = ({
   // Calculate stats
   const totalWorkouts = activityCalendar.length;
   const workoutDays = new Set(activityCalendar.map(a => a.date)).size;
-  const activeDaysPercentage = (workoutDays / timeRangeDays) * 100;
+  const activeDaysPercentage = timeRangeDays > 0 ? (workoutDays / timeRangeDays) * 100 : 0;
 
   return (
     <div className="bg-brand-surface border border-brand-muted rounded-lg p-6">
@@ -90,7 +90,7 @@ const ActivityCalendarHeatmap: React.FC<ActivityCalendarHeatmapProps> = ({
         <div className="bg-brand-dark/50 rounded p-3 text-center">
           <div className="text-xs text-slate-400 mb-1">Activity Rate</div>
           <div className="text-lg font-bold text-green-400">
-            {activeDaysPercentage.toFixed(0)}%
+            {(activeDaysPercentage || 0).toFixed(0)}%
           </div>
         </div>
       </div>
