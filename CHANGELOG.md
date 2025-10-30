@@ -7,6 +7,56 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-30 - Complete Fix for Analytics Page Crash
+
+**Status**: ✅ COMPLETE
+**Type**: Bug Fix (Critical)
+**Commit**: `f5d3019`
+
+**Files Changed**:
+- `components/ExerciseProgressionChart.tsx` (updated - added null guards to 6 locations)
+- `components/VolumeTrendsChart.tsx` (updated - protected formatVolume() and percentChange calls)
+- `components/MuscleCapacityChart.tsx` (updated - added null guards to formatCapacity() and percentGrowth)
+- `components/ActivityCalendarHeatmap.tsx` (updated - protected activeDaysPercentage calculation)
+
+**Summary**: Fixed critical crash on Analytics page where null values in API responses caused "Cannot read properties of null (reading 'toFixed')" errors. Previous fix (6e1c45f) only addressed Analytics.tsx, but the crash was actually occurring in the chart components. This fix completes the solution by adding null guards to all `.toFixed()` calls across all Analytics chart components.
+
+**Root Cause**:
+Chart components (ExerciseProgressionChart, VolumeTrendsChart, MuscleCapacityChart, ActivityCalendarHeatmap) had multiple unguarded `.toFixed()` calls. When API returned null/undefined values for numeric fields, these calls failed causing a blank screen. The initial fix in Analytics.tsx was correct but incomplete - the actual errors were deeper in the component tree.
+
+**Implementation Details**:
+
+1. **ExerciseProgressionChart.tsx** (6 locations fixed):
+   - `progression.bestSingleSet.toFixed(0)` → `(progression.bestSingleSet || 0).toFixed(0)`
+   - `progression.percentChange.toFixed(1)` → `(progression.percentChange || 0).toFixed(1)` (3 instances)
+   - Tooltip formatter: `value.toFixed()` → `(value || 0).toFixed()`
+   - Latest PR calculations: Protected weight and reps with `|| 0`
+
+2. **VolumeTrendsChart.tsx** (5 locations fixed):
+   - `formatVolume()` function: Added `const safeValue = value || 0` guard
+   - All `percentChange.toFixed(0)` calls wrapped with `(percentChange || 0)`
+   - Applied to Push, Pull, Legs, and Core category stats
+
+3. **MuscleCapacityChart.tsx** (3 locations fixed):
+   - `formatCapacity()` function: Added `const safeValue = value || 0` guard
+   - `trend.percentGrowth.toFixed(1)` → `(trend.percentGrowth || 0).toFixed(1)`
+
+4. **ActivityCalendarHeatmap.tsx** (2 locations fixed):
+   - `activeDaysPercentage` calculation: Added ternary to prevent division by zero
+   - Display: `activeDaysPercentage.toFixed(0)` → `(activeDaysPercentage || 0).toFixed(0)`
+
+**Testing Notes**:
+- ✅ Analytics page loads successfully with no console errors
+- ✅ All charts render correctly (Exercise Progression, Volume Trends, Muscle Capacity, Activity Calendar)
+- ✅ Summary cards display data properly
+- ✅ Back button navigation works correctly
+- ✅ Tested with Chrome DevTools - confirmed zero errors
+
+**Pattern for Future Reference**:
+Always use `(value || 0).toFixed(n)` pattern instead of `value.toFixed(n)` when dealing with API data that might be null/undefined. Consider adding TypeScript strict null checks or Zod validation on API responses.
+
+---
+
 ### 2025-10-30 - Critical UI Bug Fixes and UX Improvements
 
 **Status**: ✅ COMPLETE
