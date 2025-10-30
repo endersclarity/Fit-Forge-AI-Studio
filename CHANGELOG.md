@@ -7,6 +7,108 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-29 - Database Architecture Integrity Proposal
+
+**Status**: 📋 PROPOSAL CREATED
+**Type**: Architecture Planning
+**Commit**: `3a41409`
+**OpenSpec Proposal**: `fix-database-architecture-integrity`
+
+**Files Changed**:
+- `openspec/changes/fix-database-architecture-integrity/proposal.md` (created)
+- `openspec/changes/fix-database-architecture-integrity/tasks.md` (created)
+- `openspec/changes/fix-database-architecture-integrity/specs/database-integrity-constraints/spec.md` (created)
+- `openspec/changes/fix-database-architecture-integrity/specs/state-recalculation-engine/spec.md` (created)
+- `openspec/changes/fix-database-architecture-integrity/specs/workout-deletion-cascade/spec.md` (created)
+- `workouts/2025-10-29-chest-triceps.json` (created - first workout JSON backup)
+
+**Summary**: Conducted comprehensive architectural audit of FitForge database layer and created detailed OpenSpec proposal to address 4 critical data integrity issues before production use. The audit revealed solid architectural fundamentals but identified critical risks that could lead to data corruption over time.
+
+**Critical Issues Identified**:
+
+1. **Redundant `volume_today` Field** (🔴 Critical)
+   - Stored separately in `muscle_states` table but never validated against `exercise_sets`
+   - Could desync if workouts are deleted
+   - No recalculation from source data
+
+2. **Missing Workout Deletion Cascade Logic** (🔴 Critical)
+   - Schema has `ON DELETE CASCADE` for `exercise_sets` but no state recalculation
+   - Deleting workouts leaves muscle states, baselines, and PRs stale
+   - Baseline learning could include deleted data
+   - Personal bests could reference non-existent workouts
+
+3. **No Bounds Checking on Fatigue** (🔴 Critical)
+   - Database accepts fatigue percentages > 100% or < 0% without constraint
+   - Clamping in code hides the problem instead of preventing it
+   - Invalid data could accumulate silently
+
+4. **Personal Records Never Rebuilt** (🔴 Critical)
+   - PRs are incrementally updated with `MAX()` but never validated
+   - Deleting PR workout leaves phantom record
+   - No way to verify PRs match actual workout history
+
+**OpenSpec Proposal Details**:
+
+**3 Capabilities Defined**:
+1. **`database-integrity-constraints`** (7 requirements)
+   - CHECK constraints for fatigue (0-100%), weight (0-10000), reps (1-1000), baselines (>0)
+   - Remove redundant `volume_today` column
+   - Application-level validation with descriptive errors
+
+2. **`state-recalculation-engine`** (4 requirements)
+   - `rebuildMuscleBaselines()` - Recalculate from all failure sets
+   - `rebuildPersonalBests()` - Recalculate from all workouts
+   - `resetMuscleStatesForDate()` - Clean stale muscle states
+   - `validateDataIntegrity()` - Detect inconsistencies
+
+3. **`workout-deletion-cascade`** (5 requirements)
+   - `DELETE /api/workouts/:id` endpoint
+   - Atomic transaction for deletion + recalculation
+   - Optional delete-preview endpoint (warns about PRs)
+   - Expanded `saveWorkout()` transaction boundaries
+   - Audit logging for all deletions
+
+**Implementation Plan**: 4 phases, 8-12 hours total
+- Phase 1: Schema Constraints (2-3 hrs)
+- Phase 2: Recalculation Functions (3-4 hrs)
+- Phase 3: Deletion Handling (2-3 hrs)
+- Phase 4: Transaction Expansion (1-2 hrs)
+
+**Design Concerns Identified** (Not Critical):
+- Dual-layer muscle tracking (42 detailed muscles) initialized but never updated
+- Workout rotation advancement doesn't validate against recommendation
+- `saveWorkout()` transaction doesn't include baseline learning or PR detection
+- Analytics uses `GROUP_CONCAT` without size limits
+
+**Optimization Opportunities**:
+- Missing composite indexes for query performance
+- User settings queried redundantly instead of cached
+- Baseline learning only from failure sets (could weight all sets)
+
+**Architectural Strengths** (✅):
+- Properly normalized schema (3NF)
+- Good transaction usage
+- Strong TypeScript type safety
+- RESTful API design with consistent patterns
+- Correct foreign keys with cascading deletes
+
+**User Story Context**:
+User wants to start logging real workouts but is hesitant to trust the database without verification. Created JSON backup system (`workouts/2025-10-29-chest-triceps.json`) as source of truth during testing phase. This allows safe workout tracking while database integrity is hardened.
+
+**Next Steps**:
+1. Implement proposal following `tasks.md` (new conversation)
+2. All changes are non-breaking and reversible
+3. Database will be production-ready after fixes
+4. JSON backup provides recovery path if needed
+
+**Reference Files**:
+- Full audit report available in session transcript
+- Proposal: `openspec/changes/fix-database-architecture-integrity/proposal.md`
+- Tasks: `openspec/changes/fix-database-architecture-integrity/tasks.md`
+- Specs: All in `openspec/changes/fix-database-architecture-integrity/specs/`
+
+---
+
 ### 2025-10-30 - Complete Fix for Analytics Page Crash
 
 **Status**: ✅ COMPLETE
