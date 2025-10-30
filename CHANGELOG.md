@@ -11,7 +11,7 @@ Audience: AI-assisted debugging and developer reference.
 
 **Status**: ✅ IMPLEMENTED & TESTED
 **Type**: Critical Bug Fixes
-**Commit**: (pending)
+**Commit**: `d7d9e0d`
 **OpenSpec Proposal**: `fix-critical-data-bugs`
 **Tests**: 40/40 passing (added 4 new integration tests)
 
