@@ -11,7 +11,7 @@ Audience: AI-assisted debugging and developer reference.
 
 **Status**: ✅ IMPLEMENTED & TESTED
 **Type**: Architecture Improvement
-**Commit**: `<pending>`
+**Commit**: `7df5ab2`
 **OpenSpec Proposal**: `fix-database-architecture-integrity` (ARCHIVED)
 
 **Files Changed**:
