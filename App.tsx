@@ -90,13 +90,12 @@ const App: React.FC = () => {
 
       // 3. Update Muscle States with new fatigue and recovery info
       // Build the muscle state update payload using new API field names
-      const muscleUpdates: Record<string, { initial_fatigue_percent: number; last_trained: string; volume_today: number }> = {};
+      const muscleUpdates: Record<string, { initial_fatigue_percent: number; last_trained: string }> = {};
       Object.entries(muscleFatigue).forEach(([muscleStr, fatigue]) => {
           const muscle = muscleStr as Muscle;
           muscleUpdates[muscle] = {
               initial_fatigue_percent: fatigue,
-              last_trained: new Date(session.endTime).toISOString(), // Convert to UTC ISO 8601
-              volume_today: workoutMuscleVolumes[muscle] || 0
+              last_trained: new Date(session.endTime).toISOString() // Convert to UTC ISO 8601
           };
       });
 

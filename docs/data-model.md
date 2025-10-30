@@ -68,8 +68,8 @@ erDiagram
         int id PK
         int workout_id FK
         text exercise_name
-        real weight
-        int reps
+        real weight "CHECK(weight >= 0 AND weight <= 10000)"
+        int reps "CHECK(reps > 0 AND reps <= 1000)"
         int set_number
         int to_failure
         timestamp created_at
@@ -79,8 +79,7 @@ erDiagram
         int id PK
         int user_id FK
         text muscle_name UK
-        real initial_fatigue_percent
-        real volume_today
+        real initial_fatigue_percent "CHECK(initial_fatigue_percent >= 0 AND initial_fatigue_percent <= 100)"
         text last_trained
         timestamp updated_at
     }
@@ -99,8 +98,8 @@ erDiagram
         int id PK
         int user_id FK
         text muscle_name UK
-        real system_learned_max
-        real user_override
+        real system_learned_max "CHECK(system_learned_max > 0)"
+        real user_override "CHECK(user_override IS NULL OR user_override > 0)"
         timestamp updated_at
     }
 
@@ -146,7 +145,7 @@ erDiagram
         text detailed_muscle_name UK
         text visualization_muscle_name
         text role
-        real fatigue_percent
+        real fatigue_percent "CHECK(fatigue_percent >= 0 AND fatigue_percent <= 100)"
         real volume_today
         text last_trained
         real baseline_capacity
@@ -274,12 +273,14 @@ erDiagram
 | id | INTEGER | PRIMARY KEY | State identifier |
 | user_id | INTEGER | FK → users(id) | User reference |
 | muscle_name | TEXT | NOT NULL, UNIQUE(user_id, muscle_name) | Muscle group name |
-| initial_fatigue_percent | REAL | NOT NULL DEFAULT 0 | Fatigue % at last training |
-| volume_today | REAL | NOT NULL DEFAULT 0 | Training volume from last session |
+| initial_fatigue_percent | REAL | NOT NULL DEFAULT 0 CHECK(>= 0 AND <= 100) | Fatigue % at last training |
 | last_trained | TEXT | | Last training date (UTC ISO 8601) |
 | updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Last update time |
 
 **Indexes**: idx_muscle_states_user ON (user_id)
+
+**Schema Changes**:
+- Migration 009 (2025-10-30): Removed redundant `volume_today` column, added CHECK constraint on fatigue_percent
 
 **Calculated Fields** (computed at read time, not stored):
 - `currentFatiguePercent`: Current fatigue based on recovery formula
@@ -1681,6 +1682,17 @@ This data model supports a comprehensive fitness tracking application with:
 The three-layer architecture ensures type safety, separation of concerns, and maintainability while providing a responsive single-user experience with smart workout intelligence.
 
 ### Recent Updates
+
+**2025-10-30**: Database Architecture Integrity Improvements (Migration 009)
+- **Removed redundant `volume_today` column** from `muscle_states` table (never validated against source data)
+- **Added CHECK constraints** to enforce data integrity at database level:
+  - `exercise_sets`: weight (0-10000), reps (1-1000)
+  - `muscle_states`: initial_fatigue_percent (0-100)
+  - `muscle_baselines`: system_learned_max > 0, user_override > 0 or NULL
+  - `detailed_muscle_states`: fatigue_percent (0-100)
+- **New state recalculation functions**: rebuildMuscleBaselines(), rebuildPersonalBests(), resetMuscleStatesForDate()
+- **Safe workout deletion**: DELETE /api/workouts/:id now recalculates all dependent state (baselines, PRs, muscle states)
+- **Expanded transactions**: saveWorkout() now atomically updates workouts, sets, baselines, and PRs
 
 **2025-10-29**: Added dual-layer muscle tracking system with detailed_muscle_states table (42 specific muscles). **Note**: Table created but feature incomplete - never updated after workouts.
 

@@ -341,7 +341,6 @@ export interface MuscleStatesUpdateRequest {
   [muscleName: string]: {
     initial_fatigue_percent: number;   // Fatigue percentage at time of workout
     last_trained: string;               // UTC ISO 8601 timestamp (e.g., "2025-10-25T12:00:00.000Z")
-    volume_today?: number;              // Optional: workout volume
   };
 }
 

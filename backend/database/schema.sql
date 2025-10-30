@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS exercise_sets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   workout_id INTEGER NOT NULL,
   exercise_name TEXT NOT NULL,
-  weight REAL NOT NULL,
-  reps INTEGER NOT NULL,
+  weight REAL NOT NULL CHECK(weight >= 0 AND weight <= 10000),
+  reps INTEGER NOT NULL CHECK(reps > 0 AND reps <= 1000),
   set_number INTEGER NOT NULL,
   to_failure INTEGER DEFAULT 1, -- 1 = true (set taken to failure), 0 = false (submaximal)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS muscle_states (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   muscle_name TEXT NOT NULL,
-  initial_fatigue_percent REAL NOT NULL DEFAULT 0,
+  initial_fatigue_percent REAL NOT NULL DEFAULT 0 CHECK(initial_fatigue_percent >= 0 AND initial_fatigue_percent <= 100),
   volume_today REAL NOT NULL DEFAULT 0,
   last_trained TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -89,8 +89,8 @@ CREATE TABLE IF NOT EXISTS muscle_baselines (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   muscle_name TEXT NOT NULL,
-  system_learned_max REAL NOT NULL DEFAULT 10000,
-  user_override REAL,
+  system_learned_max REAL NOT NULL DEFAULT 10000 CHECK(system_learned_max > 0),
+  user_override REAL CHECK(user_override IS NULL OR user_override > 0),
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   UNIQUE(user_id, muscle_name)
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS detailed_muscle_states (
   role TEXT NOT NULL CHECK(role IN ('primary', 'secondary', 'stabilizer')),
 
   -- Current state (same structure as muscle_states)
-  fatigue_percent REAL NOT NULL DEFAULT 0,
+  fatigue_percent REAL NOT NULL DEFAULT 0 CHECK(fatigue_percent >= 0 AND fatigue_percent <= 100),
   volume_today REAL NOT NULL DEFAULT 0,
   last_trained TEXT,  -- ISO 8601 date
 

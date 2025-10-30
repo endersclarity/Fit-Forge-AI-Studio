@@ -238,10 +238,69 @@ app.post('/api/workouts', (req: Request<{}, WorkoutResponse | ApiErrorResponse, 
       db.advanceRotation(1, workout.category as any, workout.variation as 'A' | 'B', workout.date);
     }
 
-    res.status(201).json(workout);
-  } catch (error) {
+    return res.status(201).json(workout);
+  } catch (error: any) {
     console.error('Error saving workout:', error);
-    res.status(500).json({ error: 'Failed to save workout' });
+
+    // Check if it's a constraint violation
+    if (error.message && error.message.includes('CHECK constraint failed')) {
+      return res.status(400).json({
+        error: 'Invalid workout data',
+        message: error.message
+      });
+    }
+
+    // Check if it's a validation error from application layer
+    if (error.message && (
+      error.message.includes('Invalid fatigue') ||
+      error.message.includes('Invalid weight') ||
+      error.message.includes('Invalid reps')
+    )) {
+      return res.status(400).json({
+        error: 'Validation error',
+        message: error.message
+      });
+    }
+
+    return res.status(500).json({ error: 'Failed to save workout' });
+  }
+});
+
+// Get deletion preview for a workout
+app.get('/api/workouts/:id/delete-preview', (req: Request, res: Response) => {
+  try {
+    const workoutId = parseInt(req.params.id);
+    if (isNaN(workoutId)) {
+      return res.status(400).json({ error: 'Invalid workout ID' });
+    }
+
+    const preview = db.getWorkoutDeletionPreview(workoutId);
+    return res.json(preview);
+  } catch (error: any) {
+    if (error.message === 'NOT_FOUND') {
+      return res.status(404).json({ error: 'Workout not found' });
+    }
+    console.error('Error getting deletion preview:', error);
+    return res.status(500).json({ error: 'Failed to get deletion preview' });
+  }
+});
+
+// Delete a workout and recalculate all dependent state
+app.delete('/api/workouts/:id', (req: Request, res: Response) => {
+  try {
+    const workoutId = parseInt(req.params.id);
+    if (isNaN(workoutId)) {
+      return res.status(400).json({ error: 'Invalid workout ID' });
+    }
+
+    const result = db.deleteWorkoutWithRecalculation(workoutId);
+    return res.json(result);
+  } catch (error: any) {
+    if (error.message === 'NOT_FOUND') {
+      return res.status(404).json({ error: 'Workout not found' });
+    }
+    console.error('Error deleting workout:', error);
+    return res.status(500).json({ error: 'Failed to delete workout', message: error.message });
   }
 });
 

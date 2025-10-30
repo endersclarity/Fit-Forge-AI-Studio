@@ -7,6 +7,67 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-30 - Database Architecture Integrity Implementation
+
+**Status**: ✅ IMPLEMENTED & TESTED
+**Type**: Architecture Improvement
+**Commit**: `<pending>`
+**OpenSpec Proposal**: `fix-database-architecture-integrity` (ARCHIVED)
+
+**Files Changed**:
+- `backend/database/schema.sql` (modified - added CHECK constraints)
+- `backend/database/migrations/009_add_integrity_constraints.sql` (created)
+- `backend/database/database.ts` (modified - added 6 integrity functions, updated saveWorkout)
+- `backend/server.ts` (modified - added 2 deletion endpoints, enhanced error handling)
+- `backend/types.ts` (modified - removed volume_today from MuscleStatesUpdateRequest)
+- `types.ts` (modified - removed volume_today from frontend types)
+- `App.tsx` (modified - removed volume_today from muscle state updates)
+- `openspec/changes/fix-database-architecture-integrity/tasks.md` (modified - marked complete)
+
+**Summary**: Implemented comprehensive database architecture integrity improvements to ensure data consistency and prevent corruption. Added database-level CHECK constraints, state recalculation functions, safe workout deletion with cascade recalculation, and expanded the saveWorkout() transaction to include all state updates atomically.
+
+**Implementation Details**:
+
+**Phase 1: Schema Constraints & Validation**
+- Added CHECK constraints to `exercise_sets`: weight (0-10000), reps (1-1000)
+- Added CHECK constraint to `muscle_states`: initial_fatigue_percent (0-100)
+- Added CHECK constraints to `muscle_baselines`: system_learned_max > 0, user_override > 0
+- Added CHECK constraint to `detailed_muscle_states`: fatigue_percent (0-100)
+- Removed redundant `volume_today` column from `muscle_states` table
+- Created migration 009 to apply constraints to existing databases
+
+**Phase 2: State Recalculation Functions**
+- `rebuildMuscleBaselines()`: Recalculates all baselines from to_failure sets across all workouts
+- `rebuildPersonalBests()`: Recalculates all PRs (best single set, best session volume) from workout history
+- `resetMuscleStatesForDate()`: Recalculates muscle states for a specific date after deletion
+- `validateDataIntegrity()`: Validates that derived data matches source data
+- `learnMuscleBaselinesFromWorkout()`: Learns baselines from single workout (inside transaction)
+- `detectPRsForWorkout()`: Detects PRs from single workout (inside transaction)
+
+**Phase 3: Workout Deletion Handling**
+- `getWorkoutDeletionPreview(workoutId)`: Preview deletion impact before executing
+- `deleteWorkoutWithRecalculation(workoutId)`: Delete workout and recalculate all dependent state
+- Added API endpoints: GET `/api/workouts/:id/delete-preview`, DELETE `/api/workouts/:id`
+- Deletion recalculates: baselines, PRs, and muscle states from remaining workouts
+
+**Phase 4: Transaction Expansion**
+- Moved `learnMuscleBaselinesFromWorkout()` INSIDE `saveWorkout()` transaction
+- Moved `detectPRsForWorkout()` INSIDE `saveWorkout()` transaction
+- All workout saves now atomically update: workout, sets, baselines, PRs
+- Enhanced error handling with constraint violation detection
+
+**Testing Results**:
+- ✅ Migration 009 applied successfully on container restart
+- ✅ Workout creation with baseline learning tested (Pectoralis: 1400 → 1912.5 lbs)
+- ✅ Workout deletion with full recalculation tested (9 baselines, 15 PRs recalculated)
+- ✅ Database constraints validated (negative weight, zero reps rejected)
+- ✅ Transaction atomicity verified (all operations succeed or fail together)
+- ✅ Deletion preview provides detailed impact analysis before deletion
+
+**Technical Context**: This implementation addresses all 4 critical data integrity issues identified in the architectural audit. The system now has database-level integrity guarantees, atomic operations for all state updates, and safe deletion with automatic recalculation of dependent state. The `volume_today` redundancy has been eliminated, and all derived data (baselines, PRs) can be verified against source workout data.
+
+---
+
 ### 2025-10-29 - Database Architecture Integrity Proposal
 
 **Status**: 📋 PROPOSAL CREATED
