@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AnalyticsResponse } from '../types';
 import { API_BASE_URL } from '../api';
@@ -6,8 +7,10 @@ import ExerciseProgressionChart from './ExerciseProgressionChart';
 import MuscleCapacityChart from './MuscleCapacityChart';
 import VolumeTrendsChart from './VolumeTrendsChart';
 import ActivityCalendarHeatmap from './ActivityCalendarHeatmap';
+import { ArrowLeftIcon } from './Icons';
 
 const Analytics: React.FC = () => {
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +75,10 @@ const Analytics: React.FC = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <header className="flex justify-between items-center mb-8">
+        <button onClick={() => navigate('/')} className="p-2 rounded-full hover:bg-brand-surface">
+          <ArrowLeftIcon className="w-6 h-6"/>
+        </button>
         <h1 className="text-3xl font-bold text-brand-cyan">Analytics Dashboard</h1>
 
         {/* Time Range Filter */}
@@ -90,7 +96,7 @@ const Analytics: React.FC = () => {
             <option value={3650}>All Time</option>
           </select>
         </div>
-      </div>
+      </header>
 
       {/* Empty State Message */}
       {hasNoData && (
@@ -134,7 +140,7 @@ const Analytics: React.FC = () => {
         <div className="bg-brand-surface border border-brand-muted rounded-lg p-6 text-center">
           <div className="text-slate-400 text-sm mb-2">Weekly Frequency</div>
           <div className="text-3xl font-bold text-purple-400">
-            {analytics.summary.weeklyFrequency.toFixed(1)}
+            {(analytics.summary.weeklyFrequency || 0).toFixed(1)}
           </div>
           <div className="text-slate-500 text-xs mt-1">workouts/week</div>
         </div>
@@ -162,9 +168,9 @@ const Analytics: React.FC = () => {
                   <div className="text-xs text-slate-500">{new Date(pr.date).toLocaleDateString()}</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-slate-200">{pr.newVolume.toFixed(0)} lbs</div>
+                  <div className="font-bold text-slate-200">{(pr.newVolume || 0).toFixed(0)} lbs</div>
                   <div className="text-xs text-green-400">
-                    +{pr.improvement.toFixed(0)} lbs ({pr.percentIncrease.toFixed(1)}%)
+                    +{(pr.improvement || 0).toFixed(0)} lbs ({(pr.percentIncrease || 0).toFixed(1)}%)
                   </div>
                 </div>
               </div>
@@ -210,7 +216,7 @@ const Analytics: React.FC = () => {
             <div className="text-center p-4 bg-brand-dark/50 rounded">
               <div className="text-slate-400 text-sm mb-1">Avg Frequency</div>
               <div className="text-2xl font-bold text-purple-400">
-                {analytics.consistencyMetrics.avgWeeklyFrequency.toFixed(1)}
+                {(analytics.consistencyMetrics.avgWeeklyFrequency || 0).toFixed(1)}
               </div>
               <div className="text-slate-500 text-xs">workouts/week</div>
             </div>

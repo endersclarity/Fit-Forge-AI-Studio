@@ -506,6 +506,13 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
     setToastType(type);
   };
 
+  // Muscle detail level toggle handler
+  const toggleMuscleDetailLevel = () => {
+    const newLevel = muscleDetailLevel === 'simple' ? 'detailed' : 'simple';
+    setMuscleDetailLevel(newLevel);
+    localStorage.setItem('muscleDetailLevel', newLevel);
+  };
+
   // Muscle deep dive modal handlers
   const handleMuscleClickForDeepDive = (muscle: Muscle) => {
     setSelectedMuscleForDeepDive(muscle);
@@ -513,8 +520,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   };
 
   const handleAddToWorkout = (planned: PlannedExercise) => {
-    // TODO: Integration with WorkoutPlannerModal
-    console.log('Add to workout:', planned);
+    if (onStartPlannedWorkout) {
+      onStartPlannedWorkout([planned]);
+    }
     setDeepDiveModalOpen(false);
   };
 
@@ -700,6 +708,14 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 }`}
               >
                 {loading ? 'Loading...' : '🔄 Refresh'}
+              </button>
+              <button
+                onClick={toggleMuscleDetailLevel}
+                className="px-3 py-1 text-sm bg-brand-muted hover:bg-brand-dark rounded-lg transition-colors"
+              >
+                {muscleDetailLevel === 'simple'
+                  ? 'Show Detailed (42 muscles)'
+                  : 'Show Simple (13 muscles)'}
               </button>
             </div>
             <MuscleFatigueHeatMap

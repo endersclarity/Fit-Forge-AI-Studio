@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate, ExerciseCategory, Variation } from '../types';
 import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
 import SetConfigurator from './SetConfigurator';
@@ -49,6 +49,21 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   const [autoAdvanceTimeoutId, setAutoAdvanceTimeoutId] = useState<number | null>(null);
   const [executionMuscleStates, setExecutionMuscleStates] = useState<MuscleStatesResponse>({});
 
+  // Template save dialog state
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateCategory, setTemplateCategory] = useState<ExerciseCategory>('Push');
+  const [templateVariation, setTemplateVariation] = useState<Variation>('A');
+
+  // Auto-save / restore dialog state
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<any>(null);
+
+  // Refs for auto-save (to avoid interval recreation)
+  const workoutRef = useRef(workout);
+  const modeRef = useRef(mode);
+  const planningModeRef = useRef(planningMode);
+
   // Load muscle states/baselines
   useEffect(() => {
     if (isOpen) {
@@ -71,6 +86,55 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
       }
     };
   }, [autoAdvanceTimeoutId]);
+
+  // Update refs when state changes (for auto-save)
+  useEffect(() => {
+    workoutRef.current = workout;
+    modeRef.current = mode;
+    planningModeRef.current = planningMode;
+  }, [workout, mode, planningMode]);
+
+  // Auto-save every 5 seconds
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const interval = setInterval(() => {
+      if (workoutRef.current.sets.length > 0) {
+        localStorage.setItem('workoutBuilder_draft', JSON.stringify({
+          sets: workoutRef.current.sets,
+          mode: modeRef.current,
+          planningMode: planningModeRef.current,
+          timestamp: Date.now()
+        }));
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isOpen]);
+
+  // Restore draft on mount
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const draft = localStorage.getItem('workoutBuilder_draft');
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        const dayAgo = Date.now() - (24 * 60 * 60 * 1000);
+
+        if (parsed.timestamp > dayAgo) {
+          // Show confirmation dialog
+          setShowRestoreDialog(true);
+          setPendingDraft(parsed);
+        } else {
+          // Clear old draft
+          localStorage.removeItem('workoutBuilder_draft');
+        }
+      } catch (e) {
+        console.error('Failed to parse draft:', e);
+      }
+    }
+  }, [isOpen]);
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -215,14 +279,19 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     onToast('Workout started!', 'success');
   };
 
-  const handleSaveTemplate = async () => {
+  const handleSaveTemplate = () => {
     if (workout.sets.length === 0) {
       onToast('Add at least one set to save template', 'error');
       return;
     }
+    setShowSaveDialog(true);
+  };
 
-    const templateName = prompt('Template name:');
-    if (!templateName) return;
+  const handleConfirmSaveTemplate = async () => {
+    if (!templateName.trim()) {
+      onToast('Please enter a template name', 'error');
+      return;
+    }
 
     try {
       const templateSets = workout.sets.map(s => ({
@@ -234,17 +303,42 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
       await templatesAPI.create({
         name: templateName,
-        category: 'Push', // TODO: Auto-detect or ask user
-        variation: 'A', // TODO: Auto-detect or ask user
+        category: templateCategory,
+        variation: templateVariation,
         sets: templateSets,
         isFavorite: false,
       });
 
       onToast('Template saved!', 'success');
+      setShowSaveDialog(false);
+      setTemplateName('');
+      setTemplateCategory('Push');
+      setTemplateVariation('A');
+      // Clear draft after successful save
+      localStorage.removeItem('workoutBuilder_draft');
     } catch (error) {
       console.error('Failed to save template:', error);
       onToast('Failed to save template', 'error');
     }
+  };
+
+  const handleRestoreDraft = () => {
+    if (pendingDraft) {
+      setWorkout((prev) => ({
+        ...prev,
+        sets: pendingDraft.sets,
+      }));
+      setMode(pendingDraft.mode || 'planning');
+      setPlanningMode(pendingDraft.planningMode || 'forward');
+    }
+    setShowRestoreDialog(false);
+    setPendingDraft(null);
+  };
+
+  const handleStartFresh = () => {
+    localStorage.removeItem('workoutBuilder_draft');
+    setPendingDraft(null);
+    setShowRestoreDialog(false);
   };
 
   const handleLogAsCompleted = async () => {
@@ -268,6 +362,8 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
       onSuccess();
       onToast('Workout logged!', 'success');
+      // Clear draft after successful log
+      localStorage.removeItem('workoutBuilder_draft');
       handleClose();
     } catch (error) {
       console.error('Failed to log workout:', error);
@@ -752,6 +848,99 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           }}
           onSave={handleSaveEditedSet}
         />
+
+        {/* Draft Restore Dialog */}
+        {showRestoreDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-brand-surface p-6 rounded-lg max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold mb-2">Resume Planning?</h3>
+              <p className="text-sm text-slate-300 mb-4">
+                You have unsaved work from earlier. Would you like to resume or start fresh?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleRestoreDraft}
+                  className="flex-1 bg-brand-cyan text-brand-dark py-2 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
+                >
+                  Resume
+                </button>
+                <button
+                  onClick={handleStartFresh}
+                  className="flex-1 bg-brand-muted py-2 rounded-lg font-semibold hover:bg-brand-dark transition-colors"
+                >
+                  Start Fresh
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Template Save Dialog */}
+        {showSaveDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-brand-surface p-6 rounded-lg max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold mb-4">Save Template</h3>
+
+              <label className="block mb-4">
+                <span className="block text-sm mb-2">Template Name</span>
+                <input
+                  type="text"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="e.g., Upper Body Day 1"
+                  className="w-full p-2 rounded bg-brand-muted border border-brand-dark focus:border-brand-cyan focus:outline-none"
+                />
+              </label>
+
+              <label className="block mb-4">
+                <span className="block text-sm mb-2">Workout Category</span>
+                <select
+                  value={templateCategory}
+                  onChange={(e) => setTemplateCategory(e.target.value as ExerciseCategory)}
+                  className="w-full p-2 rounded bg-brand-muted border border-brand-dark focus:border-brand-cyan focus:outline-none"
+                >
+                  <option value="Push">Push</option>
+                  <option value="Pull">Pull</option>
+                  <option value="Legs">Legs</option>
+                  <option value="Core">Core</option>
+                </select>
+              </label>
+
+              <label className="block mb-6">
+                <span className="block text-sm mb-2">Variation</span>
+                <select
+                  value={templateVariation}
+                  onChange={(e) => setTemplateVariation(e.target.value as Variation)}
+                  className="w-full p-2 rounded bg-brand-muted border border-brand-dark focus:border-brand-cyan focus:outline-none"
+                >
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="Both">Both</option>
+                </select>
+              </label>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleConfirmSaveTemplate}
+                  className="flex-1 bg-brand-cyan text-brand-dark py-2 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
+                >
+                  Save Template
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSaveDialog(false);
+                    setTemplateName('');
+                    setTemplateCategory('Push');
+                    setTemplateVariation('A');
+                  }}
+                  className="flex-1 bg-brand-muted py-2 rounded-lg font-semibold hover:bg-brand-dark transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

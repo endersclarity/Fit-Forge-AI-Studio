@@ -7,6 +7,84 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-30 - Critical UI Bug Fixes and UX Improvements
+
+**Status**: ✅ COMPLETE
+**Type**: Bug Fixes + UX Enhancements
+**OpenSpec Proposal**: `fix-critical-ui-bugs`
+
+**Files Changed**:
+- `components/Analytics.tsx` (updated - added back button navigation + null guards for .toFixed() calls)
+- `components/Dashboard.tsx` (updated - wired Add to Workout button + muscle detail toggle)
+- `components/WorkoutBuilder.tsx` (updated - category/variation dialog + auto-save with restore)
+- `components/WorkoutPlannerModal.tsx` (updated - auto-save with restore dialog)
+- `components/screens/RecoveryDashboard.tsx` (updated - removed BottomNav usage)
+- `components/layout/index.ts` (updated - removed BottomNav exports)
+- `components/layout/BottomNav.tsx` (deleted - unused dead code)
+- `components/layout/BottomNav.stories.tsx` (deleted - unused dead code)
+
+**Summary**: Fixed 6 critical bugs and missing features: (1) Analytics back button for navigation, (2) Muscle Deep Dive "Add to Workout" button now functional, (3) Template save dialog with category/variation selection, (4) Muscle detail level toggle (13 vs 42 muscles), (5) Auto-save for workout planning modals with user confirmation restore, (6) Removed unused BottomNav component.
+
+**Implementation Details**:
+
+1. **Analytics Back Button** (Bug #1 - 5 min):
+   - Added ArrowLeftIcon import and useNavigate hook
+   - Replaced div header with button that navigates to '/'
+   - Matches styling from Profile/PersonalBests pages
+   - **Note**: Analytics page has pre-existing crash bug with null values in analytics.summary.weeklyFrequency and analytics.consistencyMetrics.avgWeeklyFrequency - added null guards
+
+2. **Add to Workout Button** (Bug #2 - 5 min):
+   - Dashboard.tsx handleAddToWorkout: Changed from console.log to onStartPlannedWorkout([planned])
+   - Uses existing infrastructure (App.tsx handleStartPlannedWorkout → WorkoutTracker)
+   - Navigates to /workout with exercise pre-configured
+
+3. **Template Category/Variation Dialog** (Bug #3 - 1-2 hrs):
+   - Added state: templateName, templateCategory, templateVariation, showSaveDialog
+   - Created modal dialog with input + 2 dropdown selectors
+   - Category options: Push/Pull/Legs/Core
+   - Variation options: A/B/Both
+   - Replaced hardcoded 'Push'/'A' with user selections
+   - Clears draft from localStorage after successful save
+
+4. **Muscle Detail Level Toggle** (Bug #4 - 1-2 hrs):
+   - Added toggleMuscleDetailLevel handler
+   - Button in Muscle Heat Map section header
+   - Text: "Show Detailed (42 muscles)" | "Show Simple (13 muscles)"
+   - Persists to localStorage('muscleDetailLevel')
+   - Updates muscleDetailLevel state to re-render visualization
+
+5. **Modal Auto-Save** (Bug #5 - 3-5 hrs):
+   - **WorkoutBuilder**:
+     * Refs: workoutRef, modeRef, planningModeRef (avoid interval recreation)
+     * Auto-save useEffect with 5s interval (saves sets, mode, planningMode)
+     * Restore useEffect checks localStorage on mount (< 24 hrs)
+     * User confirmation dialog: "Resume" or "Start Fresh"
+     * Clears draft after save/log completion
+   - **WorkoutPlannerModal**:
+     * Refs: plannedExercisesRef, workoutVariationRef
+     * Auto-save useEffect with 5s interval
+     * Same restore dialog pattern
+     * Clears draft after starting workout
+
+6. **Remove BottomNav Component** (Bug #6 - 15 min):
+   - Deleted components/layout/BottomNav.tsx
+   - Deleted components/layout/BottomNav.stories.tsx
+   - Removed exports from components/layout/index.ts
+   - Updated RecoveryDashboard.tsx: removed BottomNav import and usage, added local NavRoute type
+   - No broken imports, no console errors
+
+**Testing Notes**:
+- Bug #4 (Muscle Detail Toggle): ✅ Verified working - button visible and functional
+- Bug #6 (BottomNav): ✅ No console errors related to BottomNav
+- Bug #1 (Analytics): ⚠️ Cannot fully test due to pre-existing Analytics crash bug
+- Bugs #2, #3, #5: Code reviewed and implementation verified correct
+
+**Known Issues**:
+- Analytics page crashes with "Cannot read properties of null (reading 'toFixed')" - pre-existing bug, unrelated to back button implementation
+- Added null guards to weeklyFrequency and avgWeeklyFrequency but full fix requires backend data validation
+
+---
+
 ### 2025-10-29 - Enhanced Quick Builder with Smart Generation
 
 **Status**: ✅ COMPLETE

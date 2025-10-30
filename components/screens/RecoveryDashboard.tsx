@@ -4,7 +4,6 @@ import { useExerciseRecommendations, MuscleCategory } from '../../hooks/useExerc
 
 // Layout components
 import { TopNav } from '../layout/TopNav';
-import { BottomNav, NavRoute } from '../layout/BottomNav';
 import { FAB } from '../layout/FAB';
 
 // Fitness components
@@ -19,6 +18,8 @@ import { ErrorBanner } from '../loading/ErrorBanner';
 export interface RecoveryDashboardProps {
   className?: string;
 }
+
+type NavRoute = 'dashboard' | 'workouts' | 'profile';
 
 /**
  * RecoveryDashboard - Main screen showing muscle recovery states and exercise recommendations
@@ -250,9 +251,6 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
           </div>
         </section>
       </main>
-
-      {/* Bottom Navigation */}
-      <BottomNav activeRoute={activeNav} onNavigate={handleNavigation} />
 
       {/* Floating Action Button */}
       <FAB

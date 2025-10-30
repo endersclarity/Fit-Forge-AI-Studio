@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EXERCISE_LIBRARY, ALL_MUSCLES } from '../constants';
 import {
   PlannedExercise,
@@ -195,6 +195,61 @@ const WorkoutPlannerModal: React.FC<WorkoutPlannerModalProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [workoutVariation, setWorkoutVariation] = useState<Variation>('A');
 
+  // Auto-save / restore dialog state
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<any>(null);
+
+  // Refs for auto-save (to avoid interval recreation)
+  const plannedExercisesRef = useRef(plannedExercises);
+  const workoutVariationRef = useRef(workoutVariation);
+
+  // Update refs when state changes
+  useEffect(() => {
+    plannedExercisesRef.current = plannedExercises;
+    workoutVariationRef.current = workoutVariation;
+  }, [plannedExercises, workoutVariation]);
+
+  // Auto-save every 5 seconds
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const interval = setInterval(() => {
+      if (plannedExercisesRef.current.length > 0) {
+        localStorage.setItem('workoutPlanner_draft', JSON.stringify({
+          plannedExercises: plannedExercisesRef.current,
+          workoutVariation: workoutVariationRef.current,
+          timestamp: Date.now()
+        }));
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isOpen]);
+
+  // Restore draft on mount
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const draft = localStorage.getItem('workoutPlanner_draft');
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        const dayAgo = Date.now() - (24 * 60 * 60 * 1000);
+
+        if (parsed.timestamp > dayAgo) {
+          // Show confirmation dialog
+          setShowRestoreDialog(true);
+          setPendingDraft(parsed);
+        } else {
+          // Clear old draft
+          localStorage.removeItem('workoutPlanner_draft');
+        }
+      } catch (e) {
+        console.error('Failed to parse draft:', e);
+      }
+    }
+  }, [isOpen]);
+
   // Fetch muscle baselines and current states on mount
   useEffect(() => {
     if (!isOpen) return;
@@ -289,7 +344,24 @@ const WorkoutPlannerModal: React.FC<WorkoutPlannerModalProps> = ({
   const handleStartWorkout = () => {
     onStartWorkout(plannedExercises);
     setPlannedExercises([]);
+    // Clear draft after starting workout
+    localStorage.removeItem('workoutPlanner_draft');
     onClose();
+  };
+
+  const handleRestoreDraft = () => {
+    if (pendingDraft) {
+      setPlannedExercises(pendingDraft.plannedExercises);
+      setWorkoutVariation(pendingDraft.workoutVariation || 'A');
+    }
+    setShowRestoreDialog(false);
+    setPendingDraft(null);
+  };
+
+  const handleStartFresh = () => {
+    localStorage.removeItem('workoutPlanner_draft');
+    setPendingDraft(null);
+    setShowRestoreDialog(false);
   };
 
   const handleClose = () => {
@@ -439,6 +511,32 @@ const WorkoutPlannerModal: React.FC<WorkoutPlannerModalProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Draft Restore Dialog */}
+        {showRestoreDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-brand-surface p-6 rounded-lg max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold mb-2">Resume Planning?</h3>
+              <p className="text-sm text-slate-300 mb-4">
+                You have unsaved work from earlier. Would you like to resume or start fresh?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleRestoreDraft}
+                  className="flex-1 bg-brand-cyan text-brand-dark py-2 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
+                >
+                  Resume
+                </button>
+                <button
+                  onClick={handleStartFresh}
+                  className="flex-1 bg-brand-muted py-2 rounded-lg font-semibold hover:bg-brand-dark transition-colors"
+                >
+                  Start Fresh
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
