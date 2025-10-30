@@ -168,12 +168,6 @@ const App: React.FC = () => {
         setPrNotifications(savedWorkout.prs);
       }
 
-      // Display toast notification for baseline updates
-      if (savedWorkout.updated_baselines && savedWorkout.updated_baselines.length > 0) {
-        const muscleNames = savedWorkout.updated_baselines.map(u => u.muscle).join(', ');
-        setToastMessage(`🤖 Muscle capacity updated for ${savedWorkout.updated_baselines.length} muscle${savedWorkout.updated_baselines.length > 1 ? 's' : ''}: ${muscleNames}`);
-      }
-
       setRecommendedWorkout(null);
     } catch (error) {
       console.error('Error saving workout:', error);

@@ -272,7 +272,6 @@ export interface WorkoutResponse {
   duration_seconds: number | null;
   exercises: WorkoutExercise[];
   created_at?: string;
-  updated_baselines?: BaselineUpdate[]; // Optional field for baseline learning updates
 }
 
 export interface WorkoutSaveRequest {

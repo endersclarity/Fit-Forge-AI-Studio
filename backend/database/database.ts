@@ -440,22 +440,23 @@ function saveWorkout(workout: WorkoutSaveRequest): WorkoutResponse {
           set.weight,
           set.reps,
           globalSetNumber,
-          set.to_failure ? 1 : 1 // Default to 1 (true) for backward compatibility
+          set.to_failure ? 1 : 0 // Convert boolean to SQLite integer: 1 for true (to failure), 0 for false (non-failure)
         );
         globalSetNumber++;
       }
     }
 
-    // Learn muscle baselines from "to failure" sets (NOW INSIDE TRANSACTION)
-    const updatedBaselines = learnMuscleBaselinesFromWorkout(workoutId);
+    // NOTE: Baseline learning is handled by frontend (App.tsx:73-88).
+    // Backend previously had duplicate baseline learning that was removed to fix race condition.
+    // See: openspec/changes/fix-critical-data-bugs/specs/baseline-race-condition-fix/spec.md
 
     // Detect personal records (NOW INSIDE TRANSACTION)
     const prs = detectPRsForWorkout(workoutId);
 
-    return { workoutId, updatedBaselines, prs };
+    return { workoutId, prs };
   });
 
-  const { workoutId, updatedBaselines } = saveTransaction();
+  const { workoutId } = saveTransaction();
 
   // Return the saved workout
   const savedWorkout = db.prepare('SELECT * FROM workouts WHERE id = ?').get(workoutId) as WorkoutRow;
@@ -485,99 +486,8 @@ function saveWorkout(workout: WorkoutSaveRequest): WorkoutResponse {
     progression_method: savedWorkout.progression_method,
     duration_seconds: savedWorkout.duration_seconds,
     exercises: Object.values(exercisesMap),
-    created_at: savedWorkout.created_at,
-    updated_baselines: updatedBaselines.length > 0 ? updatedBaselines : undefined
+    created_at: savedWorkout.created_at
   };
-}
-
-/**
- * Learn muscle baselines from workout's "to failure" sets
- *
- * Implements conservative max observed volume algorithm:
- * For each to_failure set, calculate muscle-specific volume and update baseline if higher than current.
- *
- * @param workoutId - ID of the workout to analyze
- * @returns Array of baseline updates with muscle name, old max, and new max
- */
-function learnMuscleBaselinesFromWorkout(workoutId: number): BaselineUpdate[] {
-  // Query all to_failure sets for this workout
-  const failureSets = db.prepare(`
-    SELECT exercise_name, weight, reps
-    FROM exercise_sets
-    WHERE workout_id = ? AND to_failure = 1
-  `).all(workoutId) as Array<{ exercise_name: string; weight: number; reps: number }>;
-
-  // If no failure sets, nothing to learn
-  if (failureSets.length === 0) {
-    return [];
-  }
-
-  // Track max volume observed per muscle
-  const muscleVolumes: Record<string, number> = {};
-
-  // Process each failure set
-  for (const set of failureSets) {
-    // Find exercise in library
-    const exercise = EXERCISE_LIBRARY.find(ex => ex.name === set.exercise_name);
-
-    if (!exercise) {
-      console.warn(`Exercise not found in library: ${set.exercise_name}`);
-      continue;
-    }
-
-    // Calculate total volume for this set
-    const totalVolume = set.weight * set.reps;
-
-    // Get calibrated engagement percentages (or defaults if no calibration exists)
-    const exerciseCalibrations = getExerciseCalibrations(exercise.id);
-
-    // Calculate volume per muscle based on engagement percentages (with calibrations)
-    for (const engagement of exerciseCalibrations.engagements) {
-      const muscleVolume = totalVolume * (engagement.percentage / 100);
-      const muscleName = engagement.muscle;
-
-      // Track maximum volume observed for each muscle
-      if (!muscleVolumes[muscleName] || muscleVolume > muscleVolumes[muscleName]) {
-        muscleVolumes[muscleName] = muscleVolume;
-      }
-    }
-  }
-
-  // Compare observed volumes to current baselines and update where higher
-  const updates: BaselineUpdate[] = [];
-
-  for (const [muscleName, observedVolume] of Object.entries(muscleVolumes)) {
-    // Get current baseline
-    const currentBaseline = db.prepare(`
-      SELECT system_learned_max
-      FROM muscle_baselines
-      WHERE user_id = 1 AND muscle_name = ?
-    `).get(muscleName) as { system_learned_max: number } | undefined;
-
-    if (!currentBaseline) {
-      console.warn(`No baseline found for muscle: ${muscleName}`);
-      continue;
-    }
-
-    // Only update if observed volume exceeds current baseline
-    if (observedVolume > currentBaseline.system_learned_max) {
-      // Update baseline in database
-      db.prepare(`
-        UPDATE muscle_baselines
-        SET system_learned_max = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE user_id = 1 AND muscle_name = ?
-      `).run(observedVolume, muscleName);
-
-      // Track update for response
-      updates.push({
-        muscle: muscleName,
-        oldMax: currentBaseline.system_learned_max,
-        newMax: observedVolume
-      });
-    }
-  }
-
-  return updates;
 }
 
 /**

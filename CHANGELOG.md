@@ -7,6 +7,58 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-29 - Fix Critical Data Bugs
+
+**Status**: ✅ IMPLEMENTED & TESTED
+**Type**: Critical Bug Fixes
+**Commit**: (pending)
+**OpenSpec Proposal**: `fix-critical-data-bugs`
+**Tests**: 40/40 passing (added 4 new integration tests)
+
+**Files Changed**:
+- `backend/database/database.ts` (modified - fixed to_failure bug, removed baseline race condition)
+- `backend/types.ts` (modified - removed updated_baselines from WorkoutResponse)
+- `App.tsx` (modified - removed redundant backend baseline toast)
+- `backend/__tests__/database.test.ts` (created - 4 comprehensive integration tests, all passing)
+
+**Summary**: Fixed three critical data integrity bugs discovered during baseline learning investigation. Bug 1 (CRITICAL): to_failure flag always saved as 1 regardless of user input. Bug 2 (DEFERRED): volume_today column never updated. Bug 3 (CRITICAL): Backend baseline learning overwrote correct frontend calculations.
+
+**Implementation Details**:
+
+**Bug 1: to_failure Boolean Conversion Fix**
+- **Location**: `backend/database/database.ts:443`
+- **Change**: Fixed ternary operator from `set.to_failure ? 1 : 1` to `set.to_failure ? 1 : 0`
+- **Impact**: Stops ongoing data corruption - all historical workout sets have to_failure=1 and are unreliable
+- **Historical Data**: Cannot be reliably corrected - all sets saved before this fix have incorrect to_failure values
+
+**Bug 3: Baseline Race Condition Elimination**
+- **Frontend** (App.tsx:73-88): Already implements baseline learning CORRECTLY (SUM of ALL sets)
+- **Backend** (database.ts:502-581): Implemented baseline learning INCORRECTLY (MAX of failure sets only)
+- **Problem**: Backend ran AFTER frontend and OVERWROTE correct values with broken calculations
+- **Solution**: Removed backend baseline learning entirely - frontend is sufficient
+- **Changes**:
+  - Deleted `learnMuscleBaselinesFromWorkout()` function (lines 502-581)
+  - Removed function call from `saveWorkout()` (line 450)
+  - Removed `updated_baselines` from WorkoutResponse type
+  - Removed redundant frontend toast notification (App.tsx:172-175)
+  - Added explanatory comment documenting frontend responsibility
+
+**Bug 2: volume_today Investigation**
+- **Status**: DEFERRED - not causing active problems
+- **Finding**: Column exists but never updated after initialization
+- **Current State**: Fatigue system works without it (calculates in frontend)
+- **Decision**: Defer to separate proposal
+
+**Breaking Changes**:
+- API Response: WorkoutResponse no longer includes `updated_baselines` field
+- Historical Data: All sets saved before this fix have to_failure=1 regardless of actual user input
+
+**Migration Notes**:
+- No database migration required (schema unchanged)
+- Historical to_failure data before this fix is unreliable and should not be used for analytics
+
+---
+
 ### 2025-10-30 - Database Architecture Integrity Implementation
 
 **Status**: ✅ IMPLEMENTED & TESTED
