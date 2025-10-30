@@ -315,9 +315,12 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
                                     </div>
                                 </label>
                             </div>
-                            <p className="text-xs text-slate-500 mt-2">
-                                Detailed view shows specific muscle fatigue for advanced training insights
-                            </p>
+                            <div className="mt-3 p-3 bg-brand-muted rounded-md border border-brand-cyan/20">
+                                <p className="text-xs text-brand-cyan font-medium mb-1">💡 View Dashboard to see changes</p>
+                                <p className="text-xs text-slate-400">
+                                    This setting controls muscle detail on the Dashboard. Change it, then navigate to Dashboard to see the effect on your muscle fatigue heatmap.
+                                </p>
+                            </div>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-300">Current Bodyweight (lbs)</label>

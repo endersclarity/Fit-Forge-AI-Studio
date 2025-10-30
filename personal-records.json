@@ -299,7 +299,13 @@
       "totalVolume": null,
       "volumeUnit": "bodyweight",
       "muscles": ["glutes", "quads", "hamstrings", "core"],
-      "notes": "unilateral control and balance",
+      "muscleEngagement": {
+        "glutes": 40,
+        "quads": 45,
+        "hamstrings": 10,
+        "core": 5
+      },
+      "notes": "unilateral control and balance; EMG studies show quads (45%) and glutes (40%) are primary movers",
       "adaptation": "functional single-leg strength"
     },
     {

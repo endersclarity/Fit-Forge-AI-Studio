@@ -59,6 +59,7 @@ interface PersonalRecordExercise {
   totalVolume: number | null;
   volumeUnit: string;
   muscles: string[];
+  muscleEngagement?: Record<string, number>;  // Optional: engagement percentages by muscle
   notes: string;
   adaptation: string;
 }
@@ -77,6 +78,35 @@ interface PersonalRecordsData {
   };
 }
 
+// User's bodyweight for calculating bodyweight exercise volumes
+const USER_BODYWEIGHT = 200; // lbs
+
+/**
+ * Parse protocol string to extract total reps
+ * Examples:
+ *   "3×10" -> 30 reps
+ *   "3×20/leg (40 total)" -> 40 reps
+ *   "3×15" -> 45 reps
+ *   "3×8, bodyweight" -> 24 reps
+ */
+function parseProtocolReps(protocol: string): number | null {
+  // Check for explicit "total" count first
+  const totalMatch = protocol.match(/(\d+)\s+total/);
+  if (totalMatch) {
+    return parseInt(totalMatch[1]);
+  }
+
+  // Parse "sets×reps" format
+  const setsRepsMatch = protocol.match(/(\d+)×(\d+)/);
+  if (setsRepsMatch) {
+    const sets = parseInt(setsRepsMatch[1]);
+    const reps = parseInt(setsRepsMatch[2]);
+    return sets * reps;
+  }
+
+  return null;
+}
+
 function normalizeMuscle(muscleName: string): string {
   const normalized = muscleName.toLowerCase().trim();
   return MUSCLE_MAP[normalized] || null;
@@ -84,24 +114,68 @@ function normalizeMuscle(muscleName: string): string {
 
 function calculateMuscleVolumes(exercises: PersonalRecordExercise[]): Map<string, number> {
   const muscleVolumes = new Map<string, number>();
+  let skippedExercises: string[] = [];
 
   for (const exercise of exercises) {
-    if (exercise.totalVolume === null) continue; // Skip bodyweight exercises without volume
+    let volume: number;
 
-    const volume = exercise.totalVolume;
-    const muscleCount = exercise.muscles.length;
+    // If exercise has explicit volume, use it
+    if (exercise.totalVolume !== null) {
+      volume = exercise.totalVolume;
+    }
+    // If it's a bodyweight or reps-only exercise, calculate volume from protocol
+    else if (exercise.volumeUnit === 'bodyweight' || exercise.volumeUnit === 'reps') {
+      const totalReps = parseProtocolReps(exercise.protocol);
+      if (totalReps === null) {
+        skippedExercises.push(`${exercise.exercise} (couldn't parse protocol: ${exercise.protocol})`);
+        continue;
+      }
+      volume = totalReps * USER_BODYWEIGHT;
+    }
+    // Skip time-based exercises and exercises with no volume data
+    else {
+      skippedExercises.push(`${exercise.exercise} (time-based or no volume data)`);
+      continue;
+    }
 
-    // Distribute volume equally across all muscles
-    // This is a simplification - in reality, primary movers get more volume
-    const volumePerMuscle = volume / muscleCount;
+    // Check if exercise has custom engagement percentages
+    if (exercise.muscleEngagement) {
+      // Use provided engagement percentages
+      for (const [muscleName, percentage] of Object.entries(exercise.muscleEngagement)) {
+        const dbMuscle = normalizeMuscle(muscleName);
+        if (dbMuscle) {
+          const muscleVolume = volume * (percentage / 100);
+          const current = muscleVolumes.get(dbMuscle) || 0;
+          muscleVolumes.set(dbMuscle, current + muscleVolume);
+        }
+      }
+    } else {
+      // Fall back to equal distribution
+      // Normalize and deduplicate muscles for this exercise
+      // (e.g., "biceps" and "brachialis" both map to "Biceps")
+      const normalizedMuscles = new Set<string>();
+      for (const muscleName of exercise.muscles) {
+        const dbMuscle = normalizeMuscle(muscleName);
+        if (dbMuscle) {
+          normalizedMuscles.add(dbMuscle);
+        }
+      }
 
-    for (const muscleName of exercise.muscles) {
-      const dbMuscle = normalizeMuscle(muscleName);
-      if (dbMuscle) {
+      const muscleCount = normalizedMuscles.size;
+      const volumePerMuscle = volume / muscleCount;
+
+      for (const dbMuscle of normalizedMuscles) {
         const current = muscleVolumes.get(dbMuscle) || 0;
         muscleVolumes.set(dbMuscle, current + volumePerMuscle);
       }
     }
+  }
+
+  // Log skipped exercises if any
+  if (skippedExercises.length > 0) {
+    console.log('\n⚠️  Skipped exercises (no volume data):');
+    skippedExercises.forEach(ex => console.log(`   - ${ex}`));
+    console.log('');
   }
 
   return muscleVolumes;
