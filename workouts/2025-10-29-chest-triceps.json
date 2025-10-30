@@ -1,0 +1,100 @@
+{
+  "date": "2025-10-29",
+  "timestamp": "2025-10-29T00:00:00.000Z",
+  "summary": {
+    "totalWorkingSets": 10,
+    "setsToFailure": 4,
+    "primaryFocus": ["chest", "triceps"],
+    "notes": "Primary focus on chest and triceps"
+  },
+  "exercises": [
+    {
+      "name": "Incline Dumbbell Bench Press",
+      "equipment": "dumbbell",
+      "sets": [
+        {
+          "reps": 12,
+          "weight": 25,
+          "weightUnit": "lb",
+          "weightPerHand": true,
+          "toFailure": false
+        },
+        {
+          "reps": 10,
+          "weight": 45,
+          "weightUnit": "lb",
+          "weightPerHand": true,
+          "toFailure": false
+        },
+        {
+          "reps": 10,
+          "weight": 45,
+          "weightUnit": "lb",
+          "weightPerHand": true,
+          "toFailure": false
+        },
+        {
+          "reps": 8,
+          "weight": 45,
+          "weightUnit": "lb",
+          "weightPerHand": true,
+          "toFailure": true
+        }
+      ]
+    },
+    {
+      "name": "Push-Ups",
+      "equipment": "bodyweight",
+      "sets": [
+        {
+          "reps": 10,
+          "toFailure": false
+        },
+        {
+          "reps": 7,
+          "toFailure": false
+        },
+        {
+          "reps": 6,
+          "toFailure": true
+        }
+      ]
+    },
+    {
+      "name": "TRX Wide-Grip Push-Ups",
+      "equipment": "trx",
+      "sets": [
+        {
+          "reps": 19,
+          "toFailure": false
+        },
+        {
+          "reps": 13,
+          "toFailure": false
+        },
+        {
+          "reps": 11,
+          "toFailure": true
+        }
+      ]
+    },
+    {
+      "name": "TRX Tricep Extensions",
+      "equipment": "trx",
+      "sets": [
+        {
+          "reps": 8,
+          "toFailure": false
+        },
+        {
+          "reps": 7,
+          "toFailure": false
+        },
+        {
+          "reps": 4,
+          "toFailure": true
+        }
+      ]
+    }
+  ]
+}
