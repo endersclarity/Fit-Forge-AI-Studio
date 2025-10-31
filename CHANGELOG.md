@@ -7,6 +7,79 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-31 - Fix Bodyweight Save Functionality
+
+**Status**: ✅ FIXED & TESTED
+**Type**: Critical Bug Fix
+**Severity**: High (data persistence failure)
+**Commit**: 9e6f30e
+
+**Files Changed**:
+- `api.ts` (modified - added bodyweightHistory date transformation)
+- `components/Profile.tsx` (modified - fixed handleWeightSave logic)
+
+**Summary**: Resolved critical bug preventing users from saving bodyweight data. Issue involved two separate bugs: missing API transformation for date formats and incorrect logic when handling empty bodyweight history.
+
+**Root Causes**:
+
+1. **API Transformation Bug** (api.ts:61-100):
+   - Frontend uses `WeightEntry[]` with `date` as **number** (timestamp)
+   - Backend API expects `bodyweightHistory` with `date` as **string** (ISO format)
+   - `profileAPI.update()` was only transforming `recoveryDaysToFull`
+   - Completely ignored `bodyweightHistory` field during transformation
+   - Result: Backend received timestamps instead of ISO strings, causing data corruption
+
+2. **Profile Component Logic Bug** (Profile.tsx:200-223):
+   - When `bodyweightHistory` is empty, `latestWeightEntry` defaults to `{ weight: 150, date: Date.now() }`
+   - Code compared this default date with today, incorrectly thinking entry already exists
+   - Attempted to update `newHistory[0]` which was `undefined`
+   - Created object `{ weight: currentWeight }` **without date field**
+   - Backend rejected with: `"NOT NULL constraint failed: bodyweight_history.date"`
+
+**Implementation**:
+
+1. **api.ts Changes**:
+   ```typescript
+   // Added in profileAPI.get()
+   bodyweightHistory: response.bodyweightHistory?.map((entry: any) => ({
+     date: new Date(entry.date).getTime(),  // ISO string → timestamp
+     weight: entry.weight
+   })) || []
+
+   // Added in profileAPI.update()
+   bodyweightHistory: profile.bodyweightHistory?.map(entry => ({
+     date: new Date(entry.date).toISOString(),  // timestamp → ISO string
+     weight: entry.weight
+   })) || []
+   ```
+
+2. **Profile.tsx Changes**:
+   ```typescript
+   // Added hasHistory check
+   const hasHistory = profile.bodyweightHistory && profile.bodyweightHistory.length > 0;
+   const lastEntryDate = hasHistory ? new Date(latestWeightEntry.date).setHours(0,0,0,0) : 0;
+
+   // Use findIndex to locate correct entry instead of assuming [0]
+   if (hasHistory && today === lastEntryDate) {
+     const todayIndex = newHistory.findIndex(entry =>
+       new Date(entry.date).setHours(0,0,0,0) === today
+     );
+     // ... proper update logic
+   }
+   ```
+
+**Testing**:
+- Verified via Chrome DevTools automation
+- Successfully saved bodyweight: 175 → 180 lbs
+- Data persists to SQLite database correctly
+- Survives page reload
+- Backend logs show successful `PUT /api/profile` with no errors
+- Docker containers rebuilt and tested with updated code
+
+**Impact**: Users can now successfully track their bodyweight history without errors.
+
+---
+
 ### 2025-10-31 - Add Clickable Workout History with Details Modal
 
 **Status**: ✅ IMPLEMENTED & TESTED
