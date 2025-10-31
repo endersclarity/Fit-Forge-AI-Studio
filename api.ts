@@ -64,14 +64,24 @@ export const profileAPI = {
     // Transform snake_case from backend to camelCase for frontend
     return {
       ...response,
-      recoveryDaysToFull: response.recovery_days_to_full
+      recoveryDaysToFull: response.recovery_days_to_full,
+      // Transform bodyweightHistory dates from ISO strings to timestamps
+      bodyweightHistory: response.bodyweightHistory?.map((entry: any) => ({
+        date: new Date(entry.date).getTime(),
+        weight: entry.weight
+      })) || []
     };
   },
   update: async (profile: UserProfile): Promise<UserProfile> => {
     // Transform camelCase to snake_case for backend
     const backendProfile = {
       ...profile,
-      recovery_days_to_full: profile.recoveryDaysToFull
+      recovery_days_to_full: profile.recoveryDaysToFull,
+      // Transform bodyweightHistory dates from timestamps to ISO strings
+      bodyweightHistory: profile.bodyweightHistory?.map(entry => ({
+        date: new Date(entry.date).toISOString(),
+        weight: entry.weight
+      })) || []
     };
     const response = await apiRequest<any>('/profile', {
       method: 'PUT',
@@ -80,7 +90,12 @@ export const profileAPI = {
     // Transform response back to camelCase
     return {
       ...response,
-      recoveryDaysToFull: response.recovery_days_to_full
+      recoveryDaysToFull: response.recovery_days_to_full,
+      // Transform bodyweightHistory dates from ISO strings to timestamps
+      bodyweightHistory: response.bodyweightHistory?.map((entry: any) => ({
+        date: new Date(entry.date).getTime(),
+        weight: entry.weight
+      })) || []
     };
   },
   init: (data: { name: string; experience: 'Beginner' | 'Intermediate' | 'Advanced'; equipment?: Array<{ name: string; minWeight: number; maxWeight: number; increment: number }> }) =>

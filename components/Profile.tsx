@@ -201,14 +201,23 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
         const newHistory = [...(profile.bodyweightHistory || [])];
         // If last entry was today, update it. Otherwise, add new.
         const today = new Date().setHours(0,0,0,0);
-        const lastEntryDate = latestWeightEntry ? new Date(latestWeightEntry.date).setHours(0,0,0,0) : 0;
 
-        if (today === lastEntryDate) {
-            newHistory[0] = { ...newHistory[0], weight: currentWeight };
+        // Check if there's actually an entry in the history (not just the default)
+        const hasHistory = profile.bodyweightHistory && profile.bodyweightHistory.length > 0;
+        const lastEntryDate = hasHistory ? new Date(latestWeightEntry.date).setHours(0,0,0,0) : 0;
+
+        if (hasHistory && today === lastEntryDate) {
+            // Find and update the entry for today
+            const todayIndex = newHistory.findIndex(entry => new Date(entry.date).setHours(0,0,0,0) === today);
+            if (todayIndex >= 0) {
+                newHistory[todayIndex] = { ...newHistory[todayIndex], weight: currentWeight };
+            } else {
+                newHistory.push({ date: Date.now(), weight: currentWeight });
+            }
         } else {
             newHistory.push({ date: Date.now(), weight: currentWeight });
         }
-        
+
         handleProfileChange('bodyweightHistory', newHistory.sort((a,b) => b.date - a.date));
         setEditingWeight(false);
     };
