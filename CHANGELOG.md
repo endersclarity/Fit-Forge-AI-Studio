@@ -7,6 +7,60 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-31 - Add Clickable Workout History with Details Modal
+
+**Status**: ✅ IMPLEMENTED & TESTED
+**Type**: Frontend Feature Enhancement
+**Severity**: Low (UX improvement)
+
+**Files Changed**:
+- `components/WorkoutHistorySummary.tsx` (modified - added click handlers and workout details modal)
+- `index.html` (modified - added React Grab script for development)
+- `vite.config.ts` (modified - added React Grab plugin)
+- `package.json` (modified - added react-grab dependency)
+- `package-lock.json` (modified - updated dependencies)
+
+**Summary**: Enhanced workout history by making each workout row clickable, displaying a comprehensive modal with full workout details including exercises, sets, reps, PRs, and baseline updates. Also integrated React Grab for improved UI element debugging.
+
+**Implementation Details**:
+
+1. **Clickable Workout Rows** (WorkoutHistorySummary.tsx:106-117):
+   - Added `onClick` handler to set selected workout
+   - Added `cursor-pointer` class for visual feedback
+   - Made rows keyboard accessible with `role="button"`, `tabIndex={0}`, and `onKeyDown` handler
+   - Supports Enter and Space key activation
+
+2. **Workout Details Modal** (WorkoutHistorySummary.tsx:148-245):
+   - Full-screen overlay with centered modal (max-width: 2xl)
+   - Sticky header with workout type, variation, date, and duration
+   - Close button and click-outside-to-close functionality
+   - Three content sections:
+     - **PRs Section**: Green-themed callout showing personal records with improvement percentages
+     - **Exercises Section**: Each exercise displayed with all sets showing weight, reps, and "To Failure" badge
+     - **Baseline Updates Section**: Blue-themed callout showing muscle baseline learning
+
+3. **React Grab Integration**:
+   - Added script tag to index.html for CDN-based loading
+   - Added Vite plugin to vite.config.ts (development mode only)
+   - Enables Ctrl+C + Click on any element to copy component context for debugging
+   - Installed react-grab@0.0.20 package
+
+**User Experience**:
+- Users can now click any workout in "Recent Workouts" to view complete details
+- Modal provides clear overview of workout performance with visual hierarchy
+- Easy dismissal via close button, escape key, or clicking outside modal
+- Responsive design with scrollable content for long workouts
+
+**Technical Notes**:
+- Modal uses fixed positioning with z-50 to ensure proper layering
+- Click event propagation stopped on modal content to prevent accidental closes
+- Component maintains local state for selected workout using useState
+- React Grab only active in development builds (not shipped to production)
+
+**Commit**: 58cc540
+
+---
+
 ### 2025-10-31 - Fix API Route Ordering and TypeScript Build Path Issues
 
 **Status**: ✅ IMPLEMENTED & TESTED
