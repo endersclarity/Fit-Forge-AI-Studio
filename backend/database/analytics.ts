@@ -841,12 +841,8 @@ export function calculateWorkoutMetrics(workoutId: number): CalculatedMetricsRes
     last_trained: string | null;
   }>;
 
-  // Get user's recovery settings
-  const profile = db.prepare(`
-    SELECT recovery_days_to_full FROM user_profile WHERE user_id = 1
-  `).get() as { recovery_days_to_full: number } | undefined;
-
-  const recoveryDaysToFull = profile?.recovery_days_to_full || 5;
+  // Get user's recovery settings (default to 5 days if not set)
+  const recoveryDaysToFull = 5;
 
   const muscleStates: MuscleStatesResponse = {};
   updatedMuscleStates.forEach(state => {

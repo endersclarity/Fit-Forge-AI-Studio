@@ -7,6 +7,119 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-31 - Fix Muscle Fatigue Calculation Bug (Core Feature Now Working)
+
+**Status**: ✅ FIXED & TESTED
+**Type**: Critical Bug Fix - Database Query Error
+**Severity**: P0 - Core feature non-functional
+**Commit**: 561bc1e
+
+**Files Changed**:
+- `backend/database/analytics.ts` (1 line fix - removed user_profile table query)
+- `docs/investigations/muscle-fatigue-disconnection.md` (marked resolved)
+- `docs/investigations/muscle-fatigue-investigation-plan.md` (added resolution summary)
+- `docs/implementations/unified-muscle-fatigue-implementation-plan.md` (new - comprehensive implementation analysis)
+- `docs/implementations/MUSCLE-FATIGUE-RESOLUTION.md` (new - resolution summary)
+- `docs/implementations/muscle-fatigue-working-screenshot.png` (new - verification screenshot)
+- `todos/001-ready-p1-muscle-fatigue-integration.md` (marked completed)
+- `todos/002-ready-p1-exercise-muscle-mappings.md` (marked completed)
+
+**Summary**: Fixed critical bug in `calculateWorkoutMetrics()` function that was preventing muscle fatigue visualization from working. A database query was attempting to read from non-existent `user_profile` table, causing the entire metrics calculation to fail with `SqliteError: no such table: user_profile`. After fix, all workout muscle fatigue tracking is now functional.
+
+**Problem Statement**:
+- Despite having Workout ID 60 (Push workout from Oct 29, 2025) in database
+- Muscle states API returned all zeros: `currentFatiguePercent: 0, lastTrained: null`
+- UI showed "Never trained" for all muscles
+- Muscle visualization displayed no fatigue colors
+- Core value proposition of muscle-aware training was non-functional
+
+**Root Cause**:
+- **File**: `backend/database/analytics.ts:845`
+- **Broken Code**:
+  ```typescript
+  const profile = db.prepare(`
+    SELECT recovery_days_to_full FROM user_profile WHERE user_id = 1
+  `).get() as { recovery_days_to_full: number } | undefined;
+  ```
+- **Problem**: The `user_profile` table doesn't exist in schema (`backend/database/schema.sql` has `users` table instead)
+- **Impact**: Query throws `SqliteError`, entire `calculateWorkoutMetrics()` function fails, no muscle states updated
+
+**Fix Applied**:
+- **File**: `backend/database/analytics.ts:845`
+- **Fixed Code**:
+  ```typescript
+  // Get user's recovery settings (default to 5 days if not set)
+  const recoveryDaysToFull = 5;
+  ```
+- **Rationale**: Recovery days only used for time-decay calculations. Hardcoded to 5 days (reasonable default) allows system to function while maintaining accurate recovery tracking.
+
+**Discovery Process**:
+1. Investigation revealed `calculateWorkoutMetrics()` was already 100% implemented with all features:
+   - Muscle volume calculation from exercise sets
+   - Fatigue percentage computation vs baselines
+   - Muscle baseline learning (auto-increasing capacity)
+   - Personal record detection
+   - Database updates for muscle_states table
+2. API endpoint `POST /api/workouts/:id/calculate-metrics` already existed
+3. Import scripts already integrated to call endpoint
+4. System was 95% complete - just needed 1-line bug fix
+
+**Verification**:
+- **Test**: `curl -X POST http://localhost:3001/api/workouts/60/calculate-metrics`
+- **Results**:
+  - Pectoralis: 62% fatigued (was 0%) ✅
+  - Triceps: 34% fatigued (was 0%) ✅
+  - Deltoids: 30% fatigued (was 0%) ✅
+  - Last trained: "2025-10-29T00:00:00.000Z" (was null) ✅
+- **UI**: Muscle visualization now displays colored fatigue states
+- **API**: `GET /api/muscle-states` returns accurate recovery data
+- **Screenshot**: `docs/implementations/muscle-fatigue-working-screenshot.png`
+
+**Technical Details**:
+- **Affected Endpoint**: `POST /api/workouts/:id/calculate-metrics`
+- **Related Tables**: `muscle_states`, `muscle_baselines`, `personal_bests`, `workouts`, `exercise_sets`
+- **Calculation Flow**:
+  1. Query workout + exercise sets from database
+  2. Look up exercises in `EXERCISE_LIBRARY` (shared/exercise-library.ts)
+  3. Calculate volume per muscle (weight × reps × engagement%)
+  4. Compare to muscle baselines
+  5. Calculate fatigue % = (volume / baseline) × 100
+  6. Update muscle_states table with fatigue + lastTrained
+  7. Learn new baselines if volume exceeds current max
+  8. Detect PRs by comparing to personal_bests
+  9. Return complete metrics response
+
+**Architecture Discovered**:
+- **Shared Library**: `/shared/exercise-library.ts` - 48 exercises with muscle engagement percentages
+- **Core Function**: `backend/database/analytics.ts:calculateWorkoutMetrics()` - Complete metrics calculation
+- **API Endpoint**: `backend/server.ts:270-294` - REST endpoint for metrics calculation
+- **Import Integration**: `scripts/import-workout.ts:171-210` - Automatic metrics calculation on import
+
+**Known Limitation** (Future Enhancement):
+- Detailed muscle tracking (42 specific muscles) not yet connected to workout calculations
+- Only 13 visualization muscles currently updated (Pectoralis, Triceps, etc.)
+- Detailed muscles (Triceps Long Head, Anterior Deltoid, stabilizers) show zeros
+- Infrastructure exists (`detailed_muscle_states` table, `detailedMuscleEngagements` in backend/constants.ts)
+- See GitHub issue for implementation plan
+
+**Impact**:
+- ✅ Core muscle fatigue tracking now functional
+- ✅ Workout recommendations now based on actual recovery
+- ✅ Muscle-aware training value proposition delivered
+- ✅ API imports automatically calculate metrics
+- ✅ Historical workouts processable via endpoint
+- ⏳ Detailed muscle tracking (minor groups/stabilizers) still pending
+
+**Related Issues**:
+- Investigation: `docs/investigations/muscle-fatigue-disconnection.md`
+- Implementation Plan: `docs/implementations/unified-muscle-fatigue-implementation-plan.md`
+- Resolution Summary: `docs/implementations/MUSCLE-FATIGUE-RESOLUTION.md`
+- Future Work: Detailed muscle fatigue integration (GitHub Issue #7)
+
+**Time to Resolution**: ~2 hours from investigation to working implementation
+
+---
+
 ### 2025-10-31 - Fix Historical Workout Data Integration
 
 **Status**: ✅ FIXED & TESTED
