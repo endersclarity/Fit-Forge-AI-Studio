@@ -665,6 +665,7 @@ app.post('/api/builder-workout', (req: Request<{}, QuickWorkoutResponse | ApiErr
         weight: set.weight,
         reps: set.reps,
         to_failure: false,  // Builder doesn't track to_failure yet
+        bodyweight_at_time: set.bodyweight_at_time,
       });
     }
 

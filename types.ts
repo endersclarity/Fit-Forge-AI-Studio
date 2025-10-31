@@ -253,6 +253,7 @@ export interface BuilderSet {
   weight: number;
   reps: number;
   restTimerSeconds: number;
+  bodyweightAtTime?: number; // Bodyweight when the set was logged (for bodyweight exercises)
 }
 
 export interface BuilderWorkout {
@@ -268,6 +269,7 @@ export interface BuilderWorkoutRequest {
     weight: number;
     reps: number;
     rest_timer_seconds: number;
+    bodyweight_at_time?: number;
   }>;
   timestamp: string;
   was_executed: boolean;

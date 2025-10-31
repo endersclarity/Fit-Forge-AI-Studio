@@ -1,5 +1,5 @@
 // Fix: Corrected import path for WorkoutSession type.
-import { WorkoutSession } from '../types';
+import { WorkoutSession, Exercise } from '../types';
 
 // Note: getDaysSince, calculateRecoveryPercentage, and getRecoveryColor have been removed
 // as part of Phase 5 cleanup. Muscle state calculations are now handled by the backend.
@@ -41,4 +41,28 @@ export const findPreviousWorkout = (currentWorkout: WorkoutSession, allWorkouts:
     return allWorkouts
         .filter(w => w.id !== currentWorkout.id && w.type === currentWorkout.type && w.variation === currentWorkout.variation)
         .sort((a, b) => b.endTime - a.endTime)[0];
+};
+
+/**
+ * Determines if an exercise is primarily a bodyweight exercise
+ * Checks equipment field for bodyweight indicators like "Bodyweight", "TRX", "Pull-up Bar"
+ */
+export const isBodyweightExercise = (exercise: Exercise | null | undefined): boolean => {
+    if (!exercise) return false;
+
+    const equipment = exercise.equipment;
+
+    // Handle array of equipment options
+    if (Array.isArray(equipment)) {
+        return equipment.some(eq =>
+            eq === 'Bodyweight' ||
+            eq === 'TRX' ||
+            eq === 'Pull-up Bar'
+        );
+    }
+
+    // Handle single equipment string
+    return equipment === 'Bodyweight' ||
+           equipment === 'TRX' ||
+           equipment === 'Pull-up Bar';
 };

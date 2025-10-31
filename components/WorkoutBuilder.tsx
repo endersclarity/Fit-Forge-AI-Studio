@@ -17,6 +17,7 @@ interface WorkoutBuilderProps {
   onSuccess: () => void;
   onToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   loadedTemplate?: WorkoutTemplate | null;
+  currentBodyweight?: number; // Current user bodyweight for bodyweight exercises
 }
 
 type BuilderMode = 'planning' | 'executing';
@@ -28,6 +29,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   onSuccess,
   onToast,
   loadedTemplate = null,
+  currentBodyweight,
 }) => {
   const [mode, setMode] = useState<BuilderMode>('planning');
   const [planningMode, setPlanningMode] = useState<PlanningMode>('forward');
@@ -355,6 +357,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           weight: s.weight,
           reps: s.reps,
           rest_timer_seconds: s.restTimerSeconds,
+          bodyweight_at_time: s.bodyweightAtTime,
         })),
         timestamp: new Date().toISOString(),
         was_executed: false,
@@ -447,6 +450,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           weight: s.weight,
           reps: s.reps,
           rest_timer_seconds: s.restTimerSeconds,
+          bodyweight_at_time: s.bodyweightAtTime,
         }));
 
       await builderAPI.saveBuilderWorkout({
@@ -847,6 +851,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             setEditingSet(null);
           }}
           onSave={handleSaveEditedSet}
+          currentBodyweight={currentBodyweight}
         />
 
         {/* Draft Restore Dialog */}

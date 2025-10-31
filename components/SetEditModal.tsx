@@ -1,26 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { BuilderSet } from '../types';
+import { BuilderSet, Exercise } from '../types';
+import { EXERCISE_LIBRARY } from '../constants';
+import { isBodyweightExercise } from '../utils/helpers';
 
 interface SetEditModalProps {
   set: BuilderSet | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: (updatedSet: BuilderSet) => void;
+  currentBodyweight?: number; // Current user bodyweight from profile
 }
 
-const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSave }) => {
+const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSave, currentBodyweight }) => {
   const [weight, setWeight] = useState(0);
   const [reps, setReps] = useState(10);
   const [restTimer, setRestTimer] = useState(90);
+  const [usingBodyweight, setUsingBodyweight] = useState(false);
+
+  // Get the exercise details
+  const exercise: Exercise | undefined = set ? EXERCISE_LIBRARY.find(ex => ex.id === set.exerciseId) : undefined;
+  const isBodyweightEx = isBodyweightExercise(exercise);
 
   // Initialize form values when set changes
   useEffect(() => {
     if (set) {
-      setWeight(set.weight);
+      // Smart detection: Auto-fill bodyweight for bodyweight exercises
+      if (isBodyweightEx && currentBodyweight && set.weight === 0) {
+        setWeight(currentBodyweight);
+        setUsingBodyweight(true);
+      } else {
+        setWeight(set.weight);
+        setUsingBodyweight(set.weight === currentBodyweight && currentBodyweight !== undefined);
+      }
       setReps(set.reps);
       setRestTimer(set.restTimerSeconds);
     }
-  }, [set]);
+  }, [set, currentBodyweight, isBodyweightEx]);
 
   // Close modal on Escape key
   useEffect(() => {
@@ -41,6 +56,8 @@ const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSav
       weight,
       reps,
       restTimerSeconds: restTimer,
+      // Include bodyweightAtTime if using bodyweight
+      bodyweightAtTime: usingBodyweight && currentBodyweight ? currentBodyweight : undefined,
     };
 
     onSave(updatedSet);
@@ -64,7 +81,7 @@ const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSav
             onClick={onClose}
             className="text-slate-400 hover:text-white text-2xl"
           >
-            ×
+            ï¿½
           </button>
         </header>
 
@@ -75,34 +92,73 @@ const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSav
         <div className="space-y-4">
           {/* Weight Input */}
           <div>
-            <label className="block text-sm text-slate-400 mb-2">Weight (lbs)</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm text-slate-400">Weight (lbs)</label>
+              {currentBodyweight && (
+                <button
+                  onClick={() => {
+                    setWeight(currentBodyweight);
+                    setUsingBodyweight(true);
+                  }}
+                  className={`text-xs px-2 py-1 rounded font-semibold transition-colors ${
+                    usingBodyweight
+                      ? 'bg-brand-cyan text-brand-dark'
+                      : 'bg-brand-muted text-slate-300 hover:bg-brand-dark'
+                  }`}
+                >
+                  {usingBodyweight ? 'âœ“ BW' : 'Use BW'}
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setWeight(Math.max(0, weight - 5))}
+                onClick={() => {
+                  setWeight(Math.max(0, weight - 5));
+                  setUsingBodyweight(false);
+                }}
                 className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
               >
                 -5
               </button>
               <button
-                onClick={() => setWeight(Math.max(0, weight - 2.5))}
+                onClick={() => {
+                  setWeight(Math.max(0, weight - 2.5));
+                  setUsingBodyweight(false);
+                }}
                 className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
               >
                 -2.5
               </button>
-              <input
-                type="number"
-                value={weight}
-                onChange={(e) => setWeight(Number(e.target.value))}
-                className="flex-1 bg-brand-muted text-white px-4 py-2 rounded text-center"
-              />
+              <div className="flex-1 relative">
+                <input
+                  type="number"
+                  value={weight}
+                  onChange={(e) => {
+                    setWeight(Number(e.target.value));
+                    setUsingBodyweight(false);
+                  }}
+                  className="w-full bg-brand-muted text-white px-4 py-2 rounded text-center"
+                />
+                {usingBodyweight && (
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-brand-cyan pointer-events-none">
+                    BW
+                  </span>
+                )}
+              </div>
               <button
-                onClick={() => setWeight(weight + 2.5)}
+                onClick={() => {
+                  setWeight(weight + 2.5);
+                  setUsingBodyweight(false);
+                }}
                 className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
               >
                 +2.5
               </button>
               <button
-                onClick={() => setWeight(weight + 5)}
+                onClick={() => {
+                  setWeight(weight + 5);
+                  setUsingBodyweight(false);
+                }}
                 className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
               >
                 +5

@@ -852,6 +852,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         }}
         onToast={handleToast}
         loadedTemplate={loadedTemplate}
+        currentBodyweight={profile.bodyweightHistory && profile.bodyweightHistory.length > 0
+          ? profile.bodyweightHistory.sort((a, b) => b.date - a.date)[0].weight
+          : undefined}
       />
 
       {/* Template Selector Modal */}
