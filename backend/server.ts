@@ -6,7 +6,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import * as db from './database/database';
-import { getAnalytics, AnalyticsResponse } from './database/analytics';
+import { getAnalytics, AnalyticsResponse, calculateWorkoutMetrics, CalculatedMetricsResponse } from './database/analytics';
 import { getExerciseByName } from './constants';
 import {
   ProfileResponse,
@@ -263,6 +263,33 @@ app.post('/api/workouts', (req: Request<{}, WorkoutResponse | ApiErrorResponse, 
     }
 
     return res.status(500).json({ error: 'Failed to save workout' });
+  }
+});
+
+// Calculate metrics for a workout (muscle volume, fatigue, baselines, PRs)
+app.post('/api/workouts/:id/calculate-metrics', (req: Request, res: Response<CalculatedMetricsResponse | ApiErrorResponse>) => {
+  try {
+    const workoutId = parseInt(req.params.id);
+    if (isNaN(workoutId)) {
+      return res.status(400).json({ error: 'Invalid workout ID' });
+    }
+
+    const metrics = calculateWorkoutMetrics(workoutId);
+    return res.status(200).json(metrics);
+  } catch (error: any) {
+    console.error('Error calculating workout metrics:', error);
+
+    if (error.message && error.message.includes('Workout not found')) {
+      return res.status(404).json({
+        error: 'Workout not found',
+        message: error.message
+      });
+    }
+
+    return res.status(500).json({
+      error: 'Failed to calculate workout metrics',
+      message: error.message
+    });
   }
 });
 

@@ -291,6 +291,7 @@ export interface ProfileResponse {
     maxWeight: number;
     increment: number;
   }>;
+  recovery_days_to_full?: number;
 }
 
 export interface ProfileUpdateRequest {
@@ -306,6 +307,7 @@ export interface ProfileUpdateRequest {
     maxWeight: number;
     increment: number;
   }>;
+  recovery_days_to_full?: number;
 }
 
 // Workout API Types
@@ -473,6 +475,7 @@ export interface HealthCheckResponse {
 // Error Response Type
 export interface ApiErrorResponse {
   error: string;
+  code?: string;
   message?: string;
   hint?: string;
 }

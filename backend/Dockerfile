@@ -4,19 +4,28 @@ FROM node:20-alpine
 # Install wget for healthcheck
 RUN apk add --no-cache wget
 
-# Set working directory
+# Set working directory to project root
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files to backend subdirectory
+COPY backend/package*.json ./backend/
 
-# Install ALL dependencies (including dev dependencies for TypeScript build)
+# Install dependencies in backend subdirectory
+WORKDIR /app/backend
 RUN npm install
 
-# Copy source files
-COPY . .
+# Return to project root to copy shared code
+WORKDIR /app
 
-# Build TypeScript
+# Copy shared folder and root types (needed for exercise library)
+COPY shared/ ./shared/
+COPY types.ts ./types.ts
+
+# Copy backend source files (preserves directory structure)
+COPY backend/ ./backend/
+
+# Build TypeScript from backend directory
+WORKDIR /app/backend
 RUN npm run build
 
 # Remove devDependencies to reduce image size
@@ -28,5 +37,5 @@ EXPOSE 3001
 # Set environment variable for database path
 ENV DB_PATH=/data/fitforge.db
 
-# Start the server from compiled output
+# Start the server from compiled output (runs from /app/backend)
 CMD ["node", "dist/server.js"]

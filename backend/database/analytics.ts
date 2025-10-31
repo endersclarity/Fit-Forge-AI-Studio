@@ -1,4 +1,5 @@
 import { db } from './database';
+import { Muscle, MuscleStatesResponse, BaselineUpdate, PRInfo } from '../types';
 
 // ============================================
 // ANALYTICS TYPES
@@ -616,5 +617,275 @@ export function getAnalytics(
     volumeTrends,
     prTimeline,
     consistencyMetrics
+  };
+}
+
+// ============================================
+// WORKOUT METRICS CALCULATION
+// ============================================
+
+import { EXERCISE_LIBRARY as SHARED_EXERCISE_LIBRARY } from '../../shared/exercise-library';
+
+// Helper function to calculate volume (reps * weight)
+function calculateVolume(reps: number, weight: number): number {
+  return reps * weight;
+}
+
+export interface CalculatedMetricsResponse {
+  muscleStates: MuscleStatesResponse;
+  updatedBaselines: BaselineUpdate[];
+  prsDetected: PRInfo[];
+  muscleFatigue: Record<string, number>;
+}
+
+/**
+ * Calculate all metrics for a workout (muscle volumes, fatigue, baselines, PRs)
+ * This is the backend implementation of the logic from App.tsx:handleFinishWorkout()
+ */
+export function calculateWorkoutMetrics(workoutId: number): CalculatedMetricsResponse {
+  // 1. Fetch the workout with all exercises
+  const workout = db.prepare(`
+    SELECT id, date, category, variation, progression_method, duration_seconds, created_at
+    FROM workouts
+    WHERE id = ? AND user_id = 1
+  `).get(workoutId) as any;
+
+  if (!workout) {
+    throw new Error(`Workout not found: ${workoutId}`);
+  }
+
+  const exerciseSets = db.prepare(`
+    SELECT exercise_name, weight, reps, set_number, to_failure
+    FROM exercise_sets
+    WHERE workout_id = ?
+    ORDER BY set_number ASC
+  `).all(workoutId) as Array<{
+    exercise_name: string;
+    weight: number;
+    reps: number;
+    set_number: number;
+    to_failure: number;
+  }>;
+
+  // Group sets by exercise
+  const exercisesByName = exerciseSets.reduce((acc, set) => {
+    if (!acc[set.exercise_name]) {
+      acc[set.exercise_name] = [];
+    }
+    acc[set.exercise_name].push({
+      weight: set.weight,
+      reps: set.reps,
+      to_failure: Boolean(set.to_failure)
+    });
+    return acc;
+  }, {} as Record<string, Array<{ weight: number; reps: number; to_failure: boolean }>>);
+
+  // 2. Calculate muscle volumes using EXERCISE_LIBRARY
+  const ALL_MUSCLES = Object.values(Muscle);
+  const workoutMuscleVolumes: Record<Muscle, number> = ALL_MUSCLES.reduce(
+    (acc, muscle) => ({ ...acc, [muscle]: 0 }),
+    {} as Record<Muscle, number>
+  );
+
+  Object.entries(exercisesByName).forEach(([exerciseName, sets]) => {
+    const exerciseInfo = SHARED_EXERCISE_LIBRARY.find(e => e.name === exerciseName);
+    if (!exerciseInfo) {
+      console.warn(`Exercise not found in library: ${exerciseName}`);
+      return;
+    }
+
+    const exerciseVolume = sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
+
+    exerciseInfo.muscleEngagements.forEach(engagement => {
+      workoutMuscleVolumes[engagement.muscle] += exerciseVolume * (engagement.percentage / 100);
+    });
+  });
+
+  // 3. Get current baselines and calculate fatigue
+  const baselines = db.prepare(`
+    SELECT muscle_name, system_learned_max, user_override
+    FROM muscle_baselines
+    WHERE user_id = 1
+  `).all() as Array<{
+    muscle_name: string;
+    system_learned_max: number;
+    user_override: number | null;
+  }>;
+
+  const baselineMap: Record<string, { systemLearnedMax: number; userOverride: number | null }> = {};
+  baselines.forEach(b => {
+    baselineMap[b.muscle_name] = {
+      systemLearnedMax: b.system_learned_max,
+      userOverride: b.user_override
+    };
+  });
+
+  const muscleFatigue: Record<string, number> = {};
+  const updatedBaselines: BaselineUpdate[] = [];
+
+  Object.entries(workoutMuscleVolumes).forEach(([muscle, volume]) => {
+    if (volume <= 0) return;
+
+    const baseline = baselineMap[muscle]?.userOverride || baselineMap[muscle]?.systemLearnedMax || 10000;
+    const fatiguePercent = Math.min((volume / baseline) * 100, 100);
+    muscleFatigue[muscle] = fatiguePercent;
+
+    // 4. Learn new baselines if volume exceeds current max
+    const currentMax = baselineMap[muscle]?.systemLearnedMax || 0;
+    if (volume > currentMax) {
+      const newMax = Math.round(volume);
+
+      // Update database
+      db.prepare(`
+        INSERT INTO muscle_baselines (user_id, muscle_name, system_learned_max, user_override)
+        VALUES (1, ?, ?, NULL)
+        ON CONFLICT(user_id, muscle_name) DO UPDATE SET
+          system_learned_max = excluded.system_learned_max,
+          updated_at = CURRENT_TIMESTAMP
+      `).run(muscle, newMax);
+
+      updatedBaselines.push({
+        muscle,
+        oldMax: currentMax,
+        newMax
+      });
+    }
+  });
+
+  // 5. Update muscle states
+  const workoutDate = new Date(workout.date).toISOString();
+  Object.entries(muscleFatigue).forEach(([muscle, fatigue]) => {
+    db.prepare(`
+      INSERT INTO muscle_states (user_id, muscle_name, initial_fatigue_percent, last_trained)
+      VALUES (1, ?, ?, ?)
+      ON CONFLICT(user_id, muscle_name) DO UPDATE SET
+        initial_fatigue_percent = excluded.initial_fatigue_percent,
+        last_trained = excluded.last_trained,
+        updated_at = CURRENT_TIMESTAMP
+    `).run(muscle, fatigue, workoutDate);
+  });
+
+  // 6. Detect PRs and update personal_bests
+  const prsDetected: PRInfo[] = [];
+
+  Object.entries(exercisesByName).forEach(([exerciseName, sets]) => {
+    const sessionVolume = sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
+    const bestSetInSession = Math.max(...sets.map(s => calculateVolume(s.reps, s.weight)), 0);
+
+    // Get current PR
+    const currentPR = db.prepare(`
+      SELECT best_single_set, best_session_volume, rolling_average_max
+      FROM personal_bests
+      WHERE user_id = 1 AND exercise_name = ?
+    `).get(exerciseName) as { best_single_set: number; best_session_volume: number; rolling_average_max: number } | undefined;
+
+    const previousBestSingleSet = currentPR?.best_single_set || 0;
+    const previousBestSessionVolume = currentPR?.best_session_volume || 0;
+
+    const newBestSingleSet = Math.max(previousBestSingleSet, bestSetInSession);
+    const newBestSessionVolume = Math.max(previousBestSessionVolume, sessionVolume);
+
+    // Calculate rolling average from last 5 workouts
+    const last5Workouts = db.prepare(`
+      SELECT es.weight, es.reps
+      FROM exercise_sets es
+      JOIN workouts w ON es.workout_id = w.id
+      WHERE w.user_id = 1 AND es.exercise_name = ?
+      ORDER BY w.date DESC
+      LIMIT 5
+    `).all(exerciseName) as Array<{ weight: number; reps: number }>;
+
+    const bestSetsFromLast5 = last5Workouts.length > 0
+      ? last5Workouts.map(s => calculateVolume(s.reps, s.weight))
+      : [bestSetInSession];
+
+    const newRollingAverage = bestSetsFromLast5.length > 0
+      ? bestSetsFromLast5.reduce((a, b) => a + b, 0) / bestSetsFromLast5.length
+      : 0;
+
+    // Update personal_bests table
+    db.prepare(`
+      INSERT INTO personal_bests (user_id, exercise_name, best_single_set, best_session_volume, rolling_average_max)
+      VALUES (1, ?, ?, ?, ?)
+      ON CONFLICT(user_id, exercise_name) DO UPDATE SET
+        best_single_set = excluded.best_single_set,
+        best_session_volume = excluded.best_session_volume,
+        rolling_average_max = excluded.rolling_average_max,
+        updated_at = CURRENT_TIMESTAMP
+    `).run(exerciseName, newBestSingleSet, newBestSessionVolume, newRollingAverage);
+
+    // Detect if this is a PR
+    if (newBestSessionVolume > previousBestSessionVolume) {
+      prsDetected.push({
+        isPR: true,
+        exercise: exerciseName,
+        newVolume: newBestSessionVolume,
+        previousVolume: previousBestSessionVolume,
+        improvement: newBestSessionVolume - previousBestSessionVolume,
+        percentIncrease: previousBestSessionVolume > 0
+          ? ((newBestSessionVolume - previousBestSessionVolume) / previousBestSessionVolume) * 100
+          : 100,
+        isFirstTime: previousBestSessionVolume === 0
+      });
+    }
+  });
+
+  // 7. Get updated muscle states for response
+  const updatedMuscleStates = db.prepare(`
+    SELECT muscle_name, initial_fatigue_percent, last_trained
+    FROM muscle_states
+    WHERE user_id = 1
+  `).all() as Array<{
+    muscle_name: string;
+    initial_fatigue_percent: number;
+    last_trained: string | null;
+  }>;
+
+  // Get user's recovery settings
+  const profile = db.prepare(`
+    SELECT recovery_days_to_full FROM user_profile WHERE user_id = 1
+  `).get() as { recovery_days_to_full: number } | undefined;
+
+  const recoveryDaysToFull = profile?.recovery_days_to_full || 5;
+
+  const muscleStates: MuscleStatesResponse = {};
+  updatedMuscleStates.forEach(state => {
+    const now = new Date();
+    const lastTrained = state.last_trained ? new Date(state.last_trained) : null;
+    const daysElapsed = lastTrained
+      ? Math.floor((now.getTime() - lastTrained.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+
+    const currentFatiguePercent = lastTrained && daysElapsed !== null
+      ? Math.max(0, state.initial_fatigue_percent * (1 - daysElapsed / recoveryDaysToFull))
+      : state.initial_fatigue_percent;
+
+    const daysUntilRecovered = currentFatiguePercent > 0
+      ? Math.ceil((currentFatiguePercent / 100) * recoveryDaysToFull)
+      : 0;
+
+    let recoveryStatus: 'ready' | 'recovering' | 'fatigued' = 'ready';
+    if (currentFatiguePercent >= 50) {
+      recoveryStatus = 'fatigued';
+    } else if (currentFatiguePercent > 0) {
+      recoveryStatus = 'recovering';
+    }
+
+    muscleStates[state.muscle_name] = {
+      currentFatiguePercent,
+      daysElapsed,
+      estimatedRecoveryDays: recoveryDaysToFull,
+      daysUntilRecovered,
+      recoveryStatus,
+      initialFatiguePercent: state.initial_fatigue_percent,
+      lastTrained: state.last_trained
+    };
+  });
+
+  return {
+    muscleStates,
+    updatedBaselines,
+    prsDetected,
+    muscleFatigue
   };
 }

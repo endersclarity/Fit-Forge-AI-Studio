@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "analyze-templates": "tsx scripts/analyze-templates.ts",
+    "import-workout": "tsx scripts/import-workout.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest",

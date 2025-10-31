@@ -29,6 +29,3 @@ README-LOCAL.md
 
 # Data (don't copy into image)
 data/
-
-# Backend files (frontend doesn't need these)
-backend/

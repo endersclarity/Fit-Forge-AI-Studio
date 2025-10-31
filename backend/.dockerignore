@@ -1,4 +1,4 @@
-# Node modules
+# Node modules (will be installed in Docker)
 node_modules
 npm-debug.log
 
@@ -14,9 +14,8 @@ npm-debug.log
 .DS_Store
 Thumbs.db
 
-# Docker
-Dockerfile
-.dockerignore
+# Documentation
+README.md
 
-# Data (will be mounted as volume)
-../data/
+# Data (don't copy into image, use volume mount instead)
+data/
