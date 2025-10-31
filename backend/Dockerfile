@@ -1,8 +1,8 @@
 # Backend Dockerfile for FitForge Local
-FROM node:20-alpine
+FROM node:20-slim
 
 # Install wget for healthcheck
-RUN apk add --no-cache wget
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
 # Set working directory to project root
 WORKDIR /app
