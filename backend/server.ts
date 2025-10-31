@@ -331,6 +331,18 @@ app.delete('/api/workouts/:id', (req: Request, res: Response) => {
   }
 });
 
+// Get detailed muscle states (43 detailed muscles with current fatigue)
+// NOTE: This MUST come BEFORE /api/muscle-states to avoid route collision
+app.get('/api/muscle-states/detailed', (_req: Request, res: Response) => {
+  try {
+    const states = db.getDetailedMuscleStates();
+    res.json(states);
+  } catch (error) {
+    console.error('Error getting detailed muscle states:', error);
+    res.status(500).json({ error: 'Failed to get detailed muscle states' });
+  }
+});
+
 // Get muscle states
 app.get('/api/muscle-states', (_req: Request, res: Response<MuscleStatesResponse | ApiErrorResponse>) => {
   try {
@@ -350,17 +362,6 @@ app.put('/api/muscle-states', (req: Request<{}, MuscleStatesResponse | ApiErrorR
   } catch (error) {
     console.error('Error updating muscle states:', error);
     res.status(500).json({ error: 'Failed to update muscle states' });
-  }
-});
-
-// Get detailed muscle states (43 detailed muscles with current fatigue)
-app.get('/api/muscle-states/detailed', (_req: Request, res: Response) => {
-  try {
-    const states = db.getDetailedMuscleStates();
-    res.json(states);
-  } catch (error) {
-    console.error('Error getting detailed muscle states:', error);
-    res.status(500).json({ error: 'Failed to get detailed muscle states' });
   }
 });
 

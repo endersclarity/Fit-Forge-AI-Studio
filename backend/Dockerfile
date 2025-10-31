@@ -38,4 +38,5 @@ EXPOSE 3001
 ENV DB_PATH=/data/fitforge.db
 
 # Start the server from compiled output (runs from /app/backend)
-CMD ["node", "dist/server.js"]
+# Note: TypeScript with rootDir="../" creates nested structure
+CMD ["node", "dist/backend/server.js"]

@@ -7,6 +7,60 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-10-31 - Fix API Route Ordering and TypeScript Build Path Issues
+
+**Status**: ✅ IMPLEMENTED & TESTED
+**Type**: Backend API & Build System Fix
+**Severity**: High (404 errors on critical API endpoint, prevented homepage from loading)
+
+**Files Changed**:
+- `backend/server.ts` (modified - reordered muscle-states routes)
+- `backend/Dockerfile` (modified - updated CMD path to dist/backend/server.js)
+- `backend/package.json` (modified - updated build script to copy SQL files to nested dist path)
+
+**Summary**: Fixed critical 404 error on `/api/muscle-states/detailed` endpoint and resolved TypeScript compilation output path issues that prevented the backend from starting correctly.
+
+**Problem 1 - Route Ordering**:
+The `/api/muscle-states/detailed` endpoint was returning 404 because Express matched the more generic `/api/muscle-states` route first. Express evaluates routes in the order they're defined, and string-based paths like `/api/muscle-states` will match before more specific paths like `/api/muscle-states/detailed`.
+
+**Solution 1**:
+Moved the detailed route BEFORE the generic route in server.ts:
+```typescript
+// Detailed route MUST come first
+app.get('/api/muscle-states/detailed', ...)
+// Generic route comes after
+app.get('/api/muscle-states', ...)
+```
+
+**Problem 2 - TypeScript Build Path**:
+The TypeScript compiler with `rootDir: "../"` was creating a nested directory structure (`dist/backend/server.js`) but the Dockerfile CMD was pointing to `dist/server.js`. Additionally, the build script was copying database files to the wrong location.
+
+**Root Cause Analysis**:
+- tsconfig.json has `rootDir: "../"` to include shared code and types from parent directory
+- This causes TypeScript to preserve the full directory structure in the output
+- Compiled output: `/app/backend/dist/backend/server.js` (nested)
+- Dockerfile CMD was: `node dist/server.js` (wrong path)
+- Build script copied to: `dist/database/` (wrong path)
+
+**Solution 2**:
+1. Updated Dockerfile CMD: `node dist/backend/server.js`
+2. Updated package.json build script to copy SQL files to `dist/backend/database/`
+
+**Testing Results**:
+- ✅ `/api/muscle-states/detailed` endpoint responds with 200 OK
+- ✅ Homepage loads all visual elements (Muscle Recovery Status, workout recommendations, etc.)
+- ✅ No console errors except expected Tailwind CDN warning
+- ✅ Backend starts successfully with all migrations applied
+- ✅ Frontend displays muscle heat map and detailed muscle states
+
+**Technical Notes**:
+- Express route order matters: more specific routes must be defined before generic ones
+- TypeScript rootDir setting affects output directory structure
+- Docker build caching can cause stale compiled output to persist
+- Used `--no-cache` flag to force clean rebuild
+
+---
+
 ### 2025-10-30 - Fix Better-SQLite3 Alpine Compatibility
 
 **Status**: ✅ IMPLEMENTED & TESTED
