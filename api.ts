@@ -17,8 +17,10 @@ import type {
 } from './types';
 import { EXERCISE_LIBRARY } from './constants';
 
-// API base URL - defaults to same origin in production, localhost:3002 in development (npm) or 3001 (Docker)
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+// API base URL - uses environment variable in production, localhost in development
+// In production (Railway): VITE_API_URL should be set to the backend service URL
+// In development: defaults to localhost:3001 (Docker) or localhost:3002 (npm)
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 /**
  * Generic API request helper

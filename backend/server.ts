@@ -39,16 +39,23 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
 
 // Middleware
-// Restrict CORS to localhost origins only to prevent CSRF attacks
+// CORS configuration - supports both development and production
+const allowedOrigins = [
+  'http://localhost:3000',      // Vite dev server / Docker frontend
+  'http://localhost:5173',      // Vite default port
+  'http://localhost:5000',      // Serve port
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5000'
+];
+
+// Add production frontend URL from environment variable
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 const corsOptions: cors.CorsOptions = {
-  origin: [
-    'http://localhost:3000',      // Vite dev server / Docker frontend
-    'http://localhost:5173',      // Vite default port
-    'http://localhost:5000',      // Serve port
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5000'
-  ],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: false,
   maxAge: 86400
