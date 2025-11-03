@@ -1888,7 +1888,8 @@ function deleteWorkoutTemplate(id: string | number): boolean {
 /**
  * Seed default workout templates (called on startup if none exist)
  */
-function seedDefaultTemplates(): void {
+// Function kept for potential future use - exported to avoid unused warning
+export function seedDefaultTemplates(): void {
   try {
     console.log('Checking for existing templates...');
     // Check if templates already exist
@@ -1992,9 +1993,11 @@ function seedDefaultTemplates(): void {
   }
 }
 
-// Run seed function on startup
-console.log('Running seed function...');
-seedDefaultTemplates();
+// Note: Automatic template seeding disabled to support fresh database initialization
+// Templates can be seeded after first user is created, or added manually
+// TODO: Consider adding template seeding to initializeProfile() if default templates are desired
+// console.log('Running seed function...');
+// seedDefaultTemplates();
 
 /**
  * Get last variation used for a category and suggest opposite

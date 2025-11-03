@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS workout_rotation_state (
 -- Create index for faster user lookup
 CREATE INDEX IF NOT EXISTS idx_rotation_state_user ON workout_rotation_state(user_id);
 
--- Initialize default state for existing user (user_id = 1)
-INSERT INTO workout_rotation_state (user_id, current_cycle, current_phase, rest_days_count)
-VALUES (1, 'A', 0, 0)
-ON CONFLICT(user_id) DO NOTHING;
+-- Note: User-specific data initialization removed
+-- Workout rotation state is now created during user onboarding via initializeProfile()
+-- This ensures proper multi-user support without hardcoded user_id=1

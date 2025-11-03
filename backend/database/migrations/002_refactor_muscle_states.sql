@@ -22,24 +22,10 @@ CREATE TABLE muscle_states (
 -- Recreate index for query performance
 CREATE INDEX IF NOT EXISTS idx_muscle_states_user ON muscle_states(user_id);
 
--- Re-initialize all 13 muscle groups for default user
-INSERT INTO muscle_states (user_id, muscle_name) VALUES
-  (1, 'Pectoralis'),
-  (1, 'Triceps'),
-  (1, 'Deltoids'),
-  (1, 'Lats'),
-  (1, 'Biceps'),
-  (1, 'Rhomboids'),
-  (1, 'Trapezius'),
-  (1, 'Forearms'),
-  (1, 'Quadriceps'),
-  (1, 'Glutes'),
-  (1, 'Hamstrings'),
-  (1, 'Calves'),
-  (1, 'Core');
+-- Note: User-specific data initialization removed
+-- Muscle states are now created during user onboarding via initializeProfile()
+-- This ensures proper multi-user support without hardcoded user_id=1
 
 -- Verify migration
 -- Should have 7 columns: id, user_id, muscle_name, initial_fatigue_percent, volume_today, last_trained, updated_at
--- Should have 13 rows (one per muscle)
--- SELECT COUNT(*) FROM muscle_states; -- Expected: 13
 -- PRAGMA table_info(muscle_states); -- Verify column names
