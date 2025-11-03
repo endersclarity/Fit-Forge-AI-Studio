@@ -1,31 +1,27 @@
 # Backend Dockerfile for FitForge Local
+# This Dockerfile is designed to run from the /backend directory as root
 FROM node:20-slim
 
 # Install wget for healthcheck
 RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
-# Set working directory to project root
+# Set working directory
 WORKDIR /app
 
-# Copy package files to backend subdirectory
-COPY backend/package*.json ./backend/
+# Copy package files
+COPY package*.json ./
 
-# Install dependencies in backend subdirectory
-WORKDIR /app/backend
+# Install dependencies
 RUN npm install
 
-# Return to project root to copy shared code
-WORKDIR /app
+# Copy shared folder and root types from parent directory (needed for exercise library)
+COPY ../shared/ ../shared/
+COPY ../types.ts ../types.ts
 
-# Copy shared folder and root types (needed for exercise library)
-COPY shared/ ./shared/
-COPY types.ts ./types.ts
+# Copy backend source files
+COPY . .
 
-# Copy backend source files (preserves directory structure)
-COPY backend/ ./backend/
-
-# Build TypeScript from backend directory
-WORKDIR /app/backend
+# Build TypeScript
 RUN npm run build
 
 # Remove devDependencies to reduce image size
@@ -37,6 +33,6 @@ EXPOSE 3001
 # Set environment variable for database path
 ENV DB_PATH=/data/fitforge.db
 
-# Start the server from compiled output (runs from /app/backend)
+# Start the server from compiled output
 # Note: TypeScript with rootDir="../" creates nested structure
 CMD ["node", "dist/backend/server.js"]
