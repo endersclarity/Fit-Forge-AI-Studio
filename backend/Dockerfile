@@ -1,4 +1,5 @@
 # Backend Dockerfile for FitForge Local
+# Force rebuild after Root Directory fix
 FROM node:20-slim
 
 # Install wget for healthcheck
