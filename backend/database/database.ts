@@ -59,9 +59,24 @@ if (fs.existsSync(migrationsDir)) {
   for (const file of migrationFiles) {
     const migrationPath = path.join(migrationsDir, file);
     const migration = fs.readFileSync(migrationPath, 'utf8');
+
+    // Verify muscle_states schema BEFORE migration
+    if (file.includes('002') || file.includes('011')) {
+      const beforeSchema = db.prepare('PRAGMA table_info(muscle_states)').all();
+      console.log(`BEFORE ${file}: muscle_states has ${beforeSchema.length} columns`);
+    }
+
     try {
       db.exec(migration);
       console.log(`Migration applied: ${file}`);
+
+      // Verify muscle_states schema AFTER migration
+      if (file.includes('002') || file.includes('011')) {
+        const afterSchema = db.prepare('PRAGMA table_info(muscle_states)').all();
+        console.log(`AFTER ${file}: muscle_states has ${afterSchema.length} columns`);
+        const hasVolumeToday = afterSchema.some((col: any) => col.name === 'volume_today');
+        console.log(`volume_today present: ${hasVolumeToday}`);
+      }
     } catch (error: any) {
       // Ignore errors for migrations that have already been applied
       if (!error.message.includes('already exists') && !error.message.includes('duplicate')) {
