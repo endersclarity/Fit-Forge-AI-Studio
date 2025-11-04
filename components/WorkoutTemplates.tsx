@@ -29,7 +29,14 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
     try {
       setLoading(true);
       const data = await templatesAPI.getAll();
-      setTemplates(data);
+      console.log('Templates loaded:', data);
+      console.log('Templates type:', Array.isArray(data) ? 'array' : typeof data);
+      if (data) {
+        data.forEach((t, i) => {
+          console.log(`Template ${i}:`, t.name, 'exerciseIds:', t.exerciseIds);
+        });
+      }
+      setTemplates(data || []);
       setError(null);
     } catch (err) {
       console.error('Failed to load templates:', err);
