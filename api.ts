@@ -54,6 +54,20 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     throw error;
   }
 
+  // Handle 304 Not Modified - no body returned, fetch without cache
+  if (response.status === 304) {
+    // Retry without cache to get fresh data
+    const freshResponse = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        ...options.headers,
+      },
+    });
+    return freshResponse.json();
+  }
+
   return response.json();
 }
 
