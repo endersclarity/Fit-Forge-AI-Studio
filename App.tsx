@@ -247,12 +247,19 @@ const App: React.FC = () => {
   // Show error state if any critical API failed (excluding USER_NOT_FOUND which is handled above)
   const hasError = (profileError && (profileError as any).code !== 'USER_NOT_FOUND') || workoutsError || muscleBaselinesError;
   if (hasError) {
+    // Get backend URL from environment or default
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    const isProduction = !backendUrl.includes('localhost');
+
     return (
       <div className="flex items-center justify-center min-h-screen bg-brand-dark p-4">
         <div className="text-center bg-brand-surface p-6 rounded-lg max-w-md">
           <p className="text-red-400 font-semibold mb-2">Failed to connect to backend</p>
           <p className="text-slate-400 text-sm mb-4">
-            Make sure the backend server is running at http://localhost:3001
+            {isProduction
+              ? 'Unable to connect to the server. Please try again later.'
+              : `Make sure the backend server is running at ${backendUrl}`
+            }
           </p>
           <button
             onClick={() => window.location.reload()}

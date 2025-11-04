@@ -533,7 +533,9 @@ function calculateConsistencyMetrics(workouts: WorkoutRow[]): ConsistencyMetrics
   // Calculate average weekly frequency
   const oldestWorkout = new Date(sorted[sorted.length - 1].date);
   const weeksElapsed = (today.getTime() - oldestWorkout.getTime()) / (1000 * 60 * 60 * 24 * 7);
-  const avgWeeklyFrequency = weeksElapsed > 0 ? workouts.length / weeksElapsed : 0;
+  // Ensure minimum 1-week window to avoid unrealistic frequencies for new users
+  const weeksForFrequency = Math.max(weeksElapsed, 1);
+  const avgWeeklyFrequency = workouts.length / weeksForFrequency;
 
   // Build activity calendar
   const activityCalendar: ActivityDay[] = [];

@@ -71,6 +71,17 @@ export const profileAPI = {
       bodyweightHistory: response.bodyweightHistory?.map((entry: any) => ({
         date: new Date(entry.date).getTime(),
         weight: entry.weight
+      })) || [],
+      // Transform equipment from backend format to frontend EquipmentItem format
+      equipment: response.equipment?.map((item: any, index: number) => ({
+        id: `eq-${Date.now()}-${index}`,  // Generate client-side ID
+        type: item.name,                   // name → type
+        weightRange: {
+          min: item.minWeight,             // minWeight → weightRange.min
+          max: item.maxWeight              // maxWeight → weightRange.max
+        },
+        quantity: 2,                       // Default to 2 (not stored in backend)
+        increment: item.increment          // increment stays same
       })) || []
     };
   },
@@ -83,6 +94,13 @@ export const profileAPI = {
       bodyweightHistory: profile.bodyweightHistory?.map(entry => ({
         date: new Date(entry.date).toISOString(),
         weight: entry.weight
+      })) || [],
+      // Transform equipment from frontend EquipmentItem format to backend format
+      equipment: profile.equipment?.map(item => ({
+        name: item.type,              // type → name
+        minWeight: item.weightRange.min,  // weightRange.min → minWeight
+        maxWeight: item.weightRange.max,  // weightRange.max → maxWeight
+        increment: item.increment     // increment stays same
       })) || []
     };
     const response = await apiRequest<any>('/profile', {
@@ -97,6 +115,17 @@ export const profileAPI = {
       bodyweightHistory: response.bodyweightHistory?.map((entry: any) => ({
         date: new Date(entry.date).getTime(),
         weight: entry.weight
+      })) || [],
+      // Transform equipment from backend format back to frontend EquipmentItem format
+      equipment: response.equipment?.map((item: any, index: number) => ({
+        id: `eq-${Date.now()}-${index}`,  // Generate client-side ID
+        type: item.name,                   // name → type
+        weightRange: {
+          min: item.minWeight,             // minWeight → weightRange.min
+          max: item.maxWeight              // maxWeight → weightRange.max
+        },
+        quantity: 2,                       // Default to 2 (not stored in backend)
+        increment: item.increment          // increment stays same
       })) || []
     };
   },

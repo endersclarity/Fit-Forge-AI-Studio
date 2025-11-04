@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
 import { Muscle, MuscleStatesResponse, DetailedMuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse, PlannedExercise } from '../types';
 import { formatDuration } from '../utils/helpers';
@@ -500,6 +501,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
+  // Get location for refresh detection
+  const location = useLocation();
+
   // Toast handler
   const handleToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToastMessage(message);
@@ -566,10 +570,10 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
     }
   };
 
-  // Auto-refresh on component mount
+  // Auto-refresh on component mount AND when navigating back to dashboard
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [location.pathname]);
 
   // Calculate stats using useMemo for performance
   const streak = useMemo(() => calculateStreak(workoutHistory), [workoutHistory]);
