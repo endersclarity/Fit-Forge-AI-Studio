@@ -62,13 +62,15 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
     setSuggestions(suggestionsMap);
   };
 
-  const getExerciseNames = (exerciseIds: string[]): string[] => {
+  const getExerciseNames = (exerciseIds: string[] | undefined): string[] => {
+    if (!exerciseIds || !Array.isArray(exerciseIds)) return [];
     return exerciseIds
       .map(id => EXERCISE_LIBRARY.find(ex => ex.id === id)?.name || id)
       .filter(Boolean);
   };
 
-  const getRequiredEquipment = (exerciseIds: string[]): string[] => {
+  const getRequiredEquipment = (exerciseIds: string[] | undefined): string[] => {
+    if (!exerciseIds || !Array.isArray(exerciseIds)) return [];
     const equipment = new Set<string>();
     exerciseIds.forEach(id => {
       const exercise = EXERCISE_LIBRARY.find(ex => ex.id === id);
@@ -171,7 +173,7 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
                           )}
                         </div>
                         <p className="text-sm text-slate-400">
-                          Variation {template.variation} • {template.exerciseIds.length} exercises
+                          Variation {template.variation} • {template.exerciseIds?.length || 0} exercises
                           {template.timesUsed > 0 && ` • Used ${template.timesUsed}x`}
                         </p>
                       </div>
