@@ -305,6 +305,9 @@ function initializeProfile(request: ProfileInitRequest): ProfileResponse {
   // Initialize detailed muscle states (Phase 1 of dual-layer muscle tracking)
   initializeDetailedMuscleStates(1, baseline);
 
+  // Seed default workout templates (Push/Pull/Legs/Core A+B variations)
+  seedDefaultTemplates();
+
   return getProfile();
 }
 

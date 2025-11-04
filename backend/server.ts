@@ -833,6 +833,22 @@ app.delete('/api/templates/:id', (req: Request<{ id: string }>, res: Response<{ 
   }
 });
 
+// Seed default workout templates (Push/Pull/Legs/Core A+B variations)
+app.post('/api/templates/seed', (_req: Request, res: Response<{ success: boolean; message: string; count: number } | ApiErrorResponse>) => {
+  try {
+    db.seedDefaultTemplates();
+    const templates = db.getWorkoutTemplates();
+    return res.json({
+      success: true,
+      message: 'Default templates seeded successfully',
+      count: templates.length
+    });
+  } catch (error) {
+    console.error('Error seeding templates:', error);
+    return res.status(500).json({ error: 'Failed to seed default templates' });
+  }
+});
+
 // Get analytics data
 app.get('/api/analytics', (req: Request, res: Response<AnalyticsResponse | ApiErrorResponse>) => {
   try {
