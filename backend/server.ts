@@ -80,6 +80,17 @@ app.get('/api/health', (_req: Request, res: Response<HealthCheckResponse>) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// DEBUG: Check database schema
+app.get('/api/debug/schema', (_req: Request, res: Response) => {
+  try {
+    const schema = db.getDatabaseSchemaInfo();
+    res.json(schema);
+  } catch (error) {
+    console.error('Error getting schema:', error);
+    res.status(500).json({ error: 'Failed to get schema' });
+  }
+});
+
 // Get user profile
 app.get('/api/profile', (_req: Request, res: Response<ProfileResponse | ApiErrorResponse>) => {
   try {

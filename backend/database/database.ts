@@ -2280,6 +2280,23 @@ function getExerciseHistory(exerciseId: string): {
   };
 }
 
+/**
+ * Get database schema information for debugging
+ */
+function getDatabaseSchemaInfo(): any {
+  const muscleStatesInfo = db.prepare('PRAGMA table_info(muscle_states)').all();
+  const detailedMuscleStatesInfo = db.prepare('PRAGMA table_info(detailed_muscle_states)').all();
+  const usersInfo = db.prepare('PRAGMA table_info(users)').all();
+
+  return {
+    muscle_states: muscleStatesInfo,
+    detailed_muscle_states: detailedMuscleStatesInfo,
+    users: usersInfo,
+    schema_file_path: path.join(__dirname, 'schema.sql'),
+    migrations_dir: path.join(__dirname, 'migrations')
+  };
+}
+
 // Export database instance and helper functions
 export {
   db,
@@ -2319,7 +2336,9 @@ export {
   resetMuscleStatesForDate,
   validateDataIntegrity,
   deleteWorkoutWithRecalculation,
-  getWorkoutDeletionPreview
+  getWorkoutDeletionPreview,
+  // Debug functions
+  getDatabaseSchemaInfo
 };
 
 // ============================================
