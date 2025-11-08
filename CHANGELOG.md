@@ -7,6 +7,52 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### 2025-11-07 - Fix Critical Application Crashes
+
+**Status**: ✅ FIXED & TESTED
+**Type**: Critical Bug Fixes - Multiple Crash Conditions
+**Severity**: P0 - Application crashes preventing usage
+**Commits**: 3cbe738, a6e074f, d4e9666, 303590f, fff69e5, b2209c7
+
+**Files Changed**:
+- `src/components/PersonalBests.tsx` - Added null check for PR data
+- `src/components/DashboardQuickStart.tsx` - Fixed API port (3002→3001) and added error handling
+- `src/contexts/LastWorkoutContext.tsx` - Replaced hardcoded localhost with dynamic API_BASE_URL
+- `src/components/WorkoutBuilder.tsx` - Added validation for template data structure
+- `src/components/TemplateCard.tsx` - Added null check for exerciseIds array
+
+**Summary**: Fixed five critical crash conditions that were preventing core application functionality. Issues ranged from null pointer exceptions to incorrect API configuration and hardcoded URLs blocking production deployment.
+
+**Fixes Applied**:
+
+1. **PersonalBests crash when PR data is null**
+   - Added null check before accessing `personalRecords.data`
+   - Prevents crash when user has no personal records yet
+
+2. **DashboardQuickStart using wrong API port (3002 instead of 3001)**
+   - Changed API calls from port 3002 to 3001
+   - Added error handling for API calls
+   - Fixed "Start This Workout" functionality
+
+3. **LastWorkoutContext hardcoded localhost preventing production deployment**
+   - Replaced `http://localhost:3001` with `API_BASE_URL` from config
+   - Enables proper deployment to Railway and other hosting platforms
+
+4. **Missing error handling in DashboardQuickStart API calls**
+   - Added try-catch blocks around all API calls
+   - Proper error logging and user feedback
+   - Added loading states with spinner icon
+
+5. **WorkoutBuilder crash on malformed template data**
+   - Added validation for template structure before rendering
+   - Checks for required fields (id, name, exercises array)
+
+6. **TemplateCard crash when exerciseIds is undefined**
+   - Added null check: `template.exerciseIds?.length || 0`
+   - Prevents crash when template has no exercises assigned
+
+---
+
 ### 2025-10-31 - Fix Muscle Fatigue Calculation Bug (Core Feature Now Working)
 
 **Status**: ✅ FIXED & TESTED
