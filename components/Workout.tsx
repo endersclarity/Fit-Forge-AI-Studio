@@ -390,6 +390,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
   // Load template with progressive overload suggestions
   const loadTemplateWithProgression = async (variation: 'A' | 'B') => {
+    setLoadingLastWorkout(true); // Reuse existing loading state
     setWorkoutVariation(variation);
     setWorkoutName(generateWorkoutName(selectedCategory, variation));
 
@@ -466,6 +467,8 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       console.error('Failed to load template:', error);
       // Fallback to starting empty workout on error
       startWorkout();
+    } finally {
+      setLoadingLastWorkout(false);
     }
   };
 
