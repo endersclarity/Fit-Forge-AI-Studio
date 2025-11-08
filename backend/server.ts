@@ -251,6 +251,12 @@ app.post('/api/workouts', (req: Request<{}, WorkoutResponse | ApiErrorResponse, 
   try {
     const workout = db.saveWorkout(req.body);
 
+    console.log('[DEBUG] Workout saved:', {
+      workoutId: workout.id,
+      date: workout.date,
+      exerciseCount: req.body.exercises.length
+    });
+
     // Advance rotation if category and variation are provided
     if (workout.category && workout.variation) {
       db.advanceRotation(1, workout.category as any, workout.variation as 'A' | 'B', workout.date);

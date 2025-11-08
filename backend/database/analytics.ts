@@ -645,12 +645,20 @@ export interface CalculatedMetricsResponse {
  * This is the backend implementation of the logic from App.tsx:handleFinishWorkout()
  */
 export function calculateWorkoutMetrics(workoutId: number): CalculatedMetricsResponse {
+  console.log('[DEBUG] calculateWorkoutMetrics called:', { workoutId });
+
   // 1. Fetch the workout with all exercises
   const workout = db.prepare(`
     SELECT id, date, category, variation, progression_method, duration_seconds, created_at
     FROM workouts
     WHERE id = ? AND user_id = 1
   `).get(workoutId) as any;
+
+  console.log('[DEBUG] Workout fetched:', {
+    id: workout?.id,
+    date: workout?.date,
+    found: !!workout
+  });
 
   if (!workout) {
     throw new Error(`Workout not found: ${workoutId}`);
@@ -698,8 +706,23 @@ export function calculateWorkoutMetrics(workoutId: number): CalculatedMetricsRes
 
     const exerciseVolume = sets.reduce((total, set) => total + calculateVolume(set.reps, set.weight), 0);
 
+    console.log('[DEBUG] Exercise volume calculated:', {
+      exercise: exerciseName,
+      totalVolume: exerciseVolume,
+      sets: sets.length,
+      muscleEngagements: exerciseInfo.muscleEngagements.map(e => `${e.muscle}:${e.percentage}%`)
+    });
+
     exerciseInfo.muscleEngagements.forEach(engagement => {
-      workoutMuscleVolumes[engagement.muscle] += exerciseVolume * (engagement.percentage / 100);
+      const volumeApplied = exerciseVolume * (engagement.percentage / 100);
+      workoutMuscleVolumes[engagement.muscle] += volumeApplied;
+
+      console.log('[DEBUG] Volume applied to muscle:', {
+        muscle: engagement.muscle,
+        engagement: engagement.percentage,
+        volumeApplied,
+        runningTotal: workoutMuscleVolumes[engagement.muscle]
+      });
     });
   });
 
@@ -731,6 +754,15 @@ export function calculateWorkoutMetrics(workoutId: number): CalculatedMetricsRes
     const baseline = baselineMap[muscle]?.userOverride || baselineMap[muscle]?.systemLearnedMax || 10000;
     const fatiguePercent = Math.min((volume / baseline) * 100, 100);
     muscleFatigue[muscle] = fatiguePercent;
+
+    console.log('[DEBUG] Fatigue calculated:', {
+      muscle,
+      volume,
+      baseline,
+      baselineSource: baselineMap[muscle]?.userOverride ? 'userOverride' : 'systemLearnedMax',
+      fatiguePercent,
+      formula: `(${volume} / ${baseline}) * 100 = ${fatiguePercent}`
+    });
 
     // 4. Learn new baselines if volume exceeds current max
     const currentMax = baselineMap[muscle]?.systemLearnedMax || 0;
