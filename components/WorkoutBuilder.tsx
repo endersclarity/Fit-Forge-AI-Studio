@@ -3,7 +3,6 @@ import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBasel
 import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
 import SetConfigurator from './SetConfigurator';
-import SetCard from './SetCard';
 import SetEditModal from './SetEditModal';
 import CurrentSetDisplay from './CurrentSetDisplay';
 import SimpleMuscleVisualization from './SimpleMuscleVisualization';
