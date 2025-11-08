@@ -141,6 +141,313 @@ Core:         3,200 lb  (Stiff-Leg DL - 6,300 lb × 50%)
 
 ---
 
+## 3B. Adaptive Baseline Learning Model
+
+### 🔑 KEY PRINCIPLE: Baselines are Discovered, Not Predicted
+
+**Fundamental Truth**: You cannot exceed 100% muscle fatigue. It's physically impossible.
+
+If you plan a workout that "exceeds 100% fatigue" and you successfully complete it, this doesn't mean you exceeded your capacity - it means **your baseline was wrong**.
+
+### The Learning Algorithm
+
+**Old (Wrong) Approach:**
+```typescript
+// Static baseline that never updates
+const baseline = 3400; // pectoralis baseline in lbs
+const workoutVolume = 5000; // lbs
+const fatigue = (5000 / 3400) * 100; // = 147% ❌ IMPOSSIBLE
+```
+
+**New (Correct) Approach:**
+```typescript
+// Baseline adapts based on actual performance
+const currentBaseline = 3400; // current estimate
+const workoutVolume = 5000; // what you actually completed
+
+// If you completed the workout to failure:
+if (reachedFailure) {
+  // This was your TRUE capacity for this session
+  const newBaseline = workoutVolume; // 5000 lbs
+  // Fatigue is ALWAYS 100% when you reach failure
+  const fatigue = 100;
+}
+
+// If you could have done more:
+if (!reachedFailure) {
+  // You didn't discover your limit yet
+  const fatigue = (workoutVolume / currentBaseline) * 100;
+  // Baseline stays unchanged until you reach failure
+}
+```
+
+### How It Works
+
+#### Scenario 1: User Plans Aggressive Workout
+
+**Current Baseline**: 3,400 lb (pectoralis)
+
+**Planned Workout**:
+1. DB Bench Press: 3×10 @ 52.5 lb/hand = 3,150 lb total
+   - Pec volume: 3,150 × 65% = 2,048 lb
+2. Incline DB Bench: 3×10 @ 45 lb/hand = 2,700 lb total
+   - Pec volume: 2,700 × 55% = 1,485 lb
+3. TRX Pushups: 3×15 @ 100 lb = 4,500 lb total
+   - Pec volume: 4,500 × 48% = 2,160 lb
+
+**Total Planned Pec Volume**: 2,048 + 1,485 + 2,160 = **5,693 lb**
+
+**UI Display (During Planning)**:
+```
+📊 Pectoralis Fatigue Projection:
+
+Current Baseline: 3,400 lb
+Planned Volume:   5,693 lb
+Projected Fatigue: 167% of current baseline ⚠️
+
+If you complete this workout:
+✅ Actual fatigue: 100% (reached failure)
+✅ New baseline: 5,693 lb (+67% improvement!)
+```
+
+**Key Points**:
+- Show the user they're planning to exceed current baseline
+- Make it clear this will UPDATE the baseline if successful
+- Display both current fatigue % AND projected new baseline
+
+---
+
+#### Scenario 2: User Completes the Workout
+
+**What Happens**:
+1. User marks workout as complete
+2. System asks: "Did you reach failure, or could you have done more?"
+   - **Reached failure** → Update baseline to actual volume (5,693 lb)
+   - **Could do more** → Baseline stays at 3,400 lb, fatigue recorded as 100%+
+   - **Stopped early** → Calculate partial fatigue, no baseline update
+
+**Database Update**:
+```typescript
+// User reached failure after completing all exercises
+{
+  muscle: "Pectoralis",
+  sessionVolume: 5693,
+  reachedFailure: true,
+  newBaseline: 5693, // ← LEARNED VALUE
+  fatigueLevel: 100,
+  timestamp: Date.now()
+}
+```
+
+---
+
+#### Scenario 3: Conservative Workout (Under Baseline)
+
+**Current Baseline**: 3,400 lb (pectoralis)
+
+**Planned Workout**:
+- DB Bench Press: 3×8 @ 45 lb/hand = 2,160 lb total
+- Pec volume: 2,160 × 65% = 1,404 lb
+
+**UI Display**:
+```
+📊 Pectoralis Fatigue Projection:
+
+Current Baseline: 3,400 lb
+Planned Volume:   1,404 lb
+Projected Fatigue: 41% of current baseline ✅
+
+This workout will NOT update your baseline.
+To increase baseline, train to failure.
+```
+
+**After Completion**:
+- Fatigue: 41%
+- Baseline: Unchanged (3,400 lb)
+- System knows this muscle is NOT at capacity
+
+---
+
+### The "Exceeding 100%" UI Problem
+
+**User Concern**: "I don't want it limited to 100% with no more information."
+
+**Solution**: Show BOTH metrics
+
+#### Planning Phase UI:
+```
+┌─────────────────────────────────────────────┐
+│ PECTORALIS FATIGUE ANALYSIS                 │
+├─────────────────────────────────────────────┤
+│ Current Baseline:     3,400 lb              │
+│ Planned Volume:       5,693 lb              │
+│                                             │
+│ ⚠️  EXCEEDING BASELINE BY 67%                │
+│                                             │
+│ Current Capacity:     ████████░░ 100%       │
+│ Planned Load:         ████████████████ 167% │
+│                                             │
+│ If you complete this workout:               │
+│ ✓ Fatigue reached: 100% (failure)          │
+│ ✓ New baseline: 5,693 lb                   │
+│ ✓ Capacity gain: +2,293 lb (+67%)          │
+└─────────────────────────────────────────────┘
+```
+
+#### During Workout (Live Tracking):
+```
+┌─────────────────────────────────────────────┐
+│ EXERCISE 2 OF 3: Incline DB Bench          │
+├─────────────────────────────────────────────┤
+│ Pectoralis Status:                          │
+│ Volume so far:    3,533 lb                  │
+│ Current fatigue:  104% of baseline ⚠️        │
+│                                             │
+│ You've already exceeded your baseline!      │
+│ New projected baseline: 5,693 lb            │
+└─────────────────────────────────────────────┘
+```
+
+#### Post-Workout Summary:
+```
+┌─────────────────────────────────────────────┐
+│ 🎉 WORKOUT COMPLETE                         │
+├─────────────────────────────────────────────┤
+│ PECTORALIS:                                 │
+│ Old baseline:     3,400 lb                  │
+│ Volume completed: 5,693 lb                  │
+│ NEW BASELINE:     5,693 lb (+67%) 🚀        │
+│                                             │
+│ You've increased your chest capacity by     │
+│ 2,293 lbs! Your next chest workout can      │
+│ handle significantly more volume.           │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+### Baseline Update Rules
+
+**When to UPDATE baseline:**
+1. ✅ User completes workout and reaches muscular failure
+2. ✅ Session volume exceeds current baseline
+3. ✅ All planned sets were completed
+
+**When to KEEP baseline:**
+1. ❌ User stops workout early (didn't reach capacity)
+2. ❌ Session volume is below current baseline
+3. ❌ User indicates they could have done more
+
+**When to LOWER baseline:**
+1. ⚠️ User consistently fails to reach previous baseline (injury, detraining)
+2. ⚠️ After 4+ weeks without training that muscle
+3. ⚠️ User manually requests baseline reset
+
+---
+
+### Progressive Overload Tracking
+
+**Goal**: Gradually increase baselines over time
+
+**Weekly View**:
+```
+PECTORALIS BASELINE HISTORY (Last 8 weeks)
+
+Week 1:  3,400 lb  ████████░░░░░░░░░░░░
+Week 2:  3,400 lb  ████████░░░░░░░░░░░░
+Week 3:  4,200 lb  ██████████░░░░░░░░░░ +24%
+Week 4:  4,200 lb  ██████████░░░░░░░░░░
+Week 5:  4,850 lb  ████████████░░░░░░░░ +15%
+Week 6:  4,850 lb  ████████████░░░░░░░░
+Week 7:  5,693 lb  ██████████████░░░░░░ +17%
+Week 8:  5,693 lb  ██████████████░░░░░░
+
+Total Progress: +67% in 8 weeks 🚀
+```
+
+---
+
+### Integration with Fatigue System
+
+**Key Changes Needed:**
+
+1. **Fatigue calculation capped at 100%**:
+```typescript
+const actualFatigue = Math.min(100, (volume / baseline) * 100);
+```
+
+2. **Track "baseline exceeded" separately**:
+```typescript
+const baselineExceeded = volume > baseline;
+const exceedanceAmount = Math.max(0, volume - baseline);
+const exceedancePercentage = (exceedanceAmount / baseline) * 100;
+```
+
+3. **Display both metrics**:
+```typescript
+return {
+  fatigue: actualFatigue,              // Always ≤100%
+  volume: volume,                       // Actual volume
+  baseline: baseline,                   // Current estimate
+  exceeded: baselineExceeded,           // Boolean flag
+  exceedancePercentage: exceedancePercentage,  // How much over
+  projectedNewBaseline: baselineExceeded ? volume : baseline
+};
+```
+
+---
+
+### Why This Matters
+
+**Problem with old system:**
+- "202% pec fatigue" is meaningless
+- Can't tell if you're overtraining or just improved
+- Baselines never update = system never learns
+
+**Benefits of new system:**
+- Fatigue is always meaningful (0-100%)
+- Clearly shows when you've exceeded estimates
+- Baselines adapt = system gets smarter over time
+- User sees tangible progress (baseline increases)
+- Prevents overtraining warnings for stronger athletes
+
+---
+
+### Example: 8-Week Training Progression
+
+**Week 1**: First chest session
+- Baseline: 3,400 lb (initial estimate)
+- Completed: 4,200 lb (reached failure)
+- **New baseline: 4,200 lb** ✅
+- Fatigue: 100%
+
+**Week 2**: Second chest session (3 days later)
+- Baseline: 4,200 lb
+- Starting fatigue: 30% (recovered)
+- Planned: 4,500 lb
+- Completed: 4,500 lb (reached failure)
+- **New baseline: 4,500 lb** ✅
+- Fatigue: 100%
+
+**Week 3**: Third chest session
+- Baseline: 4,500 lb
+- Starting fatigue: 25%
+- Planned: 4,800 lb
+- Completed: 4,200 lb (stopped early, shoulder pain)
+- **Baseline unchanged: 4,500 lb** ❌
+- Fatigue: 93%
+
+**Week 4**: Recovery session
+- Baseline: 4,500 lb
+- Planned: 3,200 lb (deload week)
+- Completed: 3,200 lb (easy session)
+- **Baseline unchanged: 4,500 lb** ❌
+- Fatigue: 71%
+
+This shows realistic training with progression, setbacks, and deloads.
+
+---
+
 ## 4. Fatigue Calculation Model
 
 ### Current Formula (from WorkoutBuilder.tsx)
