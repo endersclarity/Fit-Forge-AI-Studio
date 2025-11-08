@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WorkoutResponse } from '../types';
+import { API_BASE_URL } from '../api';
 
 interface LastWorkoutContextProps {
   // No props needed - self-contained component
@@ -43,7 +44,7 @@ export default function LastWorkoutContext({}: LastWorkoutContextProps) {
       // Fetch last workout for all 4 categories in parallel
       const promises = CATEGORIES.map(async (category) => {
         try {
-          const response = await fetch(`http://localhost:3001/api/workouts/last?category=${category}`);
+          const response = await fetch(`${API_BASE_URL}/workouts/last?category=${category}`);
 
           if (response.status === 404) {
             // No workouts for this category
