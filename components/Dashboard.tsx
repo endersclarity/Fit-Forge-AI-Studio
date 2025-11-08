@@ -653,7 +653,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
       <main className="space-y-8">
         <section className="bg-brand-surface p-4 rounded-lg">
-          <h2 className="text-xl font-semibold">Welcome back, {profile.name || 'Athlete'}</h2>
+          <h2 className="text-xl font-semibold">Welcome, Kaelen</h2>
         </section>
 
         {/* Muscle Visualization Hero Section */}
