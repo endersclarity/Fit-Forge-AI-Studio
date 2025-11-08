@@ -7,6 +7,18 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+## [Unreleased] - 2025-11-07
+
+### Fixed
+- **WorkoutBuilder Template Save Bug** - Fixed templates saving with 0 exercises
+  - File: `components/WorkoutBuilder.tsx:360`
+  - Issue: Frontend was sending `sets` array, backend expected `exerciseIds` array
+  - Fix: Extract unique exercise IDs from sets before calling `templatesAPI.create()`
+  - Impact: Templates now correctly save exercise lists
+  - Related: Template loading already worked correctly, no changes needed
+
+---
+
 ### 2025-11-07 - Fix Critical Application Crashes
 
 **Status**: ✅ FIXED & TESTED
