@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
 import { Muscle, MuscleStatesResponse, DetailedMuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse, PlannedExercise } from '../types';
@@ -487,6 +487,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   // QuickAdd modal state
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
+  // Starting workout loading state
+  const [isStartingWorkout, setIsStartingWorkout] = useState(false);
+
   // FAB Menu and Builder state
   const [isFABMenuOpen, setIsFABMenuOpen] = useState(false);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
@@ -509,6 +512,18 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
     setToastMessage(message);
     setToastType(type);
   };
+
+  // Wrapper function for starting recommended workout with loading state
+  const handleStartRecommendedWorkout = useCallback(async (data: RecommendedWorkoutData) => {
+    setIsStartingWorkout(true);
+    handleToast(`Starting ${data.type} Day ${data.variation} workout...`, 'info');
+
+    // Small delay for visual feedback
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    onStartRecommendedWorkout(data);
+    setIsStartingWorkout(false);
+  }, [onStartRecommendedWorkout]);
 
   // Muscle detail level toggle handler
   const toggleMuscleDetailLevel = () => {
@@ -652,7 +667,8 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
             muscleStates={muscleStates}
             workouts={workouts}
             muscleBaselines={muscleBaselines}
-            onStart={onStartRecommendedWorkout}
+            onStart={handleStartRecommendedWorkout}
+            isLoading={isStartingWorkout}
           />
         </CollapsibleCard>
 
