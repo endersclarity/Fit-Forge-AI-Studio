@@ -23,6 +23,44 @@ interface WorkoutBuilderProps {
 type BuilderMode = 'planning' | 'executing';
 type PlanningMode = 'forward' | 'target';
 
+/**
+ * Group sets by exercise, preserving order of first appearance
+ */
+function groupSetsByExercise(sets: BuilderSet[]): Array<{
+  exerciseId: string;
+  exerciseName: string;
+  sets: BuilderSet[];
+  startingSetNumber: number;
+}> {
+  const groups: Array<{
+    exerciseId: string;
+    exerciseName: string;
+    sets: BuilderSet[];
+    startingSetNumber: number;
+  }> = [];
+
+  const exerciseMap = new Map<string, number>(); // exerciseId -> group index
+
+  sets.forEach((set, globalIndex) => {
+    if (!exerciseMap.has(set.exerciseId)) {
+      // First time seeing this exercise - create new group
+      exerciseMap.set(set.exerciseId, groups.length);
+      groups.push({
+        exerciseId: set.exerciseId,
+        exerciseName: set.exerciseName,
+        sets: [set],
+        startingSetNumber: globalIndex + 1,
+      });
+    } else {
+      // Add to existing group
+      const groupIndex = exerciseMap.get(set.exerciseId)!;
+      groups[groupIndex].sets.push(set);
+    }
+  });
+
+  return groups;
+}
+
 const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   isOpen,
   onClose,
