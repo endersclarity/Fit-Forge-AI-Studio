@@ -158,6 +158,13 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   const loadTemplate = async (template: WorkoutTemplate) => {
     const sets: BuilderSet[] = [];
 
+    // Validate exerciseIds exists and is an array
+    if (!template.exerciseIds || !Array.isArray(template.exerciseIds)) {
+      console.error('Invalid template: exerciseIds is not an array', template);
+      onToast('Failed to load template: Invalid exercise data', 'error');
+      return;
+    }
+
     for (let idx = 0; idx < template.exerciseIds.length; idx++) {
       const exerciseId = template.exerciseIds[idx];
 
