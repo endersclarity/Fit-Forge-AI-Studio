@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ExerciseCategory } from '../types';
 import { ChevronDownIcon } from './Icons';
 import { RecommendedWorkoutData } from '../App';
+import { API_BASE_URL } from '../api';
 
 interface WorkoutRecommendation {
   isRestDay: boolean;
@@ -30,7 +31,10 @@ const DashboardQuickStart: React.FC<DashboardQuickStartProps> = ({
   useEffect(() => {
     const fetchRecommendation = async () => {
       try {
-        const response = await fetch('http://localhost:3002/api/rotation/next');
+        const response = await fetch(`${API_BASE_URL}/rotation/next`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch rotation: ${response.status}`);
+        }
         const data = await response.json();
         setRecommendation(data);
       } catch (error) {
