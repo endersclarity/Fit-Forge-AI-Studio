@@ -389,52 +389,84 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   };
 
   // Load template with progressive overload suggestions
-  const loadTemplateWithProgression = (variation: 'A' | 'B') => {
+  const loadTemplateWithProgression = async (variation: 'A' | 'B') => {
     setWorkoutVariation(variation);
     setWorkoutName(generateWorkoutName(selectedCategory, variation));
 
-    // TODO: Load template exercises from templatesAPI
-    // For now, we'll just set up the workout with the selected variation
-    // This will be fully implemented when we integrate with WorkoutTemplates
+    try {
+      // Fetch all templates
+      const allTemplates = await templatesAPI.getAll();
 
-    // If we have a last workout, we can use it to suggest progressive overload
-    if (lastWorkout && lastWorkout.exercises) {
-      const newExercises: LoggedExercise[] = lastWorkout.exercises.map((prevExercise, idx) => {
-        // Find the exercise in the library
-        const exerciseInfo = EXERCISE_LIBRARY.find(e => e.name === prevExercise.exercise);
-        const exerciseId = exerciseInfo?.id || `ex${idx}`;
+      // Find the template matching the selected category and variation
+      const matchingTemplate = allTemplates.find(
+        t => t.category === selectedCategory && t.variation === variation
+      );
 
-        // Get the best set from last workout
-        const bestSet = prevExercise.sets.reduce((max, set) =>
-          (set.weight * set.reps > max.weight * max.reps) ? set : max
-        );
+      if (matchingTemplate && matchingTemplate.exerciseIds && matchingTemplate.exerciseIds.length > 0) {
+        // Load template exercises with default sets
+        const newExercises: LoggedExercise[] = matchingTemplate.exerciseIds.map((exerciseId, idx) => {
+          // Find the exercise in the library to get default weight
+          const exerciseInfo = EXERCISE_LIBRARY.find(e => e.id === exerciseId);
+          const defaultWeight = exerciseInfo ? getDefaultWeight(exerciseId) : 50;
 
-        // Calculate progressive overload
-        const suggestion = calculateProgressiveOverload(
-          { weight: bestSet.weight, reps: bestSet.reps },
-          (lastWorkout.progression_method as ProgressionMethod) || null,
-          { weight: bestSet.weight, reps: bestSet.reps }
-        );
+          // Create 3 sets with default values (can be adjusted by user)
+          const sets: LoggedSet[] = [
+            { id: `set-1-${Date.now()}-${idx}`, reps: 8, weight: defaultWeight, to_failure: false },
+            { id: `set-2-${Date.now()}-${idx}`, reps: 8, weight: defaultWeight, to_failure: false },
+            { id: `set-3-${Date.now()}-${idx}`, reps: 8, weight: defaultWeight, to_failure: true }
+          ];
 
-        // Create sets with suggestions
-        const sets: LoggedSet[] = prevExercise.sets.map((_, setIdx) => ({
-          id: `set-${setIdx + 1}-${Date.now()}-${idx}`,
-          reps: suggestion.suggestedReps,
-          weight: suggestion.suggestedWeight,
-          to_failure: setIdx === prevExercise.sets.length - 1 // Smart default: last set is to failure
-        }));
+          return {
+            id: `${exerciseId}-${Date.now()}-${idx}`,
+            exerciseId,
+            sets
+          };
+        });
 
-        return {
-          id: `${exerciseId}-${Date.now()}-${idx}`,
-          exerciseId,
-          sets
-        };
-      });
+        setLoggedExercises(newExercises);
+      } else if (lastWorkout && lastWorkout.exercises) {
+        // Fallback: If template not found but we have lastWorkout, use progressive overload logic
+        const newExercises: LoggedExercise[] = lastWorkout.exercises.map((prevExercise, idx) => {
+          const exerciseInfo = EXERCISE_LIBRARY.find(e => e.name === prevExercise.exercise);
+          const exerciseId = exerciseInfo?.id || `ex${idx}`;
 
-      setLoggedExercises(newExercises);
+          const bestSet = prevExercise.sets.reduce((max, set) =>
+            (set.weight * set.reps > max.weight * max.reps) ? set : max
+          );
+
+          const suggestion = calculateProgressiveOverload(
+            { weight: bestSet.weight, reps: bestSet.reps },
+            (lastWorkout.progression_method as ProgressionMethod) || null,
+            { weight: bestSet.weight, reps: bestSet.reps }
+          );
+
+          const sets: LoggedSet[] = prevExercise.sets.map((_, setIdx) => ({
+            id: `set-${setIdx + 1}-${Date.now()}-${idx}`,
+            reps: suggestion.suggestedReps,
+            weight: suggestion.suggestedWeight,
+            to_failure: setIdx === prevExercise.sets.length - 1
+          }));
+
+          return {
+            id: `${exerciseId}-${Date.now()}-${idx}`,
+            exerciseId,
+            sets
+          };
+        });
+
+        setLoggedExercises(newExercises);
+      } else {
+        // No template found and no last workout - start with empty workout
+        console.warn(`No template found for ${selectedCategory} ${variation}`);
+        setLoggedExercises([]);
+      }
+
+      startWorkout();
+    } catch (error) {
+      console.error('Failed to load template:', error);
+      // Fallback to starting empty workout on error
+      startWorkout();
     }
-
-    startWorkout();
   };
 
   const addExercise = (exercise: Exercise) => {
