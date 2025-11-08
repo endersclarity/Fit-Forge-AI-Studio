@@ -357,18 +357,14 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     }
 
     try {
-      const templateSets = workout.sets.map(s => ({
-        exerciseId: s.exerciseId,
-        weight: s.weight,
-        reps: s.reps,
-        restTimerSeconds: s.restTimerSeconds,
-      }));
+      // Extract unique exercise IDs from sets
+      const exerciseIds = [...new Set(workout.sets.map(s => s.exerciseId))];
 
       await templatesAPI.create({
         name: templateName,
         category: templateCategory,
         variation: templateVariation,
-        sets: templateSets,
+        exerciseIds: exerciseIds,  // Send exerciseIds instead of sets
         isFavorite: false,
       });
 
