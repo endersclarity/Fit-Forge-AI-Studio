@@ -15,6 +15,7 @@ import MuscleBaselinesPage from './components/MuscleBaselinesPage';
 import Toast from './components/Toast';
 import { PRNotificationManager } from './components/PRNotification';
 import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard';
+import BaselineUpdateModal from './components/BaselineUpdateModal';
 import { calculateVolume } from './utils/helpers';
 import { detectProgressionMethod } from './utils/progressionMethodDetector';
 
@@ -48,6 +49,15 @@ const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [recommendedWorkout, setRecommendedWorkout] = useState<RecommendedWorkoutData | null>(null);
   const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[] | null>(null);
+
+  // Baseline update modal state
+  const [baselineUpdates, setBaselineUpdates] = useState<Array<{
+    muscle: Muscle;
+    oldMax: number;
+    newMax: number;
+    sessionVolume: number;
+  }>>([]);
+  const [showBaselineModal, setShowBaselineModal] = useState(false);
   const [prNotifications, setPrNotifications] = useState<PRInfo[]>([]);
 
   // Detect first-time user (USER_NOT_FOUND error)
@@ -70,22 +80,41 @@ const App: React.FC = () => {
         });
       });
 
-      // 2. Calculate fatigue and update baselines
+      // 2. Calculate fatigue and collect potential baseline updates
       const muscleFatigue: Partial<Record<Muscle, number>> = {};
-      const newBaselines = { ...muscleBaselines };
+      const pendingUpdates: Array<{
+        muscle: Muscle;
+        oldMax: number;
+        newMax: number;
+        sessionVolume: number;
+      }> = [];
+
       Object.entries(workoutMuscleVolumes).forEach(([muscleStr, volume]) => {
         if (volume <= 0) return;
         const muscle = muscleStr as Muscle;
-        const baseline = newBaselines[muscle]?.userOverride || newBaselines[muscle]?.systemLearnedMax || 10000; // default fallback
+        const baseline = muscleBaselines[muscle]?.userOverride || muscleBaselines[muscle]?.systemLearnedMax || 10000; // default fallback
         const fatiguePercent = Math.min((volume / baseline) * 100, 100);
         muscleFatigue[muscle] = fatiguePercent;
 
-        if (volume > (newBaselines[muscle]?.systemLearnedMax || 0)) {
-          newBaselines[muscle].systemLearnedMax = Math.round(volume);
-          setToastMessage(`New ${muscle} max: ${Math.round(volume).toLocaleString()} lbs!`);
+        // Check if this is a new record (session volume exceeds baseline)
+        const currentMax = muscleBaselines[muscle]?.systemLearnedMax || 0;
+        if (volume > currentMax) {
+          pendingUpdates.push({
+            muscle,
+            oldMax: currentMax,
+            newMax: Math.round(volume),
+            sessionVolume: Math.round(volume),
+          });
         }
       });
-      await setMuscleBaselines(newBaselines);
+
+      // If there are new records, show modal instead of auto-updating
+      if (pendingUpdates.length > 0) {
+        setBaselineUpdates(pendingUpdates);
+        setShowBaselineModal(true);
+        // Don't update baselines yet - wait for user confirmation
+      }
+
       session.muscleFatigueHistory = muscleFatigue;
 
       // 3. Update Muscle States with new fatigue and recovery info
@@ -193,6 +222,32 @@ const App: React.FC = () => {
     navigate('/');
   }, [navigate]);
 
+  // Baseline update modal handlers
+  const handleBaselineUpdateConfirm = useCallback(async () => {
+    const newBaselines = { ...muscleBaselines };
+
+    baselineUpdates.forEach(({ muscle, newMax }) => {
+      newBaselines[muscle].systemLearnedMax = newMax;
+    });
+
+    await setMuscleBaselines(newBaselines);
+
+    // Show success toast
+    if (baselineUpdates.length === 1) {
+      setToastMessage(`New ${baselineUpdates[0].muscle} max: ${baselineUpdates[0].newMax.toLocaleString()} lbs!`);
+    } else {
+      setToastMessage(`Updated ${baselineUpdates.length} muscle baselines!`);
+    }
+
+    setShowBaselineModal(false);
+    setBaselineUpdates([]);
+  }, [baselineUpdates, muscleBaselines, setMuscleBaselines]);
+
+  const handleBaselineUpdateDecline = useCallback(() => {
+    setShowBaselineModal(false);
+    setBaselineUpdates([]);
+  }, []);
+
   const handleSelectTemplate = useCallback((template: WorkoutTemplate) => {
     // Convert template to recommended workout format
     const exercises = template.exerciseIds
@@ -281,6 +336,12 @@ const App: React.FC = () => {
           onDismissAll={() => setPrNotifications([])}
         />
       )}
+      <BaselineUpdateModal
+        isOpen={showBaselineModal}
+        updates={baselineUpdates}
+        onConfirm={handleBaselineUpdateConfirm}
+        onDecline={handleBaselineUpdateDecline}
+      />
 
       <Routes>
         <Route path="/" element={

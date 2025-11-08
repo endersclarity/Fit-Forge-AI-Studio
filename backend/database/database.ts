@@ -512,9 +512,13 @@ function saveWorkout(workout: WorkoutSaveRequest): WorkoutResponse {
  * Rebuild all muscle baselines from scratch based on all failure sets in history
  *
  * This function recalculates muscle baselines by:
- * 1. Querying ALL failure sets from workout history
- * 2. Calculating maximum observed volume per muscle
- * 3. Updating baselines to match actual observed performance
+ * 1. Querying ALL workouts from history
+ * 2. Calculating SESSION VOLUME per muscle for each workout
+ * 3. Tracking the highest session volume observed per muscle
+ * 4. Updating baselines to match actual observed performance
+ *
+ * IMPORTANT: Baselines represent the maximum volume a muscle can handle in a SINGLE SESSION,
+ * not the maximum single-set volume. This is critical for accurate fatigue forecasting.
  *
  * Use this when:
  * - Deleting workouts (to ensure baselines reflect remaining data)
@@ -525,40 +529,64 @@ function saveWorkout(workout: WorkoutSaveRequest): WorkoutResponse {
  */
 function rebuildMuscleBaselines(): BaselineUpdate[] {
   const rebuildTransaction = db.transaction(() => {
-    // 1. Query all to_failure sets from all workouts
-    const failureSets = db.prepare(`
-      SELECT es.exercise_name, es.weight, es.reps
-      FROM exercise_sets es
-      WHERE es.to_failure = 1
-    `).all() as Array<{ exercise_name: string; weight: number; reps: number }>;
+    // 1. Query all unique workout IDs that have failure sets
+    const workouts = db.prepare(`
+      SELECT DISTINCT workout_id
+      FROM exercise_sets
+      WHERE to_failure = 1
+    `).all() as Array<{ workout_id: number }>;
 
-    // 2. Calculate max volume per muscle across all history
-    const muscleVolumes: Record<string, number> = {};
+    // 2. Calculate session volume per muscle for each workout
+    const muscleMaxSessionVolumes: Record<string, number> = {};
 
-    for (const set of failureSets) {
-      const exercise = EXERCISE_LIBRARY.find(ex => ex.name === set.exercise_name);
-      if (!exercise) {
-        console.warn(`Exercise not found in library: ${set.exercise_name}`);
-        continue;
+    for (const { workout_id } of workouts) {
+      // Get all failure sets from this workout
+      const sets = db.prepare(`
+        SELECT exercise_name, weight, reps
+        FROM exercise_sets
+        WHERE workout_id = ? AND to_failure = 1
+      `).all(workout_id) as Array<{
+        exercise_name: string;
+        weight: number;
+        reps: number
+      }>;
+
+      // Calculate volume per muscle for THIS SESSION (sum all sets)
+      const sessionMuscleVolumes: Record<string, number> = {};
+
+      for (const set of sets) {
+        const exercise = EXERCISE_LIBRARY.find(ex => ex.name === set.exercise_name);
+        if (!exercise) {
+          console.warn(`Exercise not found in library: ${set.exercise_name}`);
+          continue;
+        }
+
+        const totalVolume = set.weight * set.reps;
+        const calibrations = getExerciseCalibrations(exercise.id);
+
+        for (const engagement of calibrations.engagements) {
+          const muscleVolume = totalVolume * (engagement.percentage / 100);
+          const muscleName = engagement.muscle;
+
+          // SUM volume for this muscle in this session
+          sessionMuscleVolumes[muscleName] =
+            (sessionMuscleVolumes[muscleName] || 0) + muscleVolume;
+        }
       }
 
-      const totalVolume = set.weight * set.reps;
-      const calibrations = getExerciseCalibrations(exercise.id);
-
-      for (const engagement of calibrations.engagements) {
-        const muscleVolume = totalVolume * (engagement.percentage / 100);
-        const muscleName = engagement.muscle;
-
-        if (!muscleVolumes[muscleName] || muscleVolume > muscleVolumes[muscleName]) {
-          muscleVolumes[muscleName] = muscleVolume;
+      // Track the highest SESSION volume across all workouts
+      for (const [muscleName, sessionVolume] of Object.entries(sessionMuscleVolumes)) {
+        if (!muscleMaxSessionVolumes[muscleName] ||
+            sessionVolume > muscleMaxSessionVolumes[muscleName]) {
+          muscleMaxSessionVolumes[muscleName] = sessionVolume;
         }
       }
     }
 
-    // 3. Update all baselines to match observed maximums
+    // 3. Update all baselines to match observed session maximums
     const updates: BaselineUpdate[] = [];
 
-    for (const [muscleName, newMax] of Object.entries(muscleVolumes)) {
+    for (const [muscleName, newMax] of Object.entries(muscleMaxSessionVolumes)) {
       const current = db.prepare(`
         SELECT system_learned_max FROM muscle_baselines
         WHERE user_id = 1 AND muscle_name = ?

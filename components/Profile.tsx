@@ -179,6 +179,12 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
         localStorage.setItem('muscleDetailLevel', muscleDetailLevel);
     }, [muscleDetailLevel]);
 
+    // Pending baseline changes (not saved until user clicks Save button)
+    const [pendingBaselineChanges, setPendingBaselineChanges] = useState<
+        Partial<Record<Muscle, number | null>>
+    >({});
+    const [isSavingBaselines, setIsSavingBaselines] = useState(false);
+
     const latestWeightEntry = useMemo(() => {
         if (!profile.bodyweightHistory || profile.bodyweightHistory.length === 0) {
             return { weight: 150, date: Date.now() };
@@ -242,10 +248,34 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
     };
 
     const handleBaselineChange = (muscle: Muscle, value: string) => {
-        setMuscleBaselines(prev => ({
+        const numValue = value === '' ? null : parseInt(value) || 0;
+        setPendingBaselineChanges(prev => ({
             ...prev,
-            [muscle]: { ...prev[muscle], userOverride: value === '' ? null : parseInt(value) || 0 }
+            [muscle]: numValue
         }));
+    };
+
+    const handleSaveBaselines = async () => {
+        setIsSavingBaselines(true);
+        try {
+            const newBaselines = { ...muscleBaselines };
+
+            Object.entries(pendingBaselineChanges).forEach(([muscle, override]) => {
+                newBaselines[muscle as Muscle] = {
+                    ...newBaselines[muscle as Muscle],
+                    userOverride: override
+                };
+            });
+
+            await setMuscleBaselines(newBaselines);
+            setPendingBaselineChanges({});
+            // Success - baselines saved
+        } catch (error) {
+            console.error('Failed to save baselines:', error);
+            // Could show error toast here if desired
+        } finally {
+            setIsSavingBaselines(false);
+        }
     };
     
     return (
@@ -435,15 +465,24 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
                             <div className="grid md:grid-cols-2 gap-x-4 gap-y-3">
                                 {ALL_MUSCLES.map(muscle => {
                                     const baseline = muscleBaselines[muscle];
+                                    const pendingValue = pendingBaselineChanges[muscle];
+                                    const displayValue = pendingValue !== undefined ? pendingValue : baseline.userOverride;
+                                    const hasChanges = pendingValue !== undefined;
+
                                     return (
                                         <div key={muscle}>
-                                            <label className="block text-sm font-medium text-slate-300 mb-1">{muscle}</label>
+                                            <label className="block text-sm font-medium text-slate-300 mb-1">
+                                                {muscle}
+                                                {hasChanges && <span className="ml-2 text-xs text-yellow-400">*</span>}
+                                            </label>
                                             <input
                                                 type="number"
                                                 placeholder={getMuscleBaselinePlaceholder(muscle)}
-                                                value={baseline.userOverride ?? ''}
+                                                value={displayValue ?? ''}
                                                 onChange={(e) => handleBaselineChange(muscle, e.target.value)}
-                                                className="w-full bg-brand-dark border border-brand-muted rounded-md px-3 py-2"
+                                                className={`w-full bg-brand-dark border rounded-md px-3 py-2 ${
+                                                    hasChanges ? 'border-yellow-400' : 'border-brand-muted'
+                                                }`}
                                             />
                                              {baseline.systemLearnedMax > 0 && (
                                                 <div className="flex justify-between items-center mt-1">
@@ -455,6 +494,13 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
                                     )
                                 })}
                             </div>
+                            <button
+                                onClick={handleSaveBaselines}
+                                disabled={Object.keys(pendingBaselineChanges).length === 0 || isSavingBaselines}
+                                className="mt-4 w-full bg-brand-cyan hover:bg-cyan-400 disabled:bg-slate-700 disabled:text-slate-500 text-brand-dark px-4 py-2 rounded-lg font-semibold transition-colors"
+                            >
+                                {isSavingBaselines ? 'Saving...' : `Save Baselines${Object.keys(pendingBaselineChanges).length > 0 ? ` (${Object.keys(pendingBaselineChanges).length} changed)` : ''}`}
+                            </button>
                         </div>
                     )}
                 </section>
