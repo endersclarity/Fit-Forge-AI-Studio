@@ -79,6 +79,12 @@ const CurrentSetDisplay: React.FC<CurrentSetDisplayProps> = ({
               }}
             />
           </div>
+          <button
+            onClick={onSkip}
+            className="w-full bg-brand-muted text-slate-400 font-semibold py-3 px-4 rounded-lg hover:bg-brand-dark transition-colors"
+          >
+            Skip Rest
+          </button>
         </div>
       ) : (
         <div className="space-y-3">
