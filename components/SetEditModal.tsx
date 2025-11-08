@@ -8,10 +8,11 @@ interface SetEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (updatedSet: BuilderSet) => void;
+  onAddSet?: (newSetValues: { weight: number; reps: number; restTimerSeconds: number }) => void; // Callback to add another set with current values
   currentBodyweight?: number; // Current user bodyweight from profile
 }
 
-const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSave, currentBodyweight }) => {
+const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSave, onAddSet, currentBodyweight }) => {
   const [weight, setWeight] = useState(0);
   const [reps, setReps] = useState(10);
   const [restTimer, setRestTimer] = useState(90);
@@ -62,6 +63,19 @@ const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSav
 
     onSave(updatedSet);
     onClose();
+  };
+
+  const handleAddSet = () => {
+    if (!onAddSet) return;
+
+    // Call the parent's callback with the current values
+    onAddSet({
+      weight,
+      reps,
+      restTimerSeconds: restTimer,
+    });
+
+    // Don't close the modal - allow user to continue adding sets or close manually
   };
 
   if (!isOpen || !set) return null;
@@ -217,19 +231,29 @@ const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSav
           </div>
         </div>
 
-        <div className="mt-6 flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 bg-brand-muted text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-dark transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="flex-1 bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors"
-          >
-            Save Changes
-          </button>
+        <div className="mt-6 flex flex-col gap-2">
+          {onAddSet && (
+            <button
+              onClick={handleAddSet}
+              className="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              + Add Another Set
+            </button>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="flex-1 bg-brand-muted text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-dark transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className="flex-1 bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors"
+            >
+              Save Changes
+            </button>
+          </div>
         </div>
       </div>
     </div>

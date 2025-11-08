@@ -298,6 +298,35 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     onToast('Set updated', 'success');
   };
 
+  const handleAddSetFromModal = (newSetValues: { weight: number; reps: number; restTimerSeconds: number }) => {
+    if (!editingSet) return;
+
+    // Create a new set with the same exercise but new values
+    const newSet: BuilderSet = {
+      id: `${Date.now()}-${Math.random()}`,
+      exerciseId: editingSet.exerciseId,
+      exerciseName: editingSet.exerciseName,
+      weight: newSetValues.weight,
+      reps: newSetValues.reps,
+      restTimerSeconds: newSetValues.restTimerSeconds,
+    };
+
+    // Find the index of the current set and insert the new set right after it
+    setWorkout(prev => {
+      const currentIndex = prev.sets.findIndex(s => s.id === editingSet.id);
+      if (currentIndex === -1) {
+        // If not found, add to end
+        return { ...prev, sets: [...prev.sets, newSet] };
+      }
+      // Insert after the current set
+      const newSets = [...prev.sets];
+      newSets.splice(currentIndex + 1, 0, newSet);
+      return { ...prev, sets: newSets };
+    });
+
+    onToast('Set added', 'success');
+  };
+
   const handleStartWorkout = () => {
     if (workout.sets.length === 0) {
       onToast('Add at least one set to start', 'error');
@@ -883,6 +912,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             setEditingSet(null);
           }}
           onSave={handleSaveEditedSet}
+          onAddSet={handleAddSetFromModal}
           currentBodyweight={currentBodyweight}
         />
 
