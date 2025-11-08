@@ -18,10 +18,12 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onLoad, onDelete 
   const setCount = exerciseCount * 3;
 
   // Get exercise names for the expanded view
-  const exerciseNames = template.exerciseIds.map(id => {
-    const exercise = EXERCISE_LIBRARY.find(ex => ex.id === id);
-    return exercise ? exercise.name : 'Unknown Exercise';
-  });
+  const exerciseNames = (template.exerciseIds && Array.isArray(template.exerciseIds))
+    ? template.exerciseIds.map(id => {
+        const exercise = EXERCISE_LIBRARY.find(ex => ex.id === id);
+        return exercise ? exercise.name : 'Unknown Exercise';
+      })
+    : [];
 
   // Format last used date
   const getLastUsedText = () => {
