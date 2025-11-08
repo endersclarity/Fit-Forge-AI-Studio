@@ -9,6 +9,13 @@ Audience: AI-assisted debugging and developer reference.
 
 ## [Unreleased] - 2025-11-08
 
+### Added
+- **Skip Rest Button** - Added ability to skip rest timer and move to next set
+  - File: `components/CurrentSetDisplay.tsx:82-87`
+  - Change: Added "Skip Rest" button that appears during rest timer
+  - Impact: Users can now skip rest periods if they feel ready to continue
+  - UX: Button appears below rest timer progress bar
+
 ### Changed
 - **Horizontal Inline Set Logging** - Refactored set input UI to single-line horizontal layout
   - File: `components/HorizontalSetInput.tsx` (new)
