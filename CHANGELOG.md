@@ -9,6 +9,20 @@ Audience: AI-assisted debugging and developer reference.
 
 ## [Unreleased] - 2025-11-07
 
+### Changed
+- **WorkoutBuilder Set Grouping** - Sets now grouped by exercise instead of flat list
+  - File: `components/ExerciseGroup.tsx` (new)
+  - File: `components/WorkoutBuilder.tsx:843-857`
+  - Change: Created ExerciseGroup component with collapsible headers
+  - Change: Added groupSetsByExercise utility function
+  - Change: Duplicate and "Add Another Set" now insert within same exercise group
+  - Impact: Cleaner UI, easier to see sets per exercise, better organization
+  - UX: Each exercise shows as expandable group with set count
+
+---
+
+## [Unreleased] - 2025-11-07
+
 ### Fixed
 - **WorkoutBuilder Template Save Bug** - Fixed templates saving with 0 exercises
   - File: `components/WorkoutBuilder.tsx:360`
