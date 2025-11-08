@@ -1,5 +1,6 @@
 import React from 'react';
 import { BuilderSet } from '../types';
+import HorizontalSetInput from './HorizontalSetInput';
 
 interface CurrentSetDisplayProps {
   set: BuilderSet;
@@ -41,16 +42,31 @@ const CurrentSetDisplay: React.FC<CurrentSetDisplayProps> = ({
 
   return (
     <div className="bg-brand-muted p-6 rounded-lg">
-      <div className="text-center mb-4">
+      {/* Exercise header */}
+      <div className="text-center mb-6">
         <div className="text-sm text-slate-400 mb-1">
           Set {setNumber} of {totalSets}
         </div>
-        <h3 className="text-2xl font-bold mb-2">{set.exerciseName}</h3>
-        <div className="text-lg text-slate-300">
-          {set.reps} reps @ {set.weight} lbs
-        </div>
+        <h3 className="text-2xl font-bold mb-4">{set.exerciseName}</h3>
       </div>
 
+      {/* Horizontal set input */}
+      <div className="mb-6">
+        <HorizontalSetInput
+          setNumber={setNumber}
+          exerciseName={set.exerciseName}
+          weight={set.weight}
+          reps={set.reps}
+          restTimerSeconds={set.restTimerSeconds}
+          isLogged={false}
+          isActive={true}
+          onWeightChange={() => {}} // Read-only in execution mode
+          onRepsChange={() => {}} // Read-only in execution mode
+          onLog={onComplete}
+        />
+      </div>
+
+      {/* Rest timer or action buttons */}
       {isResting ? (
         <div className="text-center">
           <div className="text-4xl font-bold text-brand-cyan mb-2">{timeRemaining}s</div>
@@ -68,9 +84,9 @@ const CurrentSetDisplay: React.FC<CurrentSetDisplayProps> = ({
         <div className="space-y-3">
           <button
             onClick={onComplete}
-            className="w-full bg-brand-cyan text-brand-dark font-bold py-4 px-4 rounded-lg hover:bg-cyan-400 transition-colors"
+            className="w-full bg-brand-cyan text-brand-dark font-bold py-4 px-4 rounded-lg hover:bg-cyan-400 transition-colors text-lg"
           >
-            Complete Set
+            LOG SET
           </button>
           <button
             onClick={onSkip}
