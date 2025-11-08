@@ -238,7 +238,7 @@ export interface WorkoutTemplate {
   name: string;
   category: ExerciseCategory;
   variation: "A" | "B";
-  sets: TemplateSet[]; // CHANGED from exerciseIds
+  exerciseIds: string[]; // API returns exerciseIds, not sets
   isFavorite: boolean;
   timesUsed: number;
   createdAt: number; // timestamp

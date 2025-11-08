@@ -8,7 +8,9 @@ interface TemplateCardProps {
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({ template, onLoad, onDelete }) => {
-  const exerciseCount = template.exerciseIds ? template.exerciseIds.length : 0;
+  const exerciseCount = template.exerciseIds && Array.isArray(template.exerciseIds)
+    ? template.exerciseIds.length
+    : 0;
   // Default to 3 sets per exercise (standard pattern in this app)
   const setCount = exerciseCount * 3;
 
