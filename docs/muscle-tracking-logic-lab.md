@@ -554,6 +554,99 @@ const newFatigue = initialFatigue * (1 - recoveryFactor);
 
 ---
 
+### MVP Decision: Keep It Simple
+
+**For MVP**: The current 15% flat rate is acceptable and won't break the user experience.
+
+**Reasoning**:
+- Simple to understand and implement
+- Predictable for users
+- "Good enough" for initial release
+- Can be refined later with real user data
+
+**Future Optimization**: This is a perfect candidate for research-driven improvement after launch.
+
+---
+
+### 🔬 FUTURE RESEARCH TASK: Optimize Recovery Algorithm
+
+**Status**: 📋 Deferred (Post-MVP)
+
+**Deep Research Prompt for Future Investigation**:
+
+```
+Research Task: Determine the optimal muscle recovery algorithm for FitForge
+
+OBJECTIVE:
+Design an evidence-based recovery algorithm that accurately predicts muscle
+fatigue recovery over time, accounting for muscle size, training intensity,
+and individual differences.
+
+RESEARCH QUESTIONS:
+
+1. RECOVERY CURVE SHAPE
+   - Is muscle recovery linear, exponential, logarithmic, or multi-phase?
+   - What does EMG and muscle glycogen research say?
+   - Does the curve change based on fatigue level (e.g., 100% vs 50% starting fatigue)?
+
+2. MUSCLE-SPECIFIC RECOVERY RATES
+   - Do small muscles (biceps, triceps, forearms) recover faster than large muscles (quads, lats, pecs)?
+   - What are the actual recovery half-lives for each muscle group?
+   - How much does muscle fiber type composition affect recovery?
+
+3. FATIGUE TYPE DIFFERENCES
+   - Does mechanical fatigue (volume-based) recover differently than metabolic fatigue?
+   - Should we track different types of fatigue separately?
+
+4. INDIVIDUAL VARIATION
+   - How much does recovery rate vary between individuals?
+   - What factors influence recovery speed (age, training experience, nutrition, sleep)?
+   - Should the system learn individual recovery rates over time?
+
+5. TRAINING INTENSITY IMPACT
+   - Does recovery from 100% fatigue (max effort) take longer than recovery from 60% fatigue?
+   - Is there a non-linear relationship between fatigue depth and recovery time?
+
+6. CONCURRENT RECOVERY
+   - When multiple muscles are fatigued, does systemic fatigue slow recovery?
+   - Does training other muscle groups while one recovers affect its recovery rate?
+
+DATA SOURCES TO INVESTIGATE:
+- Muscle glycogen replenishment studies
+- DOMS (Delayed Onset Muscle Soreness) research
+- Supercompensation theory papers
+- EMG recovery studies
+- Sports science recovery protocols (powerlifting, bodybuilding, CrossFit)
+- Real user data from FitForge (once we have it)
+
+DELIVERABLES:
+1. Evidence-based recovery model with citations
+2. Muscle-specific recovery parameters (if justified by research)
+3. TypeScript implementation of optimized algorithm
+4. Comparison showing improvement over flat 15% rate
+5. Validation plan using real user workout data
+
+SUCCESS METRICS:
+- Algorithm accurately predicts when users can repeat similar workouts
+- Reduced gap between predicted and actual performance
+- User feedback: "The app knows when I'm ready to train again"
+
+TIMELINE: 2-4 weeks of focused research after MVP launch
+```
+
+**Why Defer This**:
+1. ✅ Requires real user data to validate any model
+2. ✅ 15% flat rate won't cause harm or poor UX
+3. ✅ Research is time-intensive and can be done post-launch
+4. ✅ We can A/B test different models with real users later
+
+**When to Revisit**:
+- After 3+ months of user data collection
+- When users report recovery estimates are inaccurate
+- When adding advanced features (periodization, auto-regulation)
+
+---
+
 ## 6. Workout Recommendations
 
 ### Current Logic (from useWorkoutRecommendations.ts)
