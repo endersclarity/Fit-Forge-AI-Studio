@@ -304,10 +304,18 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
       ...set,
       id: `${Date.now()}-${Math.random()}`,
     };
-    setWorkout(prev => ({
-      ...prev,
-      sets: [...prev.sets, newSet],
-    }));
+    setWorkout(prev => {
+      // Find the index of the set being duplicated
+      const currentIndex = prev.sets.findIndex(s => s.id === set.id);
+      if (currentIndex === -1) {
+        // If not found, add to end
+        return { ...prev, sets: [...prev.sets, newSet] };
+      }
+      // Insert right after the current set
+      const newSets = [...prev.sets];
+      newSets.splice(currentIndex + 1, 0, newSet);
+      return { ...prev, sets: newSets };
+    });
     onToast('Set duplicated', 'info');
   };
 
