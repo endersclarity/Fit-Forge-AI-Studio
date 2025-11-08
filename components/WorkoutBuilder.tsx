@@ -359,6 +359,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     };
 
     // Find the index of the current set and insert the new set right after it
+    // This ensures the new set stays within the same exercise group
     setWorkout(prev => {
       const currentIndex = prev.sets.findIndex(s => s.id === editingSet.id);
       if (currentIndex === -1) {
