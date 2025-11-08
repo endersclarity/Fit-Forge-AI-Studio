@@ -10,6 +10,7 @@ import SimpleMuscleVisualization from './SimpleMuscleVisualization';
 import TargetModePanel, { MuscleTargets } from './TargetModePanel';
 import { generateWorkoutFromTargets, ExerciseRecommendation } from '../utils/targetDrivenGeneration';
 import { generateSetsFromVolume } from '../utils/setBuilder';
+import ExerciseGroup from './ExerciseGroup';
 
 interface WorkoutBuilderProps {
   isOpen: boolean;
@@ -880,13 +881,14 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
             {workout.sets.length > 0 ? (
               <>
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 space-y-3">
                   <h4 className="font-semibold mb-2">Planned Sets ({workout.sets.length})</h4>
-                  {workout.sets.map((set, idx) => (
-                    <SetCard
-                      key={set.id}
-                      set={set}
-                      setNumber={idx + 1}
+                  {groupSetsByExercise(workout.sets).map((group) => (
+                    <ExerciseGroup
+                      key={group.exerciseId}
+                      exerciseName={group.exerciseName}
+                      sets={group.sets}
+                      startingSetNumber={group.startingSetNumber}
                       onEdit={handleEditSet}
                       onDelete={handleDeleteSet}
                       onDuplicate={handleDuplicateSet}
