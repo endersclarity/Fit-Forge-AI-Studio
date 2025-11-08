@@ -7,7 +7,7 @@ import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon,
 import WorkoutSummaryModal from './WorkoutSummaryModal';
 import { RecommendedWorkoutData } from '../App';
 import { LastWorkoutSummary } from './LastWorkoutSummary';
-import { workoutsAPI } from '../api';
+import { workoutsAPI, templatesAPI } from '../api';
 import { WorkoutResponse } from '../backend/types';
 import { calculateProgressiveOverload, ProgressionMethod } from '../utils/progressiveOverload';
 import { ProgressiveSuggestionButtons } from './ProgressiveSuggestionButtons';
