@@ -159,7 +159,12 @@ const WorkoutRecommender: React.FC<{
                   isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-cyan-500'
                 }`}
             >
-                {isLoading ? 'Starting Workout...' : 'Start This Workout'}
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Starting Workout...
+                  </span>
+                ) : 'Start This Workout'}
             </button>
         </div>
     );
