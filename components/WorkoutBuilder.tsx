@@ -155,21 +155,46 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     }
   };
 
-  const loadTemplate = (template: WorkoutTemplate) => {
-    const sets: BuilderSet[] = template.sets.map((tSet, idx) => {
-      // Look up exercise name from EXERCISE_LIBRARY
-      const exercise = EXERCISE_LIBRARY.find(e => e.id === tSet.exerciseId);
-      const exerciseName = exercise?.name || tSet.exerciseId; // Fallback to ID if not found
+  const loadTemplate = async (template: WorkoutTemplate) => {
+    const sets: BuilderSet[] = [];
 
-      return {
+    for (let idx = 0; idx < template.exerciseIds.length; idx++) {
+      const exerciseId = template.exerciseIds[idx];
+
+      // Look up exercise from EXERCISE_LIBRARY
+      const exercise = EXERCISE_LIBRARY.find(e => e.id === exerciseId);
+      if (!exercise) {
+        console.warn(`Exercise ${exerciseId} not found in library`);
+        continue;
+      }
+
+      // Try to fetch exercise history for smart defaults
+      let weight = 0;
+      let reps = 8;
+      let restTimerSeconds = 90;
+
+      try {
+        const history = await getExerciseHistory(exerciseId);
+        if (history.sets && history.sets.length > 0) {
+          // Use the first set from last performance as default
+          weight = history.sets[0].weight;
+          reps = history.sets[0].reps;
+        }
+      } catch (error) {
+        // If no history, use defaults (0 weight, 8 reps, 90s rest)
+        console.log(`No history for ${exerciseId}, using defaults`);
+      }
+
+      sets.push({
         id: `${Date.now()}-${idx}`,
-        exerciseId: tSet.exerciseId,
-        exerciseName,
-        weight: tSet.weight,
-        reps: tSet.reps,
-        restTimerSeconds: tSet.restTimerSeconds,
-      };
-    });
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        weight,
+        reps,
+        restTimerSeconds,
+      });
+    }
+
     setWorkout(prev => ({ ...prev, sets }));
     onToast(`Loaded template: ${template.name}`, 'success');
   };

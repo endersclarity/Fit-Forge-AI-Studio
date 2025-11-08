@@ -686,7 +686,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 onClick={() => setIsTemplateSelectorOpen(true)}
                 className="w-full bg-brand-muted text-white font-bold py-4 px-4 rounded-lg text-lg hover:bg-brand-dark transition-colors min-h-[44px]"
             >
-                📋 My Templates
+                📋 Saved Workouts
             </button>
             <button
                 onClick={() => setIsPlannerOpen(true)}

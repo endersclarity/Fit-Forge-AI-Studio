@@ -69,12 +69,12 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">My Templates</h3>
+          <h3 className="text-xl font-semibold">Saved Workouts</h3>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-white text-2xl leading-none"
           >
-            ×
+            ï¿½
           </button>
         </header>
 
