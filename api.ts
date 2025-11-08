@@ -36,6 +36,20 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     },
   });
 
+  // Handle 304 Not Modified BEFORE checking response.ok (304 is not considered "ok")
+  if (response.status === 304) {
+    // Retry without cache to get fresh data
+    const freshResponse = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        ...options.headers,
+      },
+    });
+    return freshResponse.json();
+  }
+
   if (!response.ok) {
     // Try to parse error response body for structured errors
     let errorData: any;
@@ -52,20 +66,6 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       error.code = errorData.code;
     }
     throw error;
-  }
-
-  // Handle 304 Not Modified - no body returned, fetch without cache
-  if (response.status === 304) {
-    // Retry without cache to get fresh data
-    const freshResponse = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        ...options.headers,
-      },
-    });
-    return freshResponse.json();
   }
 
   return response.json();
