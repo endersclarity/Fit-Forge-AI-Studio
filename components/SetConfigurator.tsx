@@ -3,7 +3,7 @@ import { Exercise } from '../types';
 import ExercisePicker from './ExercisePicker';
 import VolumeSlider from './VolumeSlider';
 import { getExerciseHistory, ExerciseHistoryResponse } from '../api';
-import { SetBreakdown } from '../utils/setBuilder';
+import { SetBreakdown, generateSetsFromVolume } from '../utils/setBuilder';
 
 interface SetConfiguratorProps {
   onAddSet: (config: {
@@ -73,7 +73,6 @@ const SetConfigurator: React.FC<SetConfiguratorProps> = ({
   // Auto-sync weight/reps when volume slider is used
   useEffect(() => {
     if (useVolumeSlider && selectedExercise) {
-      const { generateSetsFromVolume } = require('../utils/setBuilder');
       const breakdown = generateSetsFromVolume(targetVolume, exerciseHistory?.lastPerformance);
       setWeight(breakdown.weight);
       setReps(breakdown.reps);
