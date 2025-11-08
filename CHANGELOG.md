@@ -7,6 +7,21 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+## [Unreleased] - 2025-11-08
+
+### Changed
+- **Horizontal Inline Set Logging** - Refactored set input UI to single-line horizontal layout
+  - File: `components/HorizontalSetInput.tsx` (new)
+  - File: `components/CurrentSetDisplay.tsx:42-84`
+  - File: `components/ExerciseGroup.tsx:76-85`
+  - Change: Replaced vertical dropdowns with horizontal tap-to-edit pattern
+  - Change: Numbers are tappable and bring up native-style numeric input
+  - Impact: More compact UI, faster to scan, easier to edit
+  - UX Pattern: Inspired by FitBod iOS app
+  - Reference: `flows/workout/routine-options/starting-workout/logging-a-set/`
+
+---
+
 ## [Unreleased] - 2025-11-07
 
 ### Changed
