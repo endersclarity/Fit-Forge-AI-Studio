@@ -69,15 +69,15 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
                             </div>
                             <div className="grid grid-cols-3 gap-2 mt-3 text-center">
                                 <div>
-                                    <p className="text-brand-cyan text-lg font-bold">{record.bestSingleSet.toLocaleString()} lbs</p>
+                                    <p className="text-brand-cyan text-lg font-bold">{record.bestSingleSet?.toLocaleString() ?? '0'} lbs</p>
                                     <p className="text-xs text-slate-400">Best Set</p>
                                 </div>
                                 <div>
-                                    <p className="text-brand-cyan text-lg font-bold">{record.bestSessionVolume.toLocaleString()} lbs</p>
+                                    <p className="text-brand-cyan text-lg font-bold">{record.bestSessionVolume?.toLocaleString() ?? '0'} lbs</p>
                                     <p className="text-xs text-slate-400">Best Session</p>
                                 </div>
                                 <div>
-                                    <p className="text-brand-cyan text-lg font-bold">{record.rollingAverageMax.toFixed(0).toLocaleString()} lbs</p>
+                                    <p className="text-brand-cyan text-lg font-bold">{record.rollingAverageMax?.toFixed(0).toLocaleString() ?? '0'} lbs</p>
                                     <p className="text-xs text-slate-400">Rolling Avg.</p>
                                 </div>
                             </div>
