@@ -47,7 +47,8 @@ const WorkoutRecommender: React.FC<{
     workouts: WorkoutSession[];
     muscleBaselines: MuscleBaselines;
     onStart: (data: RecommendedWorkoutData) => void;
-}> = ({ muscleStates, workouts, muscleBaselines, onStart }) => {
+    isLoading?: boolean;
+}> = ({ muscleStates, workouts, muscleBaselines, onStart, isLoading = false }) => {
 
     const recommendation = useMemo(() => {
         const RECOVERY_THRESHOLD = 90;
@@ -153,9 +154,12 @@ const WorkoutRecommender: React.FC<{
            
             <button
                 onClick={() => onStart({ type: recommendation.category, variation: recommendation.variation, suggestedExercises: recommendation.suggestedExercises })}
-                className="w-full bg-cyan-600 text-white font-semibold py-3 px-4 rounded-lg text-base hover:bg-cyan-500 transition-colors"
+                disabled={isLoading}
+                className={`w-full bg-cyan-600 text-white font-semibold py-3 px-4 rounded-lg text-base transition-colors ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-cyan-500'
+                }`}
             >
-                Start This Workout
+                {isLoading ? 'Starting Workout...' : 'Start This Workout'}
             </button>
         </div>
     );
