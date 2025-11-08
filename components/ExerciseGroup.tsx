@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BuilderSet } from '../types';
-import SetCard from './SetCard';
+import HorizontalSetInput from './HorizontalSetInput';
 
 interface ExerciseGroupProps {
   exerciseName: string;
@@ -9,6 +9,8 @@ interface ExerciseGroupProps {
   onEdit: (set: BuilderSet) => void;
   onDelete: (setId: string) => void;
   onDuplicate: (set: BuilderSet) => void;
+  onWeightChange?: (setId: string, weight: number) => void;
+  onRepsChange?: (setId: string, reps: number) => void;
 }
 
 const ExerciseGroup: React.FC<ExerciseGroupProps> = ({
@@ -18,6 +20,8 @@ const ExerciseGroup: React.FC<ExerciseGroupProps> = ({
   onEdit,
   onDelete,
   onDuplicate,
+  onWeightChange,
+  onRepsChange,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -52,14 +56,40 @@ const ExerciseGroup: React.FC<ExerciseGroupProps> = ({
       {isExpanded && (
         <div className="p-3 space-y-2">
           {sets.map((set, idx) => (
-            <SetCard
-              key={set.id}
-              set={set}
-              setNumber={startingSetNumber + idx}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onDuplicate={onDuplicate}
-            />
+            <div key={set.id} className="bg-brand-muted p-3 rounded-lg">
+              <HorizontalSetInput
+                setNumber={startingSetNumber + idx}
+                exerciseName={set.exerciseName}
+                weight={set.weight}
+                reps={set.reps}
+                restTimerSeconds={set.restTimerSeconds}
+                isLogged={false}
+                isActive={false}
+                onWeightChange={(weight) => onWeightChange && onWeightChange(set.id, weight)}
+                onRepsChange={(reps) => onRepsChange && onRepsChange(set.id, reps)}
+                onLog={() => {}}
+              />
+              <div className="flex items-center justify-end gap-2 mt-2">
+                <button
+                  onClick={() => onEdit(set)}
+                  className="text-xs text-slate-400 hover:text-brand-cyan transition-colors px-2 py-1"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => onDuplicate(set)}
+                  className="text-xs text-slate-400 hover:text-brand-cyan transition-colors px-2 py-1"
+                >
+                  Dup
+                </button>
+                <button
+                  onClick={() => onDelete(set.id)}
+                  className="text-xs text-red-400 hover:text-red-300 transition-colors px-2 py-1"
+                >
+                  Del
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       )}

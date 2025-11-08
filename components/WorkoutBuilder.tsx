@@ -375,6 +375,20 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     onToast('Set added', 'success');
   };
 
+  const handleSetWeightChange = (setId: string, weight: number) => {
+    setWorkout(prev => ({
+      ...prev,
+      sets: prev.sets.map(s => s.id === setId ? { ...s, weight } : s),
+    }));
+  };
+
+  const handleSetRepsChange = (setId: string, reps: number) => {
+    setWorkout(prev => ({
+      ...prev,
+      sets: prev.sets.map(s => s.id === setId ? { ...s, reps } : s),
+    }));
+  };
+
   const handleStartWorkout = () => {
     if (workout.sets.length === 0) {
       onToast('Add at least one set to start', 'error');
@@ -901,6 +915,8 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
                       onEdit={handleEditSet}
                       onDelete={handleDeleteSet}
                       onDuplicate={handleDuplicateSet}
+                      onWeightChange={handleSetWeightChange}
+                      onRepsChange={handleSetRepsChange}
                     />
                   ))}
                 </div>
