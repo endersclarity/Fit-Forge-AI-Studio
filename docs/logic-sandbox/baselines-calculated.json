@@ -1,0 +1,153 @@
+{
+  "baselines": [
+    {
+      "muscle": "AnteriorDeltoids",
+      "baselineCapacity": 3024,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Plank",
+      "exerciseId": "ex16",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Biceps",
+      "baselineCapacity": 2205,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "TRX Bicep Curl",
+      "exerciseId": "ex19",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Calves",
+      "baselineCapacity": 34200,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Calf Raises",
+      "exerciseId": "ex15",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Core",
+      "baselineCapacity": 9750,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Average of all core exercises",
+      "exerciseId": "core_average",
+      "notes": "Average of: Plank (16,800), Spider Planks (6,000), Mountain Climbers (8,400), Hanging Leg Raises (7,800) = 9,750 lbs"
+    },
+    {
+      "muscle": "Forearms",
+      "baselineCapacity": 1560,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Hanging Leg Raises",
+      "exerciseId": "ex46",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Glutes",
+      "baselineCapacity": 10800,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Box Step-ups",
+      "exerciseId": "ex47",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Hamstrings",
+      "baselineCapacity": 2880,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Box Step-ups",
+      "exerciseId": "ex47",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "HipFlexors",
+      "baselineCapacity": 0,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Bench Sit-ups",
+      "exerciseId": "ex17",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Lats",
+      "baselineCapacity": 3000,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "TRX Pull-up",
+      "exerciseId": "ex41",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "LowerBack",
+      "baselineCapacity": 315,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Dumbbell Romanian Deadlift",
+      "exerciseId": "ex13",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Pectoralis",
+      "baselineCapacity": 3744,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "TRX Pushup",
+      "exerciseId": "ex31",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "PosteriorDeltoids",
+      "baselineCapacity": 1440,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Face Pull",
+      "exerciseId": "ex21",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Quadriceps",
+      "baselineCapacity": 8400,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Box Step-ups",
+      "exerciseId": "ex47",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Rhomboids",
+      "baselineCapacity": 1260,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Face Pull",
+      "exerciseId": "ex21",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Trapezius",
+      "baselineCapacity": 2678,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Shoulder Shrugs",
+      "exerciseId": "ex23",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    },
+    {
+      "muscle": "Triceps",
+      "baselineCapacity": 2520,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "TRX Tricep Extension",
+      "exerciseId": "ex40",
+      "notes": "Calculated from maximum volume across all exercises in isolation"
+    }
+  ],
+  "metadata": {
+    "lastUpdated": "2025-11-08",
+    "method": "Maximum volume across all exercises",
+    "notes": "These baselines represent the highest muscle volume achieved in any single exercise performed to failure in isolation."
+  }
+}

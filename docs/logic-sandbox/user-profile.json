@@ -1,0 +1,17 @@
+{
+  "user": {
+    "name": "Kaelen",
+    "bodyWeight": 200,
+    "unit": "lbs",
+    "lastUpdated": "2025-11-08"
+  },
+  "settings": {
+    "recoveryRatePerDay": 0.15,
+    "recoveryModel": "linear",
+    "notes": "15% linear recovery per day (MVP model)"
+  },
+  "metadata": {
+    "created": "2025-11-08",
+    "lastModified": "2025-11-08"
+  }
+}
