@@ -19,38 +19,83 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 ---
 
-# CRITICAL: Container/Server Restart Protocol
+# Deployment URLs
 
-## ⚠️ NEVER CHANGE PORTS - ALWAYS USE 3000 AND 3001
+**Production (Railway):** https://fit-forge-ai-studio-production-6b5b.up.railway.app/
+
+**Local Development:**
+- Frontend: http://localhost:3000
+- Backend: http://localhost:3001
+
+---
+
+# Development Environment with Hot Module Reload (HMR)
+
+## ✨ Hot Reload Setup
+
+The local development environment uses **Vite dev server** (frontend) and **nodemon** (backend) for instant hot reloading.
+
+**You do NOT need to rebuild containers for code changes!**
+
+### Quick Start
+
+```bash
+# Start development environment
+docker-compose up -d
+
+# Make changes to .tsx, .ts, .js files
+# → Browser auto-refreshes instantly!
+# → Backend auto-restarts on file changes!
+
+# View logs (optional)
+docker-compose logs -f frontend
+docker-compose logs -f backend
+
+# Stop when done
+docker-compose down
+```
+
+### How It Works
+
+- **Frontend**: Mounts source files as volumes → Vite detects changes → Browser hot-reloads
+- **Backend**: Mounts backend files as volumes → Nodemon detects changes → Server restarts
+- **No rebuilds needed** for code changes - only when `package.json` dependencies change
+
+### When to Rebuild
+
+You ONLY need to rebuild if you:
+- Change `package.json` dependencies
+- Modify Dockerfiles
+- Change build configuration
+
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
+---
+
+## 🚀 Production Deployment (Railway)
+
+**Railway is completely separate and safe from local dev changes.**
+
+- Railway uses `Dockerfile` (production build)
+- Local dev uses `Dockerfile.dev` (development with HMR)
+- Railway does NOT use `docker-compose.yml`
+- Changes only deploy when you push to GitHub
+
+**Workflow:**
+1. ✏️ Edit code locally → See changes instantly
+2. ✅ Test locally with hot reload
+3. 📤 Commit & push to GitHub
+4. 🚀 Railway auto-deploys production build
+
+---
+
+## ⚠️ Port Configuration - NEVER CHANGE
 
 **MANDATORY RULES:**
 1. Frontend MUST ALWAYS run on port **3000**
 2. Backend MUST ALWAYS run on port **3001**
 3. NEVER let Vite or any process run on different ports (3002, 3003, 3005, etc.)
-4. If ports are busy, it means containers/processes are still running - STOP THEM FIRST
-
-## Correct Restart Procedure:
-
-**Step 1: Stop Everything**
-```bash
-# Kill any background shells
-# Then stop Docker containers
-docker-compose down
-```
-
-**Step 2: Restart Containers**
-```bash
-docker-compose up -d
-```
-
-**NEVER:**
-- ❌ Start npm manually without stopping Docker first
-- ❌ Let Vite auto-select different ports
-- ❌ Run multiple instances on different ports
-- ❌ Change port configuration
-
-**ALWAYS:**
-- ✅ Stop Docker containers first with `docker-compose down`
-- ✅ Restart with `docker-compose up -d`
-- ✅ Verify services are on ports 3000 and 3001
-- ✅ Kill processes if ports conflict before restarting
+4. If ports are busy, containers are still running - STOP THEM FIRST with `docker-compose down`

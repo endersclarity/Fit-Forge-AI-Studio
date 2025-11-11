@@ -1,0 +1,23 @@
+# Development Dockerfile for Backend with Hot Reload
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app/backend
+
+# Copy package files
+COPY backend/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Install nodemon globally for hot reload
+RUN npm install -g nodemon
+
+# Copy backend source (will be overridden by volume mounts in docker-compose)
+COPY backend/ ./
+
+# Expose backend port
+EXPOSE 3001
+
+# Run with nodemon for hot reload
+CMD ["nodemon", "--watch", ".", "--ext", "ts,js,json", "--exec", "node", "server.js"]

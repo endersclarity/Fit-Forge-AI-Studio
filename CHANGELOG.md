@@ -11,12 +11,30 @@ Audience: AI-assisted debugging and developer reference.
 
 ### Added
 - **Skip Rest Button** - Added ability to skip rest timer and move to next set
+  - Commit: `c7a7eab`
   - File: `components/CurrentSetDisplay.tsx:82-87`
   - Change: Added "Skip Rest" button that appears during rest timer
   - Impact: Users can now skip rest periods if they feel ready to continue
   - UX: Button appears below rest timer progress bar
 
+- **Development Environment with Hot Module Reload (HMR)** - Set up instant code changes without container rebuilds
+  - Commit: `bdc15ba`
+  - Files: `Dockerfile.dev`, `backend/Dockerfile.dev`, `docker-compose.yml`, `backend/server.js`, `CLAUDE.md`
+  - Change: Created development-specific Dockerfiles using Vite dev server (frontend) and nodemon (backend)
+  - Change: Configured volume mounts for source code hot reload
+  - Change: Fixed backend server binding from 127.0.0.1 to 0.0.0.0 for Docker networking
+  - Change: Fixed healthcheck to use IPv4 (127.0.0.1) instead of localhost
+  - Impact: Developers can edit code and see changes instantly without rebuilding containers
+  - Safety: Production Railway deployment unchanged (uses separate `Dockerfile`, not `Dockerfile.dev`)
+  - UX: Frontend auto-refreshes on save, backend auto-restarts on file changes
+
 ### Changed
+- **Dashboard Welcome Message** - Personalized greeting for Kaelen
+  - Commit: `bdc15ba`
+  - File: `components/Dashboard.tsx:656`
+  - Change: Changed from dynamic "Welcome back, {profile.name}" to static "Welcome, Kaelen"
+  - Impact: Personalized user experience
+
 - **Horizontal Inline Set Logging** - Refactored set input UI to single-line horizontal layout
   - File: `components/HorizontalSetInput.tsx` (new)
   - File: `components/CurrentSetDisplay.tsx:42-84`

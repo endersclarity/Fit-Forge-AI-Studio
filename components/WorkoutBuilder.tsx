@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate, ExerciseCategory, Variation } from '../types';
-import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory } from '../api';
+import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate, ExerciseCategory, Variation, Muscle } from '../types';
+import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory, completeWorkout, WorkoutCompletionResponse } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
 import SetConfigurator from './SetConfigurator';
 import SetEditModal from './SetEditModal';
@@ -10,6 +10,7 @@ import TargetModePanel, { MuscleTargets } from './TargetModePanel';
 import { generateWorkoutFromTargets, ExerciseRecommendation } from '../utils/targetDrivenGeneration';
 import { generateSetsFromVolume } from '../utils/setBuilder';
 import ExerciseGroup from './ExerciseGroup';
+import BaselineUpdateModal from './BaselineUpdateModal';
 
 interface WorkoutBuilderProps {
   isOpen: boolean;
@@ -99,6 +100,11 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<any>(null);
 
+  // Baseline update modal state (Story 3.1)
+  const [showBaselineModal, setShowBaselineModal] = useState(false);
+  const [baselineSuggestions, setBaselineSuggestions] = useState<WorkoutCompletionResponse['baselineSuggestions']>([]);
+  const [savedWorkoutId, setSavedWorkoutId] = useState<number | null>(null);
+
   // Refs for auto-save (to avoid interval recreation)
   const workoutRef = useRef(workout);
   const modeRef = useRef(mode);
@@ -179,10 +185,10 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      const [states, baselines] = await Promise.all([
-        muscleStatesAPI.get(),
-        muscleBaselinesAPI.getAll(),
-      ]);
+      const baselines = await muscleBaselinesAPI.get();
+      // Fetch muscle states using direct fetch since muscleStatesAPI.get() was removed
+      const statesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/muscle-states`);
+      const states = await statesResponse.json();
       setMuscleStates(states);
       setMuscleBaselines(baselines);
     } catch (error) {
@@ -571,21 +577,84 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           bodyweight_at_time: s.bodyweightAtTime,
         }));
 
-      await builderAPI.saveBuilderWorkout({
+      const saveResponse = await builderAPI.saveBuilderWorkout({
         sets: completedSetsData,
         timestamp: new Date(workout.startTime!).toISOString(),
         was_executed: true,
       });
 
-      onSuccess();
-      onToast(`Workout saved! ${completedSets.size} sets completed.`, 'success');
-      handleClose();
+      // Story 3.1: Calculate fatigue and check for baseline updates
+      try {
+        const completionResponse = await completeWorkout(saveResponse.workout_id);
+
+        // Check if there are baseline suggestions
+        if (completionResponse.baselineSuggestions && completionResponse.baselineSuggestions.length > 0) {
+          // Store suggestions and show modal
+          setBaselineSuggestions(completionResponse.baselineSuggestions);
+          setSavedWorkoutId(saveResponse.workout_id);
+          setShowBaselineModal(true);
+
+          onToast(`Workout saved! You exceeded ${completionResponse.baselineSuggestions.length} baseline${completionResponse.baselineSuggestions.length > 1 ? 's' : ''}!`, 'success');
+        } else {
+          onToast(`Workout saved! ${completedSets.size} sets completed.`, 'success');
+          onSuccess();
+          handleClose();
+        }
+      } catch (fatigueError) {
+        console.error('Failed to calculate fatigue:', fatigueError);
+        // Still show success for the workout save, but warn about fatigue calculation
+        onToast('Workout saved, but fatigue calculation failed', 'info');
+        onSuccess();
+        handleClose();
+      }
     } catch (error) {
       console.error('Failed to save workout:', error);
       onToast('Failed to save workout', 'error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConfirmBaselineUpdates = async () => {
+    if (baselineSuggestions.length === 0) return;
+
+    try {
+      // Get current baselines
+      const currentBaselines = await muscleBaselinesAPI.get();
+
+      // Update baselines with suggestions
+      const updatedBaselines = { ...currentBaselines };
+      for (const suggestion of baselineSuggestions) {
+        const muscleName = suggestion.muscle as keyof MuscleBaselines;
+        if (updatedBaselines[muscleName]) {
+          updatedBaselines[muscleName] = {
+            ...updatedBaselines[muscleName],
+            userOverride: suggestion.suggestedBaseline
+          };
+        }
+      }
+
+      // Save updated baselines
+      await muscleBaselinesAPI.update(updatedBaselines);
+
+      onToast('Baselines updated successfully!', 'success');
+      setShowBaselineModal(false);
+      setBaselineSuggestions([]);
+      setSavedWorkoutId(null);
+      onSuccess();
+      handleClose();
+    } catch (error) {
+      console.error('Failed to update baselines:', error);
+      onToast('Failed to update baselines', 'error');
+    }
+  };
+
+  const handleDeclineBaselineUpdates = () => {
+    setShowBaselineModal(false);
+    setBaselineSuggestions([]);
+    setSavedWorkoutId(null);
+    onSuccess();
+    handleClose();
   };
 
   const handleGenerateFromTargets = async (targets: MuscleTargets) => {
@@ -1068,6 +1137,19 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             </div>
           </div>
         )}
+
+        {/* Baseline Update Modal (Story 3.1) */}
+        <BaselineUpdateModal
+          isOpen={showBaselineModal}
+          updates={baselineSuggestions.map(suggestion => ({
+            muscle: suggestion.muscle as Muscle,
+            oldMax: suggestion.currentBaseline,
+            newMax: suggestion.suggestedBaseline,
+            sessionVolume: suggestion.volumeAchieved
+          }))}
+          onConfirm={handleConfirmBaselineUpdates}
+          onDecline={handleDeclineBaselineUpdates}
+        />
       </div>
     </div>
   );

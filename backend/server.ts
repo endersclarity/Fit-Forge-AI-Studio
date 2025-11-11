@@ -36,7 +36,7 @@ import {
 } from './types';
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
 // Middleware
 // CORS configuration - supports both development and production
@@ -968,6 +968,300 @@ app.delete('/api/calibrations/:exerciseId', (req: Request, res: Response<{ messa
   } catch (error) {
     console.error('Error deleting calibrations:', error);
     return res.status(500).json({ error: 'Failed to delete calibrations' });
+  }
+});
+
+// ============================================
+// Muscle Intelligence API Endpoints (Epic 2)
+// ============================================
+
+// Import calculation services
+const fatigueCalculator = require('./services/fatigueCalculator');
+const recoveryCalculator = require('./services/recoveryCalculator');
+const exerciseRecommender = require('./services/exerciseRecommender');
+const baselineUpdater = require('./services/baselineUpdater');
+
+// POST /api/workouts/:id/complete - Calculate fatigue after workout completion
+app.post('/api/workouts/:id/complete', async (req: Request, res: Response) => {
+  try {
+    const workoutId = parseInt(req.params.id);
+
+    // Input validation
+    if (isNaN(workoutId) || workoutId <= 0) {
+      return res.status(400).json({ error: 'Invalid workout ID' });
+    }
+
+    // Get workout from database
+    const allWorkouts = db.getWorkouts();
+    const workout = allWorkouts.find((w: any) => w.id === workoutId);
+
+    if (!workout) {
+      return res.status(404).json({ error: 'Workout not found' });
+    }
+
+    // Get user's current muscle baselines
+    const baselineData = db.getMuscleBaselines();
+    const baselines: Record<string, number> = {};
+
+    // Convert baseline data to simple map
+    Object.keys(baselineData).forEach(muscle => {
+      const baseline = baselineData[muscle];
+      baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
+    });
+
+    // Calculate fatigue using the service
+    const fatigueResults = fatigueCalculator.calculateFatigue(workout, baselines);
+
+    // Check for baseline updates
+    const muscleVolumes: Record<string, number> = {};
+    Object.keys(fatigueResults).forEach(muscle => {
+      muscleVolumes[muscle] = fatigueResults[muscle].volume;
+    });
+
+    const baselineUpdateCheck = baselineUpdater.checkBaselineUpdates(
+      muscleVolumes,
+      baselines,
+      new Date(workout.date),
+      workoutId
+    );
+
+    // Store muscle fatigue states in database
+    const muscleStatesToStore: Record<string, any> = {};
+    Object.keys(fatigueResults).forEach(muscle => {
+      muscleStatesToStore[muscle] = {
+        fatigue_percent: fatigueResults[muscle].displayFatigue,
+        volume_today: fatigueResults[muscle].volume,
+        recovered_at: null,
+        last_trained: workout.date
+      };
+    });
+    db.updateMuscleStates(muscleStatesToStore);
+
+    // Calculate workout summary
+    const totalVolume = Object.values(muscleVolumes).reduce((sum, vol) => sum + vol, 0);
+    const prsAchieved = baselineUpdateCheck.suggestions.length;
+
+    // Return response
+    return res.json({
+      fatigue: Object.keys(fatigueResults).reduce((acc, muscle) => {
+        acc[muscle] = fatigueResults[muscle].displayFatigue;
+        return acc;
+      }, {} as Record<string, number>),
+      baselineSuggestions: baselineUpdateCheck.suggestions,
+      summary: {
+        totalVolume: Math.round(totalVolume),
+        prsAchieved,
+        musclesWorked: Object.keys(fatigueResults).length,
+        workoutDate: workout.date
+      }
+    });
+
+  } catch (error) {
+    console.error('Error completing workout:', error);
+    return res.status(500).json({
+      error: 'Failed to calculate workout fatigue',
+      message: (error as Error).message
+    });
+  }
+});
+
+// GET /api/recovery/timeline - Get recovery state for all muscles
+app.get('/api/recovery/timeline', async (_req: Request, res: Response) => {
+  try {
+    // Get latest muscle states
+    const muscleStates = db.getMuscleStates();
+
+    // Get current timestamp
+    const currentTime = new Date();
+
+    // Calculate recovery for each muscle
+    const muscles = Object.keys(muscleStates).map(muscleName => {
+      const state = muscleStates[muscleName];
+      const lastTrainedDate = state.lastTrained || new Date().toISOString();
+      const workoutTimestamp = new Date(lastTrainedDate);
+
+      // Calculate current recovery state
+      const recovery = recoveryCalculator.calculateRecovery(
+        state.initialFatiguePercent,
+        workoutTimestamp,
+        currentTime
+      );
+
+      // Calculate projections
+      const projections = recoveryCalculator.calculateRecoveryProjections(
+        state.initialFatiguePercent,
+        workoutTimestamp
+      );
+
+      // Calculate full recovery time
+      const fullRecovery = recoveryCalculator.calculateFullRecoveryTime(recovery.currentFatigue);
+
+      return {
+        name: muscleName,
+        currentFatigue: recovery.currentFatigue,
+        status: recovery.status,
+        projections: {
+          '24h': projections['24h'].currentFatigue,
+          '48h': projections['48h'].currentFatigue,
+          '72h': projections['72h'].currentFatigue
+        },
+        fullyRecoveredIn: fullRecovery.message,
+        lastTrained: lastTrainedDate
+      };
+    });
+
+    return res.json({ muscles });
+
+  } catch (error) {
+    console.error('Error getting recovery timeline:', error);
+    return res.status(500).json({
+      error: 'Failed to calculate recovery timeline',
+      message: (error as Error).message
+    });
+  }
+});
+
+// POST /api/recommendations/exercises - Get ranked exercise recommendations
+app.post('/api/recommendations/exercises', async (req: Request, res: Response) => {
+  try {
+    const { targetMuscle, currentWorkout = [], availableEquipment = [] } = req.body;
+
+    // Input validation
+    if (!targetMuscle) {
+      return res.status(400).json({ error: 'targetMuscle is required' });
+    }
+
+    // Get current muscle states for recovery data
+    const muscleStates = db.getMuscleStates();
+    const currentFatigue: Record<string, number> = {};
+    const currentMuscleVolumes: Record<string, number> = {};
+
+    Object.keys(muscleStates).forEach(muscle => {
+      const state = muscleStates[muscle];
+      const lastTrainedDate = state.lastTrained || new Date().toISOString();
+      const workoutTimestamp = new Date(lastTrainedDate);
+      const recovery = recoveryCalculator.calculateRecovery(
+        state.initialFatiguePercent,
+        workoutTimestamp,
+        new Date()
+      );
+      currentFatigue[muscle] = recovery.currentFatigue;
+      currentMuscleVolumes[muscle] = 0; // Default to 0 for MVP
+    });
+
+    // Get baselines
+    const baselineData = db.getMuscleBaselines();
+    const baselines: Record<string, number> = {};
+    Object.keys(baselineData).forEach(muscle => {
+      const baseline = baselineData[muscle];
+      baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
+    });
+
+    // Get recommendations
+    const recommendations = exerciseRecommender.recommendExercises({
+      targetMuscle,
+      currentWorkout,
+      currentFatigue,
+      currentMuscleVolumes,
+      baselines,
+      availableEquipment
+    });
+
+    return res.json(recommendations);
+
+  } catch (error) {
+    console.error('Error getting exercise recommendations:', error);
+    return res.status(500).json({
+      error: 'Failed to get exercise recommendations',
+      message: (error as Error).message
+    });
+  }
+});
+
+// POST /api/forecast/workout - Predict fatigue for planned exercises
+app.post('/api/forecast/workout', async (req: Request, res: Response) => {
+  try {
+    const { exercises } = req.body;
+
+    // Input validation
+    if (!exercises || !Array.isArray(exercises)) {
+      return res.status(400).json({ error: 'exercises array is required' });
+    }
+
+    // Validate exercise array size
+    if (exercises.length > 50) {
+      return res.status(400).json({ error: 'Maximum 50 exercises allowed' });
+    }
+
+    // Get current muscle states for starting fatigue
+    const muscleStates = db.getMuscleStates();
+    const currentFatigue: Record<string, number> = {};
+
+    Object.keys(muscleStates).forEach(muscle => {
+      const state = muscleStates[muscle];
+      const lastTrainedDate = state.lastTrained || new Date().toISOString();
+      const workoutTimestamp = new Date(lastTrainedDate);
+      const recovery = recoveryCalculator.calculateRecovery(
+        state.initialFatiguePercent,
+        workoutTimestamp,
+        new Date()
+      );
+      currentFatigue[muscle] = recovery.currentFatigue;
+    });
+
+    // Get baselines
+    const baselineData = db.getMuscleBaselines();
+    const baselines: Record<string, number> = {};
+    Object.keys(baselineData).forEach(muscle => {
+      const baseline = baselineData[muscle];
+      baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
+    });
+
+    // Create a mock workout object for fatigue calculation
+    const plannedWorkout = {
+      id: -1,
+      date: new Date().toISOString(),
+      exercises: exercises
+    };
+
+    // Calculate predicted fatigue
+    const predictedFatigue = fatigueCalculator.calculateFatigue(plannedWorkout, baselines);
+
+    // Calculate final fatigue (current + predicted)
+    const finalFatigue: Record<string, number> = {};
+    const warnings: string[] = [];
+
+    Object.keys(predictedFatigue).forEach(muscle => {
+      const current = currentFatigue[muscle] || 0;
+      const predicted = predictedFatigue[muscle].fatiguePercent;
+      const final = current + predicted;
+
+      finalFatigue[muscle] = Math.min(200, final); // Cap at 200%
+
+      // Warn if exceeding safe limits
+      if (final > 100) {
+        warnings.push(`${muscle}: Would exceed baseline (${final.toFixed(1)}%)`);
+      } else if (final > 80) {
+        warnings.push(`${muscle}: High fatigue predicted (${final.toFixed(1)}%)`);
+      }
+    });
+
+    return res.json({
+      currentFatigue,
+      predictedFatigue: Object.keys(predictedFatigue).reduce((acc, muscle) => {
+        acc[muscle] = predictedFatigue[muscle].fatiguePercent;
+        return acc;
+      }, {} as Record<string, number>),
+      finalFatigue,
+      warnings
+    });
+
+  } catch (error) {
+    console.error('Error forecasting workout:', error);
+    return res.status(500).json({
+      error: 'Failed to forecast workout fatigue',
+      message: (error as Error).message
+    });
   }
 });
 

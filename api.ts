@@ -397,3 +397,123 @@ export async function getExerciseHistory(
 ): Promise<ExerciseHistoryResponse> {
   return apiRequest<ExerciseHistoryResponse>(`/exercise-history/${exerciseId}/latest`);
 }
+
+// ============================================
+// Muscle Intelligence API Functions (Epic 2)
+// ============================================
+
+/**
+ * Complete workout and calculate muscle fatigue
+ * POST /api/workouts/:id/complete
+ */
+export interface WorkoutCompletionResponse {
+  fatigue: Record<string, number>;
+  baselineSuggestions: Array<{
+    muscle: string;
+    currentBaseline: number;
+    volumeAchieved: number;
+    suggestedBaseline: number;
+    exceedancePercent: number;
+    exceedanceAmount: number;
+    workoutDate: string;
+    workoutId: number;
+  }>;
+  summary: {
+    totalVolume: number;
+    prsAchieved: number;
+    musclesWorked: number;
+    workoutDate: string;
+  };
+}
+
+export async function completeWorkout(workoutId: number): Promise<WorkoutCompletionResponse> {
+  return apiRequest<WorkoutCompletionResponse>(`/workouts/${workoutId}/complete`, {
+    method: 'POST'
+  });
+}
+
+/**
+ * Get recovery timeline for all muscles
+ * GET /api/recovery/timeline
+ */
+export interface RecoveryTimelineResponse {
+  muscles: Array<{
+    name: string;
+    currentFatigue: number;
+    status: 'ready' | 'caution' | 'dont_train';
+    projections: {
+      '24h': number;
+      '48h': number;
+      '72h': number;
+    };
+    fullyRecoveredIn: string;
+    lastTrained: string;
+  }>;
+}
+
+export async function getRecoveryTimeline(): Promise<RecoveryTimelineResponse> {
+  return apiRequest<RecoveryTimelineResponse>('/recovery/timeline');
+}
+
+/**
+ * Get exercise recommendations based on target muscle
+ * POST /api/recommendations/exercises
+ */
+export interface ExerciseRecommendationRequest {
+  targetMuscle: string;
+  currentWorkout?: Array<{ exerciseId: string; sets: Array<{ weight: number; reps: number }> }>;
+  availableEquipment?: string[];
+}
+
+export interface ExerciseRecommendationResponse {
+  recommended: Array<{
+    exercise: any;
+    score: number;
+    isSafe: boolean;
+    warnings: string[];
+  }>;
+  notRecommended: Array<{
+    exercise: any;
+    score: number;
+    isSafe: boolean;
+    warnings: string[];
+  }>;
+  totalEligible: number;
+}
+
+export async function getExerciseRecommendations(
+  request: ExerciseRecommendationRequest
+): Promise<ExerciseRecommendationResponse> {
+  return apiRequest<ExerciseRecommendationResponse>('/recommendations/exercises', {
+    method: 'POST',
+    body: JSON.stringify(request)
+  });
+}
+
+/**
+ * Forecast workout fatigue impact
+ * POST /api/forecast/workout
+ */
+export interface WorkoutForecastRequest {
+  exercises: Array<{
+    exerciseId: string;
+    weight: number;
+    reps: number;
+  }>;
+}
+
+export interface WorkoutForecastResponse {
+  currentFatigue: Record<string, number>;
+  predictedFatigue: Record<string, number>;
+  finalFatigue: Record<string, number>;
+  warnings: string[];
+}
+
+export async function forecastWorkout(
+  request: WorkoutForecastRequest
+): Promise<WorkoutForecastResponse> {
+  return apiRequest<WorkoutForecastResponse>('/forecast/workout', {
+    method: 'POST',
+    body: JSON.stringify(request)
+  });
+}
