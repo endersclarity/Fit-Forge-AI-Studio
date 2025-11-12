@@ -32,12 +32,16 @@ function calculateMuscleVolumes(workoutExercises, exerciseLibrary) {
   const exerciseContext = {}; // Track which exercise triggered each muscle volume
 
   for (const workoutEx of workoutExercises) {
-    // Find exercise in library
-    const exercise = exerciseLibrary.find(e => e.name === workoutEx.exercise);
+    // Find exercise in library by ID
+    const exercise = exerciseLibrary.find(e => e.id === workoutEx.exerciseId);
+
     if (!exercise) {
       // Unknown exercise - skip gracefully
       continue;
     }
+
+    // Get exercise name for context
+    const exerciseName = exercise.name;
 
     // Process each set
     for (const set of workoutEx.sets) {
@@ -57,7 +61,7 @@ function calculateMuscleVolumes(workoutExercises, exerciseLibrary) {
         // Track max volume per muscle (not sum)
         if (!muscleVolumes[muscleName] || muscleVolume > muscleVolumes[muscleName]) {
           muscleVolumes[muscleName] = muscleVolume;
-          exerciseContext[muscleName] = workoutEx.exercise;
+          exerciseContext[muscleName] = exerciseName;
         }
       }
     }
@@ -76,7 +80,7 @@ function calculateMuscleVolumes(workoutExercises, exerciseLibrary) {
  * - Returns full context for transparency (exercise, date, old/new values)
  *
  * @param {Array<Object>} workoutExercises - Completed workout exercises
- *   Format: [{ exercise: string, sets: [{ weight: number, reps: number, toFailure: boolean }] }]
+ *   Format: [{ exerciseId: string, sets: [{ weight: number, reps: number, toFailure: boolean }] }]
  * @param {string} workoutDate - ISO date string of workout (e.g., "2025-11-11")
  * @returns {Array<Object>} Baseline update suggestions
  *   Format: [{ muscle, currentBaseline, suggestedBaseline, achievedVolume, exercise, date, percentIncrease }]
@@ -85,7 +89,7 @@ function calculateMuscleVolumes(workoutExercises, exerciseLibrary) {
  * @example
  * const suggestions = checkForBaselineUpdates([
  *   {
- *     exercise: "Push-ups",
+ *     exerciseId: "ex03",
  *     sets: [
  *       { weight: 200, reps: 30, toFailure: true }
  *     ]
@@ -97,7 +101,7 @@ function calculateMuscleVolumes(workoutExercises, exerciseLibrary) {
  * //     currentBaseline: 3744,
  * //     suggestedBaseline: 4200,
  * //     achievedVolume: 4200,
- * //     exercise: "Push-ups",
+ * //     exercise: "Push-up",
  * //     date: "2025-11-11",
  * //     percentIncrease: 12.2
  * //   }
@@ -116,8 +120,12 @@ export function checkForBaselineUpdates(workoutExercises, workoutDate) {
 
   // Validate workout structure
   for (const workoutEx of workoutExercises) {
-    if (!workoutEx.exercise || typeof workoutEx.exercise !== 'string') {
-      throw new Error('Each workout exercise must have an exercise name');
+    // Require exerciseId
+    if (!workoutEx.exerciseId) {
+      throw new Error('Each workout exercise must have an exerciseId');
+    }
+    if (typeof workoutEx.exerciseId !== 'string') {
+      throw new Error('Exercise ID must be a string');
     }
     if (!Array.isArray(workoutEx.sets)) {
       throw new Error('Each workout exercise must have a sets array');

@@ -3,13 +3,13 @@ import { checkForBaselineUpdates } from '../baselineUpdater.js';
 
 describe('BaselineUpdater', () => {
   // Test workout data with known values
-  // Using "Push-up" (singular) with high enough volume to exceed Pectoralis baseline (3744)
+  // Using "Push-up" (ex03) with high enough volume to exceed Pectoralis baseline (3744)
   // Push-up: Pectoralis 50%, Triceps 35%, AnteriorDeltoids 10%, Core 5%
   // To exceed Pectoralis baseline: need > 3744 / 0.50 = 7488 total volume
   // Using 200 × 40 = 8000 total volume → 4000 Pectoralis volume (exceeds 3744)
   const sampleWorkout = [
     {
-      exercise: 'Push-up',
+      exerciseId: 'ex03',
       sets: [
         { weight: 200, reps: 40, toFailure: true }
       ]
@@ -17,6 +17,33 @@ describe('BaselineUpdater', () => {
   ];
 
   const workoutDate = '2025-11-11';
+
+  describe('Exercise ID Format (TDD Fix #3)', () => {
+    it('should accept exerciseId instead of exercise name', () => {
+      // NEW TEST: Using exerciseId format like fatigueCalculator
+      // Push-up has ID "ex03" in exercises.json
+      const workout = [
+        {
+          exerciseId: 'ex03',
+          sets: [
+            { weight: 200, reps: 40, toFailure: true }
+          ]
+        }
+      ];
+
+      const suggestions = checkForBaselineUpdates(workout, workoutDate);
+
+      // Should still detect baseline exceeded for Pectoralis
+      expect(suggestions).toBeInstanceOf(Array);
+      expect(suggestions.length).toBeGreaterThan(0);
+
+      const pectoralisSuggestion = suggestions.find(s => s.muscle === 'Pectoralis');
+      expect(pectoralisSuggestion).toBeDefined();
+      expect(pectoralisSuggestion.achievedVolume).toBe(4000);
+      expect(pectoralisSuggestion.currentBaseline).toBe(3744);
+      expect(pectoralisSuggestion.exercise).toBe('Push-up'); // Should resolve to exercise name
+    });
+  });
 
   describe('Input Validation (AC: Testing)', () => {
     it('should throw error if workout exercises is not an array', () => {
@@ -43,27 +70,27 @@ describe('BaselineUpdater', () => {
       );
     });
 
-    it('should throw error if exercise name is missing', () => {
+    it('should throw error if exerciseId is missing', () => {
       const invalidWorkout = [
         { sets: [{ weight: 100, reps: 10, toFailure: true }] }
       ];
       expect(() => checkForBaselineUpdates(invalidWorkout, workoutDate)).toThrow(
-        'Each workout exercise must have an exercise name'
+        'Each workout exercise must have an exerciseId'
       );
     });
 
-    it('should throw error if exercise name is not a string', () => {
+    it('should throw error if exerciseId is not a string', () => {
       const invalidWorkout = [
-        { exercise: 123, sets: [{ weight: 100, reps: 10, toFailure: true }] }
+        { exerciseId: 123, sets: [{ weight: 100, reps: 10, toFailure: true }] }
       ];
       expect(() => checkForBaselineUpdates(invalidWorkout, workoutDate)).toThrow(
-        'Each workout exercise must have an exercise name'
+        'Exercise ID must be a string'
       );
     });
 
     it('should throw error if sets is not an array', () => {
       const invalidWorkout = [
-        { exercise: 'Push-up', sets: {} }
+        { exerciseId: 'ex03', sets: {} }
       ];
       expect(() => checkForBaselineUpdates(invalidWorkout, workoutDate)).toThrow(
         'Each workout exercise must have a sets array'
@@ -72,7 +99,7 @@ describe('BaselineUpdater', () => {
 
     it('should throw error if set is missing weight', () => {
       const invalidWorkout = [
-        { exercise: 'Push-up', sets: [{ reps: 10, toFailure: true }] }
+        { exerciseId: 'ex03', sets: [{ reps: 10, toFailure: true }] }
       ];
       expect(() => checkForBaselineUpdates(invalidWorkout, workoutDate)).toThrow(
         'Each set must have weight and reps as numbers'
@@ -81,7 +108,7 @@ describe('BaselineUpdater', () => {
 
     it('should throw error if set is missing reps', () => {
       const invalidWorkout = [
-        { exercise: 'Push-up', sets: [{ weight: 100, toFailure: true }] }
+        { exerciseId: 'ex03', sets: [{ weight: 100, toFailure: true }] }
       ];
       expect(() => checkForBaselineUpdates(invalidWorkout, workoutDate)).toThrow(
         'Each set must have weight and reps as numbers'
@@ -90,7 +117,7 @@ describe('BaselineUpdater', () => {
 
     it('should throw error if weight is not a number', () => {
       const invalidWorkout = [
-        { exercise: 'Push-up', sets: [{ weight: '100', reps: 10, toFailure: true }] }
+        { exerciseId: 'ex03', sets: [{ weight: '100', reps: 10, toFailure: true }] }
       ];
       expect(() => checkForBaselineUpdates(invalidWorkout, workoutDate)).toThrow(
         'Each set must have weight and reps as numbers'
@@ -99,7 +126,7 @@ describe('BaselineUpdater', () => {
 
     it('should throw error if reps is not a number', () => {
       const invalidWorkout = [
-        { exercise: 'Push-up', sets: [{ weight: 100, reps: '10', toFailure: true }] }
+        { exerciseId: 'ex03', sets: [{ weight: 100, reps: '10', toFailure: true }] }
       ];
       expect(() => checkForBaselineUpdates(invalidWorkout, workoutDate)).toThrow(
         'Each set must have weight and reps as numbers'
@@ -109,14 +136,14 @@ describe('BaselineUpdater', () => {
 
   describe('Baseline Exceeded Detection (AC 1)', () => {
     it('should detect when muscle volume exceeds baseline', () => {
-      // Push-up: 40 reps @ 200lbs, toFailure=true
+      // Push-up (ex03): 40 reps @ 200lbs, toFailure=true
       // Pectoralis (50%): 40 × 200 × 0.50 = 4000 units
       // Baseline for Pectoralis: 3744 units (from baselines.json)
       // Should generate suggestion since 4000 > 3744
 
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 40, toFailure: true }
           ]
@@ -138,7 +165,7 @@ describe('BaselineUpdater', () => {
       // Very light workout that won't exceed baselines
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 50, reps: 10, toFailure: true } // Only 350 units for Pectoralis
           ]
@@ -154,7 +181,7 @@ describe('BaselineUpdater', () => {
     it('should handle unknown exercise gracefully', () => {
       const workout = [
         {
-          exercise: 'Unknown Exercise XYZ',
+          exerciseId: 'UNKNOWN_XYZ',
           sets: [
             { weight: 1000, reps: 100, toFailure: true }
           ]
@@ -171,7 +198,7 @@ describe('BaselineUpdater', () => {
     it('should suggest baseline equal to achieved volume, not a calculated increase', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 40, toFailure: true }
           ]
@@ -193,7 +220,7 @@ describe('BaselineUpdater', () => {
       // With high enough volume, multiple muscles should exceed baselines
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 40, toFailure: true }
           ]
@@ -218,7 +245,7 @@ describe('BaselineUpdater', () => {
       // Barbell Deadlifts engage many muscles
       const workout = [
         {
-          exercise: 'Barbell Deadlifts',
+          exerciseId: 'UNKNOWN_DEADLIFT',
           sets: [
             { weight: 300, reps: 10, toFailure: true }
           ]
@@ -241,7 +268,7 @@ describe('BaselineUpdater', () => {
     it('should include date in suggestion', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 40, toFailure: true }
           ]
@@ -259,7 +286,7 @@ describe('BaselineUpdater', () => {
     it('should include exercise name that triggered the suggestion', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 40, toFailure: true }
           ]
@@ -277,7 +304,7 @@ describe('BaselineUpdater', () => {
     it('should calculate percentage increase correctly', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 40, toFailure: true }
           ]
@@ -299,7 +326,7 @@ describe('BaselineUpdater', () => {
     it('should include all required fields in suggestion object', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 40, toFailure: true }
           ]
@@ -335,7 +362,7 @@ describe('BaselineUpdater', () => {
     it('should only process sets marked as toFailure=true', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 40, toFailure: false }, // Should be ignored
             { weight: 200, reps: 40, toFailure: true }   // Should be processed
@@ -352,7 +379,7 @@ describe('BaselineUpdater', () => {
     it('should return empty array if no sets are to failure', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 30, toFailure: false },
             { weight: 250, reps: 25, toFailure: false }
@@ -370,7 +397,7 @@ describe('BaselineUpdater', () => {
     it('should handle missing toFailure field as false', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 30 } // toFailure missing - treated as false
           ]
@@ -389,7 +416,7 @@ describe('BaselineUpdater', () => {
     it('should track maximum volume achieved across multiple sets, not sum', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 150, reps: 20, toFailure: true }, // 3000 total, 1500 Pectoralis (50%)
             { weight: 200, reps: 40, toFailure: true }, // 8000 total, 4000 Pectoralis (MAX - 50%)
@@ -411,13 +438,13 @@ describe('BaselineUpdater', () => {
       // Multiple exercises working different muscles
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 30, toFailure: true } // High Pectoralis volume
           ]
         },
         {
-          exercise: 'Pull-ups',
+          exerciseId: 'ex06',
           sets: [
             { weight: 250, reps: 10, toFailure: true } // High Lats volume
           ]
@@ -442,7 +469,7 @@ describe('BaselineUpdater', () => {
       // Should map to "AnteriorDeltoids" for baseline comparison
       const workout = [
         {
-          exercise: 'Barbell Overhead Press',
+          exerciseId: 'ex05',
           sets: [
             { weight: 150, reps: 10, toFailure: true }
           ]
@@ -463,7 +490,7 @@ describe('BaselineUpdater', () => {
       // Some exercises list "Rectus Abdominis" which maps to "Core"
       const workout = [
         {
-          exercise: 'Crunches',
+          exerciseId: 'UNKNOWN_CRUNCH',
           sets: [
             { weight: 0, reps: 100, toFailure: true }
           ]
@@ -491,7 +518,7 @@ describe('BaselineUpdater', () => {
     it('should handle workout with no toFailure sets', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: []
         }
       ];
@@ -505,7 +532,7 @@ describe('BaselineUpdater', () => {
     it('should handle zero weight', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 0, reps: 30, toFailure: true }
           ]
@@ -520,7 +547,7 @@ describe('BaselineUpdater', () => {
     it('should handle zero reps', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 0, toFailure: true }
           ]
@@ -535,19 +562,19 @@ describe('BaselineUpdater', () => {
     it('should handle multiple exercises in single workout', () => {
       const workout = [
         {
-          exercise: 'Push-up',
+          exerciseId: 'ex03',
           sets: [
             { weight: 200, reps: 30, toFailure: true }
           ]
         },
         {
-          exercise: 'Pull-ups',
+          exerciseId: 'ex06',
           sets: [
             { weight: 250, reps: 10, toFailure: true }
           ]
         },
         {
-          exercise: 'Barbell Squats',
+          exerciseId: 'UNKNOWN_SQUAT',
           sets: [
             { weight: 300, reps: 8, toFailure: true }
           ]
@@ -566,7 +593,7 @@ describe('BaselineUpdater', () => {
     it('should handle typical push day workout', () => {
       const pushDayWorkout = [
         {
-          exercise: 'Barbell Bench Press',
+          exerciseId: 'ex02',
           sets: [
             { weight: 185, reps: 8, toFailure: true },
             { weight: 185, reps: 7, toFailure: true },
@@ -574,14 +601,14 @@ describe('BaselineUpdater', () => {
           ]
         },
         {
-          exercise: 'Dumbbell Incline Press',
+          exerciseId: 'ex32',
           sets: [
             { weight: 70, reps: 10, toFailure: true },
             { weight: 70, reps: 9, toFailure: true }
           ]
         },
         {
-          exercise: 'Dumbbell Flyes',
+          exerciseId: 'UNKNOWN_FLYES',
           sets: [
             { weight: 30, reps: 12, toFailure: true },
             { weight: 30, reps: 11, toFailure: true }
@@ -603,7 +630,7 @@ describe('BaselineUpdater', () => {
     it('should handle leg day workout with heavy squats', () => {
       const legDayWorkout = [
         {
-          exercise: 'Barbell Squats',
+          exerciseId: 'UNKNOWN_SQUAT',
           sets: [
             { weight: 300, reps: 8, toFailure: true },
             { weight: 300, reps: 7, toFailure: true },
@@ -611,7 +638,7 @@ describe('BaselineUpdater', () => {
           ]
         },
         {
-          exercise: 'Romanian Deadlifts',
+          exerciseId: 'ex13',
           sets: [
             { weight: 225, reps: 10, toFailure: true },
             { weight: 225, reps: 9, toFailure: true }
