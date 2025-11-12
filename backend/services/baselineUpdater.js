@@ -15,78 +15,7 @@
  * @module baselineUpdater
  */
 
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Cache for loaded data
-let exerciseLibraryCache = null;
-let baselineDataCache = null;
-
-/**
- * Load exercise library from docs/logic-sandbox/exercises.json
- *
- * @returns {Array<Object>} Array of 48 validated exercises with muscle engagement data
- * @throws {Error} If exercise library cannot be loaded
- */
-function loadExerciseLibrary() {
-  if (exerciseLibraryCache) {
-    return exerciseLibraryCache;
-  }
-
-  try {
-    const exercisePath = join(__dirname, '../../docs/logic-sandbox/exercises.json');
-    const exerciseData = JSON.parse(readFileSync(exercisePath, 'utf8'));
-    exerciseLibraryCache = exerciseData.exercises;
-    return exerciseLibraryCache;
-  } catch (error) {
-    throw new Error(`Failed to load exercise library: ${error.message}`);
-  }
-}
-
-/**
- * Load baseline data from docs/logic-sandbox/baselines.json
- *
- * @returns {Array<Object>} Array of 15 muscle baseline capacities
- * @throws {Error} If baseline data cannot be loaded
- */
-function loadBaselineData() {
-  if (baselineDataCache) {
-    return baselineDataCache;
-  }
-
-  try {
-    const baselinePath = join(__dirname, '../../docs/logic-sandbox/baselines.json');
-    const baselineData = JSON.parse(readFileSync(baselinePath, 'utf8'));
-    baselineDataCache = baselineData.baselines;
-    return baselineDataCache;
-  } catch (error) {
-    throw new Error(`Failed to load baseline data: ${error.message}`);
-  }
-}
-
-// Muscle name mapping: Exercise data format → Baseline data format
-const MUSCLE_NAME_MAP = {
-  'Deltoids (Anterior)': 'AnteriorDeltoids',
-  'Deltoids (Posterior)': 'PosteriorDeltoids',
-  'Latissimus Dorsi': 'Lats',
-  'Erector Spinae': 'LowerBack',
-  'Rectus Abdominis': 'Core',
-  'Obliques': 'Core'
-};
-
-/**
- * Normalize muscle name from exercise format to baseline format
- *
- * @param {string} muscleName - Muscle name from exercise data
- * @returns {string} Normalized muscle name for baseline comparison
- */
-function normalizeMuscle(muscleName) {
-  return MUSCLE_NAME_MAP[muscleName] || muscleName;
-}
+import { loadExerciseLibrary, loadBaselineData, normalizeMuscle } from './dataLoaders.js';
 
 /**
  * Calculate muscle volumes from workout exercises

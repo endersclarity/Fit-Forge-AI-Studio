@@ -44,7 +44,7 @@ development_status:
   1-1-implement-fatigue-calculation-service: done
   1-2-implement-recovery-calculation-service: done
   1-3-implement-exercise-recommendation-scoring-engine: done
-  1-4-implement-baseline-update-trigger-logic: review
+  1-4-implement-baseline-update-trigger-logic: done
   epic-1-retrospective: optional
 
   # Epic 2: API Integration Layer
