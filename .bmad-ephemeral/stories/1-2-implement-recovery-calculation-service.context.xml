@@ -1,0 +1,205 @@
+<story-context id="{bmad_folder}/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>2</storyId>
+    <title>Implement Recovery Calculation Service</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/1-2-implement-recovery-calculation-service.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>backend service</asA>
+    <iWant>to calculate current recovery state for each muscle</iWant>
+    <soThat>users can see when muscles will be ready for training again</soThat>
+    <tasks>
+- Task 1: Port recovery algorithm from logic-sandbox (AC: 1, 2, 3)
+  - Subtask 1.1: Read `docs/logic-sandbox/scripts/calculate-recovery.mjs` for validated algorithm
+  - Subtask 1.2: Create `backend/services/recoveryCalculator.js`
+  - Subtask 1.3: Implement hours elapsed calculation from ISO 8601 timestamps
+  - Subtask 1.4: Implement linear recovery formula: (hoursElapsed / 24) × 15%
+
+- Task 2: Implement current recovery state calculation (AC: 3)
+  - Subtask 2.1: Calculate recovered percentage based on time elapsed
+  - Subtask 2.2: Subtract recovered percentage from initial fatigue
+  - Subtask 2.3: Apply floor of 0% (muscles cannot have negative fatigue)
+  - Subtask 2.4: Handle edge case: muscle already fully recovered
+
+- Task 3: Implement recovery projections (AC: 4)
+  - Subtask 3.1: Project recovery state at 24 hours from now
+  - Subtask 3.2: Project recovery state at 48 hours from now
+  - Subtask 3.3: Project recovery state at 72 hours from now
+  - Subtask 3.4: Format projections with timestamps and fatigue percentages
+
+- Task 4: Calculate full recovery time (AC: 5)
+  - Subtask 4.1: Determine hours until fatigue reaches 0%
+  - Subtask 4.2: Calculate timestamp when muscle will be fully recovered
+  - Subtask 4.3: Return `null` if muscle is already recovered
+  - Subtask 4.4: Format recovery timestamp as ISO 8601
+
+- Task 5: Implement return data structure (AC: All)
+  - Subtask 5.1: Create response object with current recovery state
+  - Subtask 5.2: Include 24h, 48h, 72h projections
+  - Subtask 5.3: Include full recovery timestamp
+  - Subtask 5.4: Return all 15 muscle groups with recovery states
+
+- Task 6: Add input validation and error handling (Testing)
+  - Subtask 6.1: Validate muscle states array structure
+  - Subtask 6.2: Validate timestamps are valid ISO 8601 format
+  - Subtask 6.3: Validate initial fatigue percentages (0-100+)
+  - Subtask 6.4: Throw descriptive errors for invalid inputs
+
+- Task 7: Create comprehensive test suite (Testing)
+  - Subtask 7.1: Test recovery calculation with known elapsed time
+  - Subtask 7.2: Test projection calculations (24h, 48h, 72h)
+  - Subtask 7.3: Test full recovery time calculation
+  - Subtask 7.4: Test edge cases (already recovered, multiple workouts, fatigue >100%)
+
+- Task 8: Export service with ES6 module pattern (Testing)
+  - Subtask 8.1: Export `calculateRecovery` function with ES6 `export`
+  - Subtask 8.2: Add comprehensive JSDoc comments with parameter types
+  - Subtask 8.3: Follow camelCase naming convention
+  - Subtask 8.4: Document linear recovery model formula in comments
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** a muscle with known fatigue percentage and workout timestamp
+   **When** the recovery calculation service is called with current time
+   **Then** it calculates hours elapsed since workout
+
+2. **And** it applies linear recovery model: `recoveredPercentage = (hoursElapsed / 24) × 15%`
+
+3. **And** it returns current fatigue as: `max(0, initialFatigue - recoveredPercentage)`
+
+4. **And** it projects recovery at 24h, 48h, and 72h intervals
+
+5. **And** it identifies when muscle will be fully recovered (fatigue = 0%)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/logic-sandbox/scripts/calculate-recovery.mjs</path>
+        <title>Recovery Calculation Algorithm - Validated Implementation</title>
+        <section>Core Algorithm</section>
+        <snippet>Linear recovery model: 15% per day. Formula: currentFatigue = max(0, initialFatigue - (daysElapsed × 15%)). Calculates recovery at 24h, 48h, 72h intervals and determines when muscle will be ready to train (<40% fatigue threshold).</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Muscle Intelligence Services</title>
+        <section>Story 1.2 - Recovery Calculator Service</section>
+        <snippet>Implements recovery projections using linear recovery model validated in logic-sandbox. Creates backend/services/recoveryCalculator.js. Returns current recovery state with 24h/48h/72h projections and full recovery timestamp. Uses ES6 module exports pattern.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-3: Recovery Timeline</section>
+        <snippet>Users need to see when muscles will be ready for training. Recovery timeline shows current fatigue state and projections at 24h, 48h, 72h intervals. Uses 15% daily recovery rate validated in logic-sandbox.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>FitForge Architecture Document</title>
+        <section>Backend Service Pattern</section>
+        <snippet>Services located in backend/services/, use ES6 module exports, throw descriptive errors for invalid inputs (caught by API routes in Epic 2), maintain <500ms response times, use synchronous SQLite operations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.2: Implement Recovery Calculation Service</section>
+        <snippet>Calculate current recovery state for each muscle. Port logic from logic-sandbox/scripts/calculate-recovery.mjs. Use 15% daily recovery rate. Return projections for dashboard visualization. Must handle edge cases: muscles already recovered, muscles worked multiple days.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/services/fatigueCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateMuscleFatigue</symbol>
+        <lines>1-200</lines>
+        <reason>Previous story (1.1) that establishes service pattern, ES6 module export pattern, JSDoc standards, input validation pattern, and muscle state data structure that recovery calculator will consume</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/__tests__/fatigueCalculator.test.js</path>
+        <kind>test</kind>
+        <symbol>fatigueCalculator test suite</symbol>
+        <lines>all</lines>
+        <reason>Vitest test framework pattern to follow for recoveryCalculator tests. Shows comprehensive test coverage with 10 test cases including edge cases, invalid inputs, and validation</reason>
+      </artifact>
+      <artifact>
+        <path>docs/logic-sandbox/exercises.json</path>
+        <kind>data</kind>
+        <symbol>exercises</symbol>
+        <lines>all</lines>
+        <reason>48 validated exercises with corrected muscle engagement percentages. Used to calculate muscle volumes that feed into recovery calculations</reason>
+      </artifact>
+      <artifact>
+        <path>docs/logic-sandbox/baselines.json</path>
+        <kind>data</kind>
+        <symbol>baselines</symbol>
+        <lines>all</lines>
+        <reason>15 muscle groups with baseline capacities. Used in fatigue calculation that produces initial fatigue values for recovery calculation</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <nodejs>
+        <package name="better-sqlite3" version="^12.4.1">Synchronous SQLite operations for database access</package>
+        <package name="vitest" version="latest">Test framework for service unit tests</package>
+      </nodejs>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Use ES6 module export pattern (export keyword) - project has "type": "module" in package.json</constraint>
+    <constraint>File location: backend/services/recoveryCalculator.js (NEW FILE to be created)</constraint>
+    <constraint>Follow camelCase naming convention for files and functions</constraint>
+    <constraint>Throw descriptive errors for invalid inputs - errors caught by API routes in Epic 2</constraint>
+    <constraint>Pure functions with no direct database access - services receive data from routes</constraint>
+    <constraint>Maintain exact formula from logic-sandbox: currentFatigue = max(0, initialFatigue - (hoursElapsed / 24) × 15%)</constraint>
+    <constraint>Return all 15 muscle groups even if not worked (with 0 fatigue)</constraint>
+    <constraint>Use Date objects for timestamp calculations (convert ISO 8601 strings)</constraint>
+    <constraint>Projections are relative to current time (not relative to workout time)</constraint>
+    <constraint>Response time target: <500ms (existing baseline for API endpoints)</constraint>
+    <constraint>Input validation pattern: Check required fields, validate types, throw on invalid data</constraint>
+    <constraint>15 Muscle Groups: Pectoralis, Latissimus Dorsi, Deltoids (Anterior), Deltoids (Posterior), Trapezius, Rhomboids, Erector Spinae, Obliques, Rectus Abdominis, Biceps, Triceps, Forearms, Quadriceps, Hamstrings, Glutes, Calves</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>calculateRecovery</name>
+      <kind>function signature</kind>
+      <signature>export function calculateRecovery(muscleStates, currentTime)</signature>
+      <path>backend/services/recoveryCalculator.js</path>
+      <description>Main recovery calculation function. Accepts muscle states array (from fatigue calculator) and current timestamp, returns recovery state with projections</description>
+    </interface>
+    <interface>
+      <name>Muscle State Input</name>
+      <kind>data structure</kind>
+      <signature>{ muscle: string, fatigue: number, timestamp: string (ISO 8601) }</signature>
+      <path>backend/services/fatigueCalculator.js</path>
+      <description>Output from fatigue calculator that serves as input to recovery calculator. Each muscle has name, fatigue percentage, and workout timestamp</description>
+    </interface>
+    <interface>
+      <name>Recovery State Output</name>
+      <kind>data structure</kind>
+      <signature>{ muscles: Array<{muscle, currentFatigue, projections: {24h, 48h, 72h}, fullyRecoveredAt}>, timestamp }</signature>
+      <path>backend/services/recoveryCalculator.js</path>
+      <description>Return data structure with current recovery state, future projections, and full recovery timestamp for each muscle</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Vitest test framework established in Story 1.1. Tests located in backend/services/__tests__/. Comprehensive coverage required: happy path, edge cases, invalid inputs. Follow pattern from fatigueCalculator.test.js with descriptive test names, expect assertions, and error validation.</standards>
+    <locations>backend/services/__tests__/recoveryCalculator.test.js</locations>
+    <ideas>
+      <idea ac="1,2">Test recovery calculation with known elapsed time (e.g., 24 hours elapsed → 15% recovery)</idea>
+      <idea ac="3">Test current fatigue calculation with proper subtraction and floor at 0%</idea>
+      <idea ac="4">Test projection calculations for 24h, 48h, 72h intervals return accurate future states</idea>
+      <idea ac="5">Test full recovery time calculation returns correct timestamp when muscle will be at 0%</idea>
+      <idea ac="all">Test edge case: muscle already recovered (0% fatigue) → returns 0%, projections stay 0%, fullyRecoveredAt is null</idea>
+      <idea ac="all">Test edge case: muscle with fatigue >100% → recovers properly using linear model</idea>
+      <idea ac="all">Test invalid inputs: null muscleStates throws error</idea>
+      <idea ac="all">Test invalid inputs: invalid timestamp format throws error</idea>
+      <idea ac="all">Test invalid inputs: negative fatigue throws error</idea>
+      <idea ac="all">Test timestamp formatting: ISO 8601 format for fullyRecoveredAt</idea>
+    </ideas>
+  </tests>
+</story-context>

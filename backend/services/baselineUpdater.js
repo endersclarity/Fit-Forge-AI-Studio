@@ -1,171 +1,238 @@
 /**
- * Baseline Update Service
+ * Baseline Update Trigger Service
  *
- * Detects when a user exceeds their muscle baseline capacity and suggests updates.
- * Triggered on workout completion to identify strength improvements.
+ * Detects when users exceed their muscle baseline capacity and suggests baseline updates.
+ * Algorithm ported from: docs/musclemax-baseline-learning-system.md
  *
- * Simple comparison logic - no complex algorithms needed.
+ * Conservative Max Observed Volume Approach:
+ * - Only analyzes sets marked as "to failure" (quality data)
+ * - Compares achieved muscle volume to current baseline capacity
+ * - Suggests baseline update if volume exceeded
+ * - Baselines only increase, never decrease automatically
+ *
+ * Formula: muscleVolume = weight × reps × (muscleEngagement / 100)
+ *
+ * @module baselineUpdater
  */
+
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Cache for loaded data
+let exerciseLibraryCache = null;
+let baselineDataCache = null;
 
 /**
- * Check if baselines should be updated based on workout performance
+ * Load exercise library from docs/logic-sandbox/exercises.json
  *
- * @param {Object} muscleVolumes - Actual volumes achieved per muscle
- * @param {Object} baselines - Current baseline capacities per muscle
- * @param {Date} workoutDate - When the workout occurred
- * @param {string} workoutId - ID of the workout (optional)
- * @returns {Object} Baseline update suggestions
+ * @returns {Array<Object>} Array of 48 validated exercises with muscle engagement data
+ * @throws {Error} If exercise library cannot be loaded
  */
-function checkBaselineUpdates(muscleVolumes, baselines, workoutDate = new Date(), workoutId = null) {
-  const suggestions = [];
-  const exceededMuscles = [];
+function loadExerciseLibrary() {
+  if (exerciseLibraryCache) {
+    return exerciseLibraryCache;
+  }
 
-  // Check each muscle that was worked
-  Object.keys(muscleVolumes).forEach(muscle => {
-    const volumeAchieved = muscleVolumes[muscle];
-    const currentBaseline = baselines[muscle];
+  try {
+    const exercisePath = join(__dirname, '../../docs/logic-sandbox/exercises.json');
+    const exerciseData = JSON.parse(readFileSync(exercisePath, 'utf8'));
+    exerciseLibraryCache = exerciseData.exercises;
+    return exerciseLibraryCache;
+  } catch (error) {
+    throw new Error(`Failed to load exercise library: ${error.message}`);
+  }
+}
 
-    if (!currentBaseline) {
-      // No baseline exists - skip (this shouldn't happen in production)
-      return;
+/**
+ * Load baseline data from docs/logic-sandbox/baselines.json
+ *
+ * @returns {Array<Object>} Array of 15 muscle baseline capacities
+ * @throws {Error} If baseline data cannot be loaded
+ */
+function loadBaselineData() {
+  if (baselineDataCache) {
+    return baselineDataCache;
+  }
+
+  try {
+    const baselinePath = join(__dirname, '../../docs/logic-sandbox/baselines.json');
+    const baselineData = JSON.parse(readFileSync(baselinePath, 'utf8'));
+    baselineDataCache = baselineData.baselines;
+    return baselineDataCache;
+  } catch (error) {
+    throw new Error(`Failed to load baseline data: ${error.message}`);
+  }
+}
+
+// Muscle name mapping: Exercise data format → Baseline data format
+const MUSCLE_NAME_MAP = {
+  'Deltoids (Anterior)': 'AnteriorDeltoids',
+  'Deltoids (Posterior)': 'PosteriorDeltoids',
+  'Latissimus Dorsi': 'Lats',
+  'Erector Spinae': 'LowerBack',
+  'Rectus Abdominis': 'Core',
+  'Obliques': 'Core'
+};
+
+/**
+ * Normalize muscle name from exercise format to baseline format
+ *
+ * @param {string} muscleName - Muscle name from exercise data
+ * @returns {string} Normalized muscle name for baseline comparison
+ */
+function normalizeMuscle(muscleName) {
+  return MUSCLE_NAME_MAP[muscleName] || muscleName;
+}
+
+/**
+ * Calculate muscle volumes from workout exercises
+ *
+ * Only processes sets marked as "to failure" (quality data for learning)
+ * Tracks maximum volume achieved per muscle across all sets
+ *
+ * @param {Array<Object>} workoutExercises - Workout exercises with sets
+ * @param {Array<Object>} exerciseLibrary - Exercise library with muscle engagement data
+ * @returns {Object} Map of muscle names to maximum volumes achieved and exercise context
+ */
+function calculateMuscleVolumes(workoutExercises, exerciseLibrary) {
+  const muscleVolumes = {};
+  const exerciseContext = {}; // Track which exercise triggered each muscle volume
+
+  for (const workoutEx of workoutExercises) {
+    // Find exercise in library
+    const exercise = exerciseLibrary.find(e => e.name === workoutEx.exercise);
+    if (!exercise) {
+      // Unknown exercise - skip gracefully
+      continue;
     }
 
-    // Check if volume exceeded baseline
-    if (volumeAchieved > currentBaseline) {
-      const exceedancePercent = ((volumeAchieved - currentBaseline) / currentBaseline) * 100;
-      const suggestedBaseline = Math.ceil(volumeAchieved);
+    // Process each set
+    for (const set of workoutEx.sets) {
+      // Only process "to failure" sets (quality data)
+      if (!set.toFailure) {
+        continue;
+      }
+
+      // Calculate total volume for this set
+      const totalVolume = set.weight * set.reps;
+
+      // Calculate muscle-specific volumes
+      for (const muscleData of exercise.muscles) {
+        const muscleVolume = totalVolume * (muscleData.percentage / 100);
+        const muscleName = normalizeMuscle(muscleData.muscle);
+
+        // Track max volume per muscle (not sum)
+        if (!muscleVolumes[muscleName] || muscleVolume > muscleVolumes[muscleName]) {
+          muscleVolumes[muscleName] = muscleVolume;
+          exerciseContext[muscleName] = workoutEx.exercise;
+        }
+      }
+    }
+  }
+
+  return { muscleVolumes, exerciseContext };
+}
+
+/**
+ * Check for baseline updates based on completed workout
+ *
+ * Algorithm: Conservative max observed volume
+ * - Only analyzes sets marked as "to failure" (quality data)
+ * - Compares achieved volume to current baseline
+ * - Suggests baseline update if volume exceeded
+ * - Returns full context for transparency (exercise, date, old/new values)
+ *
+ * @param {Array<Object>} workoutExercises - Completed workout exercises
+ *   Format: [{ exercise: string, sets: [{ weight: number, reps: number, toFailure: boolean }] }]
+ * @param {string} workoutDate - ISO date string of workout (e.g., "2025-11-11")
+ * @returns {Array<Object>} Baseline update suggestions
+ *   Format: [{ muscle, currentBaseline, suggestedBaseline, achievedVolume, exercise, date, percentIncrease }]
+ * @throws {Error} If workout data is invalid
+ *
+ * @example
+ * const suggestions = checkForBaselineUpdates([
+ *   {
+ *     exercise: "Push-ups",
+ *     sets: [
+ *       { weight: 200, reps: 30, toFailure: true }
+ *     ]
+ *   }
+ * ], "2025-11-11");
+ * // Returns: [
+ * //   {
+ * //     muscle: "Pectoralis",
+ * //     currentBaseline: 3744,
+ * //     suggestedBaseline: 4200,
+ * //     achievedVolume: 4200,
+ * //     exercise: "Push-ups",
+ * //     date: "2025-11-11",
+ * //     percentIncrease: 12.2
+ * //   }
+ * // ]
+ *
+ * Source: docs/musclemax-baseline-learning-system.md
+ */
+export function checkForBaselineUpdates(workoutExercises, workoutDate) {
+  // Input validation
+  if (!Array.isArray(workoutExercises)) {
+    throw new Error('Workout exercises must be an array');
+  }
+  if (!workoutDate) {
+    throw new Error('Workout date is required');
+  }
+
+  // Validate workout structure
+  for (const workoutEx of workoutExercises) {
+    if (!workoutEx.exercise || typeof workoutEx.exercise !== 'string') {
+      throw new Error('Each workout exercise must have an exercise name');
+    }
+    if (!Array.isArray(workoutEx.sets)) {
+      throw new Error('Each workout exercise must have a sets array');
+    }
+    for (const set of workoutEx.sets) {
+      if (typeof set.weight !== 'number' || typeof set.reps !== 'number') {
+        throw new Error('Each set must have weight and reps as numbers');
+      }
+    }
+  }
+
+  // Load data sources
+  const exercises = loadExerciseLibrary();
+  const baselines = loadBaselineData();
+
+  // Calculate muscle volumes from workout
+  const { muscleVolumes, exerciseContext } = calculateMuscleVolumes(workoutExercises, exercises);
+
+  // Compare to baselines and generate suggestions
+  const suggestions = [];
+
+  for (const [muscleName, achievedVolume] of Object.entries(muscleVolumes)) {
+    const baseline = baselines.find(b => b.muscle === muscleName);
+
+    if (!baseline) {
+      // Unknown muscle - skip gracefully
+      continue;
+    }
+
+    // Check if baseline exceeded
+    if (achievedVolume > baseline.baselineCapacity) {
+      const percentIncrease = ((achievedVolume - baseline.baselineCapacity) / baseline.baselineCapacity) * 100;
 
       suggestions.push({
-        muscle,
-        currentBaseline,
-        volumeAchieved,
-        suggestedBaseline,
-        exceedancePercent,
-        exceedanceAmount: volumeAchieved - currentBaseline,
-        workoutDate: workoutDate.toISOString(),
-        workoutId
+        muscle: muscleName,
+        currentBaseline: baseline.baselineCapacity,
+        suggestedBaseline: achievedVolume,
+        achievedVolume: achievedVolume,
+        exercise: exerciseContext[muscleName],
+        date: workoutDate,
+        percentIncrease: parseFloat(percentIncrease.toFixed(1))
       });
-
-      exceededMuscles.push(muscle);
     }
-  });
-
-  return {
-    hasUpdates: suggestions.length > 0,
-    totalSuggestions: suggestions.length,
-    suggestions: suggestions.sort((a, b) => b.exceedancePercent - a.exceedancePercent), // Sort by highest exceedance
-    exceededMuscles,
-    workoutDate: workoutDate.toISOString(),
-    workoutId
-  };
-}
-
-/**
- * Get baseline update message for user
- *
- * @param {Object} updateResult - Result from checkBaselineUpdates
- * @returns {string} User-friendly message
- */
-function getUpdateMessage(updateResult) {
-  if (!updateResult.hasUpdates) {
-    return 'No baseline updates needed. Great workout!';
   }
 
-  if (updateResult.totalSuggestions === 1) {
-    const suggestion = updateResult.suggestions[0];
-    return `🎉 You exceeded your ${suggestion.muscle} baseline by ${suggestion.exceedancePercent.toFixed(1)}%! Consider updating from ${suggestion.currentBaseline} to ${suggestion.suggestedBaseline} lbs.`;
-  }
-
-  const muscleList = updateResult.exceededMuscles.slice(0, 3).join(', ');
-  const remaining = updateResult.totalSuggestions - 3;
-
-  if (remaining > 0) {
-    return `🎉 You exceeded baselines for ${muscleList} and ${remaining} more muscle${remaining > 1 ? 's' : ''}!`;
-  } else {
-    return `🎉 You exceeded baselines for ${muscleList}!`;
-  }
+  return suggestions;
 }
-
-/**
- * Calculate percentage increase for a baseline update
- *
- * @param {number} currentBaseline - Current baseline
- * @param {number} suggestedBaseline - Suggested new baseline
- * @returns {number} Percentage increase
- */
-function calculateIncreasePercent(currentBaseline, suggestedBaseline) {
-  return ((suggestedBaseline - currentBaseline) / currentBaseline) * 100;
-}
-
-/**
- * Validate if a baseline update is reasonable (safety check)
- *
- * @param {number} currentBaseline - Current baseline
- * @param {number} suggestedBaseline - Suggested new baseline
- * @param {number} maxIncreasePercent - Maximum allowed increase (default 50%)
- * @returns {Object} Validation result
- */
-function validateBaselineUpdate(currentBaseline, suggestedBaseline, maxIncreasePercent = 50) {
-  const increasePercent = calculateIncreasePercent(currentBaseline, suggestedBaseline);
-
-  if (increasePercent <= 0) {
-    return {
-      isValid: false,
-      reason: 'Suggested baseline must be higher than current baseline',
-      increasePercent
-    };
-  }
-
-  if (increasePercent > maxIncreasePercent) {
-    return {
-      isValid: false,
-      reason: `Increase of ${increasePercent.toFixed(1)}% exceeds maximum allowed (${maxIncreasePercent}%). This might be an error.`,
-      increasePercent
-    };
-  }
-
-  return {
-    isValid: true,
-    reason: 'Baseline update is reasonable',
-    increasePercent
-  };
-}
-
-/**
- * Format baseline suggestions for API response
- *
- * @param {Array} suggestions - Baseline update suggestions
- * @returns {Array} Formatted suggestions for frontend
- */
-function formatSuggestionsForUI(suggestions) {
-  return suggestions.map(suggestion => ({
-    muscle: suggestion.muscle,
-    current: suggestion.currentBaseline,
-    suggested: suggestion.suggestedBaseline,
-    increase: suggestion.exceedanceAmount,
-    increasePercent: suggestion.exceedancePercent,
-    message: `${suggestion.muscle}: ${suggestion.currentBaseline} → ${suggestion.suggestedBaseline} lbs (+${suggestion.exceedancePercent.toFixed(1)}%)`
-  }));
-}
-
-/**
- * Get history of baseline updates for a muscle (placeholder for DB integration)
- *
- * @param {string} muscle - Muscle name
- * @param {number} userId - User ID (for DB query)
- * @returns {Array} History of baseline updates
- */
-function getBaselineHistory(muscle, userId) {
-  // TODO: Query database for baseline history
-  // SELECT * FROM muscle_baselines WHERE user_id = ? AND muscle = ? ORDER BY updated_at DESC
-  return [];
-}
-
-module.exports = {
-  checkBaselineUpdates,
-  getUpdateMessage,
-  calculateIncreasePercent,
-  validateBaselineUpdate,
-  formatSuggestionsForUI,
-  getBaselineHistory
-};

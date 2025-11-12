@@ -42,8 +42,8 @@ development_status:
   # Epic 1: Muscle Intelligence Services
   epic-1: backlog
   1-1-implement-fatigue-calculation-service: drafted
-  1-2-implement-recovery-calculation-service: backlog
-  1-3-implement-exercise-recommendation-scoring-engine: backlog
+  1-2-implement-recovery-calculation-service: done
+  1-3-implement-exercise-recommendation-scoring-engine: done
   1-4-implement-baseline-update-trigger-logic: backlog
   epic-1-retrospective: optional
 
