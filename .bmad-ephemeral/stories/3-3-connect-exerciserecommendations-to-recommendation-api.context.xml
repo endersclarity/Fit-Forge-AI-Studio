@@ -1,0 +1,332 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3</storyId>
+    <title>Connect ExerciseRecommendations to Recommendation API</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/3-3-connect-exerciserecommendations-to-recommendation-api.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to get smart exercise suggestions when building workouts</iWant>
+    <soThat>I train efficiently without overworking fatigued muscles</soThat>
+    <tasks>
+      <task id="1" status="pending">
+        <title>Replace local recommendation calculation with API integration</title>
+        <acs>1, 2</acs>
+        <subtasks>
+          <subtask id="1.1">Locate ExerciseRecommendations.tsx component (components/ExerciseRecommendations.tsx)</subtask>
+          <subtask id="1.2">Add state variables for recommendations, isLoading, and error</subtask>
+          <subtask id="1.3">Create fetchRecommendations async function</subtask>
+          <subtask id="1.4">Implement POST request to /api/recommendations/exercises endpoint</subtask>
+          <subtask id="1.5">Replace useMemo calculateRecommendations with API call in useEffect</subtask>
+          <subtask id="1.6">Add TypeScript type definitions for API request/response structure</subtask>
+        </subtasks>
+      </task>
+      <task id="2" status="pending">
+        <title>Implement target muscle selection UI</title>
+        <acs>1</acs>
+        <subtasks>
+          <subtask id="2.1">Use existing selectedMuscles prop (already passed from parent)</subtask>
+          <subtask id="2.2">Trigger API call when selectedMuscles changes</subtask>
+          <subtask id="2.3">Build request body with targetMuscle = selectedMuscles[0]</subtask>
+          <subtask id="2.4">Include equipment.map(e => e.id) in filters.equipment</subtask>
+          <subtask id="2.5">Set excludeExercises to empty array (future enhancement)</subtask>
+        </subtasks>
+      </task>
+      <task id="3" status="pending">
+        <title>Transform API response to RecommendationCard format</title>
+        <acs>2, 3</acs>
+        <subtasks>
+          <subtask id="3.1">Map API recommendations to component's data structure</subtask>
+          <subtask id="3.2">Look up full Exercise object from EXERCISE_LIBRARY using rec.exerciseId</subtask>
+          <subtask id="3.3">Map score to status (80+ excellent, 60-79 good, 40-59 suboptimal, 0-39 not-recommended)</subtask>
+          <subtask id="3.4">Extract primaryMuscles from exercise.muscleEngagements (engagement > 30%)</subtask>
+          <subtask id="3.5">Use rec.warnings as limitingFactors</subtask>
+          <subtask id="3.6">Build explanation string from score factors</subtask>
+        </subtasks>
+      </task>
+      <task id="4" status="pending">
+        <title>Display score badges with tooltips</title>
+        <acs>5</acs>
+        <subtasks>
+          <subtask id="4.1">Add score badge to each recommendation card</subtask>
+          <subtask id="4.2">Style badge with bg-blue-500 and rounded corners</subtask>
+          <subtask id="4.3">Create tooltip div with score breakdown (5 factors)</subtask>
+          <subtask id="4.4">Use CSS group-hover pattern for tooltip display</subtask>
+          <subtask id="4.5">Position tooltip absolute with z-10 layering</subtask>
+        </subtasks>
+      </task>
+      <task id="5" status="pending">
+        <title>Display warning badges for bottleneck risks</title>
+        <acs>4</acs>
+        <subtasks>
+          <subtask id="5.1">Check if rec.warnings array has items</subtask>
+          <subtask id="5.2">Render red warning badges for each warning</subtask>
+          <subtask id="5.3">Style with bg-red-500, text-white, and warning icon</subtask>
+          <subtask id="5.4">Display warning text from API response</subtask>
+        </subtasks>
+      </task>
+      <task id="6" status="pending">
+        <title>Implement loading and error states</title>
+        <acs>Error Handling</acs>
+        <subtasks>
+          <subtask id="6.1">Display skeleton cards while isLoading === true</subtask>
+          <subtask id="6.2">Handle network errors with user-friendly message</subtask>
+          <subtask id="6.3">Handle empty results with "No exercises match your criteria" message</subtask>
+          <subtask id="6.4">Use existing empty state pattern from component</subtask>
+          <subtask id="6.5">Ensure isLoading set to false in finally block</subtask>
+        </subtasks>
+      </task>
+      <task id="7" status="pending">
+        <title>Verify onAddToWorkout integration</title>
+        <acs>6</acs>
+        <subtasks>
+          <subtask id="7.1">Confirm onAddToWorkout callback prop is received</subtask>
+          <subtask id="7.2">Verify "Add to Workout" button calls onAddToWorkout(exercise)</subtask>
+          <subtask id="7.3">Test that WorkoutBuilder receives exercise and updates workout.sets</subtask>
+          <subtask id="7.4">Verify this triggers Story 3.4's useEffect for forecast API call</subtask>
+        </subtasks>
+      </task>
+      <task id="8" status="pending">
+        <title>Add comprehensive integration tests</title>
+        <acs>Testing</acs>
+        <subtasks>
+          <subtask id="8.1">Test API call on component mount with selectedMuscles</subtask>
+          <subtask id="8.2">Test POST request body structure (targetMuscle, filters)</subtask>
+          <subtask id="8.3">Test response parsing and data transformation</subtask>
+          <subtask id="8.4">Test score badge rendering with correct values</subtask>
+          <subtask id="8.5">Test tooltip display on hover with all 5 factors</subtask>
+          <subtask id="8.6">Test warning badge rendering for bottleneck risks</subtask>
+          <subtask id="8.7">Test onAddToWorkout callback when clicking exercise</subtask>
+          <subtask id="8.8">Test loading state (skeleton cards displayed)</subtask>
+          <subtask id="8.9">Test error handling (network error, 500 error)</subtask>
+          <subtask id="8.10">Test empty results handling</subtask>
+          <subtask id="8.11">Test equipment filtering integration</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">
+      <given>user is planning a workout in WorkoutBuilder</given>
+      <when>user clicks "Get Recommendations" or selects target muscle</when>
+      <then>frontend calls POST /api/recommendations/exercises with request body: { targetMuscle: Muscle, filters: { equipment: string[], excludeExercises: string[] } }</then>
+    </criterion>
+    <criterion id="2">
+      <given>API request sent</given>
+      <when>response received</when>
+      <then>response structure matches: { recommendations: Array&lt;{ exerciseId: string, name: string, score: number, factors: { targetMatch, freshness, variety, preference, primarySecondary }, warnings: string[] }&gt; }</then>
+    </criterion>
+    <criterion id="3">
+      <given>API response received</given>
+      <when>rendering recommendations</when>
+      <then>displays ranked exercise list (top 10-15) with score badges</then>
+    </criterion>
+    <criterion id="4">
+      <given>recommendations displayed</given>
+      <when>bottleneck risks detected (supporting muscles &gt;80% fatigued)</when>
+      <then>shows safety warnings with red badges for bottleneck risks</then>
+    </criterion>
+    <criterion id="5">
+      <given>score badge rendered</given>
+      <when>user hovers over score</when>
+      <then>displays score breakdown tooltip showing all 5 factors (targetMatch, freshness, variety, preference, primarySecondary)</then>
+    </criterion>
+    <criterion id="6">
+      <given>exercise recommendation displayed</given>
+      <when>user clicks exercise</when>
+      <then>triggers onAddToWorkout callback prop to add exercise to workout</then>
+    </criterion>
+    <criterion id="7">
+      <given>user has equipment list</given>
+      <when>making API request</when>
+      <then>filters by available equipment from user's equipment list</then>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 3: Frontend Intelligence Integration</title>
+        <section>Story 3.3: Connect ExerciseRecommendations to Recommendation API</section>
+        <snippet>User story defines connecting WorkoutBuilder recommendation UI to POST /api/recommendations/exercises endpoint. Request includes targetMuscle and filters (equipment, excludeExercises). Response contains ranked recommendations with scores, factors breakdown, and bottleneck warnings.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Frontend Integration Patterns</section>
+        <snippet>Component-local state management using useState hooks. Fetch API calls with try/catch error handling. Loading state with isLoading pattern. All state component-local, communication via props and callbacks.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Muscle Intelligence Features</section>
+        <snippet>Smart exercise recommendations based on muscle recovery state, equipment availability, and exercise variety to prevent overtraining and optimize workout planning.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/3-2-connect-recoverydashboard-to-recovery-timeline-api.md</path>
+        <title>Story 3.2: Previous Story Learnings</title>
+        <section>Dev Notes - Learnings from Previous Story</section>
+        <snippet>Established frontend integration pattern: React component with useState hooks, fetch API with try/catch, loading state management, component-local state. Testing with Vitest + React Testing Library. API endpoint pattern documented.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/2-3-implement-exercise-recommendation-endpoint.md</path>
+        <title>Story 2.3: Exercise Recommendation API Implementation</title>
+        <section>Backend Service</section>
+        <snippet>POST /api/recommendations/exercises endpoint implemented with scoring engine. Accepts targetMuscle and filters. Returns ranked recommendations with composite scores (5 factors), exercise details, and warnings for bottleneck risks.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/ExerciseRecommendations.tsx</path>
+        <kind>component</kind>
+        <symbol>ExerciseRecommendations</symbol>
+        <lines>19-24</lines>
+        <reason>Primary component to modify - existing props interface includes selectedMuscles, equipment, and onAddToWorkout callback needed for integration</reason>
+      </artifact>
+      <artifact>
+        <path>components/ExerciseRecommendations.tsx</path>
+        <kind>component</kind>
+        <symbol>calculateRecommendations (useMemo)</symbol>
+        <lines>50-53</lines>
+        <reason>Local calculation to replace with API call - currently uses useMemo with calculateRecommendations utility function</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-endpoint</kind>
+        <symbol>/api/recommendations/exercises</symbol>
+        <lines>1239-1270</lines>
+        <reason>Exercise recommendation API endpoint (Story 2.3) - accepts targetMuscle and filters, returns ranked recommendations with scores and warnings</reason>
+      </artifact>
+      <artifact>
+        <path>components/WorkoutBuilder.tsx</path>
+        <kind>component</kind>
+        <symbol>WorkoutBuilder</symbol>
+        <lines>1-50</lines>
+        <reason>Parent component that passes onAddToWorkout callback - integration point for workout.sets state updates that trigger Story 3.4 forecast</reason>
+      </artifact>
+      <artifact>
+        <path>components/RecommendationCard.tsx</path>
+        <kind>component</kind>
+        <symbol>RecommendationCard</symbol>
+        <lines>1-50</lines>
+        <reason>Display component for individual recommendations - needs enhancement with score badges and tooltips</reason>
+      </artifact>
+      <artifact>
+        <path>components/__tests__/RecoveryDashboard.integration.test.tsx</path>
+        <kind>test</kind>
+        <symbol>RecoveryDashboard integration tests</symbol>
+        <lines>1-100</lines>
+        <reason>Reference test pattern from Story 3.2 - demonstrates fetch mocking, loading state testing, error handling with Vitest + React Testing Library</reason>
+      </artifact>
+      <artifact>
+        <path>utils/exerciseRecommendations.ts</path>
+        <kind>utility</kind>
+        <symbol>calculateRecommendations</symbol>
+        <lines>1-50</lines>
+        <reason>Local calculation utility to be replaced by API integration - currently handles recommendation logic client-side</reason>
+      </artifact>
+      <artifact>
+        <path>api.ts</path>
+        <kind>utility</kind>
+        <symbol>EXERCISE_LIBRARY</symbol>
+        <lines>1-100</lines>
+        <reason>Exercise lookup table - needed to map API response exerciseId to full Exercise objects for component display</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <runtime>
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+        <package name="typescript" version="~5.8.2" />
+      </runtime>
+      <testing>
+        <package name="vitest" version="^4.0.3" />
+        <package name="@testing-library/react" version="^16.3.0" />
+        <package name="@testing-library/jest-dom" version="^6.9.1" />
+        <package name="@testing-library/user-event" version="^14.6.1" />
+        <package name="jsdom" version="^27.0.1" />
+      </testing>
+      <build>
+        <package name="vite" version="^6.2.0" />
+        <package name="@vitejs/plugin-react" version="^5.0.0" />
+      </build>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Component-local state management using useState hooks - NO Context or Redux</constraint>
+    <constraint>All state must be component-local - communication via props and callbacks only</constraint>
+    <constraint>Use Fetch API for HTTP requests with try/catch error handling</constraint>
+    <constraint>Loading state management with isLoading boolean pattern</constraint>
+    <constraint>Display user-friendly error messages for network failures</constraint>
+    <constraint>Must use existing onAddToWorkout callback prop - critical for triggering Story 3.4 forecast</constraint>
+    <constraint>Must use EXERCISE_LIBRARY for looking up full Exercise objects by exerciseId</constraint>
+    <constraint>Tailwind CSS for styling - use existing patterns (bg-blue-500, bg-red-500, group-hover)</constraint>
+    <constraint>Must maintain existing component interface (ExerciseRecommendationsProps)</constraint>
+    <constraint>Testing with Vitest + React Testing Library - mock fetch API for controlled scenarios</constraint>
+    <constraint>TypeScript strict mode - proper type definitions for API request/response</constraint>
+    <constraint>15 muscle groups consistent across all services: Pectoralis, Lats, AnteriorDeltoids, PosteriorDeltoids, Trapezius, Rhomboids, LowerBack, Core, Biceps, Triceps, Forearms, Quadriceps, Hamstrings, Glutes, Calves</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>POST /api/recommendations/exercises</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Request: { targetMuscle: Muscle, filters: { equipment: string[], excludeExercises: string[] } }
+        Response: { recommendations: Array&lt;{ exerciseId: string, name: string, score: number, factors: { targetMatch: number, freshness: number, variety: number, preference: number, primarySecondary: number }, warnings: string[] }&gt; }
+      </signature>
+      <path>backend/server.ts:1239</path>
+    </interface>
+    <interface>
+      <name>ExerciseRecommendationsProps</name>
+      <kind>React component interface</kind>
+      <signature>
+        interface ExerciseRecommendationsProps {
+          muscleStates: MuscleStatesResponse;
+          equipment: EquipmentItem[];
+          selectedMuscles?: Muscle[];
+          onAddToWorkout: (exercise: Exercise) =&gt; void;
+        }
+      </signature>
+      <path>components/ExerciseRecommendations.tsx:19-24</path>
+    </interface>
+    <interface>
+      <name>onAddToWorkout callback</name>
+      <kind>function signature</kind>
+      <signature>(exercise: Exercise) =&gt; void</signature>
+      <path>components/ExerciseRecommendations.tsx:23</path>
+    </interface>
+    <interface>
+      <name>EXERCISE_LIBRARY</name>
+      <kind>data structure</kind>
+      <signature>Array&lt;Exercise&gt; - Lookup table for full exercise data by exerciseId</signature>
+      <path>api.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Vitest test framework with React Testing Library. Mock fetch API for controlled test scenarios. Test loading states, error states, and success states. Test component integration (props, callbacks). Edge case coverage: network errors, malformed data, empty responses. Test pattern established in Story 3.2 with RecoveryDashboard integration tests.</standards>
+    <locations>
+      <location>components/__tests__/ExerciseRecommendations.integration.test.tsx</location>
+      <location>components/__tests__/*.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2">Test API call on component mount with selectedMuscles - verify POST request body structure (targetMuscle, filters)</idea>
+      <idea ac="2,3">Test response parsing and data transformation - verify recommendations mapped correctly with score, factors, warnings</idea>
+      <idea ac="5">Test score badge rendering with correct values and tooltip display on hover showing all 5 factors</idea>
+      <idea ac="4">Test warning badge rendering for bottleneck risks - verify red badges display when warnings present in API response</idea>
+      <idea ac="6">Test onAddToWorkout callback when clicking exercise - verify callback receives correct Exercise object</idea>
+      <idea ac="Error Handling">Test loading state (skeleton cards displayed) - test error handling (network error, 500 error) - test empty results handling</idea>
+      <idea ac="7">Test equipment filtering integration - verify equipment IDs passed correctly in filters.equipment</idea>
+      <idea ac="1">Test API call triggered when selectedMuscles changes - verify useEffect dependency</idea>
+      <idea ac="3">Test that recommendations are sorted and limited to top 10-15</idea>
+      <idea ac="2">Test mapping of score to status (excellent, good, suboptimal, not-recommended)</idea>
+    </ideas>
+  </tests>
+</story-context>

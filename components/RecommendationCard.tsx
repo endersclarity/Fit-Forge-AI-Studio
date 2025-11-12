@@ -12,6 +12,16 @@ interface RecommendationCardProps {
   onAdd: (exercise: Exercise) => void;
   isCalibrated?: boolean;
   onViewEngagement?: (exerciseId: string) => void;
+  // API-specific fields for enhanced UI
+  score?: number;
+  factors?: {
+    targetMatch: number;
+    freshness: number;
+    variety: number;
+    preference: number;
+    primarySecondary: number;
+  };
+  warnings?: string[];
 }
 
 const STATUS_CONFIG = {
@@ -54,7 +64,10 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
   equipmentAvailable,
   onAdd,
   isCalibrated = false,
-  onViewEngagement
+  onViewEngagement,
+  score,
+  factors,
+  warnings = []
 }) => {
   const config = STATUS_CONFIG[status];
   const limitingMuscleNames = new Set(limitingFactors.map(lf => lf.muscle));
@@ -74,13 +87,67 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
             {exercise.category} • {exercise.difficulty}
           </p>
         </div>
-        <div
-          className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium ${config.textColor}`}
-          aria-label={`Status: ${status}`}
-        >
-          {config.icon} {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
+        <div className="flex flex-col items-end gap-2">
+          <div
+            className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium ${config.textColor}`}
+            aria-label={`Status: ${status}`}
+          >
+            {config.icon} {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
+          </div>
+          {/* Score badge with tooltip */}
+          {score !== undefined && factors && (
+            <div className="relative group">
+              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold cursor-help">
+                {Math.round(score)}
+              </span>
+              {/* Tooltip on hover */}
+              <div className="absolute hidden group-hover:block bg-gray-900 text-white p-3 rounded-lg shadow-xl z-10 w-64 right-0 top-full mt-2">
+                <p className="text-xs font-semibold mb-2 text-brand-cyan">Score Breakdown</p>
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span>Target Match:</span>
+                    <span className="font-semibold">{factors.targetMatch}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Muscle Freshness:</span>
+                    <span className="font-semibold">{factors.freshness}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Variety:</span>
+                    <span className="font-semibold">{factors.variety}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>User Preference:</span>
+                    <span className="font-semibold">{factors.preference}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Primary/Secondary:</span>
+                    <span className="font-semibold">{factors.primarySecondary}%</span>
+                  </div>
+                  <div className="border-t border-gray-700 mt-2 pt-2 flex justify-between font-bold">
+                    <span>Total Score:</span>
+                    <span className="text-brand-cyan">{Math.round(score)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Warning badges for bottleneck risks */}
+      {warnings && warnings.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {warnings.map((warning, idx) => (
+            <span
+              key={idx}
+              className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold flex items-center gap-1"
+            >
+              ⚠️ {warning}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Muscle engagements */}
       <div className="space-y-1">
