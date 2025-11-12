@@ -9,6 +9,57 @@ Audience: AI-assisted debugging and developer reference.
 
 ## [Unreleased] - 2025-11-11
 
+### Epic 3: Frontend Intelligence Integration - IN PROGRESS 🚧
+
+**Status**: 🚧 1 OF 4 STORIES COMPLETE
+**Epic Goal**: Connect existing UI components to new muscle intelligence APIs
+**Prerequisites**: ✅ Epic 2 complete (all 4 API endpoints working)
+**Started**: 2025-11-11
+
+**Epic Summary**: Epic 3 integrates Epic 2's REST API endpoints into the frontend components to provide users with real-time muscle intelligence features through intuitive visualizations and interactive feedback.
+
+#### Story 3.1: Connect WorkoutBuilder to Workout Completion API - COMPLETE ✅
+- **Commit**: `9c73434` - Story 3.1: Initial implementation
+- **Date**: 2025-11-11
+- **Status**: ✅ DONE (Code review approved)
+- **Component**: WorkoutBuilder
+- **Purpose**: Display muscle fatigue immediately after completing workout and handle baseline update suggestions
+- **Files Changed**:
+  - `components/WorkoutBuilder.tsx`: Updated handleFinishWorkout() function to integrate with workout completion API
+  - `components/WorkoutBuilder.completion.test.tsx`: Comprehensive integration test suite (15 tests)
+  - `.bmad-ephemeral/stories/3-1-connect-workoutbuilder-to-workout-completion-api.md`: Story file
+  - `.bmad-ephemeral/stories/3-1-connect-workoutbuilder-to-workout-completion-api.context.xml`: Technical context
+  - `docs/sprint-status.yaml`: Status tracking
+- **Integration**:
+  - Connects to POST `/api/workouts/:id/complete` endpoint (Epic 2 Story 2.1)
+  - Uses existing BaselineUpdateModal component for baseline suggestions
+  - Implements navigation to /dashboard after completion
+  - Integrates with React Router for page navigation
+- **Key Features**:
+  - API call to workout completion endpoint after workout saved
+  - Loading state management with isCompleting state variable
+  - Response parsing to extract fatigue, baselineSuggestions, and summary
+  - Conditional baseline modal display when suggestions exist
+  - Navigation delayed until modal closed (confirm or decline)
+  - Comprehensive error handling with user-friendly messages:
+    - Network error: "Unable to complete workout. Check your connection."
+    - 404 error: "Workout not found. Please try again."
+    - 500 error: "Calculation failed. Please contact support."
+  - Muscle states refresh via navigation to dashboard
+- **Testing**:
+  - ✅ 15 integration test cases covering all acceptance criteria
+  - ✅ Error handling tests (network, 404, 500, generic errors)
+  - ✅ Integration workflows tested (with/without baseline suggestions)
+  - ✅ All tests passing
+- **Code Review**:
+  - Decision: **APPROVE** ✅
+  - Reviewer: Senior Developer AI (Kaelen)
+  - Findings: 0 HIGH severity issues, 0 MEDIUM severity issues, 3 LOW severity issues (test coverage gaps - non-blocking)
+  - All 7 acceptance criteria verified with code evidence
+  - All 33 tasks and subtasks verified complete
+  - Production-ready implementation
+- **Next Story**: Story 3.2 - Connect RecoveryDashboard to Recovery Timeline API
+
 ### Epic 2: API Integration Layer - COMPLETE ✅
 
 **Status**: ✅ ALL 4 STORIES COMPLETE
