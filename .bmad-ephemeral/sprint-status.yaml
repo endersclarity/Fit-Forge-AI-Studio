@@ -50,7 +50,7 @@ development_status:
   # Epic 2: API Integration Layer
   epic-2: backlog
   2-1-implement-workout-completion-endpoint: drafted
-  2-2-implement-recovery-timeline-endpoint: backlog
+  2-2-implement-recovery-timeline-endpoint: drafted
   2-3-implement-exercise-recommendation-endpoint: backlog
   2-4-implement-workout-forecast-endpoint: backlog
   epic-2-retrospective: optional

@@ -1017,6 +1017,22 @@ interface WorkoutCompletionResponse {
   };
 }
 
+// TypeScript interfaces for recovery timeline endpoint (Story 2.2)
+interface MuscleRecoveryState {
+  name: string;
+  currentFatigue: number;
+  projections: {
+    '24h': number;
+    '48h': number;
+    '72h': number;
+  };
+  fullyRecoveredAt: string | null;
+}
+
+interface RecoveryTimelineResponse {
+  muscles: MuscleRecoveryState[];
+}
+
 // POST /api/workouts/:id/complete - Calculate fatigue after workout completion (Story 2.1)
 app.post('/api/workouts/:id/complete', async (req: Request, res: Response<WorkoutCompletionResponse | ApiErrorResponse>) => {
   try {
@@ -1131,58 +1147,91 @@ app.post('/api/workouts/:id/complete', async (req: Request, res: Response<Workou
   }
 });
 
-// GET /api/recovery/timeline - Get recovery state for all muscles
-app.get('/api/recovery/timeline', async (_req: Request, res: Response) => {
+// GET /api/recovery/timeline - Fetch current recovery state for all muscles (Story 2.2)
+app.get('/api/recovery/timeline', async (_req: Request, res: Response<RecoveryTimelineResponse | ApiErrorResponse>) => {
   try {
-    // Get latest muscle states
-    const muscleStates = db.getMuscleStates();
+    // Define all 15 muscle groups
+    const ALL_MUSCLES = [
+      'Pectoralis', 'Lats', 'AnteriorDeltoids', 'PosteriorDeltoids',
+      'Trapezius', 'Rhomboids', 'LowerBack', 'Core', 'Biceps',
+      'Triceps', 'Forearms', 'Quadriceps', 'Hamstrings', 'Glutes', 'Calves'
+    ];
+
+    // Get latest muscle states from database
+    const muscleStatesFromDb = db.getMuscleStates();
 
     // Get current timestamp
-    const currentTime = new Date();
+    const currentTime = new Date().toISOString();
 
-    // Calculate recovery for each muscle
-    const muscles = Object.keys(muscleStates).map(muscleName => {
-      const state = muscleStates[muscleName];
-      const lastTrainedDate = state.lastTrained || new Date().toISOString();
-      const workoutTimestamp = new Date(lastTrainedDate);
-
-      // Calculate current recovery state
-      const recovery = recoveryCalculator.calculateRecovery(
-        state.initialFatiguePercent,
-        workoutTimestamp,
-        currentTime
-      );
-
-      // Calculate projections
-      const projections = recoveryCalculator.calculateRecoveryProjections(
-        state.initialFatiguePercent,
-        workoutTimestamp
-      );
-
-      // Calculate full recovery time
-      const fullRecovery = recoveryCalculator.calculateFullRecoveryTime(recovery.currentFatigue);
-
-      return {
-        name: muscleName,
-        currentFatigue: recovery.currentFatigue,
-        status: recovery.status,
-        projections: {
-          '24h': projections['24h'].currentFatigue,
-          '48h': projections['48h'].currentFatigue,
-          '72h': projections['72h'].currentFatigue
-        },
-        fullyRecoveredIn: fullRecovery.message,
-        lastTrained: lastTrainedDate
+    // Edge case: No workout history - return all muscles at 0% fatigue
+    if (!muscleStatesFromDb || Object.keys(muscleStatesFromDb).length === 0) {
+      const response: RecoveryTimelineResponse = {
+        muscles: ALL_MUSCLES.map(name => ({
+          name,
+          currentFatigue: 0,
+          projections: { '24h': 0, '48h': 0, '72h': 0 },
+          fullyRecoveredAt: null
+        }))
       };
-    });
+      return res.status(200).json(response);
+    }
 
-    return res.json({ muscles });
+    // Build muscle states array for recovery calculator
+    const muscleStatesArray: Array<{ muscle: string, fatiguePercent: number }> = [];
+    const workoutTimestamps: Record<string, string> = {};
+
+    // Process each muscle from database
+    for (const muscleName of ALL_MUSCLES) {
+      const state = muscleStatesFromDb[muscleName];
+
+      if (state && state.lastTrained) {
+        // Muscle has workout history
+        muscleStatesArray.push({
+          muscle: muscleName,
+          fatiguePercent: state.initialFatiguePercent || 0
+        });
+        workoutTimestamps[muscleName] = state.lastTrained;
+      } else {
+        // Muscle has no workout history - treat as 0% fatigue
+        muscleStatesArray.push({
+          muscle: muscleName,
+          fatiguePercent: 0
+        });
+        workoutTimestamps[muscleName] = currentTime; // Use current time for muscles with no history
+      }
+    }
+
+    // Find the most recent workout timestamp (used as reference for recovery calculations)
+    const recentWorkoutTimestamp = Object.values(workoutTimestamps)
+      .filter(ts => ts !== currentTime)
+      .sort()
+      .reverse()[0] || currentTime;
+
+    // Calculate recovery using the Epic 1 service (Story 1.2)
+    const recoveryResult = recoveryCalculator.calculateRecovery(
+      muscleStatesArray,
+      recentWorkoutTimestamp,
+      currentTime
+    );
+
+    // Format response
+    const muscles: MuscleRecoveryState[] = recoveryResult.muscleStates.map((muscleState: any) => ({
+      name: muscleState.muscle,
+      currentFatigue: muscleState.currentFatigue,
+      projections: muscleState.projections,
+      fullyRecoveredAt: muscleState.fullyRecoveredAt
+    }));
+
+    // Sort by current fatigue (most fatigued first) for better UX
+    muscles.sort((a, b) => b.currentFatigue - a.currentFatigue);
+
+    const response: RecoveryTimelineResponse = { muscles };
+    return res.status(200).json(response);
 
   } catch (error) {
     console.error('Error getting recovery timeline:', error);
     return res.status(500).json({
-      error: 'Failed to calculate recovery timeline',
-      message: (error as Error).message
+      error: 'Failed to calculate recovery timeline'
     });
   }
 });
