@@ -11,12 +11,56 @@ Audience: AI-assisted debugging and developer reference.
 
 ### Epic 3: Frontend Intelligence Integration - IN PROGRESS 🚧
 
-**Status**: 🚧 1 OF 4 STORIES COMPLETE
+**Status**: 🚧 2 OF 4 STORIES COMPLETE
 **Epic Goal**: Connect existing UI components to new muscle intelligence APIs
 **Prerequisites**: ✅ Epic 2 complete (all 4 API endpoints working)
 **Started**: 2025-11-11
 
 **Epic Summary**: Epic 3 integrates Epic 2's REST API endpoints into the frontend components to provide users with real-time muscle intelligence features through intuitive visualizations and interactive feedback.
+
+#### Story 3.2: Connect RecoveryDashboard to Recovery Timeline API - COMPLETE ✅
+- **Commit**: `d5e0aa4` - Story 3.2: Initial implementation
+- **Date**: 2025-11-11
+- **Status**: ✅ DONE (Code review approved)
+- **Component**: RecoveryDashboard
+- **Purpose**: Display real-time recovery progress for all muscles with color-coded heat map and detailed muscle information
+- **Files Changed**:
+  - `components/screens/RecoveryDashboard.tsx`: Integrated RecoveryTimelineView component with data fetching and muscle click handling
+  - `components/modals/MuscleDetailModal.tsx`: New modal component for detailed muscle recovery information
+  - `components/__tests__/RecoveryDashboard.integration.test.tsx`: Comprehensive integration test suite (13 tests)
+  - `.bmad-ephemeral/stories/3-2-connect-recoverydashboard-to-recovery-timeline-api.md`: Story file
+  - `.bmad-ephemeral/stories/3-2-connect-recoverydashboard-to-recovery-timeline-api.context.xml`: Technical context
+  - `docs/sprint-status.yaml`: Status tracking
+- **Integration**:
+  - Connects to GET `/api/recovery/timeline` endpoint (Epic 2 Story 2.2)
+  - Dual data fetching: recovery timeline API + muscle states API for complete data
+  - Uses existing RecoveryTimelineView component for grouped muscle display
+  - Integrates with MuscleHeatMap for color-coded visualization
+- **Key Features**:
+  - Auto-refresh every 60 seconds with proper cleanup on unmount
+  - Color-coded heat map: green (0-30% ready), yellow (31-60% recovering), red (61-100% needs rest)
+  - Interactive muscle click handler opens detailed modal with:
+    - Current fatigue percentage with status indicator
+    - 24h/48h/72h recovery projections from API
+    - Estimated time to full recovery (formatted days/hours)
+    - Last workout date for muscle
+    - Status-based recovery advice
+  - Loading state with existing SkeletonScreen component
+  - Comprehensive error handling with user-friendly messages
+  - Memory leak prevention with isMounted flag and interval cleanup
+- **Testing**:
+  - ✅ 13 integration test cases covering all acceptance criteria
+  - ✅ Tests for error handling, edge cases, and user interactions
+  - ✅ Mocks for localStorage, fetch API, and React hooks
+  - ✅ All critical paths tested
+- **Code Review**:
+  - Decision: **APPROVE** ✅
+  - Reviewer: Senior Developer AI (Kaelen)
+  - Findings: 0 HIGH severity issues, 0 MEDIUM severity issues, 0 LOW severity issues
+  - All 8 acceptance criteria verified with code evidence
+  - All 10 tasks and subtasks verified complete
+  - Excellent implementation quality - production-ready
+- **Next Story**: Story 3.3 - Connect ExerciseRecommendations to Recommendation API
 
 #### Story 3.1: Connect WorkoutBuilder to Workout Completion API - COMPLETE ✅
 - **Commit**: `9c73434` - Story 3.1: Initial implementation
