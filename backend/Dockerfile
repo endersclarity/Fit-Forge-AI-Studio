@@ -29,6 +29,9 @@ COPY backend/ ./backend/
 WORKDIR /app/backend
 RUN npm run build
 
+# Copy .js service files to dist (TypeScript only compiles .ts files)
+RUN mkdir -p dist/backend/services && cp services/*.js dist/backend/services/
+
 # Remove devDependencies to reduce image size
 RUN npm prune --production
 
