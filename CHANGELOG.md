@@ -7,6 +7,126 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+## [Unreleased] - 2025-11-11
+
+### Epic 1: Muscle Intelligence Services - COMPLETE ✅
+
+**Status**: ✅ ALL 4 STORIES COMPLETE + VALIDATION + FIXES
+**Epic Goal**: Build core muscle intelligence calculation services for adaptive baseline learning
+**Total Tests**: 131 passing (100% pass rate)
+**Commits**: Story implementations + 3 validation fixes
+
+#### Story 1.1: Implement Fatigue Calculation Service
+- **Service**: `backend/services/fatigueCalculator.js` (120 lines)
+- **Tests**: `backend/services/__tests__/fatigueCalculator.test.js` (10 tests passing)
+- **Purpose**: Calculate per-muscle fatigue scores from workout data
+- **Algorithm**: `muscleVolume = weight × reps × (engagement / 100)`, then `fatigue = (muscleVolume / baselineCapacity) × 100`
+- **Key Features**:
+  - Handles 15 muscle groups with engagement percentages
+  - Loads exercise library from `docs/logic-sandbox/exercises.json`
+  - Loads baseline data from `docs/logic-sandbox/baselines.json`
+  - Validates workout data structure with descriptive errors
+  - Uses ES6 module exports (project has "type": "module")
+
+#### Story 1.2: Implement Recovery Calculation Service
+- **Service**: `backend/services/recoveryCalculator.js` (228 lines)
+- **Tests**: `backend/services/__tests__/recoveryCalculator.test.js` (34 tests passing)
+- **Purpose**: Calculate recovery timelines for fatigued muscles
+- **Algorithm**: Based on MuscleMax Baseline Learning System (docs/musclemax-baseline-learning-system.md)
+- **Key Features**:
+  - Conservative recovery estimates (safety-first approach)
+  - Fatigue-based timeline: 0-40% = 24h, 41-70% = 48h, 71-100% = 72h, 101%+ = 96h
+  - Returns `muscleStates` array with recovery hours and ready dates
+  - Handles edge cases (zero fatigue, negative values, invalid inputs)
+  - **Fix Applied (2025-11-11)**: Changed output property from "muscles" to "muscleStates" for consistency with exerciseRecommender
+
+#### Story 1.3: Implement Exercise Recommendation Scoring Engine
+- **Service**: `backend/services/exerciseRecommender.js` (228 lines)
+- **Tests**: `backend/services/__tests__/exerciseRecommender.test.js` (44 tests passing)
+- **Purpose**: Score and rank exercises based on muscle readiness
+- **Algorithm**: Weighted scoring based on recovered muscle percentage and engagement distribution
+- **Key Features**:
+  - Scores all 48 validated exercises from logic-sandbox
+  - Prioritizes exercises targeting recovered muscles
+  - Penalizes exercises targeting fatigued muscles
+  - Returns ranked list with detailed scoring breakdown
+  - Muscle name normalization (handles format differences between data sources)
+
+#### Story 1.4: Implement Baseline Update Trigger Logic
+- **Service**: `backend/services/baselineUpdater.js` (159 lines)
+- **Tests**: `backend/services/__tests__/baselineUpdater.test.js` (36 tests passing)
+- **Purpose**: Detect when users exceed baseline capacity and suggest updates
+- **Algorithm**: Simple comparison - if achievedVolume > currentBaseline, suggest update
+- **Key Features**:
+  - Only processes sets to failure (toFailure === true)
+  - Conservative approach: suggests actual volume achieved as new baseline
+  - Returns suggestions with date, exercise context, and percent increase
+  - Handles compound exercises (multiple muscle groups)
+  - **Fix Applied (2025-11-11)**: Changed to use `exerciseId` instead of exercise name for consistency with fatigueCalculator
+
+#### Epic 1 Validation (2025-11-11)
+
+After Story 1.4 completion, ran comprehensive validation using compounding-engineering agents:
+
+1. **Architecture Review** (architecture-strategist agent)
+   - Grade: B+ (86.5%)
+   - Findings: Code duplication in data loaders, inconsistent return values, hardcoded paths
+   - Action: Applied fixes (see below)
+
+2. **Data Integrity Review** (data-integrity-guardian agent)
+   - Found 3 CRITICAL integration issues between Epic 1 services
+   - Action: Applied TDD fixes before Epic 2 integration (see below)
+
+#### Epic 1 Validation Fixes (2025-11-11)
+
+**Fix #1: Extract Shared Data Loaders** (Commit: `86cb6c0`)
+- **Problem**: ~100 lines of duplicated code between exerciseRecommender.js and baselineUpdater.js
+- **Solution**: Created `backend/services/dataLoaders.js` (75 lines) with shared utilities
+- **Exports**: `loadExerciseLibrary()`, `loadBaselineData()`, `MUSCLE_NAME_MAP`, `normalizeMuscle()`
+- **Tests**: `backend/services/__tests__/dataLoaders.test.js` (7 tests passing)
+- **Impact**: Eliminated code duplication, established single source of truth for data loading
+- **Method**: Strict TDD (RED-GREEN-REFACTOR cycle)
+
+**Fix #2: Standardize recoveryCalculator Output Property** (Commit: `e0752a2`)
+- **Problem**: Data contract mismatch - recoveryCalculator outputs `{ muscles: [...] }` but exerciseRecommender expects `{ muscleStates: [...] }`
+- **Solution**: Changed output property name to "muscleStates" for consistency
+- **Files Changed**:
+  - `backend/services/recoveryCalculator.js` (1 property name change)
+  - `backend/services/__tests__/recoveryCalculator.test.js` (23 test updates)
+- **Impact**: Services now have compatible data contracts for Epic 2 integration
+- **Method**: Strict TDD (RED-GREEN-REFACTOR cycle)
+
+**Fix #3: Standardize baselineUpdater to Use exerciseId Contract** (Commit: `39f2347`)
+- **Problem**: Data contract inconsistency - fatigueCalculator uses `{ exerciseId: "ex03", sets: [...] }` but baselineUpdater expected `{ exercise: "Push-ups", sets: [...] }`
+- **Solution**: Changed baselineUpdater to accept exerciseId instead of exercise name
+- **Files Changed**:
+  - `backend/services/baselineUpdater.js` (changed to ID-based exercise lookup)
+  - `backend/services/__tests__/baselineUpdater.test.js` (36 tests updated to use exerciseId format)
+- **Impact**: All Epic 1 services now use consistent exercise identification (exerciseId string)
+- **Method**: Strict TDD (RED-GREEN-REFACTOR cycle)
+
+#### Epic 1 Final Status
+
+**Services Created**: 5 (fatigueCalculator, recoveryCalculator, exerciseRecommender, baselineUpdater, dataLoaders)
+**Total Tests**: 131 passing (100% pass rate)
+**Test Breakdown**:
+- dataLoaders.test.js: 7 tests
+- fatigueCalculator.test.js: 10 tests
+- recoveryCalculator.test.js: 34 tests
+- baselineUpdater.test.js: 36 tests
+- exerciseRecommender.test.js: 44 tests
+
+**Data Contracts Validated**:
+- Exercise identification: All services use `exerciseId` (string)
+- Recovery output: Uses `muscleStates` property
+- Exercise library: Loaded via shared `loadExerciseLibrary()`
+- Baseline data: Loaded via shared `loadBaselineData()`
+- Muscle naming: Normalized via shared `normalizeMuscle()` and `MUSCLE_NAME_MAP`
+
+**Ready for Epic 2**: API Integration Layer can now safely integrate these services with guaranteed data contract compatibility.
+
+---
+
 ## [Unreleased] - 2025-11-08
 
 ### Added
