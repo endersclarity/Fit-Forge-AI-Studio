@@ -31,6 +31,8 @@ Audience: AI-assisted debugging and developer reference.
 - ✅ Frontend loads without errors
 - ✅ Idempotent - safe to run multiple times
 
+**Commit:** `595b5e1`
+
 **Triage Session:** `.bmad-ephemeral/triage/20251112/`
 
 ---
