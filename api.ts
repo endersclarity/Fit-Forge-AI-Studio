@@ -497,16 +497,21 @@ export async function getExerciseRecommendations(
 export interface WorkoutForecastRequest {
   exercises: Array<{
     exerciseId: string;
-    weight: number;
-    reps: number;
+    estimatedSets: Array<{
+      reps: number;
+      weight: number;
+    }>;
   }>;
 }
 
 export interface WorkoutForecastResponse {
-  currentFatigue: Record<string, number>;
-  predictedFatigue: Record<string, number>;
-  finalFatigue: Record<string, number>;
-  warnings: string[];
+  forecast: Record<string, number>; // Predicted fatigue % for each muscle
+  warnings: string[]; // General warnings about workout
+  bottlenecks: Array<{
+    muscle: string;
+    projectedFatigue: number; // e.g., 115%
+    message: string; // e.g., "Hamstrings would reach 115% - risk of overtraining"
+  }>;
 }
 
 export async function forecastWorkout(

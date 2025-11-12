@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate, ExerciseCategory, Variation, Muscle } from '../types';
-import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory, completeWorkout, WorkoutCompletionResponse } from '../api';
+import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory, completeWorkout, WorkoutCompletionResponse, WorkoutForecastRequest, WorkoutForecastResponse } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
 import SetConfigurator from './SetConfigurator';
 import SetEditModal from './SetEditModal';
@@ -107,6 +107,11 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   const [showBaselineModal, setShowBaselineModal] = useState(false);
   const [baselineSuggestions, setBaselineSuggestions] = useState<WorkoutCompletionResponse['baselineSuggestions']>([]);
   const [savedWorkoutId, setSavedWorkoutId] = useState<number | null>(null);
+
+  // Forecast state (Story 3.4)
+  const [forecastData, setForecastData] = useState<WorkoutForecastResponse | null>(null);
+  const [isForecastLoading, setIsForecastLoading] = useState(false);
+  const [forecastError, setForecastError] = useState<string | null>(null);
 
   // Refs for auto-save (to avoid interval recreation)
   const workoutRef = useRef(workout);
@@ -251,6 +256,111 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
     setWorkout(prev => ({ ...prev, sets }));
     onToast(`Loaded template: ${template.name}`, 'success');
+  };
+
+  // Story 3.4: Data formatting helper for API request
+  const formatSetsForAPI = (sets: BuilderSet[]): WorkoutForecastRequest['exercises'] => {
+    // Group sets by exercise
+    const exerciseMap = new Map<string, Array<{ reps: number; weight: number }>>();
+
+    sets.forEach(set => {
+      if (!exerciseMap.has(set.exerciseId)) {
+        exerciseMap.set(set.exerciseId, []);
+      }
+      exerciseMap.get(set.exerciseId)!.push({
+        reps: set.reps,
+        weight: set.weight
+      });
+    });
+
+    // Convert to API format
+    return Array.from(exerciseMap.entries()).map(([exerciseId, estimatedSets]) => ({
+      exerciseId,
+      estimatedSets
+    }));
+  };
+
+  // Story 3.4: Custom debounce implementation (no lodash dependency)
+  const debounce = <T extends (...args: any[]) => any>(
+    func: T,
+    delay: number
+  ): ((...args: Parameters<T>) => void) & { cancel: () => void } => {
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const debouncedFunc = (...args: Parameters<T>) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        func(...args);
+        timeoutId = null;
+      }, delay);
+    };
+
+    debouncedFunc.cancel = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    return debouncedFunc;
+  };
+
+  // Story 3.4: Debounced forecast fetch function
+  const fetchForecast = useMemo(
+    () => debounce(async (workoutSets: BuilderSet[]) => {
+      if (workoutSets.length === 0) {
+        setForecastData(null);
+        setForecastError(null);
+        return;
+      }
+
+      try {
+        setIsForecastLoading(true);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/forecast/workout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exercises: formatSetsForAPI(workoutSets)
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Failed to fetch forecast' }));
+          throw new Error(errorData.error || 'Failed to fetch forecast');
+        }
+
+        const data = await response.json();
+        setForecastData(data);
+        setForecastError(null);
+      } catch (err: any) {
+        console.error('Forecast fetch error:', err);
+        setForecastError(err.message || 'Unable to calculate forecast');
+        setForecastData(null);
+      } finally {
+        setIsForecastLoading(false);
+      }
+    }, 500),
+    []
+  );
+
+  // Story 3.4: Trigger forecast on workout changes
+  useEffect(() => {
+    if (mode === 'planning') {
+      fetchForecast(workout.sets);
+    }
+
+    // Cleanup debounce on unmount
+    return () => fetchForecast.cancel();
+  }, [workout.sets, mode, fetchForecast]);
+
+  // Story 3.4: Color-coded fatigue display helper
+  const getFatigueColorClass = (fatigue: number): string => {
+    if (fatigue > 100) return 'bg-red-900 text-white'; // Dark red - bottleneck
+    if (fatigue > 90) return 'bg-red-700 text-white'; // Red - high intensity
+    if (fatigue > 60) return 'bg-yellow-600 text-white'; // Yellow - moderate
+    return 'bg-green-600 text-white'; // Green - safe zone
   };
 
   const calculateForecastedMuscleStates = (): MuscleStatesResponse => {
@@ -1010,6 +1120,47 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
                     />
                   ))}
                 </div>
+
+                {/* Story 3.4: Real-Time Workout Forecast Panel */}
+                {mode === 'planning' && (
+                  <div className="mt-4 bg-brand-muted p-4 rounded-lg">
+                    <h4 className="font-semibold mb-3">Workout Forecast</h4>
+
+                    {isForecastLoading ? (
+                      <div className="text-slate-400">Calculating...</div>
+                    ) : forecastError ? (
+                      <div className="text-red-400">{forecastError}</div>
+                    ) : !forecastData ? (
+                      <div className="text-slate-400">Add exercises to see forecast</div>
+                    ) : (
+                      <>
+                        {/* Forecast heat map grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                          {Object.entries(forecastData.forecast).map(([muscle, fatigue]) => (
+                            <div
+                              key={muscle}
+                              className={`p-2 rounded ${getFatigueColorClass(fatigue)}`}
+                            >
+                              <div className="text-sm font-medium">{muscle}</div>
+                              <div className="text-lg font-bold">{Math.round(fatigue)}%</div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Bottleneck warnings */}
+                        {forecastData.bottlenecks.length > 0 && (
+                          <div className="space-y-2">
+                            {forecastData.bottlenecks.map((bottleneck, idx) => (
+                              <div key={idx} className="bg-red-900/20 border border-red-500 p-3 rounded">
+                                <span className="text-red-400 font-semibold">⚠️ {bottleneck.message}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {/* Forecasted Muscle Fatigue */}
                 <div className="mt-4">
