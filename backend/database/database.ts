@@ -49,6 +49,9 @@ db.exec(schema);
 
 console.log('Database schema initialized');
 
+// Ensure default user exists (defensive initialization for fresh installs)
+ensureDefaultUser();
+
 // Run migrations
 const migrationsDir = path.join(__dirname, 'migrations');
 if (fs.existsSync(migrationsDir)) {
@@ -2042,8 +2045,76 @@ export function seedDefaultTemplates(): void {
 // Note: Automatic template seeding disabled to support fresh database initialization
 // Templates can be seeded after first user is created, or added manually
 // TODO: Consider adding template seeding to initializeProfile() if default templates are desired
-// console.log('Running seed function...');
-// seedDefaultTemplates();
+console.log('Running seed function...');
+seedDefaultTemplates();
+
+/**
+ * Defensive initialization: Ensure user_id=1 exists
+ *
+ * Creates a default user if none exists, preventing FOREIGN KEY failures
+ * in template seeding and other operations that assume user exists.
+ *
+ * This is a safety net for fresh installations where onboarding was not completed.
+ * Normal flow: User created via POST /api/profile/init during onboarding
+ * Fallback: This function creates minimal user to prevent failures
+ */
+function ensureDefaultUser(): void {
+  // Check if user_id=1 exists
+  const existingUser = db.prepare('SELECT id FROM users WHERE id = 1').get() as { id: number } | undefined;
+
+  if (existingUser) {
+    console.log('✅ User exists (id=1)');
+    return;
+  }
+
+  console.log('⚠️  No user found - creating default user (id=1)');
+
+  // Default baseline value for Intermediate experience level
+  const defaultBaseline = 10000;
+
+  // All 13 muscles from Muscle enum
+  const muscles = [
+    'Pectoralis', 'Triceps', 'Deltoids', 'Lats', 'Biceps',
+    'Rhomboids', 'Trapezius', 'Forearms', 'Quadriceps',
+    'Glutes', 'Hamstrings', 'Calves', 'Core'
+  ];
+
+  // Transaction to ensure atomicity
+  const createDefaultUser = db.transaction(() => {
+    // Create default user
+    db.prepare('INSERT INTO users (id, name, experience) VALUES (1, ?, ?)').run(
+      'Local User',
+      'Intermediate'
+    );
+    console.log('  ✓ Created default user (Local User, Intermediate)');
+
+    // Initialize muscle baselines
+    const insertBaseline = db.prepare(
+      'INSERT INTO muscle_baselines (user_id, muscle_name, system_learned_max) VALUES (1, ?, ?)'
+    );
+    for (const muscle of muscles) {
+      insertBaseline.run(muscle, defaultBaseline);
+    }
+    console.log('  ✓ Initialized muscle baselines (13 muscles)');
+
+    // Initialize muscle states
+    const insertState = db.prepare(
+      'INSERT INTO muscle_states (user_id, muscle_name, initial_fatigue_percent, volume_today, last_trained) VALUES (1, ?, 0, 0, NULL)'
+    );
+    for (const muscle of muscles) {
+      insertState.run(muscle);
+    }
+    console.log('  ✓ Initialized muscle states (13 muscles)');
+
+    // Initialize detailed muscle states (42 detailed muscles)
+    initializeDetailedMuscleStates(1, defaultBaseline);
+  });
+
+  // Execute transaction
+  createDefaultUser();
+
+  console.log('✅ Default user initialization complete');
+}
 
 /**
  * Get last variation used for a category and suggest opposite

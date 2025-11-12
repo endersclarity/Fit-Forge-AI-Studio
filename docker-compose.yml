@@ -15,6 +15,13 @@ services:
       - ./data:/data
       # Mount backend source code for hot reload
       - ./backend:/app/backend
+      # Mount shared directory for exercise library
+      - ./shared:/app/shared
+      # Mount docs directory for exercises.json
+      - ./docs:/app/docs
+      # Mount root types file
+      - ./types.ts:/app/types.ts
+      - ./constants.ts:/app/constants.ts
       # Exclude node_modules to use container's modules
       - /app/backend/node_modules
     environment:

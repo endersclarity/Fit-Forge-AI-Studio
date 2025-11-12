@@ -9,6 +9,32 @@ Audience: AI-assisted debugging and developer reference.
 
 ## [Unreleased] - 2025-11-11
 
+### [2025-11-12] - Triage Fix: Database Initialization for Fresh Installations
+
+**Issue:** Fresh database installations failed with FOREIGN KEY constraint errors, making the application completely non-functional for new users.
+
+**Root Cause:** Default user initialization was removed in commit bd2e128 without implementing the planned onboarding flow. Template seeding and other operations assumed user_id=1 existed.
+
+**Solution:** Added defensive `ensureDefaultUser()` guard that creates default user with all required muscle data if missing during database initialization.
+
+**Files Changed:**
+- `backend/database/database.ts` - Added ensureDefaultUser() function, enabled template seeding
+- `backend/Dockerfile.dev` - Fixed to use ts-node instead of outdated JS files
+- `docker-compose.yml` - Added required volume mounts for TypeScript execution
+- `backend/database/database.js` - Removed obsolete compiled file
+
+**Validated:**
+- ✅ Fresh database initialization successful
+- ✅ Default user created (Local User, Intermediate, baseline=10000)
+- ✅ 8 workout templates seeded
+- ✅ All API endpoints return 200 OK
+- ✅ Frontend loads without errors
+- ✅ Idempotent - safe to run multiple times
+
+**Triage Session:** `.bmad-ephemeral/triage/20251112/`
+
+---
+
 ### Epic 3: Frontend Intelligence Integration - COMPLETE ✅
 
 **Status**: ✅ 4 OF 4 STORIES COMPLETE

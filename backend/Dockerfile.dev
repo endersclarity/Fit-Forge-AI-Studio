@@ -19,5 +19,5 @@ COPY backend/ ./
 # Expose backend port
 EXPOSE 3001
 
-# Run with nodemon for hot reload
-CMD ["nodemon", "--watch", ".", "--ext", "ts,js,json", "--exec", "node", "server.js"]
+# Run with nodemon for hot reload using ts-node (transpile-only to skip type checking)
+CMD ["nodemon", "--watch", ".", "--ext", "ts,js,json", "--exec", "npx", "ts-node", "--transpile-only", "server.ts"]
