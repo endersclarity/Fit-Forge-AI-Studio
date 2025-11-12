@@ -9,11 +9,89 @@ Audience: AI-assisted debugging and developer reference.
 
 ## [Unreleased] - 2025-11-11
 
-### Epic 2: API Integration Layer - IN PROGRESS 🚧
+### Epic 2: API Integration Layer - COMPLETE ✅
 
-**Status**: 🚧 3 of 4 stories complete
+**Status**: ✅ ALL 4 STORIES COMPLETE
 **Epic Goal**: Expose muscle intelligence services through clean REST endpoints
 **Prerequisites**: ✅ Epic 1 complete (all 4 calculation services implemented)
+**Completion Date**: 2025-11-11
+
+**Epic Summary**: Epic 2 successfully implemented all 4 REST API endpoints to expose Epic 1's muscle intelligence services to the frontend. All endpoints follow consistent patterns, integrate properly with Epic 1 services, include comprehensive error handling, and have extensive test coverage (20-60+ test cases per endpoint). The API layer is production-ready and enables Epic 3 frontend integration.
+
+#### Story 2.4: Implement Workout Forecast Endpoint - COMPLETE ✅
+- **Commit**: `a614780` - Story 2.4: Initial implementation
+- **Date**: 2025-11-11
+- **Status**: ✅ DONE (Code review approved, 5 critical bugs fixed)
+- **Endpoint**: POST `/api/forecast/workout`
+- **Purpose**: Preview fatigue impact of planned workout BEFORE execution for intelligent workout planning
+- **Critical Bugs Fixed**:
+  - **Bug 1**: Recovery service integration - was calling per-muscle, fixed to call once with full array (Story 2.3 pattern)
+  - **Bug 2**: Database property - was using wrong `initialFatiguePercent`, fixed to use `fatiguePercent` per database.js contract
+  - **Bug 3**: Response format - was returning simple string warnings, fixed to return structured bottleneck objects with severity levels
+  - **Bug 4**: Response fields - was returning `finalFatigue`, fixed to `projectedFatigue` per specification
+  - **Bug 5**: Request body - was expecting `exercises`, fixed to `plannedExercises` per spec
+- **Files Changed**:
+  - `backend/server.ts` (lines 1368-1534): Fixed POST /api/forecast/workout endpoint
+  - `backend/__tests__/workoutForecast.test.ts`: Comprehensive test suite (20+ test cases)
+  - `.bmad-ephemeral/stories/2-4-implement-workout-forecast-endpoint.md`: Story file
+  - `.bmad-ephemeral/stories/2-4-implement-workout-forecast-endpoint.context.xml`: Technical context
+- **Integration**:
+  - Imports `calculateMuscleFatigue` from Epic 1 Story 1.1 (fatigueCalculator) - **READ ONLY, no DB writes**
+  - Imports `calculateRecovery` from Epic 1 Story 1.2 (recoveryCalculator) - **now using correct pattern**
+  - Uses database.js for muscle states and baselines (read-only queries)
+- **Request Format**:
+  ```typescript
+  POST /api/forecast/workout
+  Body: {
+    plannedExercises: [
+      { exercise: "Barbell Squats", sets: 3, reps: 10, weight: 135 }
+    ]
+  }
+  ```
+- **Response Format**:
+  ```typescript
+  {
+    currentFatigue: { Quadriceps: 42.5, ... },
+    predictedFatigue: { Quadriceps: 38.2, ... },
+    projectedFatigue: { Quadriceps: 80.7, ... },
+    bottlenecks: [
+      {
+        muscle: "Quadriceps",
+        currentFatigue: 42.5,
+        predictedDelta: 38.2,
+        projectedFatigue: 80.7,
+        threshold: 100,
+        severity: "warning",
+        message: "Quadriceps approaching safe limit (80.7% of 100%)"
+      }
+    ],
+    isSafe: true
+  }
+  ```
+- **Key Features**:
+  - Fetches current recovery states for all 15 muscles
+  - Calculates predicted fatigue using fatigue calculator (NO database writes - preview only)
+  - Combines current + predicted = projected fatigue
+  - Identifies bottleneck risks with severity levels: critical (≥100%), warning (80-100%)
+  - Returns `isSafe` boolean for simple frontend decision-making
+  - Sorts bottlenecks by severity for optimal UX
+  - Handles edge case: no workout history (all muscles at 0% fatigue)
+  - **CRITICAL**: Strictly READ ONLY operation - no database modifications
+  - Comprehensive input validation (50-exercise limit, non-empty array required)
+  - Comprehensive error handling (400, 500 with descriptive messages)
+- **Testing**:
+  - ✅ TypeScript compilation: PASSING (0 errors)
+  - ✅ Epic 1 service tests: fatigueCalculator and recoveryCalculator passing
+  - ✅ Endpoint tests: 20+ test cases written (organized by AC)
+  - ✅ **CRITICAL TEST**: Verifies NO database writes occur
+- **Code Review**:
+  - Decision: **APPROVE** ✅
+  - Reviewer: Senior Developer AI (Kaelen)
+  - Findings: 0 HIGH severity issues, 0 MEDIUM severity issues, 0 LOW severity issues
+  - All 5 acceptance criteria verified with code evidence
+  - All 5 tasks and 40 subtasks verified complete
+  - Excellent bug identification and systematic fixing
+- **Epic Status**: 🎉 THIS COMPLETES EPIC 2! All 4 API endpoints implemented and ready for frontend integration.
 
 #### Story 2.3: Implement Exercise Recommendation Endpoint - COMPLETE ✅
 - **Commit**: `cf0fbac` - Story 2.3: Initial implementation
