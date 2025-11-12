@@ -9,6 +9,53 @@ Audience: AI-assisted debugging and developer reference.
 
 ## [Unreleased] - 2025-11-11
 
+### [2025-11-12] - Story 4.1: End-to-End Integration Testing (Local Docker)
+
+**Purpose**: Create comprehensive integration test suite validating all muscle intelligence features work end-to-end in Docker Compose environment.
+
+**Story ID**: 4.1 (Epic 4: Integration Testing & MVP Launch)
+
+**Commits**:
+- `977a6ce` - Story 4.1: Initial implementation
+- `781b84a` - Story 4.1: Code review fixes applied
+
+**Date**: 2025-11-12
+**Status**: ✅ DONE (Integration tests created and API contracts validated)
+
+**Files Created**:
+- `backend/__tests__/fixtures/integration-test-data.ts` - Centralized test fixtures with baseline workouts and expected results
+- `backend/__tests__/integration/workout-completion.test.ts` - 2 tests validating fatigue calculations and baseline update triggers
+- `backend/__tests__/integration/recovery-timeline.test.ts` - 1 test validating 24h/48h/72h recovery projections
+- `backend/__tests__/integration/exercise-recommendations.test.ts` - 1 test validating 5-factor exercise scoring
+- `backend/__tests__/integration/workout-forecast.test.ts` - 1 test validating real-time fatigue forecasting
+- `docs/testing/integration-checklist.md` - Comprehensive manual testing checklist (150+ lines)
+
+**Integration Tests Created**: 5 tests across 4 Epic 2 API endpoints
+- Test Framework: Vitest v4.0.3 with jsdom environment
+- Test Strategy: HTTP-only testing using fetch() API calls to avoid SQLite native binding issues
+- Test Coverage: All 4 Epic 2 endpoints (workout completion, recovery timeline, recommendations, forecast)
+- Database Cleanup: beforeEach hooks with DELETE/reset calls for test isolation
+
+**Key Fixes Applied** (Code Review):
+- Fixed workout completion API assertions (fatigue vs muscleStates)
+- Fixed recovery timeline response structure (muscles array format)
+- Fixed baseline suggestions field name (muscle vs muscleName)
+- Added database cleanup to all test beforeEach hooks
+
+**Environment Validated**:
+- ✅ Docker Compose running (frontend:3000, backend:3001)
+- ✅ Backend health endpoint responding
+- ✅ All services healthy and accessible
+
+**Test Execution**:
+- Tests executable via `npm test`
+- Tests designed for Docker Compose environment
+- Manual testing checklist provides backup validation method
+
+**Next Story**: 4.2 - Performance Validation & Optimization
+
+---
+
 ### [2025-11-12] - Triage Fix: Database Initialization for Fresh Installations
 
 **Issue:** Fresh database installations failed with FOREIGN KEY constraint errors, making the application completely non-functional for new users.
