@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate, ExerciseCategory, Variation, Muscle } from '../types';
 import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory, completeWorkout, WorkoutCompletionResponse } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
@@ -70,6 +71,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   loadedTemplate = null,
   currentBodyweight,
 }) => {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<BuilderMode>('planning');
   const [planningMode, setPlanningMode] = useState<PlanningMode>('forward');
   const [workout, setWorkout] = useState<BuilderWorkout>({
@@ -81,6 +83,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
   const [muscleBaselines, setMuscleBaselines] = useState<MuscleBaselines>({} as MuscleBaselines);
   const [loading, setLoading] = useState(true);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [recommendations, setRecommendations] = useState<ExerciseRecommendation[]>([]);
 
@@ -564,7 +567,8 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
       return;
     }
 
-    setLoading(true);
+    // Story 3.1 AC2: Set loading state using isCompleting
+    setIsCompleting(true);
     try {
       // Only save completed sets
       const completedSetsData = workout.sets
@@ -583,35 +587,49 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
         was_executed: true,
       });
 
-      // Story 3.1: Calculate fatigue and check for baseline updates
-      try {
-        const completionResponse = await completeWorkout(saveResponse.workout_id);
+      // Story 3.1 AC1: Call workout completion API
+      const completionResponse = await completeWorkout(saveResponse.workout_id);
 
-        // Check if there are baseline suggestions
-        if (completionResponse.baselineSuggestions && completionResponse.baselineSuggestions.length > 0) {
-          // Store suggestions and show modal
-          setBaselineSuggestions(completionResponse.baselineSuggestions);
-          setSavedWorkoutId(saveResponse.workout_id);
-          setShowBaselineModal(true);
+      // Story 3.1 AC3: Extract data from API response
+      const { fatigue, baselineSuggestions, summary } = completionResponse;
 
-          onToast(`Workout saved! You exceeded ${completionResponse.baselineSuggestions.length} baseline${completionResponse.baselineSuggestions.length > 1 ? 's' : ''}!`, 'success');
-        } else {
-          onToast(`Workout saved! ${completedSets.size} sets completed.`, 'success');
-          onSuccess();
-          handleClose();
-        }
-      } catch (fatigueError) {
-        console.error('Failed to calculate fatigue:', fatigueError);
-        // Still show success for the workout save, but warn about fatigue calculation
-        onToast('Workout saved, but fatigue calculation failed', 'info');
+      // Story 3.1 AC5: Trigger muscle states refresh (via navigation to dashboard)
+      // Story 3.1 AC4: Handle baseline suggestions modal flow
+      if (baselineSuggestions && baselineSuggestions.length > 0) {
+        // Store suggestions and show modal
+        setBaselineSuggestions(baselineSuggestions);
+        setSavedWorkoutId(saveResponse.workout_id);
+        setShowBaselineModal(true);
+
+        onToast(`Workout saved! You exceeded ${baselineSuggestions.length} baseline${baselineSuggestions.length > 1 ? 's' : ''}!`, 'success');
+        // Story 3.1 AC6: Do NOT navigate yet - wait for user to confirm/decline baseline updates
+      } else {
+        // Story 3.1 AC6: No baseline suggestions, navigate immediately to dashboard
+        onToast(`Workout saved! ${completedSets.size} sets completed.`, 'success');
         onSuccess();
-        handleClose();
+        navigate('/dashboard');
       }
-    } catch (error) {
-      console.error('Failed to save workout:', error);
-      onToast('Failed to save workout', 'error');
+    } catch (error: any) {
+      console.error('Failed to complete workout:', error);
+
+      // Story 3.1 AC7: Handle errors with specific user-friendly messages
+      let errorMessage = 'Failed to complete workout';
+
+      if (error.message && error.message.includes('fetch')) {
+        // Network error
+        errorMessage = 'Unable to complete workout. Check your connection.';
+      } else if (error.message && error.message.includes('404')) {
+        errorMessage = 'Workout not found. Please try again.';
+      } else if (error.message && error.message.includes('500')) {
+        errorMessage = 'Calculation failed. Please contact support.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      onToast(errorMessage, 'error');
     } finally {
-      setLoading(false);
+      // Story 3.1 AC2: Always clear loading state
+      setIsCompleting(false);
     }
   };
 
@@ -642,7 +660,9 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
       setBaselineSuggestions([]);
       setSavedWorkoutId(null);
       onSuccess();
-      handleClose();
+
+      // Story 3.1 AC6: Navigate to dashboard after modal closed
+      navigate('/dashboard');
     } catch (error) {
       console.error('Failed to update baselines:', error);
       onToast('Failed to update baselines', 'error');
@@ -654,7 +674,9 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     setBaselineSuggestions([]);
     setSavedWorkoutId(null);
     onSuccess();
-    handleClose();
+
+    // Story 3.1 AC6: Navigate to dashboard after modal closed
+    navigate('/dashboard');
   };
 
   const handleGenerateFromTargets = async (targets: MuscleTargets) => {
@@ -774,10 +796,10 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             </div>
             <button
               onClick={handleFinishWorkout}
-              disabled={loading}
+              disabled={isCompleting}
               className="w-full bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Saving...' : 'Finish Workout'}
+              {isCompleting ? 'Completing...' : 'Finish Workout'}
             </button>
           </div>
         </div>
@@ -842,10 +864,10 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
           <button
             onClick={handleFinishWorkout}
-            disabled={completedSets.size === 0 || loading}
+            disabled={completedSets.size === 0 || isCompleting}
             className="w-full mt-4 bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50"
           >
-            Finish Workout Early
+            {isCompleting ? 'Completing...' : 'Finish Workout Early'}
           </button>
         </div>
       </div>

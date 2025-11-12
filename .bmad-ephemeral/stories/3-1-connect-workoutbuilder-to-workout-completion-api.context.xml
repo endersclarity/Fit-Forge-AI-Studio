@@ -1,0 +1,102 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>1</storyId>
+    <title>Connect WorkoutBuilder to Workout Completion API</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/3-1-connect-workoutbuilder-to-workout-completion-api.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to see muscle fatigue immediately after completing a workout</iWant>
+    <soThat>I understand the impact of my training session</soThat>
+    <tasks>
+      - Task 1: Update handleFinishWorkout() to call workout completion API (AC: 1)
+      - Task 2: Implement loading state management (AC: 2)
+      - Task 3: Handle API response and extract data (AC: 3)
+      - Task 4: Implement baseline suggestion modal flow (AC: 4)
+      - Task 5: Trigger muscle states refresh (AC: 5)
+      - Task 6: Implement navigation after completion (AC: 6)
+      - Task 7: Implement comprehensive error handling (AC: 7)
+      - Task 8: Add comprehensive integration tests (Testing)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given user finishes logging sets in WorkoutBuilder, When user clicks "Complete Workout" button (existing handleFinishWorkout() function), Then frontend calls POST /api/workouts/:id/complete with request body structure containing workoutId and exercises array with sets data.
+
+    2. And it displays loading state using existing isCompleting state variable.
+
+    3. And it receives API response matching WorkoutCompletionResponse interface with fatigue (Record&lt;Muscle, number&gt; for 15 muscles), baselineSuggestions array, and summary object.
+
+    4. And if baselineSuggestions.length > 0, it sets state variables (baselineSuggestions, savedWorkoutId) and opens BaselineUpdateModal by setting showBaselineModal to true. Modal component already exists with correct props wiring.
+
+    5. And it updates muscleStates by triggering parent component refresh (via refreshMuscleStates() callback or page navigation).
+
+    6. And it navigates to /dashboard using router after successful completion.
+
+    7. And it handles errors with specific user-friendly messages: Network error ("Unable to complete workout. Check your connection."), 404 error ("Workout not found. Please try again."), 500 error ("Calculation failed. Please contact support."). Display errors using existing error display pattern in component.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/epics.md" title="Epics" section="Epic 3 Story 3.1" snippet="Story requirements, acceptance criteria, and API integration details for connecting WorkoutBuilder to workout completion endpoint"/>
+      <doc path="docs/architecture.md" title="Architecture" section="Frontend API Integration" snippet="API patterns, error handling, and frontend integration patterns for workout completion flow"/>
+      <doc path="docs/PRD.md" title="Product Requirements Document" section="Muscle Intelligence Features" snippet="High-level requirements for muscle tracking and workout completion features"/>
+      <doc path="docs/api-endpoints.md" title="API Endpoints" section="Workout Completion" snippet="Documentation of POST /api/workouts/:id/complete endpoint structure and responses"/>
+      <doc path="docs/ux-specification.md" title="UX Specification" section="WorkoutBuilder Flow" snippet="User flow and interaction patterns for workout completion and baseline modal"/>
+      <doc path=".bmad-ephemeral/stories/2-1-implement-workout-completion-endpoint.md" title="Story 2.1" section="Completion Notes" snippet="Implementation details of the workout completion API endpoint that this story will integrate with"/>
+    </docs>
+    <code>
+      <artifact path="components/WorkoutBuilder.tsx" kind="component" symbol="WorkoutBuilder" lines="1-1200" reason="Main component that needs modification - contains handleFinishWorkout() function at line 587 and existing state variables"/>
+      <artifact path="components/WorkoutBuilder.tsx" kind="component" symbol="handleFinishWorkout" lines="587-620" reason="Existing function to be modified for API integration"/>
+      <artifact path="components/BaselineUpdateModal.tsx" kind="component" symbol="BaselineUpdateModal" lines="1-150" reason="Modal component already integrated in WorkoutBuilder for displaying baseline suggestions"/>
+      <artifact path="backend/server.ts" kind="api-endpoint" symbol="/api/workouts/:id/complete" lines="1017-1146" reason="Backend API endpoint implemented in Story 2.1 that this story connects to"/>
+      <artifact path="backend/services/fatigueCalculator.js" kind="service" symbol="calculateMuscleFatigue" lines="1-100" reason="Backend service that calculates muscle fatigue data returned by API"/>
+      <artifact path="backend/services/baselineCalculator.js" kind="service" symbol="checkBaselineUpdates" lines="1-150" reason="Backend service that generates baseline suggestions returned by API"/>
+    </code>
+    <dependencies>
+      <node>
+        <dependency name="react" version="^18.x"/>
+        <dependency name="next" version="^14.x"/>
+        <dependency name="typescript" version="^5.x"/>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - MUST use existing handleFinishWorkout() function in WorkoutBuilder.tsx (modify, don't recreate)
+    - MUST use existing state variables: isCompleting, showBaselineModal, baselineSuggestions, savedWorkoutId
+    - MUST call POST /api/workouts/:id/complete endpoint (implemented in Story 2.1)
+    - MUST handle all 3 error types with specific messages (network, 404, 500)
+    - MUST show loading state during API call using isCompleting
+    - MUST delay navigation to /dashboard if baseline suggestions exist (show modal first)
+    - MUST navigate to /dashboard after modal closed or if no suggestions
+    - MUST preserve existing BaselineUpdateModal integration (no changes to modal component)
+    - MUST use TypeScript for type safety
+    - MUST follow existing error handling pattern in component
+  </constraints>
+  <interfaces>
+    <interface name="POST /api/workouts/:id/complete" kind="REST endpoint" signature="POST /api/workouts/:id/complete - Request: { workoutId: number, exercises: Array&lt;{ exerciseId: string, sets: Array&lt;{ reps: number, weight: number, toFailure: boolean }&gt; }&gt; } - Response: { fatigue: Record&lt;Muscle, number&gt;, baselineSuggestions: Array&lt;{ muscle: string, oldMax: number, newMax: number, sessionVolume: number }&gt;, summary: { totalVolume: number, prsAchieved: string[] } }" path="backend/server.ts:1017-1146"/>
+    <interface name="BaselineUpdateModal Props" kind="component interface" signature="interface BaselineUpdateModalProps { isOpen: boolean; updates: BaselineUpdate[]; onConfirm: (updates: BaselineUpdate[]) =&gt; void; onDecline: () =&gt; void; }" path="components/BaselineUpdateModal.tsx"/>
+    <interface name="WorkoutCompletionResponse" kind="TypeScript interface" signature="interface WorkoutCompletionResponse { fatigue: Record&lt;Muscle, number&gt;; baselineSuggestions: Array&lt;{ muscle: Muscle; oldMax: number; newMax: number; sessionVolume: number }&gt;; summary: { totalVolume: number; prsAchieved: string[] } }" path="types/api.ts or inline"/>
+  </interfaces>
+  <tests>
+    <standards>React Testing Library with Vitest for component integration tests. Mock API calls with msw (Mock Service Worker) or jest.fn() for controlled test scenarios. Test all acceptance criteria with dedicated test cases. Include edge cases: network errors, empty responses, malformed data. Verify request body structure, response parsing, and state management.</standards>
+    <locations>components/__tests__/WorkoutBuilder.integration.test.tsx</locations>
+    <ideas>
+      AC1: Test API call with correct request body structure (workoutId, exercises array with sets)
+      AC2: Test loading state management (isCompleting true during API call, false after)
+      AC3: Test response parsing extracts fatigue, baselineSuggestions, summary correctly
+      AC4: Test baseline modal opens when suggestions exist, navigation delayed until modal closed
+      AC5: Test muscle states refresh triggered via callback or navigation
+      AC6: Test navigation to /dashboard after completion (immediately if no modal, after modal if suggestions)
+      AC7: Test error handling for network errors, 404 errors, 500 errors with specific messages
+      Integration: Test full flow from button click to navigation with/without modal
+      Edge Cases: Test empty baseline suggestions, malformed API response, network timeout
+    </ideas>
+  </tests>
+</story-context>
