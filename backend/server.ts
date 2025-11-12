@@ -1304,7 +1304,7 @@ app.post('/api/recommendations/exercises', async (req: Request, res: Response) =
         // Muscle has workout history
         muscleStatesArray.push({
           muscle: muscleName,
-          fatiguePercent: state.fatiguePercent || 0
+          fatiguePercent: state.currentFatiguePercent || 0
         });
         workoutTimestamps[muscleName] = state.lastTrained;
       } else {
@@ -1412,7 +1412,7 @@ app.post('/api/forecast/workout', async (req: Request, res: Response) => {
         const state = muscleStatesData[muscle];
         muscleStatesArray.push({
           muscle: muscle,
-          fatiguePercent: state.fatiguePercent // Correct property per database.js contract
+          fatiguePercent: state.currentFatiguePercent // Correct property per MuscleStateData type
         });
         // Get workout timestamp from first muscle state
         if (state.lastTrained) {

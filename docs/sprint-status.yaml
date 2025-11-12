@@ -67,6 +67,6 @@ development_status:
   epic-4: backlog
   4-1-end-to-end-integration-testing-local-docker: done
   4-2-performance-validation-optimization: done
-  4-3-production-deployment-to-railway: backlog
+  4-3-production-deployment-to-railway: in-progress
   4-4-production-smoke-testing-monitoring: backlog
   epic-4-retrospective: optional
