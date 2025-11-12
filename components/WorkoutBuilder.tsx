@@ -363,6 +363,12 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     return 'bg-green-600 text-white'; // Green - safe zone
   };
 
+  /**
+   * LOCAL-ONLY fallback forecast calculation for SimpleMuscleVisualization
+   * Used in execution mode and as backup when API forecast is unavailable
+   * This coexists with API forecast (lines 311-356) which provides detailed bottleneck analysis
+   * DO NOT REMOVE - required for execution mode's "Forecasted End State" display
+   */
   const calculateForecastedMuscleStates = (): MuscleStatesResponse => {
     // Start with current states
     const forecasted = { ...muscleStates };
@@ -1162,11 +1168,20 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
                   </div>
                 )}
 
-                {/* Forecasted Muscle Fatigue */}
+                {/* Forecasted Muscle Fatigue - Simplified Visualization */}
                 <div className="mt-4">
                   <h4 className="font-semibold mb-2">Forecasted Muscle Fatigue</h4>
                   <SimpleMuscleVisualization
-                    muscleStates={calculateForecastedMuscleStates()}
+                    muscleStates={forecastData?.forecast
+                      ? Object.entries(forecastData.forecast).reduce((acc, [muscle, fatigue]) => {
+                          acc[muscle] = {
+                            currentFatiguePercent: fatigue,
+                            lastWorkoutDate: muscleStates[muscle]?.lastWorkoutDate || null
+                          };
+                          return acc;
+                        }, {} as MuscleStatesResponse)
+                      : calculateForecastedMuscleStates()
+                    }
                     muscleBaselines={muscleBaselines}
                   />
                 </div>

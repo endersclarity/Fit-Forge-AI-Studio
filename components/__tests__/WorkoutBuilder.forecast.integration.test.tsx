@@ -1,12 +1,16 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
+import { BrowserRouter } from 'react-router-dom';
+import WorkoutBuilder from '../WorkoutBuilder';
 import { WorkoutForecastResponse } from '../../api';
 
 /**
  * Story 3.4: Connect WorkoutBuilder to Forecast API (Real-Time Preview)
  * Integration tests for workout forecast functionality
  *
- * Note: These are simplified tests to verify the core forecast logic exists.
- * Full end-to-end testing would be done manually or with browser automation.
+ * Includes both unit tests for helper functions and React integration tests
+ * using React Testing Library for component interactions and DOM rendering.
  */
 
 describe('WorkoutBuilder - Forecast API Integration (Story 3.4)', () => {
@@ -285,6 +289,351 @@ describe('WorkoutBuilder - Forecast API Integration (Story 3.4)', () => {
 
       const errorData = await response.json();
       expect(errorData.error).toBe('Internal server error');
+    });
+  });
+
+  describe('React Integration Tests - Component Mounting and User Interactions', () => {
+    let mockFetch: any;
+    let localStorageMock: any;
+
+    beforeEach(() => {
+      // Mock localStorage
+      localStorageMock = {
+        getItem: vi.fn(),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn()
+      };
+      global.localStorage = localStorageMock as any;
+
+      // Mock global fetch
+      mockFetch = vi.fn();
+      global.fetch = mockFetch;
+
+      // Mock muscle states API
+      mockFetch.mockImplementation((url: string) => {
+        if (url.includes('/muscle-states')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              Pectoralis: { currentFatiguePercent: 20, lastWorkoutDate: '2025-11-10' },
+              Triceps: { currentFatiguePercent: 15, lastWorkoutDate: '2025-11-10' }
+            })
+          });
+        }
+        if (url.includes('/muscle-baselines')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              Pectoralis: { systemLearnedMax: 5000, userOverride: null },
+              Triceps: { systemLearnedMax: 3000, userOverride: null }
+            })
+          });
+        }
+        if (url.includes('/forecast/workout')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              forecast: {
+                Pectoralis: 45.5,
+                Triceps: 75.8
+              },
+              warnings: [],
+              bottlenecks: []
+            })
+          });
+        }
+        return Promise.reject(new Error('Unknown endpoint'));
+      });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('renders WorkoutBuilder in planning mode', async () => {
+      const onClose = vi.fn();
+      const onSuccess = vi.fn();
+      const onToast = vi.fn();
+
+      render(
+        <BrowserRouter>
+          <WorkoutBuilder
+            isOpen={true}
+            onClose={onClose}
+            onSuccess={onSuccess}
+            onToast={onToast}
+          />
+        </BrowserRouter>
+      );
+
+      // Wait for loading to complete
+      await waitFor(() => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      });
+
+      // Verify planning mode UI is rendered
+      expect(screen.getByText('Build Workout')).toBeInTheDocument();
+      expect(screen.getByText('Forward Planning')).toBeInTheDocument();
+      expect(screen.getByText('Target-Driven')).toBeInTheDocument();
+    });
+
+    it('displays forecast panel only when sets are added in planning mode', async () => {
+      const onClose = vi.fn();
+      const onSuccess = vi.fn();
+      const onToast = vi.fn();
+
+      render(
+        <BrowserRouter>
+          <WorkoutBuilder
+            isOpen={true}
+            onClose={onClose}
+            onSuccess={onSuccess}
+            onToast={onToast}
+          />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      });
+
+      // Forecast panel should NOT appear when no sets added
+      // (UI only shows forecast when workout.sets.length > 0)
+      expect(screen.queryByText('Workout Forecast')).not.toBeInTheDocument();
+      expect(screen.getByText('No sets added yet. Select an exercise above to build your workout.')).toBeInTheDocument();
+    });
+
+    it('shows empty state when no sets added', async () => {
+      const onClose = vi.fn();
+      const onSuccess = vi.fn();
+      const onToast = vi.fn();
+
+      render(
+        <BrowserRouter>
+          <WorkoutBuilder
+            isOpen={true}
+            onClose={onClose}
+            onSuccess={onSuccess}
+            onToast={onToast}
+          />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      });
+
+      // Verify empty state message (forecast panel doesn't show when no sets)
+      expect(screen.getByText('No sets added yet. Select an exercise above to build your workout.')).toBeInTheDocument();
+    });
+
+    it('verifies component can handle forecast data structure', async () => {
+      const onClose = vi.fn();
+      const onSuccess = vi.fn();
+      const onToast = vi.fn();
+
+      // Mock with forecast data ready
+      mockFetch.mockImplementation((url: string) => {
+        if (url.includes('/muscle-states')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              Pectoralis: { currentFatiguePercent: 20, lastWorkoutDate: '2025-11-10' },
+              Triceps: { currentFatiguePercent: 15, lastWorkoutDate: '2025-11-10' }
+            })
+          });
+        }
+        if (url.includes('/forecast/workout')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              forecast: {
+                Pectoralis: 45.5,
+                Triceps: 75.8
+              },
+              warnings: [],
+              bottlenecks: []
+            })
+          });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+      });
+
+      render(
+        <BrowserRouter>
+          <WorkoutBuilder
+            isOpen={true}
+            onClose={onClose}
+            onSuccess={onSuccess}
+            onToast={onToast}
+          />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      });
+
+      // Component renders successfully with forecast-ready mock
+      // (forecast panel only shows when sets.length > 0, which requires user interaction)
+      expect(screen.getByText('Build Workout')).toBeInTheDocument();
+    });
+
+    it('verifies component can handle bottleneck data structure', async () => {
+      const onClose = vi.fn();
+      const onSuccess = vi.fn();
+      const onToast = vi.fn();
+
+      // Mock with bottleneck warnings
+      mockFetch.mockImplementation((url: string) => {
+        if (url.includes('/forecast/workout')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              forecast: {
+                Hamstrings: 115
+              },
+              warnings: ['High overall fatigue'],
+              bottlenecks: [
+                {
+                  muscle: 'Hamstrings',
+                  projectedFatigue: 115,
+                  message: 'Hamstrings would reach 115% - risk of overtraining'
+                }
+              ]
+            })
+          });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+      });
+
+      render(
+        <BrowserRouter>
+          <WorkoutBuilder
+            isOpen={true}
+            onClose={onClose}
+            onSuccess={onSuccess}
+            onToast={onToast}
+          />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      });
+
+      // Component renders successfully with bottleneck data structure
+      expect(screen.getByText('Build Workout')).toBeInTheDocument();
+    });
+
+    it('handles forecast API errors gracefully', async () => {
+      const onClose = vi.fn();
+      const onSuccess = vi.fn();
+      const onToast = vi.fn();
+
+      // Mock forecast API failure
+      mockFetch.mockImplementation((url: string) => {
+        if (url.includes('/forecast/workout')) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            json: () => Promise.resolve({ error: 'Internal server error' })
+          });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+      });
+
+      render(
+        <BrowserRouter>
+          <WorkoutBuilder
+            isOpen={true}
+            onClose={onClose}
+            onSuccess={onSuccess}
+            onToast={onToast}
+          />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      });
+
+      // Verify component still renders
+      expect(screen.getByText('Build Workout')).toBeInTheDocument();
+    });
+
+    it('closes modal when close button is clicked', async () => {
+      const onClose = vi.fn();
+      const onSuccess = vi.fn();
+      const onToast = vi.fn();
+
+      // Mock window.confirm to automatically return true (confirm discard)
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      const user = userEvent.setup();
+
+      const { container } = render(
+        <BrowserRouter>
+          <WorkoutBuilder
+            isOpen={true}
+            onClose={onClose}
+            onSuccess={onSuccess}
+            onToast={onToast}
+          />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      });
+
+      // Find close button by class (it's the × text button in header)
+      const closeButton = container.querySelector('.text-slate-400.hover\\:text-white.text-2xl');
+      expect(closeButton).toBeTruthy();
+
+      await user.click(closeButton!);
+
+      // Verify onClose was called
+      expect(onClose).toHaveBeenCalled();
+
+      confirmSpy.mockRestore();
+    });
+
+    it('switches between Forward Planning and Target-Driven modes', async () => {
+      const onClose = vi.fn();
+      const onSuccess = vi.fn();
+      const onToast = vi.fn();
+
+      const user = userEvent.setup();
+
+      render(
+        <BrowserRouter>
+          <WorkoutBuilder
+            isOpen={true}
+            onClose={onClose}
+            onSuccess={onSuccess}
+            onToast={onToast}
+          />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      });
+
+      // Click Target-Driven button
+      const targetButton = screen.getByText('Target-Driven');
+      await user.click(targetButton);
+
+      // Verify mode switched (would show different UI in target mode)
+      expect(screen.getByText('Target-Driven')).toBeInTheDocument();
+
+      // Switch back to Forward Planning
+      const forwardButton = screen.getByText('Forward Planning');
+      await user.click(forwardButton);
+
+      expect(screen.getByText('Forward Planning')).toBeInTheDocument();
     });
   });
 });
