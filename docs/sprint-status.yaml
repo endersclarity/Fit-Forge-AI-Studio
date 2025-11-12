@@ -51,8 +51,8 @@ development_status:
   epic-2: backlog
   2-1-implement-workout-completion-endpoint: done
   2-2-implement-recovery-timeline-endpoint: done
-  2-3-implement-exercise-recommendation-endpoint: review
-  2-4-implement-workout-forecast-endpoint: backlog
+  2-3-implement-exercise-recommendation-endpoint: done
+  2-4-implement-workout-forecast-endpoint: review
   epic-2-retrospective: optional
 
   # Epic 3: Frontend Intelligence Integration

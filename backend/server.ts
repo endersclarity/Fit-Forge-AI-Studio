@@ -1367,35 +1367,69 @@ app.post('/api/recommendations/exercises', async (req: Request, res: Response) =
 // POST /api/forecast/workout - Predict fatigue for planned exercises
 app.post('/api/forecast/workout', async (req: Request, res: Response) => {
   try {
-    const { exercises } = req.body;
+    const { plannedExercises } = req.body;
 
-    // Input validation
-    if (!exercises || !Array.isArray(exercises)) {
-      return res.status(400).json({ error: 'exercises array is required' });
+    // Input validation - AC1: validate required field
+    if (!plannedExercises || !Array.isArray(plannedExercises) || plannedExercises.length === 0) {
+      return res.status(400).json({ error: 'plannedExercises array is required and must not be empty' });
     }
 
     // Validate exercise array size
-    if (exercises.length > 50) {
+    if (plannedExercises.length > 50) {
       return res.status(400).json({ error: 'Maximum 50 exercises allowed' });
     }
 
-    // Get current muscle states for starting fatigue
-    const muscleStates = db.getMuscleStates();
+    // Get current timestamp
+    const currentTime = new Date();
+
+    // AC1: Query latest muscle states for all 15 muscles (READ ONLY)
+    const muscleStatesData = db.getMuscleStates();
     const currentFatigue: Record<string, number> = {};
 
-    Object.keys(muscleStates).forEach(muscle => {
-      const state = muscleStates[muscle];
-      const lastTrainedDate = state.lastTrained || new Date().toISOString();
-      const workoutTimestamp = new Date(lastTrainedDate);
-      const recovery = recoveryCalculator.calculateRecovery(
-        state.initialFatiguePercent,
-        workoutTimestamp,
-        new Date()
-      );
-      currentFatigue[muscle] = recovery.currentFatigue;
-    });
+    // Define all 15 muscle groups
+    const ALL_MUSCLES = [
+      'Pectoralis', 'Lats', 'AnteriorDeltoids', 'PosteriorDeltoids',
+      'Trapezius', 'Rhomboids', 'LowerBack', 'Core', 'Biceps',
+      'Triceps', 'Forearms', 'Quadriceps', 'Hamstrings', 'Glutes', 'Calves'
+    ];
 
-    // Get baselines
+    // AC1: Calculate current recovery for each muscle to get current fatigue
+    if (!muscleStatesData || Object.keys(muscleStatesData).length === 0) {
+      // Edge case: No workout history - all muscles at 0% fatigue
+      ALL_MUSCLES.forEach(muscle => {
+        currentFatigue[muscle] = 0;
+      });
+    } else {
+      // Build muscleStatesArray for recovery calculator (ONCE with full array - Story 2.3 pattern)
+      const muscleStatesArray: Array<{muscle: string, fatiguePercent: number}> = [];
+      let workoutTimestamp = new Date();
+
+      Object.keys(muscleStatesData).forEach(muscle => {
+        const state = muscleStatesData[muscle];
+        muscleStatesArray.push({
+          muscle: muscle,
+          fatiguePercent: state.fatiguePercent // Correct property per database.js contract
+        });
+        // Get workout timestamp from first muscle state
+        if (state.lastTrained) {
+          workoutTimestamp = new Date(state.lastTrained);
+        }
+      });
+
+      // Call recovery calculator ONCE with full array (not per-muscle calls)
+      const recoveryData = recoveryCalculator.calculateRecovery(
+        muscleStatesArray,
+        workoutTimestamp.toISOString(),
+        currentTime.toISOString()
+      );
+
+      // Extract currentFatigue from recovery data
+      recoveryData.muscleStates.forEach((state: any) => {
+        currentFatigue[state.muscle] = state.currentFatigue;
+      });
+    }
+
+    // AC2: Get baselines for safe thresholds (READ ONLY)
     const baselineData = db.getMuscleBaselines();
     const baselines: Record<string, number> = {};
     Object.keys(baselineData).forEach(muscle => {
@@ -1403,52 +1437,91 @@ app.post('/api/forecast/workout', async (req: Request, res: Response) => {
       baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
     });
 
-    // Load exercise library for fatigue calculation (Epic 1)
+    // AC2: Load exercise library for fatigue calculation
     const exerciseLibrary = loadExerciseLibrary();
 
-    // Create a mock workout object for fatigue calculation
+    // AC2: Convert plannedExercises to workout structure for fatigue calculator
     const plannedWorkout = {
       id: -1,
-      date: new Date().toISOString(),
-      exercises: exercises
+      date: currentTime.toISOString(),
+      exercises: plannedExercises
     };
 
-    // Calculate predicted fatigue using Epic 1 service
+    // AC2: Calculate predicted fatigue using Epic 1 service (NO DATABASE SAVE)
     const predictedFatigueResults = calculateMuscleFatigue(plannedWorkout, exerciseLibrary, baselines);
 
-    // Convert to simple object format for compatibility
-    const predictedFatigue: Record<string, any> = {};
+    // AC2: Extract predicted fatigue deltas by muscle
+    const predictedFatigue: Record<string, number> = {};
     predictedFatigueResults.muscleStates.forEach((ms: any) => {
-      predictedFatigue[ms.muscle] = { fatiguePercent: ms.displayFatigue };
+      predictedFatigue[ms.muscle] = ms.displayFatigue;
     });
 
-    // Calculate final fatigue (current + predicted)
-    const finalFatigue: Record<string, number> = {};
-    const warnings: string[] = [];
+    // AC3: Combine current fatigue + predicted deltas = projected total fatigue
+    const projectedFatigue: Record<string, number> = {};
+    const bottlenecks: Array<{
+      muscle: string;
+      currentFatigue: number;
+      predictedDelta: number;
+      projectedFatigue: number;
+      threshold: number;
+      severity: 'critical' | 'warning';
+      message: string;
+    }> = [];
 
-    Object.keys(predictedFatigue).forEach(muscle => {
+    // AC4: Identify bottleneck risks
+    ALL_MUSCLES.forEach(muscle => {
       const current = currentFatigue[muscle] || 0;
-      const predicted = predictedFatigue[muscle].fatiguePercent;
-      const final = current + predicted;
+      const predicted = predictedFatigue[muscle] || 0;
+      const projected = current + predicted;
 
-      finalFatigue[muscle] = Math.min(200, final); // Cap at 200%
+      projectedFatigue[muscle] = projected;
 
-      // Warn if exceeding safe limits
-      if (final > 100) {
-        warnings.push(`${muscle}: Would exceed baseline (${final.toFixed(1)}%)`);
-      } else if (final > 80) {
-        warnings.push(`${muscle}: High fatigue predicted (${final.toFixed(1)}%)`);
+      // Get threshold from baselines
+      const threshold = baselines[muscle] || 100;
+
+      // AC4: Flag muscles that would exceed safe thresholds
+      if (projected >= threshold) {
+        // Critical bottleneck (>= 100%)
+        bottlenecks.push({
+          muscle,
+          currentFatigue: current,
+          predictedDelta: predicted,
+          projectedFatigue: projected,
+          threshold,
+          severity: 'critical',
+          message: `${muscle} would exceed safe fatigue threshold (${projected.toFixed(1)}% of ${threshold}%)`
+        });
+      } else if (projected >= threshold * 0.8) {
+        // Warning bottleneck (80-100%)
+        bottlenecks.push({
+          muscle,
+          currentFatigue: current,
+          predictedDelta: predicted,
+          projectedFatigue: projected,
+          threshold,
+          severity: 'warning',
+          message: `${muscle} approaching safe limit (${projected.toFixed(1)}% of ${threshold}%)`
+        });
       }
     });
 
-    return res.json({
+    // AC4: Sort bottlenecks by severity (critical first, then warnings)
+    bottlenecks.sort((a, b) => {
+      if (a.severity === 'critical' && b.severity === 'warning') return -1;
+      if (a.severity === 'warning' && b.severity === 'critical') return 1;
+      return b.projectedFatigue - a.projectedFatigue;
+    });
+
+    // AC5: Determine if workout is safe (no critical bottlenecks)
+    const isSafe = !bottlenecks.some(b => b.severity === 'critical');
+
+    // AC5: Format and return response without database modification
+    return res.status(200).json({
       currentFatigue,
-      predictedFatigue: Object.keys(predictedFatigue).reduce((acc, muscle) => {
-        acc[muscle] = predictedFatigue[muscle].fatiguePercent;
-        return acc;
-      }, {} as Record<string, number>),
-      finalFatigue,
-      warnings
+      predictedFatigue,
+      projectedFatigue,
+      bottlenecks,
+      isSafe
     });
 
   } catch (error) {
