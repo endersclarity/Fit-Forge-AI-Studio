@@ -234,7 +234,7 @@ app.use((req, res) => {
 // Start Server
 // ============================================
 
-app.listen(PORT, '127.0.0.1', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log('='.repeat(50));
   console.log('🏋️  FitForge Local Server');
   console.log('='.repeat(50));

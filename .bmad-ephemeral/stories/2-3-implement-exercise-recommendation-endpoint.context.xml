@@ -1,0 +1,298 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>Implement Exercise Recommendation Endpoint</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/2-3-implement-exercise-recommendation-endpoint.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>frontend application</asA>
+    <iWant>to request exercise recommendations for a target muscle</iWant>
+    <soThat>users get intelligent suggestions based on recovery state</soThat>
+    <tasks>
+- Task 1: Create POST endpoint structure (AC: 1)
+  - Subtask 1.1: Add route definition `POST /api/recommendations/exercises` in `backend/server.ts`
+  - Subtask 1.2: Define TypeScript request interface: `ExerciseRecommendationRequest` with targetMuscle, availableEquipment, workoutHistory, userPreferences
+  - Subtask 1.3: Define TypeScript response interface: `ExerciseRecommendationResponse` with safe/unsafe recommendation arrays
+  - Subtask 1.4: Add error handling middleware pattern matching existing endpoints
+  - Subtask 1.5: Validate required field: targetMuscle must be provided
+
+- Task 2: Fetch current recovery states (AC: 1)
+  - Subtask 2.1: Query database for latest `muscle_states` record for all 15 muscles using `database.js`
+  - Subtask 2.2: Get current timestamp for recovery calculations
+  - Subtask 2.3: Call `recoveryCalculator.calculateRecovery()` service for each muscle (from Story 1.2)
+  - Subtask 2.4: Build muscle recovery states array with currentFatigue for each muscle
+  - Subtask 2.5: Handle edge case where no workout history exists (all muscles at 0% fatigue)
+
+- Task 3: Call exercise recommendation scoring engine (AC: 2, 3)
+  - Subtask 3.1: Import `exerciseRecommender.recommendExercises()` service (from Story 1.3)
+  - Subtask 3.2: Extract targetMuscle from request body
+  - Subtask 3.3: Extract optional filters from request: availableEquipment, workoutHistory, userPreferences
+  - Subtask 3.4: Call recommendation service with recovery states and filters
+  - Subtask 3.5: Handle service errors and return 500 on calculation failure
+
+- Task 4: Format and return response (AC: 4, 5)
+  - Subtask 4.1: Extract safe recommendations from service response (top 10-15)
+  - Subtask 4.2: Extract unsafe recommendations with bottleneck warnings
+  - Subtask 4.3: For each recommendation include: exercise name, score, factors breakdown, warnings
+  - Subtask 4.4: Return 200 status with complete ExerciseRecommendationResponse
+  - Subtask 4.5: Ensure response matches expected format for frontend consumption
+
+- Task 5: Add comprehensive endpoint tests (Testing)
+  - Subtask 5.1: Test successful recommendation fetch with target muscle
+  - Subtask 5.2: Test recommendation service integration (service called with correct parameters)
+  - Subtask 5.3: Test equipment filtering works correctly
+  - Subtask 5.4: Test ranking and scoring (top exercises returned first)
+  - Subtask 5.5: Test bottleneck warnings included for unsafe exercises
+  - Subtask 5.6: Test edge case: no workout history (all muscles fresh, all exercises safe)
+  - Subtask 5.7: Test edge case: invalid target muscle (400 error)
+  - Subtask 5.8: Test edge case: target muscle already maxed (still returns recommendations with warnings)
+  - Subtask 5.9: Test 500 error when recommendation service fails
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** a target muscle group and optional filters
+   **When** POST request sent to `/api/recommendations/exercises`
+   **Then** the endpoint fetches current recovery states for all muscles
+
+2. **And** it calls exercise recommendation scoring engine
+
+3. **And** it applies filters (equipment, exercise type)
+
+4. **And** it returns top 10-15 ranked exercises with scores
+
+5. **And** it includes safety warnings for bottleneck risks
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2: API Integration Layer - Story 2.3</title>
+        <section>Story 2.3: Implement Exercise Recommendation Endpoint</section>
+        <snippet>POST /api/recommendations/exercises endpoint that fetches current recovery states for all muscles, calls exercise recommendation scoring engine, applies filters (equipment, exercise type), and returns top 10-15 ranked exercises with scores including safety warnings for bottleneck risks.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>FitForge-Local Architecture Document</title>
+        <section>Pattern 2: API Endpoint Structure</section>
+        <snippet>All new endpoints follow Express pattern with try-catch error handling, input validation, service calls, and direct JSON responses. Return 404 for missing resources, 400 for validation errors, 500 for server errors. All errors logged to console.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>API Contracts</title>
+        <section>POST /api/recommendations/exercises</section>
+        <snippet>Request: targetMuscle (required), currentFatigue object, availableEquipment array. Response: recommendations array with exercise details, score, engagement percentages, predictedFatigue, and safety status. Used for intelligent exercise suggestions based on recovery state.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Exercise Recommendation System</section>
+        <snippet>5-factor scoring system (target match, freshness, variety, preference, primary/secondary balance) ranks exercises for user selection. Safety checks prevent bottleneck muscle overtraining. System provides intelligent suggestions based on current fatigue state.</snippet>
+      </doc>
+      <doc>
+        <path>docs/index.md</path>
+        <title>FitForge Documentation Index</title>
+        <section>Logic Sandbox (Validated Algorithms)</section>
+        <snippet>Contains fully validated algorithms ready for production integration including exercise recommendation scoring, recovery calculations, and fatigue tracking. Implementation roadmap and test scenarios available.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>endpoint</kind>
+        <symbol>POST /api/recommendations/exercises</symbol>
+        <lines>1240-1294</lines>
+        <reason>ALREADY IMPLEMENTED - Target endpoint for this story. Validates targetMuscle, fetches muscle states, calculates current fatigue using recoveryCalculator, calls exerciseRecommender service, returns ranked recommendations with safe/unsafe split.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>endpoint</kind>
+        <symbol>GET /api/recovery/timeline</symbol>
+        <lines>1151-1238</lines>
+        <reason>Story 2.2 pattern reference - Shows how to fetch muscle states, handle missing data (no workout history), call recoveryCalculator service, and format response. Uses same recovery calculation pattern needed for this story.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>endpoint</kind>
+        <symbol>POST /api/workouts/:id/complete</symbol>
+        <lines>1037-1148</lines>
+        <reason>Story 2.1 pattern reference - Shows POST endpoint structure with input validation, service integration, error handling, and direct JSON response pattern to follow.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/exerciseRecommender.js</path>
+        <kind>service</kind>
+        <symbol>recommendExercises</symbol>
+        <lines>1-414</lines>
+        <reason>Story 1.3 - Exercise recommendation scoring engine. Accepts targetMuscle, currentWorkout, currentFatigue, currentMuscleVolumes, baselines, availableEquipment. Returns {safe, unsafe, totalFiltered} with scored exercises and safety warnings.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/recoveryCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateRecovery</symbol>
+        <lines>185-248</lines>
+        <reason>Story 1.2 - Recovery calculation service. Accepts muscleStates array, workoutTimestamp string, currentTime string. Returns {muscleStates, timestamp} with currentFatigue for each muscle. Used to get current fatigue before calling recommender.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/database/database.js</path>
+        <kind>data-access</kind>
+        <symbol>getMuscleStates</symbol>
+        <lines>265-308</lines>
+        <reason>Database operation to fetch latest muscle_states for all muscles. Returns array with muscle_name, fatigue_percent, volume_today, recovered_at, last_trained fields.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/database/database.js</path>
+        <kind>data-access</kind>
+        <symbol>getMuscleBaselines</symbol>
+        <lines>424-440</lines>
+        <reason>Database operation to fetch muscle baseline capacities. Returns array with muscle_name, system_learned_max, user_override fields. Used to determine safe exercise recommendations.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="express" version="4.18.2">Web framework for API endpoints</package>
+        <package name="better-sqlite3" version="9.2.2">Synchronous SQLite database operations</package>
+        <package name="typescript" version="5.3.3">Type safety for server code</package>
+      </node>
+      <existing>
+        <module>backend/services/exerciseRecommender.js</module>
+        <module>backend/services/recoveryCalculator.js</module>
+        <module>backend/database/database.js</module>
+      </existing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - **ENDPOINT ALREADY IMPLEMENTED**: The POST /api/recommendations/exercises endpoint exists at lines 1240-1294 in backend/server.ts. This story may require validation, testing, or refinement rather than new implementation.
+    - **Service Pattern**: Services are pure functions with ES6 exports. Import pattern: `import { calculateRecovery } from './services/recoveryCalculator.js'`
+    - **Error Handling**: All service calls wrapped in try-catch. Return 400 for validation errors, 500 for service failures. Log errors with console.error.
+    - **Input Validation**: Validate required field targetMuscle before processing. Return 400 with descriptive error message if missing.
+    - **Response Format**: Direct JSON response (no wrapper). Return {safe: Exercise[], unsafe: Exercise[], totalFiltered: number} structure.
+    - **Database Access**: All DB operations through centralized database.js layer. Use getMuscleStates() and getMuscleBaselines() functions.
+    - **Recovery Calculation**: Call calculateRecovery() for each muscle to get current fatigue before recommendation scoring.
+    - **15 Muscle Groups**: System handles Pectoralis, Lats, AnteriorDeltoids, PosteriorDeltoids, Trapezius, Rhomboids, LowerBack, Core, Biceps, Triceps, Forearms, Quadriceps, Hamstrings, Glutes, Calves.
+    - **Edge Cases**: Handle no workout history (all muscles at 0% fatigue), invalid muscle names, service failures gracefully.
+    - **TypeScript**: Use TypeScript interfaces for request/response types. Define inline in server.ts following existing pattern.
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>POST /api/recommendations/exercises</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request Body: {
+  targetMuscle: string (required),
+  currentWorkout?: Exercise[],
+  availableEquipment?: string[]
+}
+
+Response (200): {
+  safe: Array&lt;{
+    exercise: {id, name, equipment, category},
+    score: number,
+    factors: {targetMatch, freshness, variety, preference, primarySecondary},
+    isSafe: boolean,
+    warnings: []
+  }&gt;,
+  unsafe: Array&lt;{
+    exercise: {...},
+    score: number,
+    isSafe: false,
+    warnings: Array&lt;{muscle, currentFatigue, projectedFatigue, message}&gt;
+  }&gt;,
+  totalFiltered: number
+}
+
+Error (400): { error: string }
+Error (500): { error: string, message: string }
+      </signature>
+      <path>backend/server.ts:1240-1294</path>
+    </interface>
+    <interface>
+      <name>recommendExercises</name>
+      <kind>function</kind>
+      <signature>
+function recommendExercises({
+  targetMuscle: string,
+  currentWorkout: Exercise[],
+  currentFatigue: Record&lt;string, number&gt;,
+  currentMuscleVolumes: Record&lt;string, number&gt;,
+  baselines: Record&lt;string, number&gt;,
+  availableEquipment: string[]
+}): {
+  safe: ScoredExercise[],
+  unsafe: ScoredExercise[],
+  totalFiltered: number
+}
+      </signature>
+      <path>backend/services/exerciseRecommender.js</path>
+    </interface>
+    <interface>
+      <name>calculateRecovery</name>
+      <kind>function</kind>
+      <signature>
+function calculateRecovery(
+  muscleStates: Array&lt;{muscle, fatiguePercent, lastTrained}&gt;,
+  workoutTimestamp: string,
+  currentTime: string
+): {
+  muscleStates: Array&lt;{
+    muscle: string,
+    initialFatigue: number,
+    currentFatigue: number,
+    recoveredAt: string
+  }&gt;,
+  timestamp: string
+}
+      </signature>
+      <path>backend/services/recoveryCalculator.js:185-248</path>
+    </interface>
+    <interface>
+      <name>getMuscleStates</name>
+      <kind>database operation</kind>
+      <signature>
+function getMuscleStates(): Record&lt;string, {
+  muscle_name: string,
+  fatigue_percent: number,
+  volume_today: number,
+  recovered_at: string,
+  last_trained: string
+}&gt;
+      </signature>
+      <path>backend/database/database.js:265-308</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Testing framework: Vitest with mocking via vi.mock().
+Test pattern: Mock database operations and service functions to isolate endpoint logic.
+Import pattern: `import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'`
+Mock services: Use vi.mock() for database.js and service modules. Mock CommonJS modules with pattern: `vi.mock('../services/serviceName', () => ({ functionName: mockFunction }))`
+Assertions: Expect response status codes, JSON structure, service calls with correct parameters, error handling.
+Test organization: Group by acceptance criteria with descriptive test names explaining what is being validated.
+    </standards>
+    <locations>
+      backend/__tests__/ - Vitest test files
+      backend/__tests__/exerciseRecommendations.test.ts - Tests for this endpoint
+      backend/__tests__/recoveryTimeline.test.ts - Similar pattern reference (Story 2.2)
+      backend/__tests__/workoutCompletion.test.ts - POST endpoint test pattern (Story 2.1)
+    </locations>
+    <ideas>
+      AC1: Test endpoint fetches muscle states and calculates current recovery for all muscles
+      AC2: Test endpoint calls exerciseRecommender service with correct parameters (targetMuscle, recovery states, filters)
+      AC3: Test equipment filtering works correctly (only returns exercises matching availableEquipment)
+      AC4: Test response returns top 10-15 safe recommendations sorted by score
+      AC5: Test unsafe recommendations include bottleneck warnings with muscle, currentFatigue, projectedFatigue details
+      Edge Case: Test no workout history scenario (all muscles at 0% fatigue, all exercises safe)
+      Edge Case: Test missing targetMuscle returns 400 error with descriptive message
+      Edge Case: Test invalid muscle name handling
+      Edge Case: Test service failure returns 500 error with error details
+      Integration: Test end-to-end flow with real service calls (optional integration test)
+      Validation: Test response structure matches ExerciseRecommendationResponse interface
+    </ideas>
+  </tests>
+</story-context>

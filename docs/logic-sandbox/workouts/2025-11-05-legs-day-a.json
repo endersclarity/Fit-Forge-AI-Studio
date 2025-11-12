@@ -1,0 +1,58 @@
+{
+  "id": "workout-2025-11-05-001",
+  "date": "2025-11-05",
+  "category": "Legs",
+  "variation": "A",
+  "startTime": "2025-11-05T14:00:00Z",
+  "endTime": "2025-11-05T15:00:00Z",
+  "exercises": [
+    {
+      "exerciseId": "ex12",
+      "exerciseName": "Kettlebell Goblet Squat",
+      "sets": [
+        { "setNumber": 1, "reps": 20, "weight": 40, "toFailure": true },
+        { "setNumber": 2, "reps": 20, "weight": 40, "toFailure": true },
+        { "setNumber": 3, "reps": 20, "weight": 40, "toFailure": true }
+      ],
+      "totalVolume": 2400,
+      "notes": "40 lb kettlebell"
+    },
+    {
+      "exerciseId": "ex15",
+      "exerciseName": "Calf Raises",
+      "sets": [
+        { "setNumber": 1, "reps": 50, "weight": 0, "toFailure": true },
+        { "setNumber": 2, "reps": 50, "weight": 0, "toFailure": true },
+        { "setNumber": 3, "reps": 50, "weight": 0, "toFailure": true }
+      ],
+      "totalVolume": 0,
+      "totalReps": 150,
+      "notes": "Bodyweight only"
+    },
+    {
+      "exerciseId": "ex37",
+      "exerciseName": "Kettlebell Swings",
+      "sets": [
+        { "setNumber": 1, "reps": 20, "weight": 40, "toFailure": true },
+        { "setNumber": 2, "reps": 20, "weight": 40, "toFailure": true },
+        { "setNumber": 3, "reps": 20, "weight": 40, "toFailure": true }
+      ],
+      "totalVolume": 2400,
+      "notes": "40 lb kettlebell"
+    },
+    {
+      "exerciseId": "ex36",
+      "exerciseName": "Dumbbell Stiff Legged Deadlift",
+      "sets": [
+        { "setNumber": 1, "reps": 15, "weight": 100, "toFailure": true },
+        { "setNumber": 2, "reps": 15, "weight": 100, "toFailure": true },
+        { "setNumber": 3, "reps": 15, "weight": 100, "toFailure": true }
+      ],
+      "totalVolume": 4500,
+      "notes": "2x 50 lb dumbbells (100 lbs total)"
+    }
+  ],
+  "totalDuration": 3600,
+  "templateUsed": "Legs Day A (Modified)",
+  "notes": "[BACKDATED FOR RECOVERY TESTING] Same workout as Nov 8th, but dated 3 days earlier to test recovery algorithm"
+}

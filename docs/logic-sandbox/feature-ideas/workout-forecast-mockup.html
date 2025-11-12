@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Forecast - Legs Day A</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #60a5fa;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        /* Workout Forecast Panel */
+        .forecast-panel {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+            border: 2px solid #334155;
+        }
+
+        .forecast-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #60a5fa;
+        }
+
+        .muscle-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+
+        .muscle-name {
+            width: 120px;
+            font-weight: 500;
+        }
+
+        .muscle-bar-container {
+            flex: 1;
+            height: 24px;
+            background: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .muscle-bar {
+            height: 100%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .muscle-bar.low { background: #22c55e; }
+        .muscle-bar.moderate { background: #eab308; }
+        .muscle-bar.high { background: #f97316; }
+        .muscle-bar.exceeded { background: #ef4444; }
+
+        .warning-badge {
+            background: #ef4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .low-badge {
+            background: #eab308;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .warnings {
+            margin-top: 20px;
+            padding: 16px;
+            background: #7f1d1d;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .warnings h3 {
+            color: #fca5a5;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .warnings ul {
+            list-style: none;
+            color: #fecaca;
+        }
+
+        .warnings li::before {
+            content: "• ";
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        /* Exercise Cards */
+        .exercise-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 2px solid #334155;
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #334155;
+        }
+
+        .exercise-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #60a5fa;
+        }
+
+        .exercise-volume {
+            font-size: 1rem;
+            color: #94a3b8;
+        }
+
+        .volume-value {
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .mode-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: #334155;
+            transition: background 0.2s;
+        }
+
+        .mode-toggle label:hover {
+            background: #475569;
+        }
+
+        .mode-toggle input[type="radio"]:checked + span {
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        /* Muscle Sliders */
+        .muscles-section {
+            margin-top: 20px;
+        }
+
+        .muscle-slider-row {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #0f172a;
+            border-radius: 8px;
+        }
+
+        .muscle-slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .muscle-slider-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .muscle-engagement {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .muscle-fatigue-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .muscle-fatigue-value.low { color: #22c55e; }
+        .muscle-fatigue-value.moderate { color: #eab308; }
+        .muscle-fatigue-value.high { color: #f97316; }
+        .muscle-fatigue-value.exceeded { color: #ef4444; }
+
+        .slider-container {
+            margin-top: 12px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #334155;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #60a5fa;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #3b82f6;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #60a5fa;
+            cursor: pointer;
+            border: none;
+        }
+
+        .preview-text {
+            margin-top: 8px;
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        .preview-highlight {
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Legs Day A - Workout Forecast</h1>
+            <p class="subtitle">Plan and optimize your workout before you start • 5 exercises</p>
+        </header>
+
+        <!-- Workout-Level Forecast -->
+        <div class="forecast-panel">
+            <h2 class="forecast-title">WORKOUT FORECAST</h2>
+
+            <div id="workoutForecast">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <div id="workoutWarnings" style="display: none;" class="warnings">
+                <h3>⚠️ WARNINGS</h3>
+                <ul id="warningsList"></ul>
+            </div>
+        </div>
+
+        <!-- Exercise 1: Kettlebell Goblet Squat -->
+        <div class="exercise-card" data-exercise="gobletSquat">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-title">Kettlebell Goblet Squat</div>
+                    <div class="exercise-volume">
+                        <span id="gobletSquat-sets">3</span> sets ×
+                        <span id="gobletSquat-reps">20</span> reps ×
+                        <span id="gobletSquat-weight">40</span> lbs =
+                        <span class="volume-value"><span id="gobletSquat-total">2,400</span> lbs</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mode-toggle">
+                <span>Adjust by:</span>
+                <label>
+                    <input type="radio" name="gobletSquat-mode" value="weight" checked>
+                    <span>Increase Weight</span>
+                </label>
+                <label>
+                    <input type="radio" name="gobletSquat-mode" value="reps">
+                    <span>Increase Reps</span>
+                </label>
+            </div>
+
+            <div class="muscles-section" id="gobletSquat-muscles">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Exercise 2: Calf Raises -->
+        <div class="exercise-card" data-exercise="calfRaises">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-title">Calf Raises</div>
+                    <div class="exercise-volume">
+                        <span id="calfRaises-sets">3</span> sets ×
+                        <span id="calfRaises-reps">50</span> reps ×
+                        <span id="calfRaises-weight">200</span> lbs (bodyweight) =
+                        <span class="volume-value"><span id="calfRaises-total">30,000</span> lbs</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mode-toggle">
+                <span>Adjust by:</span>
+                <label>
+                    <input type="radio" name="calfRaises-mode" value="weight" checked>
+                    <span>Increase Weight</span>
+                </label>
+                <label>
+                    <input type="radio" name="calfRaises-mode" value="reps">
+                    <span>Increase Reps</span>
+                </label>
+            </div>
+
+            <div class="muscles-section" id="calfRaises-muscles">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Exercise 3: Kettlebell Swings -->
+        <div class="exercise-card" data-exercise="kettlebellSwings">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-title">Kettlebell Swings</div>
+                    <div class="exercise-volume">
+                        <span id="kettlebellSwings-sets">3</span> sets ×
+                        <span id="kettlebellSwings-reps">20</span> reps ×
+                        <span id="kettlebellSwings-weight">40</span> lbs =
+                        <span class="volume-value"><span id="kettlebellSwings-total">2,400</span> lbs</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mode-toggle">
+                <span>Adjust by:</span>
+                <label>
+                    <input type="radio" name="kettlebellSwings-mode" value="weight" checked>
+                    <span>Increase Weight</span>
+                </label>
+                <label>
+                    <input type="radio" name="kettlebellSwings-mode" value="reps">
+                    <span>Increase Reps</span>
+                </label>
+            </div>
+
+            <div class="muscles-section" id="kettlebellSwings-muscles">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Exercise 4: Stiff Leg Deadlift -->
+        <div class="exercise-card" data-exercise="deadlift">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-title">Dumbbell Stiff Legged Deadlift</div>
+                    <div class="exercise-volume">
+                        <span id="deadlift-sets">3</span> sets ×
+                        <span id="deadlift-reps">15</span> reps ×
+                        <span id="deadlift-weight">100</span> lbs =
+                        <span class="volume-value"><span id="deadlift-total">4,500</span> lbs</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mode-toggle">
+                <span>Adjust by:</span>
+                <label>
+                    <input type="radio" name="deadlift-mode" value="weight" checked>
+                    <span>Increase Weight</span>
+                </label>
+                <label>
+                    <input type="radio" name="deadlift-mode" value="reps">
+                    <span>Increase Reps</span>
+                </label>
+            </div>
+
+            <div class="muscles-section" id="deadlift-muscles">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Exercise 5: Box Step-ups -->
+        <div class="exercise-card" data-exercise="boxStepups">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-title">Box Step-ups</div>
+                    <div class="exercise-volume">
+                        <span id="boxStepups-sets">3</span> sets ×
+                        <span id="boxStepups-reps">12</span> reps ×
+                        <span id="boxStepups-weight">50</span> lbs =
+                        <span class="volume-value"><span id="boxStepups-total">1,800</span> lbs</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mode-toggle">
+                <span>Adjust by:</span>
+                <label>
+                    <input type="radio" name="boxStepups-mode" value="weight" checked>
+                    <span>Increase Weight</span>
+                </label>
+                <label>
+                    <input type="radio" name="boxStepups-mode" value="reps">
+                    <span>Increase Reps</span>
+                </label>
+            </div>
+
+            <div class="muscles-section" id="boxStepups-muscles">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn-primary">Save Workout</button>
+            <button class="btn-primary">Start Workout</button>
+            <button class="btn-secondary" onclick="location.reload()">Reset All</button>
+        </div>
+    </div>
+
+    <script>
+        // Muscle baselines (from logic sandbox)
+        const BASELINES = {
+            quads: 8400,
+            hamstrings: 2880,
+            glutes: 10800,
+            core: 9750,
+            lowerback: 315,
+            calves: 34200
+        };
+
+        // Exercise configurations
+        const EXERCISES = {
+            gobletSquat: {
+                name: 'Kettlebell Goblet Squat',
+                sets: 3,
+                reps: 20,
+                weight: 40,
+                muscles: {
+                    quads: 0.50,
+                    glutes: 0.30,
+                    hamstrings: 0.12,
+                    core: 0.08
+                }
+            },
+            calfRaises: {
+                name: 'Calf Raises',
+                sets: 3,
+                reps: 50,
+                weight: 200, // bodyweight
+                muscles: {
+                    calves: 0.95,
+                    core: 0.05
+                }
+            },
+            kettlebellSwings: {
+                name: 'Kettlebell Swings',
+                sets: 3,
+                reps: 20,
+                weight: 40,
+                muscles: {
+                    hamstrings: 0.45,
+                    glutes: 0.40,
+                    core: 0.12,
+                    lowerback: 0.03
+                }
+            },
+            deadlift: {
+                name: 'Dumbbell Stiff Legged Deadlift',
+                sets: 3,
+                reps: 15,
+                weight: 100,
+                muscles: {
+                    hamstrings: 0.42,
+                    glutes: 0.38,
+                    core: 0.15,
+                    lowerback: 0.05
+                }
+            },
+            boxStepups: {
+                name: 'Box Step-ups',
+                sets: 3,
+                reps: 12,
+                weight: 50,
+                muscles: {
+                    quads: 0.67,
+                    glutes: 0.69,
+                    hamstrings: 0.51,
+                    calves: 0.20,
+                    core: 0.15
+                }
+            }
+        };
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAllExerciseSliders();
+            updateWorkoutForecast();
+            attachSliderListeners();
+        });
+
+        function renderAllExerciseSliders() {
+            Object.keys(EXERCISES).forEach(exerciseName => {
+                renderExerciseSliders(exerciseName);
+            });
+        }
+
+        function renderExerciseSliders(exerciseName) {
+            const exercise = EXERCISES[exerciseName];
+            const container = document.getElementById(`${exerciseName}-muscles`);
+
+            Object.entries(exercise.muscles).forEach(([muscle, engagement]) => {
+                const totalVolume = exercise.weight * exercise.reps * exercise.sets;
+                const muscleVolume = totalVolume * engagement;
+                const fatigue = (muscleVolume / BASELINES[muscle]) * 100;
+                const fatigueClass = getFatigueClass(fatigue);
+
+                const capitalizedMuscle = muscle.charAt(0).toUpperCase() + muscle.slice(1);
+                const maxSliderValue = muscle === 'hamstrings' || muscle === 'lowerback' ? 150 : 100;
+
+                const html = `
+                    <div class="muscle-slider-row">
+                        <div class="muscle-slider-header">
+                            <div>
+                                <span class="muscle-slider-name">${capitalizedMuscle}</span>
+                                <span class="muscle-engagement"> (${Math.round(engagement * 100)}% engagement)</span>
+                            </div>
+                            <span class="muscle-fatigue-value ${fatigueClass}" id="${exerciseName}-${muscle}-value">${Math.round(fatigue)}%</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="${maxSliderValue}" value="${Math.round(fatigue)}"
+                                   id="${exerciseName}-${muscle}-slider"
+                                   data-exercise="${exerciseName}"
+                                   data-muscle="${muscle}">
+                        </div>
+                        <div class="preview-text" id="${exerciseName}-${muscle}-preview"></div>
+                    </div>
+                `;
+
+                container.innerHTML += html;
+            });
+        }
+
+        function attachSliderListeners() {
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    handleSliderChange(e.target);
+                });
+            });
+        }
+
+        function handleSliderChange(slider) {
+            const exercise = slider.dataset.exercise;
+            const muscle = slider.dataset.muscle;
+            const targetFatigue = parseInt(slider.value);
+
+            // Calculate new exercise parameters
+            recalculateExercise(exercise, muscle, targetFatigue);
+
+            // Update workout-level forecast
+            updateWorkoutForecast();
+        }
+
+        function recalculateExercise(exerciseName, targetMuscle, targetFatigue) {
+            const exercise = EXERCISES[exerciseName];
+            const muscleEngagement = exercise.muscles[targetMuscle];
+            const baseline = BASELINES[targetMuscle];
+
+            // Calculate required muscle volume
+            const requiredMuscleVolume = (targetFatigue / 100) * baseline;
+
+            // Calculate required total exercise volume
+            const requiredTotalVolume = requiredMuscleVolume / muscleEngagement;
+
+            // Get mode (weight or reps)
+            const mode = document.querySelector(`input[name="${exerciseName}-mode"]:checked`).value;
+
+            let newWeight = exercise.weight;
+            let newReps = exercise.reps;
+
+            if (mode === 'weight') {
+                // Keep reps same, adjust weight
+                newWeight = Math.round(requiredTotalVolume / (exercise.reps * exercise.sets));
+            } else {
+                // Keep weight same, adjust reps
+                newReps = Math.round(requiredTotalVolume / (exercise.weight * exercise.sets));
+            }
+
+            // Update exercise object
+            exercise.weight = newWeight;
+            exercise.reps = newReps;
+
+            // Update UI for this exercise
+            document.getElementById(`${exerciseName}-weight`).textContent = newWeight;
+            document.getElementById(`${exerciseName}-reps`).textContent = newReps;
+
+            const newTotalVolume = newWeight * newReps * exercise.sets;
+            document.getElementById(`${exerciseName}-total`).textContent = newTotalVolume.toLocaleString();
+
+            // Update all muscle sliders and values for this exercise (cascade effect)
+            Object.keys(exercise.muscles).forEach(muscleName => {
+                const engagement = exercise.muscles[muscleName];
+                const muscleVolume = newTotalVolume * engagement;
+                const muscleFatigue = (muscleVolume / BASELINES[muscleName]) * 100;
+
+                const sliderEl = document.getElementById(`${exerciseName}-${muscleName}-slider`);
+                const valueEl = document.getElementById(`${exerciseName}-${muscleName}-value`);
+
+                if (sliderEl && valueEl) {
+                    sliderEl.value = Math.round(muscleFatigue);
+                    valueEl.textContent = `${Math.round(muscleFatigue)}%`;
+
+                    // Update color class
+                    valueEl.className = 'muscle-fatigue-value ' + getFatigueClass(muscleFatigue);
+
+                    // Update preview text
+                    const previewEl = document.getElementById(`${exerciseName}-${muscleName}-preview`);
+                    if (mode === 'weight') {
+                        previewEl.innerHTML = `<span class="preview-highlight">${newWeight} lbs</span> × ${newReps} reps`;
+                    } else {
+                        previewEl.innerHTML = `${newWeight} lbs × <span class="preview-highlight">${newReps} reps</span>`;
+                    }
+                }
+            });
+        }
+
+        function updateWorkoutForecast() {
+            // Calculate cumulative fatigue across all exercises
+            const totalFatigue = {};
+
+            Object.keys(BASELINES).forEach(muscle => {
+                totalFatigue[muscle] = 0;
+            });
+
+            // Sum up fatigue from all exercises
+            Object.entries(EXERCISES).forEach(([exerciseName, exercise]) => {
+                const totalVolume = exercise.weight * exercise.reps * exercise.sets;
+
+                Object.entries(exercise.muscles).forEach(([muscle, engagement]) => {
+                    const muscleVolume = totalVolume * engagement;
+                    const fatigue = (muscleVolume / BASELINES[muscle]) * 100;
+                    totalFatigue[muscle] = (totalFatigue[muscle] || 0) + fatigue;
+                });
+            });
+
+            // Render workout forecast
+            const forecastHTML = Object.entries(totalFatigue)
+                .filter(([muscle, fatigue]) => fatigue > 0)
+                .sort((a, b) => b[1] - a[1])
+                .map(([muscle, fatigue]) => {
+                    const width = Math.min(100, fatigue);
+                    const className = getFatigueClass(fatigue);
+                    const capitalizedMuscle = muscle.charAt(0).toUpperCase() + muscle.slice(1);
+
+                    let badge = '';
+                    if (fatigue > 100) {
+                        badge = '<span class="warning-badge">EXCEEDS</span>';
+                    } else if (fatigue < 20) {
+                        badge = '<span class="low-badge">LOW</span>';
+                    }
+
+                    return `
+                        <div class="muscle-row">
+                            <span class="muscle-name">${capitalizedMuscle}</span>
+                            <div class="muscle-bar-container">
+                                <div class="muscle-bar ${className}" style="width: ${width}%">
+                                    ${Math.round(fatigue)}%
+                                </div>
+                            </div>
+                            ${badge}
+                        </div>
+                    `;
+                })
+                .join('');
+
+            document.getElementById('workoutForecast').innerHTML = forecastHTML;
+
+            // Update warnings
+            const warnings = [];
+            Object.entries(totalFatigue).forEach(([muscle, fatigue]) => {
+                if (fatigue > 100) {
+                    warnings.push(`${muscle.charAt(0).toUpperCase() + muscle.slice(1)} will exceed baseline by ${Math.round(fatigue - 100)}%`);
+                } else if (fatigue > 80) {
+                    warnings.push(`${muscle.charAt(0).toUpperCase() + muscle.slice(1)} at ${Math.round(fatigue)}% (near max, bottleneck)`);
+                } else if (fatigue < 20 && fatigue > 0) {
+                    warnings.push(`${muscle.charAt(0).toUpperCase() + muscle.slice(1)} undertrained (only ${Math.round(fatigue)}%)`);
+                }
+            });
+
+            const warningsEl = document.getElementById('workoutWarnings');
+            const warningsListEl = document.getElementById('warningsList');
+
+            if (warnings.length > 0) {
+                warningsEl.style.display = 'block';
+                warningsListEl.innerHTML = warnings.map(w => `<li>${w}</li>`).join('');
+            } else {
+                warningsEl.style.display = 'none';
+            }
+        }
+
+        function getFatigueClass(fatigue) {
+            if (fatigue > 100) return 'exceeded';
+            if (fatigue > 60) return 'high';
+            if (fatigue > 30) return 'moderate';
+            return 'low';
+        }
+    </script>
+</body>
+</html>

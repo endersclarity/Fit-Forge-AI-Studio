@@ -1,0 +1,228 @@
+<story-context id="{bmad_folder}/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>3</storyId>
+    <title>Production Deployment to Railway</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/4-3-production-deployment-to-railway.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>DevOps engineer</asA>
+    <iWant>to deploy FitForge MVP to Railway production environment</iWant>
+    <soThat>real users can access the muscle intelligence features</soThat>
+    <tasks>
+- Task 1: Pre-deployment verification (AC: 1)
+  - Subtask 1.1: Run all tests locally with `npm test` and verify all pass
+  - Subtask 1.2: Build production frontend locally with `npm run build` to verify no errors
+  - Subtask 1.3: Build production backend with `cd backend && npm run build` to verify TypeScript compiles
+  - Subtask 1.4: Verify Docker Compose environment is stopped: `docker-compose down`
+
+- Task 2: Commit and push to GitHub (AC: 1, 2)
+  - Subtask 2.1: Stage all changes with `git add .`
+  - Subtask 2.2: Create deployment commit with message
+  - Subtask 2.3: Push to main branch: `git push origin main`
+
+- Task 3: Monitor Railway deployment (AC: 2)
+  - Subtask 3.1: Navigate to Railway dashboard
+  - Subtask 3.2: Select FitForge project
+  - Subtask 3.3: Watch deployment logs in real-time
+  - Subtask 3.4: Verify frontend service build completes
+  - Subtask 3.5: Verify backend service build completes
+  - Subtask 3.6: If build fails, check logs for errors and troubleshoot
+
+- Task 4: Verify environment variables configuration (AC: 2, 3)
+  - Subtask 4.1: Verify frontend service has `VITE_API_URL` environment variable set
+  - Subtask 4.2: Verify backend service has `NODE_ENV=production`
+  - Subtask 4.3: Verify backend service has `PORT=3001`
+  - Subtask 4.4: Verify backend service has `DB_PATH=/data/fitforge.db`
+
+- Task 5: Verify production health check (AC: 3)
+  - Subtask 5.1: Wait for both services to reach "Active" status
+  - Subtask 5.2: Test backend health endpoint
+  - Subtask 5.3: Verify response: `{"status":"ok","timestamp":"..."}`
+  - Subtask 5.4: If health check fails, check Railway logs
+
+- Task 6: Verify API endpoints accessibility (AC: 4)
+  - Subtask 6.1-6.7: Test all 4 API endpoints (recovery, recommendations, forecast, completion)
+
+- Task 7: Verify frontend loads successfully (AC: 5)
+  - Subtask 7.1-7.6: Test frontend loading, DevTools verification
+
+- Task 8: Document deployment and update CHANGELOG (AC: 1-5)
+  - Subtask 8.1-8.7: Document deployment details in CHANGELOG.md
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Given all tests passing in local environment, when code pushed to GitHub main branch, then Railway automatically triggers deployment via GitHub integration
+2. And production build succeeds without errors (both frontend and backend)
+3. And production environment health check returns 200 OK
+4. And all 4 new API endpoints are accessible at production URL (POST /api/workouts/:id/complete, GET /api/recovery/timeline, POST /api/recommendations/exercises, POST /api/forecast/workout)
+5. And frontend loads successfully at production URL (https://fit-forge-ai-studio-production-6b5b.up.railway.app/)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 4 - Integration Testing &amp; MVP Launch</title>
+        <section>Story 4.3: Production Deployment to Railway</section>
+        <snippet>Railway project has TWO services configured: Frontend Service (builds from Dockerfile) and Backend Service (builds from backend/Dockerfile). Deployment triggered via GitHub integration. Expected timeline: 5-8 min build, 2 min deploy, 30s health check.</snippet>
+      </doc>
+      <doc>
+        <path>CLAUDE.md</path>
+        <title>Project Deployment Guidelines</title>
+        <section>Production Deployment (Railway)</section>
+        <snippet>Railway uses Dockerfile (production build), NOT docker-compose.yml. Changes deploy when pushed to GitHub. Production URL: https://fit-forge-ai-studio-production-6b5b.up.railway.app/</snippet>
+      </doc>
+      <doc>
+        <path>railway.json</path>
+        <title>Railway Configuration</title>
+        <section>Build and Deploy Settings</section>
+        <snippet>Builder: DOCKERFILE, restartPolicyType: ON_FAILURE, restartPolicyMaxRetries: 10. Separate configs needed for frontend (Dockerfile) and backend (backend/Dockerfile).</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing/integration-checklist.md</path>
+        <title>Integration Testing Checklist</title>
+        <section>Pre-deployment Testing</section>
+        <snippet>Comprehensive testing checklist for verifying all features before production deployment.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing/lighthouse-audit.md</path>
+        <title>Frontend Performance Testing</title>
+        <section>Lighthouse Audit Guide</section>
+        <snippet>Guide for running frontend performance validation using Lighthouse.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>Dockerfile</path>
+        <kind>docker-config</kind>
+        <symbol>Frontend Production Build</symbol>
+        <lines>1-38</lines>
+        <reason>Multi-stage Dockerfile for frontend production build. Stage 1: npm install, build with Vite using VITE_API_URL arg. Stage 2: serve static files on port 3000.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/Dockerfile</path>
+        <kind>docker-config</kind>
+        <symbol>Backend Production Build</symbol>
+        <lines>1-43</lines>
+        <reason>Backend production Dockerfile. Installs dependencies, copies shared code, compiles TypeScript, runs from dist/backend/server.js on port 3001. Uses /data/fitforge.db for persistence.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>server</kind>
+        <symbol>Express Application</symbol>
+        <lines>1-100</lines>
+        <reason>Main Express server with CORS configuration, health check endpoint (/api/health), and all Epic 1-3 API endpoints. Includes performance middleware from Story 4.2.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/middleware/performance.ts</path>
+        <kind>middleware</kind>
+        <symbol>performanceMiddleware</symbol>
+        <lines>N/A</lines>
+        <reason>Performance monitoring middleware added in Story 4.2. Tracks API response times and logs slow requests.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <frontend>
+        <package name="react" version="^19.2.0"/>
+        <package name="react-dom" version="^19.2.0"/>
+        <package name="react-router-dom" version="^6.30.1"/>
+        <package name="axios" version="^1.12.2"/>
+        <package name="recharts" version="^3.3.0"/>
+        <package name="vite" version="^6.2.0"/>
+        <package name="typescript" version="~5.8.2"/>
+      </frontend>
+      <backend>
+        <package name="express" version="^4.18.2"/>
+        <package name="cors" version="^2.8.5"/>
+        <package name="body-parser" version="^1.20.2"/>
+        <package name="better-sqlite3" version="^9.2.2"/>
+        <package name="dotenv" version="^17.2.3"/>
+        <package name="typescript" version="^5.3.3"/>
+      </backend>
+      <dev-tools>
+        <package name="vitest" version="^4.0.3"/>
+        <package name="playwright" version="^1.56.1"/>
+        <package name="nodemon" version="^3.0.2"/>
+      </dev-tools>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>This is a DEPLOYMENT-ONLY story - NO code changes required. All features already implemented in Epics 1-3.</constraint>
+    <constraint>Railway configuration: Two separate services (frontend and backend) with different Dockerfiles.</constraint>
+    <constraint>Environment variables MUST be set in Railway dashboard BEFORE deployment: VITE_API_URL (frontend), NODE_ENV, PORT, DB_PATH (backend).</constraint>
+    <constraint>Frontend MUST run on port 3000, Backend MUST run on port 3001 (per CLAUDE.md mandatory rules).</constraint>
+    <constraint>Do NOT wait for Story 4.2 completion - deploy current codebase as is. Performance issues are non-blocking for MVP launch.</constraint>
+    <constraint>Build verification required locally before push: npm test, npm run build, cd backend &amp;&amp; npm run build.</constraint>
+    <constraint>Deployment timeline: ~10 minutes total (5-8 min build, 2 min deploy, 30s health check).</constraint>
+    <constraint>Rollback procedure: railway rollback (CLI) or Redeploy from Railway dashboard if deployment fails.</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>Health Check Endpoint</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/health</signature>
+      <path>backend/server.ts</path>
+      <response>{"status":"ok","timestamp":"ISO-8601"}</response>
+    </interface>
+    <interface>
+      <name>Workout Completion API</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/workouts/:id/complete</signature>
+      <path>backend/server.ts</path>
+      <response>Epic 2.1 implementation</response>
+    </interface>
+    <interface>
+      <name>Recovery Timeline API</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/recovery/timeline</signature>
+      <path>backend/server.ts</path>
+      <response>Epic 2.2 implementation</response>
+    </interface>
+    <interface>
+      <name>Exercise Recommendations API</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/recommendations/exercises</signature>
+      <path>backend/server.ts</path>
+      <request>{"targetMuscle":"string","equipmentAvailable":["string"]}</request>
+    </interface>
+    <interface>
+      <name>Workout Forecast API</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/forecast/workout</signature>
+      <path>backend/server.ts</path>
+      <request>{"exercises":[{"exerciseId":"string","sets":number,"reps":number,"weight":number}]}</request>
+    </interface>
+    <interface>
+      <name>Railway Service Communication</name>
+      <kind>Service Architecture</kind>
+      <signature>Frontend → Backend via VITE_API_URL</signature>
+      <path>Railway internal networking</path>
+      <notes>Frontend uses VITE_API_URL to call backend. Backend accessible via Railway public URL or internal DNS.</notes>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>This story focuses on deployment verification, not new code testing. Pre-deployment: run all existing tests (npm test) to ensure baseline quality. Post-deployment: verify endpoints via curl commands and browser testing. Integration tests already exist in backend/__tests__/integration/. Performance tests added in Story 4.2.</standards>
+    <locations>
+      backend/__tests__/*.test.ts - Unit tests
+      backend/__tests__/integration/*.test.ts - Integration tests
+      backend/__tests__/performance/*.test.ts - Performance validation
+      docs/testing/integration-checklist.md - Deployment verification checklist
+    </locations>
+    <ideas>
+      <idea ac="1">Pre-deployment: Run npm test locally and verify all tests pass before creating deployment commit</idea>
+      <idea ac="1,2">Pre-deployment: Build frontend (npm run build) and backend (cd backend &amp;&amp; npm run build) locally to verify no compilation errors</idea>
+      <idea ac="2">Post-deployment: Monitor Railway logs during build to catch any build failures early</idea>
+      <idea ac="3">Post-deployment: Test health endpoint via curl to verify backend is running (curl https://fit-forge-ai-studio-production-6b5b.up.railway.app/api/health)</idea>
+      <idea ac="4">Post-deployment: Test all 4 API endpoints via curl with sample payloads to verify accessibility</idea>
+      <idea ac="5">Post-deployment: Open production URL in browser, check DevTools Console for errors, verify Network tab shows correct API URLs</idea>
+      <idea ac="1-5">Document all verification results in docs/CHANGELOG.md including deployment timestamp, verified endpoints, and any issues encountered</idea>
+    </ideas>
+  </tests>
+</story-context>

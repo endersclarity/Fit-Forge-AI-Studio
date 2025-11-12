@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMuscleStates } from '../../hooks/useMuscleStates';
 import { useExerciseRecommendations, MuscleCategory } from '../../hooks/useExerciseRecommendations';
+import { MuscleStatesResponse } from '../../types';
 
 // Layout components
 import { TopNav } from '../layout/TopNav';
@@ -15,11 +16,15 @@ import { SkeletonScreen } from '../loading/SkeletonScreen';
 import { OfflineBanner } from '../loading/OfflineBanner';
 import { ErrorBanner } from '../loading/ErrorBanner';
 
+// Recovery components
+import RecoveryTimelineView from '../RecoveryTimelineView';
+import { MuscleDetailModal } from '../modals/MuscleDetailModal';
+
 export interface RecoveryDashboardProps {
   className?: string;
 }
 
-type NavRoute = 'dashboard' | 'workouts' | 'profile';
+type NavRoute = 'dashboard' | 'workouts' | 'profile' | 'settings';
 
 /**
  * RecoveryDashboard - Main screen showing muscle recovery states and exercise recommendations
@@ -37,10 +42,82 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
   const [activeNav, setActiveNav] = useState<NavRoute>('dashboard');
   const [selectedCategory, setSelectedCategory] = useState<MuscleCategory>('ALL');
   const [errorDismissed, setErrorDismissed] = useState(false);
+  const [muscleStatesData, setMuscleStatesData] = useState<MuscleStatesResponse | null>(null);
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Data hooks
   const { muscles, loading: musclesLoading, error: musclesError, refetch: refetchMuscles } = useMuscleStates();
   const { recommendations, loading: recsLoading, error: recsError, refetch: refetchRecs } = useExerciseRecommendations(selectedCategory);
+
+  // Fetch recovery timeline data for RecoveryTimelineView (AC 1, 3)
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchRecoveryData() {
+      try {
+        const response = await fetch('/api/recovery/timeline');
+        if (!response.ok) {
+          throw new Error('Failed to fetch recovery data');
+        }
+        const data = await response.json();
+
+        // Also fetch muscle states to get lastTrained timestamps
+        const muscleStatesResponse = await fetch('/api/muscle-states');
+        const muscleStates = muscleStatesResponse.ok ? await muscleStatesResponse.json() : {};
+
+        // Transform API response to MuscleStatesResponse format (AC 4)
+        const transformedData: MuscleStatesResponse = {};
+        data.muscles.forEach((muscle: any) => {
+          // Calculate days until recovered from fullyRecoveredAt
+          let daysUntilRecovered = 0;
+          if (muscle.fullyRecoveredAt) {
+            const recoveredDate = new Date(muscle.fullyRecoveredAt);
+            const now = new Date();
+            const diffMs = recoveredDate.getTime() - now.getTime();
+            daysUntilRecovered = Math.max(0, diffMs / (1000 * 60 * 60 * 24));
+          }
+
+          // Determine recovery status based on fatigue percentage (AC 5)
+          let recoveryStatus: 'ready' | 'recovering' | 'fatigued' = 'ready';
+          if (muscle.currentFatigue > 60) {
+            recoveryStatus = 'fatigued';
+          } else if (muscle.currentFatigue > 30) {
+            recoveryStatus = 'recovering';
+          }
+
+          transformedData[muscle.name] = {
+            currentFatiguePercent: muscle.currentFatigue,
+            daysElapsed: null, // Not used by RecoveryTimelineView
+            estimatedRecoveryDays: daysUntilRecovered,
+            daysUntilRecovered,
+            recoveryStatus,
+            initialFatiguePercent: muscle.currentFatigue,
+            lastTrained: muscleStates[muscle.name]?.lastTrained || null,
+            // Store projections for modal (AC 8)
+            projections: muscle.projections
+          } as any; // Type assertion to allow extra projections field
+        });
+
+        if (isMounted) {
+          setMuscleStatesData(transformedData);
+        }
+      } catch (err) {
+        console.error('Error fetching recovery data:', err);
+      }
+    }
+
+    fetchRecoveryData();
+
+    // Auto-refresh every 60 seconds (AC 6)
+    const intervalId = setInterval(fetchRecoveryData, 60000);
+
+    // Cleanup on unmount (AC 7)
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, []);
 
   // Derived state
   const isLoading = musclesLoading || recsLoading;
@@ -65,7 +142,13 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
 
   const handleMuscleClick = (muscleName: string) => {
     console.log(`Muscle clicked: ${muscleName}`);
-    // TODO: Show muscle detail modal
+    setSelectedMuscle(muscleName);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedMuscle(null);
   };
 
   const handleExerciseClick = (exerciseName: string) => {
@@ -182,6 +265,14 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
           )}
         </section>
 
+        {/* Recovery Timeline Section (AC 4) */}
+        {muscleStatesData && (
+          <RecoveryTimelineView
+            muscleStates={muscleStatesData}
+            onMuscleClick={handleMuscleClick}
+          />
+        )}
+
         {/* Smart Recommendations Section */}
         <section aria-labelledby="exercise-recommendations-heading">
           <h2 id="exercise-recommendations-heading" className="text-2xl font-bold mb-4">
@@ -259,6 +350,15 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
         onClick={handleStartWorkout}
         disabled={muscles.length === 0}
       />
+
+      {/* Muscle Detail Modal (AC 8) */}
+      {isModalOpen && selectedMuscle && muscleStatesData && muscleStatesData[selectedMuscle] && (
+        <MuscleDetailModal
+          muscleName={selectedMuscle}
+          muscleData={muscleStatesData[selectedMuscle]}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };

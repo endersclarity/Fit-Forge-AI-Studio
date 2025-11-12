@@ -141,6 +141,313 @@ Core:         3,200 lb  (Stiff-Leg DL - 6,300 lb × 50%)
 
 ---
 
+## 3B. Adaptive Baseline Learning Model
+
+### 🔑 KEY PRINCIPLE: Baselines are Discovered, Not Predicted
+
+**Fundamental Truth**: You cannot exceed 100% muscle fatigue. It's physically impossible.
+
+If you plan a workout that "exceeds 100% fatigue" and you successfully complete it, this doesn't mean you exceeded your capacity - it means **your baseline was wrong**.
+
+### The Learning Algorithm
+
+**Old (Wrong) Approach:**
+```typescript
+// Static baseline that never updates
+const baseline = 3400; // pectoralis baseline in lbs
+const workoutVolume = 5000; // lbs
+const fatigue = (5000 / 3400) * 100; // = 147% ❌ IMPOSSIBLE
+```
+
+**New (Correct) Approach:**
+```typescript
+// Baseline adapts based on actual performance
+const currentBaseline = 3400; // current estimate
+const workoutVolume = 5000; // what you actually completed
+
+// If you completed the workout to failure:
+if (reachedFailure) {
+  // This was your TRUE capacity for this session
+  const newBaseline = workoutVolume; // 5000 lbs
+  // Fatigue is ALWAYS 100% when you reach failure
+  const fatigue = 100;
+}
+
+// If you could have done more:
+if (!reachedFailure) {
+  // You didn't discover your limit yet
+  const fatigue = (workoutVolume / currentBaseline) * 100;
+  // Baseline stays unchanged until you reach failure
+}
+```
+
+### How It Works
+
+#### Scenario 1: User Plans Aggressive Workout
+
+**Current Baseline**: 3,400 lb (pectoralis)
+
+**Planned Workout**:
+1. DB Bench Press: 3×10 @ 52.5 lb/hand = 3,150 lb total
+   - Pec volume: 3,150 × 65% = 2,048 lb
+2. Incline DB Bench: 3×10 @ 45 lb/hand = 2,700 lb total
+   - Pec volume: 2,700 × 55% = 1,485 lb
+3. TRX Pushups: 3×15 @ 100 lb = 4,500 lb total
+   - Pec volume: 4,500 × 48% = 2,160 lb
+
+**Total Planned Pec Volume**: 2,048 + 1,485 + 2,160 = **5,693 lb**
+
+**UI Display (During Planning)**:
+```
+📊 Pectoralis Fatigue Projection:
+
+Current Baseline: 3,400 lb
+Planned Volume:   5,693 lb
+Projected Fatigue: 167% of current baseline ⚠️
+
+If you complete this workout:
+✅ Actual fatigue: 100% (reached failure)
+✅ New baseline: 5,693 lb (+67% improvement!)
+```
+
+**Key Points**:
+- Show the user they're planning to exceed current baseline
+- Make it clear this will UPDATE the baseline if successful
+- Display both current fatigue % AND projected new baseline
+
+---
+
+#### Scenario 2: User Completes the Workout
+
+**What Happens**:
+1. User marks workout as complete
+2. System asks: "Did you reach failure, or could you have done more?"
+   - **Reached failure** → Update baseline to actual volume (5,693 lb)
+   - **Could do more** → Baseline stays at 3,400 lb, fatigue recorded as 100%+
+   - **Stopped early** → Calculate partial fatigue, no baseline update
+
+**Database Update**:
+```typescript
+// User reached failure after completing all exercises
+{
+  muscle: "Pectoralis",
+  sessionVolume: 5693,
+  reachedFailure: true,
+  newBaseline: 5693, // ← LEARNED VALUE
+  fatigueLevel: 100,
+  timestamp: Date.now()
+}
+```
+
+---
+
+#### Scenario 3: Conservative Workout (Under Baseline)
+
+**Current Baseline**: 3,400 lb (pectoralis)
+
+**Planned Workout**:
+- DB Bench Press: 3×8 @ 45 lb/hand = 2,160 lb total
+- Pec volume: 2,160 × 65% = 1,404 lb
+
+**UI Display**:
+```
+📊 Pectoralis Fatigue Projection:
+
+Current Baseline: 3,400 lb
+Planned Volume:   1,404 lb
+Projected Fatigue: 41% of current baseline ✅
+
+This workout will NOT update your baseline.
+To increase baseline, train to failure.
+```
+
+**After Completion**:
+- Fatigue: 41%
+- Baseline: Unchanged (3,400 lb)
+- System knows this muscle is NOT at capacity
+
+---
+
+### The "Exceeding 100%" UI Problem
+
+**User Concern**: "I don't want it limited to 100% with no more information."
+
+**Solution**: Show BOTH metrics
+
+#### Planning Phase UI:
+```
+┌─────────────────────────────────────────────┐
+│ PECTORALIS FATIGUE ANALYSIS                 │
+├─────────────────────────────────────────────┤
+│ Current Baseline:     3,400 lb              │
+│ Planned Volume:       5,693 lb              │
+│                                             │
+│ ⚠️  EXCEEDING BASELINE BY 67%                │
+│                                             │
+│ Current Capacity:     ████████░░ 100%       │
+│ Planned Load:         ████████████████ 167% │
+│                                             │
+│ If you complete this workout:               │
+│ ✓ Fatigue reached: 100% (failure)          │
+│ ✓ New baseline: 5,693 lb                   │
+│ ✓ Capacity gain: +2,293 lb (+67%)          │
+└─────────────────────────────────────────────┘
+```
+
+#### During Workout (Live Tracking):
+```
+┌─────────────────────────────────────────────┐
+│ EXERCISE 2 OF 3: Incline DB Bench          │
+├─────────────────────────────────────────────┤
+│ Pectoralis Status:                          │
+│ Volume so far:    3,533 lb                  │
+│ Current fatigue:  104% of baseline ⚠️        │
+│                                             │
+│ You've already exceeded your baseline!      │
+│ New projected baseline: 5,693 lb            │
+└─────────────────────────────────────────────┘
+```
+
+#### Post-Workout Summary:
+```
+┌─────────────────────────────────────────────┐
+│ 🎉 WORKOUT COMPLETE                         │
+├─────────────────────────────────────────────┤
+│ PECTORALIS:                                 │
+│ Old baseline:     3,400 lb                  │
+│ Volume completed: 5,693 lb                  │
+│ NEW BASELINE:     5,693 lb (+67%) 🚀        │
+│                                             │
+│ You've increased your chest capacity by     │
+│ 2,293 lbs! Your next chest workout can      │
+│ handle significantly more volume.           │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+### Baseline Update Rules
+
+**When to UPDATE baseline:**
+1. ✅ User completes workout and reaches muscular failure
+2. ✅ Session volume exceeds current baseline
+3. ✅ All planned sets were completed
+
+**When to KEEP baseline:**
+1. ❌ User stops workout early (didn't reach capacity)
+2. ❌ Session volume is below current baseline
+3. ❌ User indicates they could have done more
+
+**When to LOWER baseline:**
+1. ⚠️ User consistently fails to reach previous baseline (injury, detraining)
+2. ⚠️ After 4+ weeks without training that muscle
+3. ⚠️ User manually requests baseline reset
+
+---
+
+### Progressive Overload Tracking
+
+**Goal**: Gradually increase baselines over time
+
+**Weekly View**:
+```
+PECTORALIS BASELINE HISTORY (Last 8 weeks)
+
+Week 1:  3,400 lb  ████████░░░░░░░░░░░░
+Week 2:  3,400 lb  ████████░░░░░░░░░░░░
+Week 3:  4,200 lb  ██████████░░░░░░░░░░ +24%
+Week 4:  4,200 lb  ██████████░░░░░░░░░░
+Week 5:  4,850 lb  ████████████░░░░░░░░ +15%
+Week 6:  4,850 lb  ████████████░░░░░░░░
+Week 7:  5,693 lb  ██████████████░░░░░░ +17%
+Week 8:  5,693 lb  ██████████████░░░░░░
+
+Total Progress: +67% in 8 weeks 🚀
+```
+
+---
+
+### Integration with Fatigue System
+
+**Key Changes Needed:**
+
+1. **Fatigue calculation capped at 100%**:
+```typescript
+const actualFatigue = Math.min(100, (volume / baseline) * 100);
+```
+
+2. **Track "baseline exceeded" separately**:
+```typescript
+const baselineExceeded = volume > baseline;
+const exceedanceAmount = Math.max(0, volume - baseline);
+const exceedancePercentage = (exceedanceAmount / baseline) * 100;
+```
+
+3. **Display both metrics**:
+```typescript
+return {
+  fatigue: actualFatigue,              // Always ≤100%
+  volume: volume,                       // Actual volume
+  baseline: baseline,                   // Current estimate
+  exceeded: baselineExceeded,           // Boolean flag
+  exceedancePercentage: exceedancePercentage,  // How much over
+  projectedNewBaseline: baselineExceeded ? volume : baseline
+};
+```
+
+---
+
+### Why This Matters
+
+**Problem with old system:**
+- "202% pec fatigue" is meaningless
+- Can't tell if you're overtraining or just improved
+- Baselines never update = system never learns
+
+**Benefits of new system:**
+- Fatigue is always meaningful (0-100%)
+- Clearly shows when you've exceeded estimates
+- Baselines adapt = system gets smarter over time
+- User sees tangible progress (baseline increases)
+- Prevents overtraining warnings for stronger athletes
+
+---
+
+### Example: 8-Week Training Progression
+
+**Week 1**: First chest session
+- Baseline: 3,400 lb (initial estimate)
+- Completed: 4,200 lb (reached failure)
+- **New baseline: 4,200 lb** ✅
+- Fatigue: 100%
+
+**Week 2**: Second chest session (3 days later)
+- Baseline: 4,200 lb
+- Starting fatigue: 30% (recovered)
+- Planned: 4,500 lb
+- Completed: 4,500 lb (reached failure)
+- **New baseline: 4,500 lb** ✅
+- Fatigue: 100%
+
+**Week 3**: Third chest session
+- Baseline: 4,500 lb
+- Starting fatigue: 25%
+- Planned: 4,800 lb
+- Completed: 4,200 lb (stopped early, shoulder pain)
+- **Baseline unchanged: 4,500 lb** ❌
+- Fatigue: 93%
+
+**Week 4**: Recovery session
+- Baseline: 4,500 lb
+- Planned: 3,200 lb (deload week)
+- Completed: 3,200 lb (easy session)
+- **Baseline unchanged: 4,500 lb** ❌
+- Fatigue: 71%
+
+This shows realistic training with progression, setbacks, and deloads.
+
+---
+
 ## 4. Fatigue Calculation Model
 
 ### Current Formula (from WorkoutBuilder.tsx)
@@ -247,6 +554,99 @@ const newFatigue = initialFatigue * (1 - recoveryFactor);
 
 ---
 
+### MVP Decision: Keep It Simple
+
+**For MVP**: The current 15% flat rate is acceptable and won't break the user experience.
+
+**Reasoning**:
+- Simple to understand and implement
+- Predictable for users
+- "Good enough" for initial release
+- Can be refined later with real user data
+
+**Future Optimization**: This is a perfect candidate for research-driven improvement after launch.
+
+---
+
+### 🔬 FUTURE RESEARCH TASK: Optimize Recovery Algorithm
+
+**Status**: 📋 Deferred (Post-MVP)
+
+**Deep Research Prompt for Future Investigation**:
+
+```
+Research Task: Determine the optimal muscle recovery algorithm for FitForge
+
+OBJECTIVE:
+Design an evidence-based recovery algorithm that accurately predicts muscle
+fatigue recovery over time, accounting for muscle size, training intensity,
+and individual differences.
+
+RESEARCH QUESTIONS:
+
+1. RECOVERY CURVE SHAPE
+   - Is muscle recovery linear, exponential, logarithmic, or multi-phase?
+   - What does EMG and muscle glycogen research say?
+   - Does the curve change based on fatigue level (e.g., 100% vs 50% starting fatigue)?
+
+2. MUSCLE-SPECIFIC RECOVERY RATES
+   - Do small muscles (biceps, triceps, forearms) recover faster than large muscles (quads, lats, pecs)?
+   - What are the actual recovery half-lives for each muscle group?
+   - How much does muscle fiber type composition affect recovery?
+
+3. FATIGUE TYPE DIFFERENCES
+   - Does mechanical fatigue (volume-based) recover differently than metabolic fatigue?
+   - Should we track different types of fatigue separately?
+
+4. INDIVIDUAL VARIATION
+   - How much does recovery rate vary between individuals?
+   - What factors influence recovery speed (age, training experience, nutrition, sleep)?
+   - Should the system learn individual recovery rates over time?
+
+5. TRAINING INTENSITY IMPACT
+   - Does recovery from 100% fatigue (max effort) take longer than recovery from 60% fatigue?
+   - Is there a non-linear relationship between fatigue depth and recovery time?
+
+6. CONCURRENT RECOVERY
+   - When multiple muscles are fatigued, does systemic fatigue slow recovery?
+   - Does training other muscle groups while one recovers affect its recovery rate?
+
+DATA SOURCES TO INVESTIGATE:
+- Muscle glycogen replenishment studies
+- DOMS (Delayed Onset Muscle Soreness) research
+- Supercompensation theory papers
+- EMG recovery studies
+- Sports science recovery protocols (powerlifting, bodybuilding, CrossFit)
+- Real user data from FitForge (once we have it)
+
+DELIVERABLES:
+1. Evidence-based recovery model with citations
+2. Muscle-specific recovery parameters (if justified by research)
+3. TypeScript implementation of optimized algorithm
+4. Comparison showing improvement over flat 15% rate
+5. Validation plan using real user workout data
+
+SUCCESS METRICS:
+- Algorithm accurately predicts when users can repeat similar workouts
+- Reduced gap between predicted and actual performance
+- User feedback: "The app knows when I'm ready to train again"
+
+TIMELINE: 2-4 weeks of focused research after MVP launch
+```
+
+**Why Defer This**:
+1. ✅ Requires real user data to validate any model
+2. ✅ 15% flat rate won't cause harm or poor UX
+3. ✅ Research is time-intensive and can be done post-launch
+4. ✅ We can A/B test different models with real users later
+
+**When to Revisit**:
+- After 3+ months of user data collection
+- When users report recovery estimates are inaccurate
+- When adding advanced features (periodization, auto-regulation)
+
+---
+
 ## 6. Workout Recommendations
 
 ### Current Logic (from useWorkoutRecommendations.ts)
@@ -345,6 +745,564 @@ if (goal === 'endurance') {
 **Wednesday - Full Body** (after 48h):
 - All muscles should be at ~50% fatigue
 - Can we do same workout again?
+
+---
+
+## 8. PROPOSED CORRECTIONS: Exercise Database Overhaul
+
+### 🚨 CRITICAL ISSUE IDENTIFIED
+
+**Current State**: 38 out of 40 exercises have muscle engagement percentages that DON'T add up to 100%.
+
+**Root Cause**: Percentages were not properly calibrated to represent load distribution.
+
+**Solution**: All muscle engagement percentages must represent the **distribution of total work** and sum to **~100%**.
+
+---
+
+### Proposed Corrections by Category
+
+#### PUSH EXERCISES (11 total)
+
+##### ex02: Dumbbell Bench Press
+**Current**: 86% + 15% + 24% = **125% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Pectoralis: 86%, Triceps: 15%, Deltoids: 24% }
+
+// PROPOSED (CORRECT)
+{ Pectoralis: 65%, Triceps: 22%, Deltoids: 10%, Core: 3% }
+```
+**Reasoning**: Flat bench is primarily chest, with significant tricep involvement. Delts are stabilizers.
+
+---
+
+##### ex38: Single Arm Dumbbell Bench Press
+**Current**: 85% + 15% + 24% + 35% = **159% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Pectoralis: 85%, Triceps: 15%, Deltoids: 24%, Core: 35% }
+
+// PROPOSED (CORRECT)
+{ Pectoralis: 55%, Triceps: 20%, Deltoids: 8%, Core: 17% }
+```
+**Reasoning**: Single-arm adds significant core stability demand, reduces pec percentage proportionally.
+
+---
+
+##### ex03: Push-up
+**Current**: 75% + 75% + 30% + 35% = **215% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Pectoralis: 75%, Triceps: 75%, Deltoids: 30%, Core: 35% }
+
+// PROPOSED (CORRECT)
+{ Pectoralis: 50%, Triceps: 35%, Deltoids: 10%, Core: 5% }
+```
+**Reasoning**: Push-ups distribute load more evenly between pecs/triceps than bench press. More tricep emphasis than bench.
+
+---
+
+##### ex05: Dumbbell Shoulder Press
+**Current**: 63% + 30% + 40% = **133% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Deltoids: 63%, Pectoralis: 30%, Triceps: 40% }
+
+// PROPOSED (CORRECT)
+{ Deltoids: 60%, Triceps: 25%, Pectoralis: 10%, Core: 5% }
+```
+**Reasoning**: Shoulder press is deltoid-dominant. Triceps are secondary movers. Pecs are minimal stabilizers.
+
+---
+
+##### ex29: TRX Reverse Flys
+**Current**: 60% + 40% + 40% = **140% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Deltoids: 60%, Trapezius: 40%, Rhomboids: 40% }
+
+// PROPOSED (CORRECT)
+{ Deltoids: 45%, Rhomboids: 30%, Trapezius: 20%, Core: 5% }
+```
+**Reasoning**: Reverse flys target rear delts primarily, with upper back assisting.
+
+---
+
+##### ex30: Tricep Extension
+**Current**: 77% = **77% ❌** (Missing stabilizers)
+```typescript
+// CURRENT (WRONG)
+{ Triceps: 77% }
+
+// PROPOSED (CORRECT)
+{ Triceps: 90%, Deltoids: 7%, Core: 3% }
+```
+**Reasoning**: Isolation exercise, but shoulders stabilize and core engages minimally.
+
+---
+
+##### ex40: TRX Tricep Extension
+**Current**: 60% + 25% = **85% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Triceps: 60%, Core: 25% }
+
+// PROPOSED (CORRECT)
+{ Triceps: 70%, Core: 25%, Deltoids: 5% }
+```
+**Reasoning**: TRX adds instability, increasing core demand. Close to correct, just needed small adjustment.
+
+---
+
+##### ex31: TRX Pushup
+**Current**: 109% + 42% + 50% + 40% = **241% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Pectoralis: 109%, Triceps: 42%, Deltoids: 50%, Core: 40% }
+
+// PROPOSED (CORRECT)
+{ Pectoralis: 48%, Triceps: 32%, Core: 12%, Deltoids: 8% }
+```
+**Reasoning**: TRX instability increases difficulty but doesn't change muscle distribution drastically. Similar to regular push-ups with more core.
+
+---
+
+##### ex32: Incline Dumbbell Bench Press
+**Current**: 29% + 15% + 32% = **76% ❌** (Way too low for pecs!)
+```typescript
+// CURRENT (WRONG)
+{ Pectoralis: 29%, Triceps: 15%, Deltoids: 32% }
+
+// PROPOSED (CORRECT)
+{ Pectoralis: 55%, Deltoids: 25%, Triceps: 17%, Core: 3% }
+```
+**Reasoning**: Incline shifts emphasis to upper pecs and front delts. Still chest-dominant. Current 29% pecs is absurd.
+
+---
+
+##### ex39: Single Arm Incline Dumbbell Bench Press
+**Current**: 29% + 15% + 32% + 35% = **111% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Pectoralis: 29%, Triceps: 15%, Deltoids: 32%, Core: 35% }
+
+// PROPOSED (CORRECT)
+{ Pectoralis: 45%, Deltoids: 22%, Core: 20%, Triceps: 13% }
+```
+**Reasoning**: Single-arm adds rotational stability demand. Still primarily chest/shoulder movement.
+
+---
+
+##### ex33: Dips
+**Current**: 88% + 80% + 40% = **208% ❌** (Called out in doc!)
+```typescript
+// CURRENT (WRONG)
+{ Triceps: 88%, Pectoralis: 80%, Deltoids: 40% }
+
+// PROPOSED (CORRECT)
+{ Pectoralis: 50%, Triceps: 35%, Deltoids: 13%, Core: 2% }
+```
+**Reasoning**: Dips are chest-dominant when torso leans forward. Triceps are heavily involved. Delts are stabilizers.
+
+---
+
+##### ex34: Kettlebell Press
+**Current**: 58% + 30% + 25% = **113% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Deltoids: 58%, Pectoralis: 30%, Core: 25% }
+
+// PROPOSED (CORRECT)
+{ Deltoids: 58%, Triceps: 23%, Core: 12%, Pectoralis: 7% }
+```
+**Reasoning**: Similar to DB shoulder press, but kettlebell grip adds instability. Close to correct.
+
+---
+
+#### PULL EXERCISES (15 total)
+
+##### ex06: Pull-up
+**Current**: 120% + 87% + 50% + 25% = **282% ❌** (Lats over 100%!)
+```typescript
+// CURRENT (WRONG)
+{ Lats: 120%, Biceps: 87%, Rhomboids: 50%, Forearms: 25% }
+
+// PROPOSED (CORRECT)
+{ Lats: 55%, Biceps: 25%, Rhomboids: 12%, Forearms: 8% }
+```
+**Reasoning**: Pull-ups are lat-dominant with significant bicep involvement. No single muscle can exceed 100%.
+
+---
+
+##### ex07: Dumbbell Bicep Curl
+**Current**: 72% + 15% = **87% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Biceps: 72%, Forearms: 15% }
+
+// PROPOSED (CORRECT)
+{ Biceps: 85%, Forearms: 12%, Core: 3% }
+```
+**Reasoning**: Isolation exercise. Biceps do the vast majority of work.
+
+---
+
+##### ex09: Dumbbell Row
+**Current**: 55% + 50% + 50% + 30% = **185% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Lats: 55%, Trapezius: 50%, Rhomboids: 50%, Biceps: 30% }
+
+// PROPOSED (CORRECT)
+{ Lats: 40%, Rhomboids: 25%, Trapezius: 20%, Biceps: 12%, Core: 3% }
+```
+**Reasoning**: Rows distribute work across entire back. Lats are primary, upper back assists, biceps secondary.
+
+---
+
+##### ex18: Dumbbell Upright Row
+**Current**: 70% + 65% + 30% = **165% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Trapezius: 70%, Deltoids: 65%, Biceps: 30% }
+
+// PROPOSED (CORRECT)
+{ Trapezius: 45%, Deltoids: 35%, Biceps: 17%, Core: 3% }
+```
+**Reasoning**: Upright rows target traps and medial delts. Both heavily involved. Biceps assist.
+
+---
+
+##### ex19: TRX Bicep Curl
+**Current**: 65% + 25% = **90% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Biceps: 65%, Core: 25% }
+
+// PROPOSED (CORRECT)
+{ Biceps: 70%, Core: 20%, Forearms: 7%, Lats: 3% }
+```
+**Reasoning**: TRX adds core stability. Close to correct.
+
+---
+
+##### ex20: Chin-Ups
+**Current**: 120% + 87% + 51% = **258% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Lats: 120%, Biceps: 87%, Pectoralis: 51% }
+
+// PROPOSED (CORRECT)
+{ Lats: 50%, Biceps: 30%, Pectoralis: 12%, Rhomboids: 8% }
+```
+**Reasoning**: Chin-ups (underhand) shift more emphasis to biceps than pull-ups. Pecs engage more due to grip.
+
+---
+
+##### ex21: Face Pull
+**Current**: 55% + 55% + 55% = **165% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Deltoids: 55%, Trapezius: 55%, Rhomboids: 55% }
+
+// PROPOSED (CORRECT)
+{ Deltoids: 40%, Rhomboids: 35%, Trapezius: 22%, Core: 3% }
+```
+**Reasoning**: Face pulls target rear delts and rhomboids. Upper traps engage less.
+
+---
+
+##### ex22: Concentration Curl
+**Current**: 85% = **85% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Biceps: 85% }
+
+// PROPOSED (CORRECT)
+{ Biceps: 90%, Forearms: 8%, Core: 2% }
+```
+**Reasoning**: Pure isolation. Biceps do almost all the work. Braced position minimizes core.
+
+---
+
+##### ex23: Shoulder Shrugs
+**Current**: 75% = **75% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Trapezius: 75% }
+
+// PROPOSED (CORRECT)
+{ Trapezius: 85%, Forearms: 10%, Core: 5% }
+```
+**Reasoning**: Isolation for traps. Forearms grip, core stabilizes.
+
+---
+
+##### ex25: Incline Hammer Curl
+**Current**: 70% + 30% = **100% ✅** (ONE OF ONLY TWO CORRECT!)
+```typescript
+// CURRENT (CORRECT)
+{ Biceps: 70%, Forearms: 30% }
+
+// PROPOSED (KEEP AS-IS)
+{ Biceps: 70%, Forearms: 30% }
+```
+**Reasoning**: Already correct! Hammer grip shifts some work to forearms/brachialis.
+
+---
+
+##### ex26: Neutral Grip Pull-ups
+**Current**: 120% + 87% + 37% = **244% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Lats: 120%, Biceps: 87%, Trapezius: 37% }
+
+// PROPOSED (CORRECT)
+{ Lats: 52%, Biceps: 28%, Trapezius: 13%, Forearms: 7% }
+```
+**Reasoning**: Neutral grip is between pull-ups and chin-ups. Balanced lat/bicep involvement.
+
+---
+
+##### ex28: Renegade Rows
+**Current**: 60% + 80% + 60% + 30% = **230% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Lats: 60%, Core: 80%, Rhomboids: 60%, Pectoralis: 30% }
+
+// PROPOSED (CORRECT)
+{ Core: 40%, Lats: 30%, Rhomboids: 18%, Pectoralis: 10%, Triceps: 2% }
+```
+**Reasoning**: Plank position makes this core-dominant. Rowing motion engages back secondarily.
+
+---
+
+##### ex41: TRX Pull-up
+**Current**: 115% + 87% + 30% + 35% = **267% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Lats: 115%, Biceps: 87%, Core: 30%, Forearms: 35% }
+
+// PROPOSED (CORRECT)
+{ Lats: 50%, Biceps: 23%, Forearms: 15%, Core: 10%, Rhomboids: 2% }
+```
+**Reasoning**: TRX instability increases grip/forearm demand. Similar to regular pull-ups otherwise.
+
+---
+
+##### ex42: Wide Grip Pull-ups
+**Current**: 124% + 78% + 60% + 20% = **282% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Lats: 124%, Biceps: 78%, Trapezius: 60%, Rhomboids: 20% }
+
+// PROPOSED (CORRECT)
+{ Lats: 60%, Biceps: 20%, Trapezius: 12%, Rhomboids: 8% }
+```
+**Reasoning**: Wide grip maximizes lat recruitment, reduces bicep involvement.
+
+---
+
+##### ex48: Dumbbell Pullover
+**Current**: 60% + 40% + 35% = **135% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Lats: 60%, Pectoralis: 40%, Triceps: 35% }
+
+// PROPOSED (CORRECT)
+{ Lats: 50%, Pectoralis: 35%, Triceps: 12%, Core: 3% }
+```
+**Reasoning**: Pullovers work lats and pecs almost equally. Triceps stabilize.
+
+---
+
+#### LEG EXERCISES (9 total)
+
+##### ex12: Kettlebell Goblet Squat
+**Current**: 72% + 65% + 35% + 30% = **202% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Quadriceps: 72%, Glutes: 65%, Hamstrings: 35%, Core: 30% }
+
+// PROPOSED (CORRECT)
+{ Quadriceps: 50%, Glutes: 30%, Hamstrings: 12%, Core: 8% }
+```
+**Reasoning**: Squats are quad-dominant. Glutes/hams assist. Goblet position adds core demand.
+
+---
+
+##### ex13: Dumbbell Romanian Deadlift
+**Current**: 75% + 55% + 40% = **170% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Hamstrings: 75%, Glutes: 55%, Core: 40% }
+
+// PROPOSED (CORRECT)
+{ Hamstrings: 45%, Glutes: 35%, Core: 15%, Lower Back: 5% }
+```
+**Reasoning**: RDLs target hamstrings primarily, with strong glute involvement. Core stabilizes heavy loads.
+
+---
+
+##### ex15: Calf Raises
+**Current**: 51% = **51% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Calves: 51% }
+
+// PROPOSED (CORRECT)
+{ Calves: 95%, Core: 5% }
+```
+**Reasoning**: Pure isolation. Calves do virtually all the work.
+
+---
+
+##### ex35: Glute Bridges
+**Current**: 76% + 23% = **99% ✅** (Close enough!)
+```typescript
+// CURRENT (ACCEPTABLE)
+{ Glutes: 76%, Hamstrings: 23% }
+
+// PROPOSED (MINOR ADJUSTMENT)
+{ Glutes: 75%, Hamstrings: 22%, Core: 3% }
+```
+**Reasoning**: Very close to correct. Glutes are primary movers.
+
+---
+
+##### ex36: Dumbbell Stiff Legged Deadlift
+**Current**: 70% + 65% + 50% = **185% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Glutes: 70%, Hamstrings: 65%, Core: 50% }
+
+// PROPOSED (CORRECT)
+{ Hamstrings: 42%, Glutes: 38%, Core: 15%, Lower Back: 5% }
+```
+**Reasoning**: Stiff-leg emphasizes hamstrings more than RDL. Glutes still heavily involved.
+
+---
+
+##### ex37: Kettlebell Swings
+**Current**: 75% + 90% + 40% = **205% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Glutes: 75%, Hamstrings: 90%, Core: 40% }
+
+// PROPOSED (CORRECT)
+{ Hamstrings: 45%, Glutes: 40%, Core: 12%, Lower Back: 3% }
+```
+**Reasoning**: Explosive hip hinge. Hamstrings and glutes share the load. Core stabilizes.
+
+---
+
+##### ex43: Dumbbell Goblet Squat
+**Current**: 72% + 65% + 35% + 30% = **202% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Quadriceps: 72%, Glutes: 65%, Hamstrings: 35%, Core: 30% }
+
+// PROPOSED (CORRECT)
+{ Quadriceps: 50%, Glutes: 30%, Hamstrings: 12%, Core: 8% }
+```
+**Reasoning**: Same as ex12 (Kettlebell Goblet Squat). Duplicate exercise.
+
+---
+
+##### ex47: Box Step-ups
+**Current**: 67% + 169% + 51% + 20% + 15% = **322% ❌** (WORST OFFENDER!)
+```typescript
+// CURRENT (WRONG)
+{ Quadriceps: 67%, Glutes: 169%, Hamstrings: 51%, Calves: 20%, Core: 15% }
+
+// PROPOSED (CORRECT)
+{ Glutes: 45%, Quadriceps: 35%, Hamstrings: 12%, Calves: 5%, Core: 3% }
+```
+**Reasoning**: Step-ups are glute-dominant unilateral movement. Quads assist. 169% glutes is physically impossible.
+
+---
+
+#### CORE EXERCISES (5 total)
+
+##### ex16: Plank
+**Current**: 77% + 20% = **97% ✅** (Close!)
+```typescript
+// CURRENT (ACCEPTABLE)
+{ Core: 77%, Deltoids: 20% }
+
+// PROPOSED (MINOR ADJUSTMENT)
+{ Core: 80%, Deltoids: 18%, Glutes: 2% }
+```
+**Reasoning**: Very close. Shoulders stabilize plank position.
+
+---
+
+##### ex17: Bench Sit-ups
+**Current**: 70% = **70% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Core: 70% }
+
+// PROPOSED (CORRECT)
+{ Core: 92%, Hip Flexors: 8% }
+```
+**Reasoning**: Sit-ups are core-dominant. Hip flexors assist in the movement. (Note: We may need to add Hip Flexors to muscle enum)
+
+---
+
+##### ex44: Spider Planks
+**Current**: 90% + 20% = **110% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Core: 90%, Deltoids: 20% }
+
+// PROPOSED (CORRECT)
+{ Core: 85%, Deltoids: 12%, Glutes: 3% }
+```
+**Reasoning**: Dynamic plank variation. More core engagement than static plank.
+
+---
+
+##### ex45: TRX Mountain Climbers
+**Current**: 70% + 30% = **100% ✅** (CORRECT!)
+```typescript
+// CURRENT (CORRECT)
+{ Core: 70%, Deltoids: 30% }
+
+// PROPOSED (KEEP AS-IS)
+{ Core: 70%, Deltoids: 30% }
+```
+**Reasoning**: Already correct! One of only two exercises with proper percentages.
+
+---
+
+##### ex46: Hanging Leg Raises
+**Current**: 75% + 15% = **90% ❌**
+```typescript
+// CURRENT (WRONG)
+{ Core: 75%, Forearms: 15% }
+
+// PROPOSED (CORRECT)
+{ Core: 75%, Forearms: 20%, Lats: 5% }
+```
+**Reasoning**: Hanging adds significant grip demand. Lats stabilize hanging position.
+
+---
+
+### Summary of Corrections
+
+**Total Exercises**: 40
+- **Correct as-is**: 2 (5%)
+- **Close enough (95-105%)**: 3 (7.5%)
+- **Need minor adjustment (80-95% or 105-120%)**: 5 (12.5%)
+- **Need major correction (>120% or <80%)**: 30 (75%)
+
+**Action Required**:
+✅ Implement all proposed corrections
+✅ Verify all percentages sum to 100% ± 2%
+✅ Re-test fatigue calculations with corrected data
+✅ Update baseline calculations based on corrected engagements
 
 ---
 

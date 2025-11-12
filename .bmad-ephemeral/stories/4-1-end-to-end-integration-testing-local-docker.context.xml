@@ -1,0 +1,261 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>1</storyId>
+    <title>End-to-End Integration Testing (Local Docker)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/4-1-end-to-end-integration-testing-local-docker.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>QA engineer</asA>
+    <iWant>to test complete user workflows in local environment</iWant>
+    <soThat>we catch integration issues before production deployment</soThat>
+    <tasks>
+- Task 1: Create test data fixtures (AC: 3)
+- Task 2: Create Integration Test 1 - Workout Completion Flow (AC: 4)
+- Task 3: Create Integration Test 2 - Recovery Timeline Flow (AC: 5)
+- Task 4: Create Integration Test 3 - Exercise Recommendations Flow (AC: 6)
+- Task 5: Create Integration Test 4 - Workout Forecast Flow (AC: 7)
+- Task 6: Create Manual Testing Checklist (AC: 8)
+- Task 7: Verify Docker Compose environment setup (AC: 2)
+- Task 8: Run all integration tests and verify passing (AC: 1)
+- Task 9: Execute manual testing checklist (AC: 8)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** FitForge running in Docker Compose at http://localhost:3000 (frontend) and http://localhost:3001 (backend)
+   **When** tester executes integration test scenarios
+   **Then** all test scenarios pass validation
+
+2. **And** test setup verifies Docker Compose environment with healthy services on ports 3000 and 3001
+
+3. **And** test data fixtures exist in backend/__tests__/fixtures/integration-test-data.ts containing TEST_USER_ID, BASELINE_WORKOUT, EXPECTED_FATIGUE values, and BASELINE_EXCEEDING_WORKOUT
+
+4. **And** Integration Test 1 (Workout Completion Flow) passes with accurate fatigue calculations matching logic-sandbox (±2% tolerance) and baseline update modal verification
+
+5. **And** Integration Test 2 (Recovery Timeline Flow) passes with current recovery state and 24h/48h/72h projections
+
+6. **And** Integration Test 3 (Exercise Recommendations Flow) passes with ranked recommendations and 5-factor scoring structure
+
+7. **And** Integration Test 4 (Workout Forecast Flow) passes with forecast structure and predicted fatigue calculations
+
+8. **And** Manual Testing Checklist document created at docs/testing/integration-checklist.md covering all test scenarios
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 4: Integration Testing &amp; MVP Launch</title>
+        <section>Story 4.1: End-to-End Integration Testing (Local Docker)</section>
+        <snippet>Comprehensive test specifications including test fixtures, integration test implementations, and manual testing checklist. Defines all acceptance criteria with code examples.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR6: Workout Completion</section>
+        <snippet>Functional requirement for workout completion flow with fatigue calculation and baseline update modal triggers.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Testing Strategy</section>
+        <snippet>Docker Compose environment setup, Vitest configuration, and test framework patterns for integration testing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-status.yaml</path>
+        <title>Sprint Status Tracking</title>
+        <section>Epic 4 Status</section>
+        <snippet>Epic 1-3 complete (all services, APIs, and frontend integrations working). Story 4.1 currently drafted.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>vitest.config.ts</path>
+        <kind>config</kind>
+        <symbol>defineConfig</symbol>
+        <lines>1-18</lines>
+        <reason>Vitest test framework configuration - defines test environment (jsdom), globals, and setup files for all tests</reason>
+      </artifact>
+      <artifact>
+        <path>docker-compose.yml</path>
+        <kind>config</kind>
+        <symbol>services</symbol>
+        <lines>1-71</lines>
+        <reason>Docker Compose configuration for local development environment - defines frontend (port 3000) and backend (port 3001) services with health checks</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>server</kind>
+        <symbol>POST /api/workouts/:id/complete</symbol>
+        <lines>1036-1148</lines>
+        <reason>Story 2.1 - Workout completion endpoint that calculates fatigue and checks for baseline updates</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>server</kind>
+        <symbol>GET /api/recovery/timeline</symbol>
+        <lines>1150-1237</lines>
+        <reason>Story 2.2 - Recovery timeline endpoint that returns current fatigue state and 24h/48h/72h projections</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>server</kind>
+        <symbol>POST /api/recommendations/exercises</symbol>
+        <lines>1239-1365</lines>
+        <reason>Story 2.3 - Exercise recommendation endpoint with 5-factor scoring engine</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>server</kind>
+        <symbol>POST /api/forecast/workout</symbol>
+        <lines>1367-1439</lines>
+        <reason>Story 2.4 - Workout forecast endpoint for real-time fatigue prediction</reason>
+      </artifact>
+      <artifact>
+        <path>backend/database/database.ts</path>
+        <kind>module</kind>
+        <symbol>saveWorkout, getMuscleStates, updateMuscleStates</symbol>
+        <lines>all</lines>
+        <reason>Database operations for workouts and muscle states - used by test fixtures for setup and assertions</reason>
+      </artifact>
+      <artifact>
+        <path>backend/__tests__/database.test.ts</path>
+        <kind>test</kind>
+        <symbol>describe</symbol>
+        <lines>1-50</lines>
+        <reason>Example test pattern showing database setup, saveWorkout usage, and direct SQL queries for assertions</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/fatigueCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateMuscleFatigue</symbol>
+        <lines>all</lines>
+        <reason>Epic 1 Story 1.1 - Core fatigue calculation service used by workout completion endpoint</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/recoveryCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateRecovery</symbol>
+        <lines>all</lines>
+        <reason>Epic 1 Story 1.2 - Recovery calculation service with 15% daily recovery rate</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/baselineUpdater.js</path>
+        <kind>service</kind>
+        <symbol>checkForBaselineUpdates</symbol>
+        <lines>all</lines>
+        <reason>Epic 1 Story 1.4 - Baseline update trigger logic for detecting when baselines are exceeded</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/exerciseRecommender.js</path>
+        <kind>service</kind>
+        <symbol>recommendExercises</symbol>
+        <lines>all</lines>
+        <reason>Epic 1 Story 1.3 - Exercise recommendation scoring engine with 5-factor algorithm</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="vitest" version="^4.0.3" type="devDependency" />
+        <package name="@vitest/ui" version="^4.0.3" type="devDependency" />
+        <package name="@vitest/coverage-v8" version="^4.0.3" type="devDependency" />
+        <package name="jsdom" version="^27.0.1" type="devDependency" />
+        <package name="@testing-library/react" version="^16.3.0" type="devDependency" />
+        <package name="@testing-library/jest-dom" version="^6.9.1" type="devDependency" />
+        <package name="better-sqlite3" version="^12.4.1" type="dependency" />
+        <package name="express" version="^4.18.2" type="dependency" />
+        <package name="cors" version="^2.8.5" type="dependency" />
+        <package name="typescript" version="~5.8.2" type="devDependency" />
+        <package name="ts-node" version="^10.9.2" type="devDependency" />
+        <package name="nodemon" version="^3.0.2" type="devDependency" />
+      </node>
+      <docker>
+        <service name="fitforge-backend" port="3001" healthcheck="true" />
+        <service name="fitforge-frontend" port="3000" depends-on="backend" />
+      </docker>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- Create new test files only - no modifications to existing production code
+- Tests must run in Docker Compose environment (localhost:3000 frontend, localhost:3001 backend)
+- All integration tests must use Vitest framework with jsdom environment
+- Test data fixtures must match logic-sandbox validated calculations
+- Database must be reset to clean state in beforeEach hooks using DELETE statements
+- Numeric assertions must use toBeCloseTo() with precision 0 (±0.5 tolerance) for fatigue percentages
+- Test file location: backend/__tests__/integration/ directory
+- Fixture file location: backend/__tests__/fixtures/ directory
+- Manual checklist location: docs/testing/integration-checklist.md
+- All tests must be independent and not rely on shared state between tests
+- Tests must verify actual API responses, not mock implementations
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>POST /api/workouts/:id/complete</name>
+      <kind>REST endpoint</kind>
+      <signature>Request: { exercises: Array&lt;{ exerciseId: string, sets: Array&lt;{ reps: number, weight: number, toFailure: boolean }&gt; }&gt; } | Response: { fatigue: Record&lt;string, number&gt;, baselineSuggestions: Array&lt;any&gt;, summary: { totalVolume: number, prsAchieved: string[] } }</signature>
+      <path>backend/server.ts:1036-1148</path>
+    </interface>
+    <interface>
+      <name>GET /api/recovery/timeline</name>
+      <kind>REST endpoint</kind>
+      <signature>Response: { muscles: Array&lt;{ name: string, currentFatigue: number, projections: { '24h': number, '48h': number, '72h': number }, fullyRecoveredAt: string | null }&gt; }</signature>
+      <path>backend/server.ts:1150-1237</path>
+    </interface>
+    <interface>
+      <name>POST /api/recommendations/exercises</name>
+      <kind>REST endpoint</kind>
+      <signature>Request: { targetMuscle: string, currentWorkout?: Array&lt;any&gt;, availableEquipment?: string[] } | Response: { recommendations: Array&lt;{ exerciseId: string, score: number, factors: { targetMatch: number, freshness: number, ... } }&gt; }</signature>
+      <path>backend/server.ts:1239-1365</path>
+    </interface>
+    <interface>
+      <name>POST /api/forecast/workout</name>
+      <kind>REST endpoint</kind>
+      <signature>Request: { plannedExercises: Array&lt;{ exerciseId: string, sets: number, reps: number, weight: number }&gt; } | Response: Record&lt;string, { forecastedFatiguePercent: number, volumeAdded: number }&gt;</signature>
+      <path>backend/server.ts:1367-1439</path>
+    </interface>
+    <interface>
+      <name>saveWorkout(workout: WorkoutSaveRequest)</name>
+      <kind>function</kind>
+      <signature>Saves workout to database and returns { id: number, ... }</signature>
+      <path>backend/database/database.ts</path>
+    </interface>
+    <interface>
+      <name>db.exec(sql: string)</name>
+      <kind>function</kind>
+      <signature>Executes raw SQL statement for database operations (used in beforeEach for cleanup)</signature>
+      <path>backend/database/database.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Test Framework: Vitest with jsdom environment configured at vitest.config.ts. Use describe/it/expect globals (no imports needed).
+      Test Pattern: Arrange-Act-Assert with beforeEach hooks for database cleanup (DELETE FROM tables).
+      API Testing: Use fetch() with localhost:3001 for backend endpoints. Validate response structure and data accuracy.
+      Assertions: Use expect().toBe() for exact matches, expect().toBeCloseTo(value, precision) for numeric tolerance (precision 0 = ±0.5), expect().toBeDefined() for structure validation.
+      Test Independence: Each test must reset database state in beforeEach. No shared state between tests.
+      Integration Focus: Test actual API responses against Docker Compose environment, not mocks. Verify end-to-end data flow from request to database to response.
+    </standards>
+    <locations>
+      - backend/__tests__/integration/*.test.ts (new integration test files)
+      - backend/__tests__/fixtures/*.ts (new test data fixtures)
+      - backend/__tests__/*.test.ts (existing unit/integration test examples)
+      - docs/testing/integration-checklist.md (new manual testing checklist)
+    </locations>
+    <ideas>
+      <idea ac="AC3">Create integration-test-data.ts fixture with TEST_USER_ID, BASELINE_WORKOUT, EXPECTED_FATIGUE, and BASELINE_EXCEEDING_WORKOUT constants</idea>
+      <idea ac="AC4">Test workout completion flow: save workout, POST /api/workouts/:id/complete, assert fatigue matches logic-sandbox (Quads 15%, Glutes 26%, Hamstrings 31%)</idea>
+      <idea ac="AC4">Test baseline exceeded: save BASELINE_EXCEEDING_WORKOUT, complete, assert baselineSuggestions.length > 0 and Hamstrings suggestion present</idea>
+      <idea ac="AC5">Test recovery timeline: complete workout, GET /api/recovery/timeline, assert current state and projections (24h: 16%, 48h: 1%, 72h: 0%)</idea>
+      <idea ac="AC6">Test exercise recommendations: setup fatigue state, POST /api/recommendations/exercises, assert recommendations array present with 5-factor scoring</idea>
+      <idea ac="AC7">Test workout forecast: POST /api/forecast/workout with planned exercises, assert forecast structure with forecastedFatiguePercent and volumeAdded</idea>
+      <idea ac="AC2">Verify Docker Compose environment: docker-compose ps shows healthy services, curl localhost:3001/api/health returns success</idea>
+      <idea ac="AC8">Create manual testing checklist with environment setup, 5 test scenarios, and verification steps for each workflow</idea>
+    </ideas>
+  </tests>
+</story-context>

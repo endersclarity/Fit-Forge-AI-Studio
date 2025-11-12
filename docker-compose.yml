@@ -6,20 +6,31 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./backend/Dockerfile
+      dockerfile: ./backend/Dockerfile.dev
     container_name: fitforge-backend
     ports:
       - "3001:3001"
     volumes:
       # Persist database on host machine
       - ./data:/data
+      # Mount backend source code for hot reload
+      - ./backend:/app/backend
+      # Mount shared directory for exercise library
+      - ./shared:/app/shared
+      # Mount docs directory for exercises.json
+      - ./docs:/app/docs
+      # Mount root types file
+      - ./types.ts:/app/types.ts
+      - ./constants.ts:/app/constants.ts
+      # Exclude node_modules to use container's modules
+      - /app/backend/node_modules
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=3001
       - DB_PATH=/data/fitforge.db
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3001/api/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,12 +40,25 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         VITE_API_URL: http://localhost:3001/api
     container_name: fitforge-frontend
     ports:
       - "3000:3000"
+    volumes:
+      # Mount source code for hot reload
+      - ./components:/app/components
+      - ./utils:/app/utils
+      - ./constants.ts:/app/constants.ts
+      - ./types.ts:/app/types.ts
+      - ./api.ts:/app/api.ts
+      - ./App.tsx:/app/App.tsx
+      - ./main.tsx:/app/main.tsx
+      # Exclude node_modules to use container's modules
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
     depends_on:
       backend:
         condition: service_healthy

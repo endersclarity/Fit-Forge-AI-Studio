@@ -1,0 +1,340 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>4</storyId>
+    <title>Implement Baseline Update Trigger Logic</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/1-4-implement-baseline-update-trigger-logic.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>backend service</asA>
+    <iWant>to detect when a user exceeds their muscle baseline capacity</iWant>
+    <soThat>the app can prompt them to update their baseline and adapt to improved strength</soThat>
+    <tasks>
+- Task 1: Create baseline updater service structure (AC: 1, 2, 3, 4)
+  - Subtask 1.1: Create `backend/services/baselineUpdater.js` file
+  - Subtask 1.2: Set up ES6 module exports with proper JSDoc documentation
+  - Subtask 1.3: Import exercise library from `docs/logic-sandbox/exercises.json`
+  - Subtask 1.4: Import baseline data from `docs/logic-sandbox/baselines.json`
+
+- Task 2: Implement muscle volume calculation from workout data (AC: 1)
+  - Subtask 2.1: Accept workout exercises with sets data (weight, reps, toFailure)
+  - Subtask 2.2: For each exercise, get muscle engagement percentages from exercise library
+  - Subtask 2.3: Calculate total volume per set: `weight × reps`
+  - Subtask 2.4: Calculate muscle-specific volume: `totalVolume × (engagement / 100)`
+  - Subtask 2.5: Track maximum volume achieved per muscle across all sets in workout
+
+- Task 3: Implement baseline comparison logic (AC: 1, 2)
+  - Subtask 3.1: Load current baselines for all 15 muscles
+  - Subtask 3.2: Compare achieved muscle volume to current baseline
+  - Subtask 3.3: Identify muscles where `achievedVolume > currentBaseline`
+  - Subtask 3.4: Calculate suggested new baseline as the actual volume achieved
+  - Subtask 3.5: Only trigger suggestions for "to failure" sets (quality data)
+
+- Task 4: Generate baseline update suggestions (AC: 3, 4)
+  - Subtask 4.1: Create suggestion object structure: `{ muscle, currentBaseline, suggestedBaseline, achievedVolume, exercise, date }`
+  - Subtask 4.2: Include workout context (which exercise triggered the suggestion)
+  - Subtask 4.3: Include date/timestamp of achievement
+  - Subtask 4.4: Calculate percentage increase for user-friendly display
+  - Subtask 4.5: Return array of all muscles that exceeded baselines
+
+- Task 5: Add input validation and error handling (Testing)
+  - Subtask 5.1: Validate workout data structure (exercises array with sets)
+  - Subtask 5.2: Validate each set has required fields (weight, reps)
+  - Subtask 5.3: Handle missing exercise data gracefully (skip unknown exercises)
+  - Subtask 5.4: Throw descriptive errors for invalid inputs
+
+- Task 6: Create comprehensive test suite (Testing)
+  - Subtask 6.1: Test baseline exceeded detection with known workout data
+  - Subtask 6.2: Test multiple muscles exceeded in single workout (compound exercise)
+  - Subtask 6.3: Test no suggestions when volume below baseline
+  - Subtask 6.4: Test "to failure" filtering (only learn from quality sets)
+  - Subtask 6.5: Test edge cases (first-time user, zero baseline, invalid exercise)
+  - Subtask 6.6: Test suggestion object structure and completeness
+
+- Task 7: Export service with ES6 module pattern (Testing)
+  - Subtask 7.1: Export `checkForBaselineUpdates` function with ES6 `export`
+  - Subtask 7.2: Add comprehensive JSDoc comments with parameter types
+  - Subtask 7.3: Follow camelCase naming convention established in Epic 1
+  - Subtask 7.4: Document algorithm and return structure in comments
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** a completed workout with calculated muscle volumes
+   **When** the service compares muscle volumes to current baselines
+   **Then** it identifies any muscles where `muscleVolume > baseline`
+
+2. **And** it calculates suggested new baseline as: `actualVolume achieved`
+
+3. **And** it returns a list of baseline update suggestions
+
+4. **And** it includes the date and workout context for the suggestion
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown - Story 1.4</title>
+        <section>Epic 1: Muscle Intelligence Services - Story 1.4</section>
+        <snippet>Implement baseline update trigger logic that detects when users exceed their muscle baseline capacity and suggests baseline updates. Simple comparison logic: if achievedVolume > currentBaseline, suggest update with actualVolume achieved. Returns list with date and workout context.</snippet>
+      </doc>
+      <doc>
+        <path>docs/musclemax-baseline-learning-system.md</path>
+        <title>MuscleMax Baseline Learning System</title>
+        <section>Core Algorithm: Conservative Max Observed Volume</section>
+        <snippet>Algorithm: muscle_volume = total_set_volume × muscle_engagement_percentage. If muscle handled X volume when trained to failure, it can handle at least X volume. Conservative approach that may underestimate capacity but leads to safe fatigue estimates. Priority: effective_max = user_override ?? system_learned_max ?? 10000.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>FitForge-Local Architecture</title>
+        <section>Backend Services Pattern</section>
+        <snippet>Create backend/services/ folder for business logic. Services throw errors (caught by API routes). Use ES6 module exports (project has "type": "module"). All database access through database.js centralized layer. camelCase naming convention for files and functions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/logic-sandbox/exercises.json</path>
+        <title>Validated Exercise Library</title>
+        <section>48 Exercises with Muscle Engagement</section>
+        <snippet>Exercise data source with muscle engagement percentages for all 15 muscle groups. Used to calculate muscle-specific volume from workout exercises. Format: { name, muscles: [{ muscle, percentage }] }.</snippet>
+      </doc>
+      <doc>
+        <path>docs/logic-sandbox/baselines.json</path>
+        <title>Muscle Baseline Capacities</title>
+        <section>15 Muscle Baseline Values</section>
+        <snippet>Current baseline capacity values for comparison. Example: Pectoralis: 3744, Triceps: 2520. Format: { muscle, baselineCapacity, unit, lastUpdated, source, notes }. Used to detect when achieved volume exceeds baseline.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Muscle Intelligence Features</section>
+        <snippet>FitForge-Local requires adaptive baseline learning to personalize fatigue calculations and recovery predictions. System should learn from user's actual performance data and adapt to strength improvements.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/services/exerciseRecommender.js</path>
+        <kind>service</kind>
+        <symbol>loadExerciseLibrary, loadBaselineData</symbol>
+        <lines>28-68</lines>
+        <reason>Demonstrates ES6 module pattern, exercise library loading with caching, and baseline data loading pattern to reuse in baselineUpdater.js</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/fatigueCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateFatigue</symbol>
+        <lines>1-120</lines>
+        <reason>Volume calculation pattern: weight × reps × (engagement / 100). Shows how to calculate muscle-specific volumes from workout data - same calculation needed for baseline comparison.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/__tests__/exerciseRecommender.test.js</path>
+        <kind>test</kind>
+        <symbol>test suite structure</symbol>
+        <lines>1-50</lines>
+        <reason>Vitest test pattern with describe blocks, comprehensive test coverage examples, and mock data structures to follow for baselineUpdater.test.js</reason>
+      </artifact>
+      <artifact>
+        <path>docs/logic-sandbox/exercises.json</path>
+        <kind>data</kind>
+        <symbol>exercises array</symbol>
+        <lines>N/A</lines>
+        <reason>Primary data source for muscle engagement percentages. Required to calculate muscle volumes from workout exercises.</reason>
+      </artifact>
+      <artifact>
+        <path>docs/logic-sandbox/baselines.json</path>
+        <kind>data</kind>
+        <symbol>baselines array</symbol>
+        <lines>N/A</lines>
+        <reason>Primary data source for current baseline values. Required for comparison logic to detect exceeded baselines.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <fs>readFileSync - ES6 module import for loading JSON data files</fs>
+        <url>fileURLToPath - Convert import.meta.url to file path</url>
+        <path>dirname, join - Path manipulation for cross-platform compatibility</path>
+      </node>
+      <testing>
+        <vitest>Testing framework used across all Epic 1 services</vitest>
+      </testing>
+      <runtime>
+        <type>module - Project uses ES6 modules, not CommonJS</type>
+      </runtime>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <rule>ES6 Module Exports Required</rule>
+      <description>Project uses "type": "module" in package.json. MUST use ES6 export syntax, NOT CommonJS module.exports. Pattern: export function checkForBaselineUpdates() {...}</description>
+    </constraint>
+    <constraint>
+      <rule>File Location</rule>
+      <description>New service MUST be created at backend/services/baselineUpdater.js following established pattern from Stories 1.1, 1.2, 1.3</description>
+    </constraint>
+    <constraint>
+      <rule>Test Location</rule>
+      <description>Test file MUST be created at backend/services/__tests__/baselineUpdater.test.js (note: __tests__ subdirectory, not root services folder)</description>
+    </constraint>
+    <constraint>
+      <rule>Data Source - Exercise Library</rule>
+      <description>MUST load exercise data from docs/logic-sandbox/exercises.json using fs.readFileSync with caching pattern from exerciseRecommender.js. DO NOT hardcode exercise data.</description>
+    </constraint>
+    <constraint>
+      <rule>Data Source - Baselines</rule>
+      <description>MUST load baseline data from docs/logic-sandbox/baselines.json using fs.readFileSync with caching pattern. DO NOT hardcode baseline values.</description>
+    </constraint>
+    <constraint>
+      <rule>15 Muscle Groups</rule>
+      <description>Service MUST handle all 15 muscle groups consistently: Pectoralis, Lats, AnteriorDeltoids, PosteriorDeltoids, Trapezius, Rhomboids, LowerBack, Core, Biceps, Triceps, Forearms, Quadriceps, Hamstrings, Glutes, Calves</description>
+    </constraint>
+    <constraint>
+      <rule>Muscle Name Normalization</rule>
+      <description>Exercise data uses "Deltoids (Anterior)", "Deltoids (Posterior)", "Latissimus Dorsi", etc. Baseline data uses "AnteriorDeltoids", "PosteriorDeltoids", "Lats", etc. MUST implement normalization function like Story 1.3's MUSCLE_NAME_MAP to handle format differences.</description>
+    </constraint>
+    <constraint>
+      <rule>Quality Data Filtering</rule>
+      <description>MUST only process sets where toFailure === true. Submaximal sets should NOT trigger baseline updates (not representative of true capacity).</description>
+    </constraint>
+    <constraint>
+      <rule>Conservative Approach</rule>
+      <description>Baselines only increase, never decrease automatically. Suggest actual volume achieved as new baseline (may underestimate if muscle not limiting factor, but safe and progressive).</description>
+    </constraint>
+    <constraint>
+      <rule>Input Validation</rule>
+      <description>MUST validate workout data structure and throw descriptive errors for invalid inputs following pattern from Stories 1.1, 1.2, 1.3. Services throw errors, routes catch them.</description>
+    </constraint>
+    <constraint>
+      <rule>JSDoc Documentation</rule>
+      <description>MUST include comprehensive JSDoc with @param, @returns, @throws, @example tags. Document algorithm source and formula in comments.</description>
+    </constraint>
+    <constraint>
+      <rule>camelCase Naming</rule>
+      <description>All functions and files use camelCase (checkForBaselineUpdates, baselineUpdater.js) NOT snake_case or PascalCase</description>
+    </constraint>
+    <constraint>
+      <rule>Pure Function Design</rule>
+      <description>Service should NOT directly access database. Receives data as parameters, returns suggestions. Database operations handled by API routes in Epic 2.</description>
+    </constraint>
+    <constraint>
+      <rule>Vitest Testing Framework</rule>
+      <description>MUST use Vitest for testing (established in Stories 1.1, 1.2, 1.3). NOT Jest or other frameworks. Import from 'vitest' not '@testing-library'.</description>
+    </constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>checkForBaselineUpdates</name>
+      <kind>function signature</kind>
+      <signature>export function checkForBaselineUpdates(workoutExercises: Array&lt;Object&gt;, workoutDate: string): Array&lt;Object&gt;</signature>
+      <path>backend/services/baselineUpdater.js</path>
+      <description>Main exported function. Takes workout exercises array and date, returns baseline update suggestions. Throws Error if invalid inputs.</description>
+    </interface>
+    <interface>
+      <name>Workout Exercise Input Format</name>
+      <kind>data structure</kind>
+      <signature>{ exercise: string, sets: [{ weight: number, reps: number, toFailure: boolean }] }</signature>
+      <path>N/A</path>
+      <description>Expected input format for workout exercises. Each exercise has name and array of sets with weight, reps, and toFailure flag.</description>
+    </interface>
+    <interface>
+      <name>Baseline Update Suggestion Output Format</name>
+      <kind>data structure</kind>
+      <signature>{ muscle: string, currentBaseline: number, suggestedBaseline: number, achievedVolume: number, exercise: string, date: string, percentIncrease: number }</signature>
+      <path>N/A</path>
+      <description>Output format for baseline update suggestions. Includes muscle name, current/suggested baselines, volume achieved, triggering exercise, date, and percentage increase for UI display.</description>
+    </interface>
+    <interface>
+      <name>Exercise Library Format</name>
+      <kind>JSON structure</kind>
+      <signature>{ exercises: [{ name: string, muscles: [{ muscle: string, percentage: number }] }] }</signature>
+      <path>docs/logic-sandbox/exercises.json</path>
+      <description>Exercise library structure with muscle engagement percentages. Loaded via loadExerciseLibrary() helper function.</description>
+    </interface>
+    <interface>
+      <name>Baseline Data Format</name>
+      <kind>JSON structure</kind>
+      <signature>[{ muscle: string, baselineCapacity: number, unit: string, lastUpdated: string, source: string, notes: string }]</signature>
+      <path>docs/logic-sandbox/baselines.json</path>
+      <description>Baseline data structure for all 15 muscles. Loaded via loadBaselineData() helper function for comparison.</description>
+    </interface>
+    <interface>
+      <name>Volume Calculation Formula</name>
+      <kind>algorithm interface</kind>
+      <signature>muscleVolume = weight × reps × (muscleEngagement / 100)</signature>
+      <path>Shared across all Epic 1 services</path>
+      <description>Standard volume calculation formula used consistently across fatigueCalculator, exerciseRecommender, and baselineUpdater services.</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Project uses Vitest testing framework (version 4.0.3) with ES6 module imports. Test files use describe/test blocks with expect assertions. Tests are comprehensive with multiple scenarios per acceptance criterion. Pattern established in Stories 1.1, 1.2, 1.3: 40+ tests per service covering happy paths, edge cases, error conditions, and data validation. Mock data uses validated exercises from logic-sandbox. 100% pass rate required before marking story done.
+    </standards>
+    <locations>
+backend/services/__tests__/baselineUpdater.test.js (NEW FILE to be created)
+backend/services/__tests__/fatigueCalculator.test.js (reference for pattern)
+backend/services/__tests__/recoveryCalculator.test.js (reference for pattern)
+backend/services/__tests__/exerciseRecommender.test.js (reference for pattern - 44 tests, comprehensive coverage)
+    </locations>
+    <ideas>
+      <test id="AC1" criterion="1">
+        <name>Baseline Exceeded Detection</name>
+        <description>Given workout with Push-ups (30 reps @ 200lbs, toFailure=true), When baseline for Pectoralis is 3744, Then suggestion generated with suggestedBaseline=4200 (30 × 200 × 0.70)</description>
+      </test>
+      <test id="AC1-edge" criterion="1">
+        <name>Volume Below Baseline - No Suggestion</name>
+        <description>Given workout where all muscle volumes are below current baselines, When service processes workout, Then return empty array (no suggestions)</description>
+      </test>
+      <test id="AC2" criterion="2">
+        <name>Suggested Baseline Equals Actual Volume</name>
+        <description>Given muscle volume of 4200 achieved, When current baseline is 3744, Then suggestedBaseline should equal achievedVolume (4200), not a calculated increase</description>
+      </test>
+      <test id="AC3" criterion="3">
+        <name>Multiple Muscle Suggestions from Compound Exercise</name>
+        <description>Given compound exercise (e.g., Push-ups) that exceeds baselines for Pectoralis, Triceps, and AnteriorDeltoids, When service processes workout, Then return array with 3 separate suggestions</description>
+      </test>
+      <test id="AC4" criterion="4">
+        <name>Suggestion Includes Date and Exercise Context</name>
+        <description>Given workout on "2025-11-11" with Push-ups exceeding baseline, When suggestion generated, Then object includes date="2025-11-11", exercise="Push-ups", and percentIncrease calculated</description>
+      </test>
+      <test id="quality-filter" criterion="1">
+        <name>To Failure Filtering - Only Quality Sets Trigger Updates</name>
+        <description>Given workout with mix of toFailure=true and toFailure=false sets, When processing, Then only sets with toFailure=true should be considered for baseline comparison</description>
+      </test>
+      <test id="muscle-name-map" criterion="1">
+        <name>Muscle Name Normalization</name>
+        <description>Given exercise data uses "Deltoids (Anterior)" and baseline data uses "AnteriorDeltoids", When comparing volumes, Then normalization function correctly maps names for comparison</description>
+      </test>
+      <test id="unknown-exercise" criterion="1">
+        <name>Unknown Exercise Handling</name>
+        <description>Given workout includes exercise not in library, When processing, Then skip unknown exercise gracefully and continue processing valid exercises (no error thrown)</description>
+      </test>
+      <test id="invalid-input-workout" criterion="validation">
+        <name>Invalid Workout Data Structure</name>
+        <description>Given workoutExercises is not an array, When calling checkForBaselineUpdates, Then throw Error with descriptive message "Workout exercises must be an array"</description>
+      </test>
+      <test id="invalid-input-date" criterion="validation">
+        <name>Missing Workout Date</name>
+        <description>Given workoutDate is null or undefined, When calling checkForBaselineUpdates, Then throw Error with descriptive message "Workout date is required"</description>
+      </test>
+      <test id="first-time-user" criterion="edge-case">
+        <name>First-Time User with No Baseline Data</name>
+        <description>Given user has no baseline data (baseline not found in baselines.json), When processing workout, Then skip that muscle gracefully (no error, no suggestion for that muscle)</description>
+      </test>
+      <test id="max-volume-tracking" criterion="1">
+        <name>Track Maximum Volume Per Muscle Across Sets</name>
+        <description>Given exercise has 3 sets with increasing volumes (e.g., 3000, 3500, 4200), When calculating muscle volume, Then use maximum value (4200) for baseline comparison, not sum or average</description>
+      </test>
+      <test id="percent-increase-calc" criterion="4">
+        <name>Percentage Increase Calculation Accuracy</name>
+        <description>Given currentBaseline=3744 and achievedVolume=4200, When calculating percentIncrease, Then result should be 12.2 (rounded to 1 decimal: ((4200-3744)/3744)*100)</description>
+      </test>
+      <test id="output-structure" criterion="3">
+        <name>Suggestion Object Structure Completeness</name>
+        <description>Given valid baseline exceeded, When suggestion created, Then object MUST contain all required fields: muscle, currentBaseline, suggestedBaseline, achievedVolume, exercise, date, percentIncrease</description>
+      </test>
+    </ideas>
+  </tests>
+</story-context>

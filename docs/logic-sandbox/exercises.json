@@ -1,0 +1,1059 @@
+{
+  "exercises": [
+    {
+      "id": "ex02",
+      "name": "Dumbbell Bench Press",
+      "equipment": "dumbbell",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "Pectoralis",
+          "percentage": 65,
+          "primary": true
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 22,
+          "primary": false
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 10,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex38",
+      "name": "Single Arm Dumbbell Bench Press",
+      "equipment": "dumbbell",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "Pectoralis",
+          "percentage": 55,
+          "primary": true
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 20,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 17,
+          "primary": false
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 8,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex03",
+      "name": "Push-up",
+      "equipment": "bodyweight",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "Pectoralis",
+          "percentage": 50,
+          "primary": true
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 35,
+          "primary": false
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 10,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 5,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex05",
+      "name": "Dumbbell Shoulder Press",
+      "equipment": "dumbbell",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 60,
+          "primary": true
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 25,
+          "primary": false
+        },
+        {
+          "muscle": "Pectoralis",
+          "percentage": 10,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 5,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex29",
+      "name": "TRX Reverse Flys",
+      "equipment": "trx",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "PosteriorDeltoids",
+          "percentage": 45,
+          "primary": true
+        },
+        {
+          "muscle": "Rhomboids",
+          "percentage": 30,
+          "primary": false
+        },
+        {
+          "muscle": "Trapezius",
+          "percentage": 20,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 5,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex30",
+      "name": "Dumbbell Tricep Extension",
+      "equipment": "dumbbell",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "Triceps",
+          "percentage": 90,
+          "primary": true
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 7,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex40",
+      "name": "TRX Tricep Extension",
+      "equipment": "trx",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "Triceps",
+          "percentage": 70,
+          "primary": true
+        },
+        {
+          "muscle": "Core",
+          "percentage": 25,
+          "primary": false
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 5,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex31",
+      "name": "TRX Pushup",
+      "equipment": "trx",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "Pectoralis",
+          "percentage": 48,
+          "primary": true
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 32,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 8,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex32",
+      "name": "Incline Dumbbell Bench Press",
+      "equipment": "dumbbell",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "Pectoralis",
+          "percentage": 55,
+          "primary": true
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 25,
+          "primary": false
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 17,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex39",
+      "name": "Single Arm Incline Dumbbell Bench Press",
+      "equipment": "dumbbell",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "Pectoralis",
+          "percentage": 45,
+          "primary": true
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 22,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 20,
+          "primary": false
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 13,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex33",
+      "name": "Dips",
+      "equipment": "bodyweight",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "Pectoralis",
+          "percentage": 50,
+          "primary": true
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 35,
+          "primary": false
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 13,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 2,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex34",
+      "name": "Kettlebell Press",
+      "equipment": "kettlebell",
+      "category": "push",
+      "muscles": [
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 58,
+          "primary": true
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 23,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Pectoralis",
+          "percentage": 7,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex06",
+      "name": "Pull-up",
+      "equipment": "bodyweight",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Lats",
+          "percentage": 55,
+          "primary": true
+        },
+        {
+          "muscle": "Biceps",
+          "percentage": 25,
+          "primary": false
+        },
+        {
+          "muscle": "Rhomboids",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Forearms",
+          "percentage": 8,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex07",
+      "name": "Dumbbell Bicep Curl",
+      "equipment": "dumbbell",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Biceps",
+          "percentage": 85,
+          "primary": true
+        },
+        {
+          "muscle": "Forearms",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex09",
+      "name": "Dumbbell Row",
+      "equipment": "dumbbell",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Lats",
+          "percentage": 40,
+          "primary": true
+        },
+        {
+          "muscle": "Rhomboids",
+          "percentage": 25,
+          "primary": false
+        },
+        {
+          "muscle": "Trapezius",
+          "percentage": 20,
+          "primary": false
+        },
+        {
+          "muscle": "Biceps",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex18",
+      "name": "Dumbbell Upright Row",
+      "equipment": "dumbbell",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Trapezius",
+          "percentage": 45,
+          "primary": true
+        },
+        {
+          "muscle": "PosteriorDeltoids",
+          "percentage": 35,
+          "primary": false
+        },
+        {
+          "muscle": "Biceps",
+          "percentage": 17,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex19",
+      "name": "TRX Bicep Curl",
+      "equipment": "trx",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Biceps",
+          "percentage": 70,
+          "primary": true
+        },
+        {
+          "muscle": "Core",
+          "percentage": 20,
+          "primary": false
+        },
+        {
+          "muscle": "Forearms",
+          "percentage": 7,
+          "primary": false
+        },
+        {
+          "muscle": "Lats",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex20",
+      "name": "Chin-Ups",
+      "equipment": "bodyweight",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Lats",
+          "percentage": 50,
+          "primary": true
+        },
+        {
+          "muscle": "Biceps",
+          "percentage": 30,
+          "primary": false
+        },
+        {
+          "muscle": "Pectoralis",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Rhomboids",
+          "percentage": 8,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex21",
+      "name": "Face Pull",
+      "equipment": "cable",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "PosteriorDeltoids",
+          "percentage": 40,
+          "primary": true
+        },
+        {
+          "muscle": "Rhomboids",
+          "percentage": 35,
+          "primary": false
+        },
+        {
+          "muscle": "Trapezius",
+          "percentage": 22,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex22",
+      "name": "Concentration Curl",
+      "equipment": "dumbbell",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Biceps",
+          "percentage": 90,
+          "primary": true
+        },
+        {
+          "muscle": "Forearms",
+          "percentage": 8,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 2,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex23",
+      "name": "Shoulder Shrugs",
+      "equipment": "dumbbell",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Trapezius",
+          "percentage": 85,
+          "primary": true
+        },
+        {
+          "muscle": "Forearms",
+          "percentage": 10,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 5,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex25",
+      "name": "Incline Hammer Curl",
+      "equipment": "dumbbell",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Biceps",
+          "percentage": 70,
+          "primary": true
+        },
+        {
+          "muscle": "Forearms",
+          "percentage": 30,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex26",
+      "name": "Neutral Grip Pull-ups",
+      "equipment": "bodyweight",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Lats",
+          "percentage": 52,
+          "primary": true
+        },
+        {
+          "muscle": "Biceps",
+          "percentage": 28,
+          "primary": false
+        },
+        {
+          "muscle": "Trapezius",
+          "percentage": 13,
+          "primary": false
+        },
+        {
+          "muscle": "Forearms",
+          "percentage": 7,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex28",
+      "name": "Renegade Rows",
+      "equipment": "dumbbell",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Core",
+          "percentage": 40,
+          "primary": true
+        },
+        {
+          "muscle": "Lats",
+          "percentage": 30,
+          "primary": false
+        },
+        {
+          "muscle": "Rhomboids",
+          "percentage": 18,
+          "primary": false
+        },
+        {
+          "muscle": "Pectoralis",
+          "percentage": 10,
+          "primary": false
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 2,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex41",
+      "name": "TRX Pull-up",
+      "equipment": "trx",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Lats",
+          "percentage": 50,
+          "primary": true
+        },
+        {
+          "muscle": "Biceps",
+          "percentage": 23,
+          "primary": false
+        },
+        {
+          "muscle": "Forearms",
+          "percentage": 15,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 10,
+          "primary": false
+        },
+        {
+          "muscle": "Rhomboids",
+          "percentage": 2,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex42",
+      "name": "Wide Grip Pull-ups",
+      "equipment": "bodyweight",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Lats",
+          "percentage": 60,
+          "primary": true
+        },
+        {
+          "muscle": "Biceps",
+          "percentage": 20,
+          "primary": false
+        },
+        {
+          "muscle": "Trapezius",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Rhomboids",
+          "percentage": 8,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex48",
+      "name": "Dumbbell Pullover",
+      "equipment": "dumbbell",
+      "category": "pull",
+      "muscles": [
+        {
+          "muscle": "Lats",
+          "percentage": 50,
+          "primary": true
+        },
+        {
+          "muscle": "Pectoralis",
+          "percentage": 35,
+          "primary": false
+        },
+        {
+          "muscle": "Triceps",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex12",
+      "name": "Kettlebell Goblet Squat",
+      "equipment": "kettlebell",
+      "category": "legs",
+      "muscles": [
+        {
+          "muscle": "Quadriceps",
+          "percentage": 50,
+          "primary": true
+        },
+        {
+          "muscle": "Glutes",
+          "percentage": 30,
+          "primary": false
+        },
+        {
+          "muscle": "Hamstrings",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 8,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex13",
+      "name": "Dumbbell Romanian Deadlift",
+      "equipment": "dumbbell",
+      "category": "legs",
+      "muscles": [
+        {
+          "muscle": "Hamstrings",
+          "percentage": 45,
+          "primary": true
+        },
+        {
+          "muscle": "Glutes",
+          "percentage": 35,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 15,
+          "primary": false
+        },
+        {
+          "muscle": "LowerBack",
+          "percentage": 5,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex15",
+      "name": "Calf Raises",
+      "equipment": "bodyweight",
+      "category": "legs",
+      "muscles": [
+        {
+          "muscle": "Calves",
+          "percentage": 95,
+          "primary": true
+        },
+        {
+          "muscle": "Core",
+          "percentage": 5,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex35",
+      "name": "Glute Bridges",
+      "equipment": "bodyweight",
+      "category": "legs",
+      "muscles": [
+        {
+          "muscle": "Glutes",
+          "percentage": 75,
+          "primary": true
+        },
+        {
+          "muscle": "Hamstrings",
+          "percentage": 22,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex36",
+      "name": "Dumbbell Stiff Legged Deadlift",
+      "equipment": "dumbbell",
+      "category": "legs",
+      "muscles": [
+        {
+          "muscle": "Hamstrings",
+          "percentage": 42,
+          "primary": true
+        },
+        {
+          "muscle": "Glutes",
+          "percentage": 38,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 15,
+          "primary": false
+        },
+        {
+          "muscle": "LowerBack",
+          "percentage": 5,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex37",
+      "name": "Kettlebell Swings",
+      "equipment": "kettlebell",
+      "category": "legs",
+      "muscles": [
+        {
+          "muscle": "Hamstrings",
+          "percentage": 45,
+          "primary": true
+        },
+        {
+          "muscle": "Glutes",
+          "percentage": 40,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "LowerBack",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex43",
+      "name": "Dumbbell Goblet Squat",
+      "equipment": "dumbbell",
+      "category": "legs",
+      "muscles": [
+        {
+          "muscle": "Quadriceps",
+          "percentage": 50,
+          "primary": true
+        },
+        {
+          "muscle": "Glutes",
+          "percentage": 30,
+          "primary": false
+        },
+        {
+          "muscle": "Hamstrings",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 8,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex47",
+      "name": "Box Step-ups",
+      "equipment": "bodyweight",
+      "category": "legs",
+      "muscles": [
+        {
+          "muscle": "Glutes",
+          "percentage": 45,
+          "primary": true
+        },
+        {
+          "muscle": "Quadriceps",
+          "percentage": 35,
+          "primary": false
+        },
+        {
+          "muscle": "Hamstrings",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Calves",
+          "percentage": 5,
+          "primary": false
+        },
+        {
+          "muscle": "Core",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex16",
+      "name": "Plank",
+      "equipment": "bodyweight",
+      "category": "core",
+      "muscles": [
+        {
+          "muscle": "Core",
+          "percentage": 80,
+          "primary": true
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 18,
+          "primary": false
+        },
+        {
+          "muscle": "Glutes",
+          "percentage": 2,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex17",
+      "name": "Bench Sit-ups",
+      "equipment": "bodyweight",
+      "category": "core",
+      "muscles": [
+        {
+          "muscle": "Core",
+          "percentage": 92,
+          "primary": true
+        },
+        {
+          "muscle": "HipFlexors",
+          "percentage": 8,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex44",
+      "name": "Spider Planks",
+      "equipment": "bodyweight",
+      "category": "core",
+      "muscles": [
+        {
+          "muscle": "Core",
+          "percentage": 85,
+          "primary": true
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 12,
+          "primary": false
+        },
+        {
+          "muscle": "Glutes",
+          "percentage": 3,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex45",
+      "name": "TRX Mountain Climbers",
+      "equipment": "trx",
+      "category": "core",
+      "muscles": [
+        {
+          "muscle": "Core",
+          "percentage": 70,
+          "primary": true
+        },
+        {
+          "muscle": "AnteriorDeltoids",
+          "percentage": 30,
+          "primary": false
+        }
+      ]
+    },
+    {
+      "id": "ex46",
+      "name": "Hanging Leg Raises",
+      "equipment": "bodyweight",
+      "category": "core",
+      "muscles": [
+        {
+          "muscle": "Core",
+          "percentage": 75,
+          "primary": true
+        },
+        {
+          "muscle": "Forearms",
+          "percentage": 20,
+          "primary": false
+        },
+        {
+          "muscle": "Lats",
+          "percentage": 5,
+          "primary": false
+        }
+      ]
+    }
+  ]
+}

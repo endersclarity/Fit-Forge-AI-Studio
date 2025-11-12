@@ -8,6 +8,14 @@ import bodyParser from 'body-parser';
 import * as db from './database/database';
 import { getAnalytics, AnalyticsResponse, calculateWorkoutMetrics, CalculatedMetricsResponse } from './database/analytics';
 import { getExerciseByName } from './constants';
+import { performanceMiddleware } from './middleware/performance';
+// Epic 1 Services (Story 1.1, 1.2, 1.3, 1.4)
+// @ts-ignore - JS module without type definitions
+import { calculateMuscleFatigue } from './services/fatigueCalculator.js';
+// @ts-ignore - JS module without type definitions
+import { checkForBaselineUpdates } from './services/baselineUpdater.js';
+// @ts-ignore - JS module without type definitions
+import { loadExerciseLibrary, loadBaselineData } from './services/dataLoaders.js';
 import {
   ProfileResponse,
   ProfileUpdateRequest,
@@ -36,7 +44,7 @@ import {
 } from './types';
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
 // Middleware
 // CORS configuration - supports both development and production
@@ -64,6 +72,9 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Performance monitoring middleware (Story 4.2)
+app.use(performanceMiddleware);
 
 // Logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
@@ -968,6 +979,561 @@ app.delete('/api/calibrations/:exerciseId', (req: Request, res: Response<{ messa
   } catch (error) {
     console.error('Error deleting calibrations:', error);
     return res.status(500).json({ error: 'Failed to delete calibrations' });
+  }
+});
+
+// ============================================
+// Muscle Intelligence API Endpoints (Epic 2)
+// ============================================
+
+// Additional services (using require for now - to be migrated to ES6)
+const recoveryCalculator = require('./services/recoveryCalculator');
+const exerciseRecommender = require('./services/exerciseRecommender');
+
+// TypeScript interfaces for workout completion endpoint (Story 2.1)
+interface WorkoutCompletionRequest {
+  exercises: Array<{
+    exerciseId: string;
+    sets: Array<{
+      reps: number;
+      weight: number;
+      toFailure: boolean;
+    }>;
+  }>;
+}
+
+interface BaselineSuggestion {
+  muscle: string;
+  currentBaseline: number;
+  suggestedBaseline: number;
+  achievedVolume: number;
+  exercise: string;
+  date: string;
+  percentIncrease: number;
+}
+
+interface WorkoutCompletionResponse {
+  fatigue: Record<string, number>;
+  baselineSuggestions: BaselineSuggestion[];
+  summary: {
+    totalVolume: number;
+    prsAchieved: string[];
+  };
+}
+
+// TypeScript interfaces for recovery timeline endpoint (Story 2.2)
+interface MuscleRecoveryState {
+  name: string;
+  currentFatigue: number;
+  projections: {
+    '24h': number;
+    '48h': number;
+    '72h': number;
+  };
+  fullyRecoveredAt: string | null;
+}
+
+interface RecoveryTimelineResponse {
+  muscles: MuscleRecoveryState[];
+}
+
+// POST /api/workouts/:id/complete - Calculate fatigue after workout completion (Story 2.1)
+app.post('/api/workouts/:id/complete', async (req: Request, res: Response<WorkoutCompletionResponse | ApiErrorResponse>) => {
+  try {
+    const workoutId = parseInt(req.params.id);
+    const { exercises } = req.body as WorkoutCompletionRequest;
+
+    // Input validation
+    if (isNaN(workoutId) || workoutId <= 0) {
+      return res.status(400).json({ error: 'Invalid workout ID' });
+    }
+
+    if (!exercises || !Array.isArray(exercises)) {
+      return res.status(400).json({ error: 'Invalid request: exercises array required' });
+    }
+
+    if (exercises.length === 0) {
+      return res.status(400).json({ error: 'Invalid request: exercises array cannot be empty' });
+    }
+
+    // Validate exercises structure
+    for (const exercise of exercises) {
+      if (!exercise.exerciseId || typeof exercise.exerciseId !== 'string') {
+        return res.status(400).json({ error: 'Invalid request: each exercise must have an exerciseId string' });
+      }
+      if (!exercise.sets || !Array.isArray(exercise.sets)) {
+        return res.status(400).json({ error: 'Invalid request: each exercise must have a sets array' });
+      }
+      for (const set of exercise.sets) {
+        if (typeof set.reps !== 'number' || typeof set.weight !== 'number' || typeof set.toFailure !== 'boolean') {
+          return res.status(400).json({ error: 'Invalid request: each set must have reps (number), weight (number), and toFailure (boolean)' });
+        }
+      }
+    }
+
+    // Verify workout exists in database
+    const allWorkouts = db.getWorkouts();
+    const workout = allWorkouts.find((w: any) => w.id === workoutId);
+
+    if (!workout) {
+      return res.status(404).json({ error: 'Workout not found' });
+    }
+
+    // Load exercise library and baseline data (Epic 1 data loaders)
+    const exerciseLibrary = loadExerciseLibrary();
+    const baselineData = loadBaselineData();
+
+    // Convert baseline data to format expected by calculateMuscleFatigue
+    const baselines: Record<string, number> = {};
+    baselineData.forEach((baseline: any) => {
+      baselines[baseline.muscle] = baseline.baselineCapacity;
+    });
+
+    // Calculate fatigue using Epic 1 service (Story 1.1)
+    // Transform exercises into workout format expected by service
+    const workoutForCalculation = {
+      exercises: exercises.map(ex => ({
+        exerciseId: ex.exerciseId,
+        sets: ex.sets
+      }))
+    };
+
+    const fatigueResults = calculateMuscleFatigue(workoutForCalculation, exerciseLibrary, baselines);
+
+    // Check for baseline updates using Epic 1 service (Story 1.4)
+    const baselineSuggestions = checkForBaselineUpdates(exercises, new Date().toISOString());
+
+    // Store muscle fatigue states in database (AC 3)
+    const muscleStatesToStore: Record<string, any> = {};
+    fatigueResults.muscleStates.forEach((muscleState: any) => {
+      muscleStatesToStore[muscleState.muscle] = {
+        fatiguePercent: muscleState.displayFatigue,
+        volumeToday: muscleState.volume,
+        recoveredAt: null,
+        lastTrained: workout.date || new Date().toISOString()
+      };
+    });
+    db.updateMuscleStates(muscleStatesToStore);
+
+    // Calculate workout summary metrics (AC 4)
+    // Total volume: sum of (weight × reps) for all sets
+    const totalVolume = exercises.reduce((sum, ex) => {
+      return sum + ex.sets.reduce((setSum, set) => setSum + (set.weight * set.reps), 0);
+    }, 0);
+
+    // PRs achieved: Use detectPRsForWorkout to check for personal records
+    const prsDetected = db.detectPRsForWorkout(workoutId);
+    const prsAchieved: string[] = prsDetected.map((pr: any) => pr.exerciseName);
+
+    // Format and return response (AC 4, 5)
+    const fatigue: Record<string, number> = {};
+    fatigueResults.muscleStates.forEach((muscleState: any) => {
+      fatigue[muscleState.muscle] = muscleState.displayFatigue;
+    });
+
+    const response: WorkoutCompletionResponse = {
+      fatigue,
+      baselineSuggestions,
+      summary: {
+        totalVolume: Math.round(totalVolume),
+        prsAchieved
+      }
+    };
+
+    return res.status(200).json(response);
+
+  } catch (error) {
+    console.error('Error completing workout:', error);
+    return res.status(500).json({
+      error: 'Failed to complete workout',
+      message: (error as Error).message
+    });
+  }
+});
+
+// GET /api/recovery/timeline - Fetch current recovery state for all muscles (Story 2.2)
+app.get('/api/recovery/timeline', async (_req: Request, res: Response<RecoveryTimelineResponse | ApiErrorResponse>) => {
+  try {
+    // Define all 15 muscle groups
+    const ALL_MUSCLES = [
+      'Pectoralis', 'Lats', 'AnteriorDeltoids', 'PosteriorDeltoids',
+      'Trapezius', 'Rhomboids', 'LowerBack', 'Core', 'Biceps',
+      'Triceps', 'Forearms', 'Quadriceps', 'Hamstrings', 'Glutes', 'Calves'
+    ];
+
+    // Get latest muscle states from database
+    const muscleStatesFromDb = db.getMuscleStates();
+
+    // Get current timestamp
+    const currentTime = new Date().toISOString();
+
+    // Edge case: No workout history - return all muscles at 0% fatigue
+    if (!muscleStatesFromDb || Object.keys(muscleStatesFromDb).length === 0) {
+      const response: RecoveryTimelineResponse = {
+        muscles: ALL_MUSCLES.map(name => ({
+          name,
+          currentFatigue: 0,
+          projections: { '24h': 0, '48h': 0, '72h': 0 },
+          fullyRecoveredAt: null
+        }))
+      };
+      return res.status(200).json(response);
+    }
+
+    // Build muscle states array for recovery calculator
+    const muscleStatesArray: Array<{ muscle: string, fatiguePercent: number }> = [];
+    const workoutTimestamps: Record<string, string> = {};
+
+    // Process each muscle from database
+    for (const muscleName of ALL_MUSCLES) {
+      const state = muscleStatesFromDb[muscleName];
+
+      if (state && state.lastTrained) {
+        // Muscle has workout history
+        muscleStatesArray.push({
+          muscle: muscleName,
+          fatiguePercent: state.initialFatiguePercent || 0
+        });
+        workoutTimestamps[muscleName] = state.lastTrained;
+      } else {
+        // Muscle has no workout history - treat as 0% fatigue
+        muscleStatesArray.push({
+          muscle: muscleName,
+          fatiguePercent: 0
+        });
+        workoutTimestamps[muscleName] = currentTime; // Use current time for muscles with no history
+      }
+    }
+
+    // Find the most recent workout timestamp (used as reference for recovery calculations)
+    const recentWorkoutTimestamp = Object.values(workoutTimestamps)
+      .filter(ts => ts !== currentTime)
+      .sort()
+      .reverse()[0] || currentTime;
+
+    // Calculate recovery using the Epic 1 service (Story 1.2)
+    const recoveryResult = recoveryCalculator.calculateRecovery(
+      muscleStatesArray,
+      recentWorkoutTimestamp,
+      currentTime
+    );
+
+    // Format response
+    const muscles: MuscleRecoveryState[] = recoveryResult.muscleStates.map((muscleState: any) => ({
+      name: muscleState.muscle,
+      currentFatigue: muscleState.currentFatigue,
+      projections: muscleState.projections,
+      fullyRecoveredAt: muscleState.fullyRecoveredAt
+    }));
+
+    // Sort by current fatigue (most fatigued first) for better UX
+    muscles.sort((a, b) => b.currentFatigue - a.currentFatigue);
+
+    const response: RecoveryTimelineResponse = { muscles };
+    return res.status(200).json(response);
+
+  } catch (error) {
+    console.error('Error getting recovery timeline:', error);
+    return res.status(500).json({
+      error: 'Failed to calculate recovery timeline'
+    });
+  }
+});
+
+// POST /api/recommendations/exercises - Get ranked exercise recommendations
+app.post('/api/recommendations/exercises', async (req: Request, res: Response) => {
+  try {
+    const { targetMuscle, currentWorkout = [], availableEquipment = [] } = req.body;
+
+    // Input validation
+    if (!targetMuscle) {
+      return res.status(400).json({ error: 'targetMuscle is required' });
+    }
+
+    // Define all 15 muscle groups
+    const ALL_MUSCLES = [
+      'Pectoralis', 'Lats', 'AnteriorDeltoids', 'PosteriorDeltoids',
+      'Trapezius', 'Rhomboids', 'LowerBack', 'Core', 'Biceps',
+      'Triceps', 'Forearms', 'Quadriceps', 'Hamstrings', 'Glutes', 'Calves'
+    ];
+
+    // Get current muscle states for recovery data
+    const muscleStatesFromDb = db.getMuscleStates();
+    const currentTime = new Date().toISOString();
+
+    // Edge case: No workout history - all muscles at 0% fatigue
+    if (!muscleStatesFromDb || Object.keys(muscleStatesFromDb).length === 0) {
+      const currentFatigue: Record<string, number> = {};
+      const currentMuscleVolumes: Record<string, number> = {};
+
+      ALL_MUSCLES.forEach(muscle => {
+        currentFatigue[muscle] = 0;
+        currentMuscleVolumes[muscle] = 0;
+      });
+
+      // Get baselines
+      const baselineData = db.getMuscleBaselines();
+      const baselines: Record<string, number> = {};
+      Object.keys(baselineData).forEach(muscle => {
+        const baseline = baselineData[muscle];
+        baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
+      });
+
+      // Get recommendations (all exercises will be safe)
+      const recommendations = exerciseRecommender.recommendExercises({
+        targetMuscle,
+        currentWorkout,
+        currentFatigue,
+        currentMuscleVolumes,
+        baselines,
+        availableEquipment
+      });
+
+      return res.json(recommendations);
+    }
+
+    // Build muscle states array for recovery calculator
+    const muscleStatesArray: Array<{ muscle: string, fatiguePercent: number }> = [];
+    const workoutTimestamps: Record<string, string> = {};
+
+    // Process each muscle from database
+    for (const muscleName of ALL_MUSCLES) {
+      const state = muscleStatesFromDb[muscleName];
+
+      if (state && state.lastTrained) {
+        // Muscle has workout history
+        muscleStatesArray.push({
+          muscle: muscleName,
+          fatiguePercent: state.currentFatiguePercent || 0
+        });
+        workoutTimestamps[muscleName] = state.lastTrained;
+      } else {
+        // Muscle has no workout history - treat as 0% fatigue
+        muscleStatesArray.push({
+          muscle: muscleName,
+          fatiguePercent: 0
+        });
+        workoutTimestamps[muscleName] = currentTime;
+      }
+    }
+
+    // Find the most recent workout timestamp (used as reference for recovery calculations)
+    const recentWorkoutTimestamp = Object.values(workoutTimestamps)
+      .filter(ts => ts !== currentTime)
+      .sort()
+      .reverse()[0] || currentTime;
+
+    // Calculate recovery using the Epic 1 service (Story 1.2)
+    const recoveryResult = recoveryCalculator.calculateRecovery(
+      muscleStatesArray,
+      recentWorkoutTimestamp,
+      currentTime
+    );
+
+    // Build current fatigue and volumes maps for recommender
+    const currentFatigue: Record<string, number> = {};
+    const currentMuscleVolumes: Record<string, number> = {};
+
+    recoveryResult.muscleStates.forEach((muscleState: any) => {
+      currentFatigue[muscleState.muscle] = muscleState.currentFatigue;
+      currentMuscleVolumes[muscleState.muscle] = 0; // Default to 0 for MVP
+    });
+
+    // Get baselines
+    const baselineData = db.getMuscleBaselines();
+    const baselines: Record<string, number> = {};
+    Object.keys(baselineData).forEach(muscle => {
+      const baseline = baselineData[muscle];
+      baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
+    });
+
+    // Get recommendations
+    const recommendations = exerciseRecommender.recommendExercises({
+      targetMuscle,
+      currentWorkout,
+      currentFatigue,
+      currentMuscleVolumes,
+      baselines,
+      availableEquipment
+    });
+
+    return res.json(recommendations);
+
+  } catch (error) {
+    console.error('Error getting exercise recommendations:', error);
+    return res.status(500).json({
+      error: 'Failed to get exercise recommendations',
+      message: (error as Error).message
+    });
+  }
+});
+
+// POST /api/forecast/workout - Predict fatigue for planned exercises
+app.post('/api/forecast/workout', async (req: Request, res: Response) => {
+  try {
+    const { plannedExercises } = req.body;
+
+    // Input validation - AC1: validate required field
+    if (!plannedExercises || !Array.isArray(plannedExercises) || plannedExercises.length === 0) {
+      return res.status(400).json({ error: 'plannedExercises array is required and must not be empty' });
+    }
+
+    // Validate exercise array size
+    if (plannedExercises.length > 50) {
+      return res.status(400).json({ error: 'Maximum 50 exercises allowed' });
+    }
+
+    // Get current timestamp
+    const currentTime = new Date();
+
+    // AC1: Query latest muscle states for all 15 muscles (READ ONLY)
+    const muscleStatesData = db.getMuscleStates();
+    const currentFatigue: Record<string, number> = {};
+
+    // Define all 15 muscle groups
+    const ALL_MUSCLES = [
+      'Pectoralis', 'Lats', 'AnteriorDeltoids', 'PosteriorDeltoids',
+      'Trapezius', 'Rhomboids', 'LowerBack', 'Core', 'Biceps',
+      'Triceps', 'Forearms', 'Quadriceps', 'Hamstrings', 'Glutes', 'Calves'
+    ];
+
+    // AC1: Calculate current recovery for each muscle to get current fatigue
+    if (!muscleStatesData || Object.keys(muscleStatesData).length === 0) {
+      // Edge case: No workout history - all muscles at 0% fatigue
+      ALL_MUSCLES.forEach(muscle => {
+        currentFatigue[muscle] = 0;
+      });
+    } else {
+      // Build muscleStatesArray for recovery calculator (ONCE with full array - Story 2.3 pattern)
+      const muscleStatesArray: Array<{muscle: string, fatiguePercent: number}> = [];
+      let workoutTimestamp = new Date();
+
+      Object.keys(muscleStatesData).forEach(muscle => {
+        const state = muscleStatesData[muscle];
+        muscleStatesArray.push({
+          muscle: muscle,
+          fatiguePercent: state.currentFatiguePercent // Correct property per MuscleStateData type
+        });
+        // Get workout timestamp from first muscle state
+        if (state.lastTrained) {
+          workoutTimestamp = new Date(state.lastTrained);
+        }
+      });
+
+      // Call recovery calculator ONCE with full array (not per-muscle calls)
+      const recoveryData = recoveryCalculator.calculateRecovery(
+        muscleStatesArray,
+        workoutTimestamp.toISOString(),
+        currentTime.toISOString()
+      );
+
+      // Extract currentFatigue from recovery data
+      recoveryData.muscleStates.forEach((state: any) => {
+        currentFatigue[state.muscle] = state.currentFatigue;
+      });
+    }
+
+    // AC2: Get baselines for safe thresholds (READ ONLY)
+    const baselineData = db.getMuscleBaselines();
+    const baselines: Record<string, number> = {};
+    Object.keys(baselineData).forEach(muscle => {
+      const baseline = baselineData[muscle];
+      baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
+    });
+
+    // AC2: Load exercise library for fatigue calculation
+    const exerciseLibrary = loadExerciseLibrary();
+
+    // AC2: Convert plannedExercises to workout structure for fatigue calculator
+    const plannedWorkout = {
+      id: -1,
+      date: currentTime.toISOString(),
+      exercises: plannedExercises
+    };
+
+    // AC2: Calculate predicted fatigue using Epic 1 service (NO DATABASE SAVE)
+    const predictedFatigueResults = calculateMuscleFatigue(plannedWorkout, exerciseLibrary, baselines);
+
+    // AC2: Extract predicted fatigue deltas by muscle
+    const predictedFatigue: Record<string, number> = {};
+    predictedFatigueResults.muscleStates.forEach((ms: any) => {
+      predictedFatigue[ms.muscle] = ms.displayFatigue;
+    });
+
+    // AC3: Combine current fatigue + predicted deltas = projected total fatigue
+    const projectedFatigue: Record<string, number> = {};
+    const bottlenecks: Array<{
+      muscle: string;
+      currentFatigue: number;
+      predictedDelta: number;
+      projectedFatigue: number;
+      threshold: number;
+      severity: 'critical' | 'warning';
+      message: string;
+    }> = [];
+
+    // AC4: Identify bottleneck risks
+    ALL_MUSCLES.forEach(muscle => {
+      const current = currentFatigue[muscle] || 0;
+      const predicted = predictedFatigue[muscle] || 0;
+      const projected = current + predicted;
+
+      projectedFatigue[muscle] = projected;
+
+      // Get threshold from baselines
+      const threshold = baselines[muscle] || 100;
+
+      // AC4: Flag muscles that would exceed safe thresholds
+      if (projected >= threshold) {
+        // Critical bottleneck (>= 100%)
+        bottlenecks.push({
+          muscle,
+          currentFatigue: current,
+          predictedDelta: predicted,
+          projectedFatigue: projected,
+          threshold,
+          severity: 'critical',
+          message: `${muscle} would exceed safe fatigue threshold (${projected.toFixed(1)}% of ${threshold}%)`
+        });
+      } else if (projected >= threshold * 0.8) {
+        // Warning bottleneck (80-100%)
+        bottlenecks.push({
+          muscle,
+          currentFatigue: current,
+          predictedDelta: predicted,
+          projectedFatigue: projected,
+          threshold,
+          severity: 'warning',
+          message: `${muscle} approaching safe limit (${projected.toFixed(1)}% of ${threshold}%)`
+        });
+      }
+    });
+
+    // AC4: Sort bottlenecks by severity (critical first, then warnings)
+    bottlenecks.sort((a, b) => {
+      if (a.severity === 'critical' && b.severity === 'warning') return -1;
+      if (a.severity === 'warning' && b.severity === 'critical') return 1;
+      return b.projectedFatigue - a.projectedFatigue;
+    });
+
+    // AC5: Determine if workout is safe (no critical bottlenecks)
+    const isSafe = !bottlenecks.some(b => b.severity === 'critical');
+
+    // AC5: Format and return response without database modification
+    return res.status(200).json({
+      currentFatigue,
+      predictedFatigue,
+      projectedFatigue,
+      bottlenecks,
+      isSafe
+    });
+
+  } catch (error) {
+    console.error('Error forecasting workout:', error);
+    return res.status(500).json({
+      error: 'Failed to forecast workout fatigue',
+      message: (error as Error).message
+    });
   }
 });
 

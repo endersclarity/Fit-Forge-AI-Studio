@@ -1,0 +1,110 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>2</storyId>
+    <title>Connect RecoveryDashboard to Recovery Timeline API</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/3-2-connect-recoverydashboard-to-recovery-timeline-api.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to see real-time recovery progress for all muscles</iWant>
+    <soThat>I know which muscles are ready for training</soThat>
+    <tasks>
+      - Task 1: Set up RecoveryDashboard component with data fetching (AC: 1)
+      - Task 2: Implement loading state with skeleton UI (AC: 2)
+      - Task 3: Parse and transform API response data (AC: 3)
+      - Task 4: Integrate with RecoveryTimelineView component (AC: 4)
+      - Task 5: Implement color-coded heat map display (AC: 5)
+      - Task 6: Implement auto-refresh with 60-second interval (AC: 6)
+      - Task 7: Implement cleanup on component unmount (AC: 7)
+      - Task 8: Implement muscle detail view on click (AC: 8)
+      - Task 9: Implement comprehensive error handling (AC: Error Handling)
+      - Task 10: Add comprehensive integration tests (Testing)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given user navigates to dashboard page, When RecoveryDashboard component mounts, Then it calls GET /api/recovery/timeline using fetch.
+
+    2. And it displays loading state with skeleton UI while fetching (create skeleton component or use existing loading pattern).
+
+    3. And it receives API response structure with muscles array containing name, currentFatigue, projections (24h/48h/72h), and fullyRecoveredAt.
+
+    4. And it passes response data to RecoveryTimelineView component with required props: muscleStates (transformed API response to MuscleStatesResponse format) and onMuscleClick callback that displays detailed muscle info modal or panel.
+
+    5. And it displays current fatigue levels in heat map with color scale: 0-30% fatigue = green (ready), 31-60% fatigue = yellow (recovering), 61-100% fatigue = red (needs rest).
+
+    6. And it implements auto-refresh using setInterval with 60-second interval.
+
+    7. And it cleans up interval on component unmount using useEffect cleanup function.
+
+    8. And when user clicks a muscle in RecoveryTimelineView, it shows: current fatigue percentage, recovery projections (24h/48h/72h), estimated time to full recovery, last workout date for that muscle.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/epics.md" title="Epics" section="Epic 3 Story 3.2" snippet="Story requirements, acceptance criteria, and API integration details for connecting RecoveryDashboard to recovery timeline endpoint"/>
+      <doc path="docs/architecture.md" title="Architecture" section="Frontend Component Structure" snippet="Component patterns, state management, and API integration patterns for React components"/>
+      <doc path="docs/PRD.md" title="Product Requirements Document" section="Muscle Intelligence Features" snippet="High-level requirements for recovery tracking and muscle state visualization"/>
+      <doc path="docs/api-endpoints.md" title="API Endpoints" section="Recovery Timeline" snippet="Documentation of GET /api/recovery/timeline endpoint structure and responses"/>
+      <doc path="docs/ux-specification.md" title="UX Specification" section="Recovery Dashboard Flow" snippet="User flow and interaction patterns for recovery visualization and muscle detail views"/>
+      <doc path=".bmad-ephemeral/stories/2-2-implement-recovery-timeline-endpoint.md" title="Story 2.2" section="Completion Notes" snippet="Implementation details of the recovery timeline API endpoint that this story will integrate with"/>
+      <doc path=".bmad-ephemeral/stories/3-1-connect-workoutbuilder-to-workout-completion-api.md" title="Story 3.1" section="Dev Notes" snippet="Frontend integration patterns, error handling, and testing approaches established in previous story"/>
+    </docs>
+    <code>
+      <artifact path="components/RecoveryDashboard.tsx" kind="component" symbol="RecoveryDashboard" lines="1-200" reason="Main component that needs to be created or modified to fetch data and integrate with RecoveryTimelineView"/>
+      <artifact path="components/RecoveryTimelineView.tsx" kind="component" symbol="RecoveryTimelineView" lines="1-150" reason="Existing component that displays recovery timeline - requires muscleStates prop and onMuscleClick callback"/>
+      <artifact path="backend/server.ts" kind="api-endpoint" symbol="/api/recovery/timeline" lines="1150-1238" reason="Backend API endpoint implemented in Story 2.2 that this story connects to"/>
+      <artifact path="backend/services/recoveryCalculator.js" kind="service" symbol="calculateRecovery" lines="1-100" reason="Backend service that calculates recovery data returned by API"/>
+      <artifact path="components/WorkoutBuilder.tsx" kind="component" symbol="WorkoutBuilder" lines="1-1200" reason="Reference for frontend API integration pattern established in Story 3.1"/>
+    </code>
+    <dependencies>
+      <node>
+        <dependency name="react" version="^18.x"/>
+        <dependency name="react-router-dom" version="^6.x"/>
+        <dependency name="typescript" version="^5.x"/>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - MUST create or modify RecoveryDashboard component to fetch data from recovery timeline API
+    - MUST use existing RecoveryTimelineView component (no modifications to RecoveryTimelineView)
+    - MUST call GET /api/recovery/timeline endpoint (implemented in Story 2.2)
+    - MUST implement loading state with skeleton UI during data fetch
+    - MUST transform API response to MuscleStatesResponse format expected by RecoveryTimelineView
+    - MUST implement auto-refresh with 60-second interval
+    - MUST clean up interval on component unmount to prevent memory leaks
+    - MUST implement muscle click handler to show detailed info
+    - MUST use TypeScript for type safety
+    - MUST follow frontend integration pattern from Story 3.1 (useState, useEffect, fetch API, error handling)
+  </constraints>
+  <interfaces>
+    <interface name="GET /api/recovery/timeline" kind="REST endpoint" signature="GET /api/recovery/timeline - Response: { muscles: Array&lt;{ name: Muscle, currentFatigue: number, projections: { '24h': number, '48h': number, '72h': number }, fullyRecoveredAt: Date | null }&gt; }" path="backend/server.ts:1150-1238"/>
+    <interface name="RecoveryTimelineViewProps" kind="component interface" signature="interface RecoveryTimelineViewProps { muscleStates: MuscleStatesResponse; onMuscleClick?: (muscleName: string) =&gt; void; }" path="components/RecoveryTimelineView.tsx:6-9"/>
+    <interface name="MuscleStatesResponse" kind="TypeScript interface" signature="Type expected by RecoveryTimelineView - needs to be determined from RecoveryTimelineView component or types.ts" path="types.ts or components/RecoveryTimelineView.tsx"/>
+  </interfaces>
+  <tests>
+    <standards>React Testing Library with Vitest for component integration tests. Mock fetch API calls for controlled test scenarios. Test all acceptance criteria with dedicated test cases. Include edge cases: network errors, empty responses, malformed data. Verify loading states, error states, success states, auto-refresh behavior, and cleanup functions.</standards>
+    <locations>components/__tests__/RecoveryDashboard.integration.test.tsx</locations>
+    <ideas>
+      AC1: Test component mounts and calls GET /api/recovery/timeline on mount
+      AC2: Test loading state with skeleton UI displayed during fetch
+      AC3: Test API response parsing and data extraction (muscles array with all fields)
+      AC4: Test RecoveryTimelineView integration (props passed correctly: muscleStates, onMuscleClick)
+      AC5: Test color-coded heat map display for different fatigue levels (green/yellow/red)
+      AC6: Test auto-refresh interval (fetchRecoveryData called every 60 seconds)
+      AC7: Test cleanup on unmount (clearInterval called)
+      AC8: Test muscle click handler (detail view shown with fatigue, projections, recovery estimate)
+      Error Handling: Test network error handling and message display
+      Error Handling: Test 500 error handling and message display
+      Error Handling: Test retry button functionality
+      Integration: Test full flow from mount to data display with auto-refresh
+      Edge Cases: Test empty muscles array, malformed API response, missing fields
+    </ideas>
+  </tests>
+</story-context>

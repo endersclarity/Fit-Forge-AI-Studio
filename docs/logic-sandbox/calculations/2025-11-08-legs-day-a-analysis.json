@@ -1,0 +1,122 @@
+{
+  "workout": {
+    "id": "workout-2025-11-08-001",
+    "date": "2025-11-08",
+    "category": "Legs",
+    "variation": "A"
+  },
+  "summary": {
+    "totalVolume": 9300,
+    "musclesWorked": 6,
+    "avgFatigue": 44.155245217745225,
+    "maxFatigue": 113.12500000000001,
+    "maxFatigueMuscle": "Hamstrings",
+    "baselinesExceeded": 1
+  },
+  "muscleAnalysis": [
+    {
+      "muscle": "Calves",
+      "volume": 0,
+      "baseline": 34200,
+      "fatiguePercent": 0,
+      "displayFatigue": 0,
+      "exceededBaseline": false,
+      "recoveryDays": 0
+    },
+    {
+      "muscle": "Core",
+      "volume": 1155,
+      "baseline": 9750,
+      "fatiguePercent": 11.846153846153847,
+      "displayFatigue": 11.846153846153847,
+      "exceededBaseline": false,
+      "recoveryDays": 0.7897435897435898
+    },
+    {
+      "muscle": "Glutes",
+      "volume": 3390,
+      "baseline": 10800,
+      "fatiguePercent": 31.38888888888889,
+      "displayFatigue": 31.38888888888889,
+      "exceededBaseline": false,
+      "recoveryDays": 2.0925925925925926
+    },
+    {
+      "muscle": "Hamstrings",
+      "volume": 3258,
+      "baseline": 2880,
+      "fatiguePercent": 113.12500000000001,
+      "displayFatigue": 100,
+      "exceededBaseline": true,
+      "recoveryDays": 6.666666666666667
+    },
+    {
+      "muscle": "LowerBack",
+      "volume": 297,
+      "baseline": 315,
+      "fatiguePercent": 94.28571428571428,
+      "displayFatigue": 94.28571428571428,
+      "exceededBaseline": false,
+      "recoveryDays": 6.285714285714286
+    },
+    {
+      "muscle": "Quadriceps",
+      "volume": 1200,
+      "baseline": 8400,
+      "fatiguePercent": 14.285714285714285,
+      "displayFatigue": 14.285714285714285,
+      "exceededBaseline": false,
+      "recoveryDays": 0.9523809523809523
+    }
+  ],
+  "recoveryTimeline": [
+    {
+      "muscle": "Calves",
+      "initialFatigue": 0,
+      "24h": 0,
+      "48h": 0,
+      "72h": 0,
+      "fullRecoveryDays": 0
+    },
+    {
+      "muscle": "Core",
+      "initialFatigue": 11.846153846153847,
+      "24h": 0,
+      "48h": 0,
+      "72h": 0,
+      "fullRecoveryDays": 0.7897435897435898
+    },
+    {
+      "muscle": "Glutes",
+      "initialFatigue": 31.38888888888889,
+      "24h": 16.38888888888889,
+      "48h": 1.3888888888888893,
+      "72h": 0,
+      "fullRecoveryDays": 2.0925925925925926
+    },
+    {
+      "muscle": "Hamstrings",
+      "initialFatigue": 100,
+      "24h": 85,
+      "48h": 70,
+      "72h": 55,
+      "fullRecoveryDays": 6.666666666666667
+    },
+    {
+      "muscle": "LowerBack",
+      "initialFatigue": 94.28571428571428,
+      "24h": 79.28571428571428,
+      "48h": 64.28571428571428,
+      "72h": 49.28571428571428,
+      "fullRecoveryDays": 6.285714285714286
+    },
+    {
+      "muscle": "Quadriceps",
+      "initialFatigue": 14.285714285714285,
+      "24h": 0,
+      "48h": 0,
+      "72h": 0,
+      "fullRecoveryDays": 0.9523809523809523
+    }
+  ]
+}

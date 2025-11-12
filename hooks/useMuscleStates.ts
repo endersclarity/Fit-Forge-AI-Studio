@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MuscleState } from '../components/fitness';
+import { getRecoveryTimeline } from '../api';
 
 interface UseMuscleStatesReturn {
   muscles: MuscleState[];
@@ -16,27 +17,23 @@ export function useMuscleStates(): UseMuscleStatesReturn {
 
   useEffect(() => {
     let isMounted = true;
+    let intervalId: number | null = null;
 
     async function fetchMuscleStates() {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await fetch('/api/muscle-states');
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        // Story 3.2: Use new recovery timeline API
+        const timelineData = await getRecoveryTimeline();
 
         // Transform API response to MuscleState format
-        const transformedMuscles: MuscleState[] = Object.entries(data).map(([name, state]: [string, any]) => ({
-          name,
-          category: determineMuscleCategory(name),
-          fatiguePercent: state.currentFatiguePercent || 0,
-          lastTrained: state.lastTrained ? new Date(state.lastTrained) : null,
-          recoveredAt: state.daysUntilRecovered <= 0 ? new Date() : null,
+        const transformedMuscles: MuscleState[] = timelineData.muscles.map((muscle) => ({
+          name: muscle.name,
+          category: determineMuscleCategory(muscle.name),
+          fatiguePercent: muscle.currentFatigue,
+          lastTrained: muscle.lastTrained ? new Date(muscle.lastTrained) : null,
+          recoveredAt: muscle.currentFatigue <= 0 ? new Date() : null,
         }));
 
         if (isMounted) {
@@ -53,8 +50,18 @@ export function useMuscleStates(): UseMuscleStatesReturn {
 
     fetchMuscleStates();
 
+    // Story 3.2: Auto-refresh every 60 seconds to show recovery progress
+    intervalId = window.setInterval(() => {
+      if (isMounted) {
+        fetchMuscleStates();
+      }
+    }, 60000);
+
     return () => {
       isMounted = false;
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+      }
     };
   }, [refetchTrigger]);
 

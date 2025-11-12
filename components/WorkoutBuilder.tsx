@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate, ExerciseCategory, Variation } from '../types';
-import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory } from '../api';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate, ExerciseCategory, Variation, Muscle } from '../types';
+import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory, completeWorkout, WorkoutCompletionResponse, WorkoutForecastRequest, WorkoutForecastResponse } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
 import SetConfigurator from './SetConfigurator';
 import SetEditModal from './SetEditModal';
@@ -10,6 +11,7 @@ import TargetModePanel, { MuscleTargets } from './TargetModePanel';
 import { generateWorkoutFromTargets, ExerciseRecommendation } from '../utils/targetDrivenGeneration';
 import { generateSetsFromVolume } from '../utils/setBuilder';
 import ExerciseGroup from './ExerciseGroup';
+import BaselineUpdateModal from './BaselineUpdateModal';
 
 interface WorkoutBuilderProps {
   isOpen: boolean;
@@ -69,6 +71,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   loadedTemplate = null,
   currentBodyweight,
 }) => {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<BuilderMode>('planning');
   const [planningMode, setPlanningMode] = useState<PlanningMode>('forward');
   const [workout, setWorkout] = useState<BuilderWorkout>({
@@ -80,6 +83,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
   const [muscleBaselines, setMuscleBaselines] = useState<MuscleBaselines>({} as MuscleBaselines);
   const [loading, setLoading] = useState(true);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [recommendations, setRecommendations] = useState<ExerciseRecommendation[]>([]);
 
@@ -98,6 +102,16 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   // Auto-save / restore dialog state
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<any>(null);
+
+  // Baseline update modal state (Story 3.1)
+  const [showBaselineModal, setShowBaselineModal] = useState(false);
+  const [baselineSuggestions, setBaselineSuggestions] = useState<WorkoutCompletionResponse['baselineSuggestions']>([]);
+  const [savedWorkoutId, setSavedWorkoutId] = useState<number | null>(null);
+
+  // Forecast state (Story 3.4)
+  const [forecastData, setForecastData] = useState<WorkoutForecastResponse | null>(null);
+  const [isForecastLoading, setIsForecastLoading] = useState(false);
+  const [forecastError, setForecastError] = useState<string | null>(null);
 
   // Refs for auto-save (to avoid interval recreation)
   const workoutRef = useRef(workout);
@@ -179,10 +193,10 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      const [states, baselines] = await Promise.all([
-        muscleStatesAPI.get(),
-        muscleBaselinesAPI.getAll(),
-      ]);
+      const baselines = await muscleBaselinesAPI.get();
+      // Fetch muscle states using direct fetch since muscleStatesAPI.get() was removed
+      const statesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/muscle-states`);
+      const states = await statesResponse.json();
       setMuscleStates(states);
       setMuscleBaselines(baselines);
     } catch (error) {
@@ -244,6 +258,117 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     onToast(`Loaded template: ${template.name}`, 'success');
   };
 
+  // Story 3.4: Data formatting helper for API request
+  const formatSetsForAPI = (sets: BuilderSet[]): WorkoutForecastRequest['exercises'] => {
+    // Group sets by exercise
+    const exerciseMap = new Map<string, Array<{ reps: number; weight: number }>>();
+
+    sets.forEach(set => {
+      if (!exerciseMap.has(set.exerciseId)) {
+        exerciseMap.set(set.exerciseId, []);
+      }
+      exerciseMap.get(set.exerciseId)!.push({
+        reps: set.reps,
+        weight: set.weight
+      });
+    });
+
+    // Convert to API format
+    return Array.from(exerciseMap.entries()).map(([exerciseId, estimatedSets]) => ({
+      exerciseId,
+      estimatedSets
+    }));
+  };
+
+  // Story 3.4: Custom debounce implementation (no lodash dependency)
+  const debounce = <T extends (...args: any[]) => any>(
+    func: T,
+    delay: number
+  ): ((...args: Parameters<T>) => void) & { cancel: () => void } => {
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const debouncedFunc = (...args: Parameters<T>) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        func(...args);
+        timeoutId = null;
+      }, delay);
+    };
+
+    debouncedFunc.cancel = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    return debouncedFunc;
+  };
+
+  // Story 3.4: Debounced forecast fetch function
+  const fetchForecast = useMemo(
+    () => debounce(async (workoutSets: BuilderSet[]) => {
+      if (workoutSets.length === 0) {
+        setForecastData(null);
+        setForecastError(null);
+        return;
+      }
+
+      try {
+        setIsForecastLoading(true);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/forecast/workout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exercises: formatSetsForAPI(workoutSets)
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Failed to fetch forecast' }));
+          throw new Error(errorData.error || 'Failed to fetch forecast');
+        }
+
+        const data = await response.json();
+        setForecastData(data);
+        setForecastError(null);
+      } catch (err: any) {
+        console.error('Forecast fetch error:', err);
+        setForecastError(err.message || 'Unable to calculate forecast');
+        setForecastData(null);
+      } finally {
+        setIsForecastLoading(false);
+      }
+    }, 500),
+    []
+  );
+
+  // Story 3.4: Trigger forecast on workout changes
+  useEffect(() => {
+    if (mode === 'planning') {
+      fetchForecast(workout.sets);
+    }
+
+    // Cleanup debounce on unmount
+    return () => fetchForecast.cancel();
+  }, [workout.sets, mode, fetchForecast]);
+
+  // Story 3.4: Color-coded fatigue display helper
+  const getFatigueColorClass = (fatigue: number): string => {
+    if (fatigue > 100) return 'bg-red-900 text-white'; // Dark red - bottleneck
+    if (fatigue > 90) return 'bg-red-700 text-white'; // Red - high intensity
+    if (fatigue > 60) return 'bg-yellow-600 text-white'; // Yellow - moderate
+    return 'bg-green-600 text-white'; // Green - safe zone
+  };
+
+  /**
+   * LOCAL-ONLY fallback forecast calculation for SimpleMuscleVisualization
+   * Used in execution mode and as backup when API forecast is unavailable
+   * This coexists with API forecast (lines 311-356) which provides detailed bottleneck analysis
+   * DO NOT REMOVE - required for execution mode's "Forecasted End State" display
+   */
   const calculateForecastedMuscleStates = (): MuscleStatesResponse => {
     // Start with current states
     const forecasted = { ...muscleStates };
@@ -558,7 +683,8 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
       return;
     }
 
-    setLoading(true);
+    // Story 3.1 AC2: Set loading state using isCompleting
+    setIsCompleting(true);
     try {
       // Only save completed sets
       const completedSetsData = workout.sets
@@ -571,21 +697,102 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           bodyweight_at_time: s.bodyweightAtTime,
         }));
 
-      await builderAPI.saveBuilderWorkout({
+      const saveResponse = await builderAPI.saveBuilderWorkout({
         sets: completedSetsData,
         timestamp: new Date(workout.startTime!).toISOString(),
         was_executed: true,
       });
 
-      onSuccess();
-      onToast(`Workout saved! ${completedSets.size} sets completed.`, 'success');
-      handleClose();
-    } catch (error) {
-      console.error('Failed to save workout:', error);
-      onToast('Failed to save workout', 'error');
+      // Story 3.1 AC1: Call workout completion API
+      const completionResponse = await completeWorkout(saveResponse.workout_id);
+
+      // Story 3.1 AC3: Extract data from API response
+      const { fatigue, baselineSuggestions, summary } = completionResponse;
+
+      // Story 3.1 AC5: Trigger muscle states refresh (via navigation to dashboard)
+      // Story 3.1 AC4: Handle baseline suggestions modal flow
+      if (baselineSuggestions && baselineSuggestions.length > 0) {
+        // Store suggestions and show modal
+        setBaselineSuggestions(baselineSuggestions);
+        setSavedWorkoutId(saveResponse.workout_id);
+        setShowBaselineModal(true);
+
+        onToast(`Workout saved! You exceeded ${baselineSuggestions.length} baseline${baselineSuggestions.length > 1 ? 's' : ''}!`, 'success');
+        // Story 3.1 AC6: Do NOT navigate yet - wait for user to confirm/decline baseline updates
+      } else {
+        // Story 3.1 AC6: No baseline suggestions, navigate immediately to dashboard
+        onToast(`Workout saved! ${completedSets.size} sets completed.`, 'success');
+        onSuccess();
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      console.error('Failed to complete workout:', error);
+
+      // Story 3.1 AC7: Handle errors with specific user-friendly messages
+      let errorMessage = 'Failed to complete workout';
+
+      if (error.message && error.message.includes('fetch')) {
+        // Network error
+        errorMessage = 'Unable to complete workout. Check your connection.';
+      } else if (error.message && error.message.includes('404')) {
+        errorMessage = 'Workout not found. Please try again.';
+      } else if (error.message && error.message.includes('500')) {
+        errorMessage = 'Calculation failed. Please contact support.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      onToast(errorMessage, 'error');
     } finally {
-      setLoading(false);
+      // Story 3.1 AC2: Always clear loading state
+      setIsCompleting(false);
     }
+  };
+
+  const handleConfirmBaselineUpdates = async () => {
+    if (baselineSuggestions.length === 0) return;
+
+    try {
+      // Get current baselines
+      const currentBaselines = await muscleBaselinesAPI.get();
+
+      // Update baselines with suggestions
+      const updatedBaselines = { ...currentBaselines };
+      for (const suggestion of baselineSuggestions) {
+        const muscleName = suggestion.muscle as keyof MuscleBaselines;
+        if (updatedBaselines[muscleName]) {
+          updatedBaselines[muscleName] = {
+            ...updatedBaselines[muscleName],
+            userOverride: suggestion.suggestedBaseline
+          };
+        }
+      }
+
+      // Save updated baselines
+      await muscleBaselinesAPI.update(updatedBaselines);
+
+      onToast('Baselines updated successfully!', 'success');
+      setShowBaselineModal(false);
+      setBaselineSuggestions([]);
+      setSavedWorkoutId(null);
+      onSuccess();
+
+      // Story 3.1 AC6: Navigate to dashboard after modal closed
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Failed to update baselines:', error);
+      onToast('Failed to update baselines', 'error');
+    }
+  };
+
+  const handleDeclineBaselineUpdates = () => {
+    setShowBaselineModal(false);
+    setBaselineSuggestions([]);
+    setSavedWorkoutId(null);
+    onSuccess();
+
+    // Story 3.1 AC6: Navigate to dashboard after modal closed
+    navigate('/dashboard');
   };
 
   const handleGenerateFromTargets = async (targets: MuscleTargets) => {
@@ -705,10 +912,10 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             </div>
             <button
               onClick={handleFinishWorkout}
-              disabled={loading}
+              disabled={isCompleting}
               className="w-full bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Saving...' : 'Finish Workout'}
+              {isCompleting ? 'Completing...' : 'Finish Workout'}
             </button>
           </div>
         </div>
@@ -773,10 +980,10 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
           <button
             onClick={handleFinishWorkout}
-            disabled={completedSets.size === 0 || loading}
+            disabled={completedSets.size === 0 || isCompleting}
             className="w-full mt-4 bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50"
           >
-            Finish Workout Early
+            {isCompleting ? 'Completing...' : 'Finish Workout Early'}
           </button>
         </div>
       </div>
@@ -920,11 +1127,61 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
                   ))}
                 </div>
 
-                {/* Forecasted Muscle Fatigue */}
+                {/* Story 3.4: Real-Time Workout Forecast Panel */}
+                {mode === 'planning' && (
+                  <div className="mt-4 bg-brand-muted p-4 rounded-lg">
+                    <h4 className="font-semibold mb-3">Workout Forecast</h4>
+
+                    {isForecastLoading ? (
+                      <div className="text-slate-400">Calculating...</div>
+                    ) : forecastError ? (
+                      <div className="text-red-400">{forecastError}</div>
+                    ) : !forecastData ? (
+                      <div className="text-slate-400">Add exercises to see forecast</div>
+                    ) : (
+                      <>
+                        {/* Forecast heat map grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                          {Object.entries(forecastData.forecast).map(([muscle, fatigue]) => (
+                            <div
+                              key={muscle}
+                              className={`p-2 rounded ${getFatigueColorClass(fatigue)}`}
+                            >
+                              <div className="text-sm font-medium">{muscle}</div>
+                              <div className="text-lg font-bold">{Math.round(fatigue)}%</div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Bottleneck warnings */}
+                        {forecastData.bottlenecks.length > 0 && (
+                          <div className="space-y-2">
+                            {forecastData.bottlenecks.map((bottleneck, idx) => (
+                              <div key={idx} className="bg-red-900/20 border border-red-500 p-3 rounded">
+                                <span className="text-red-400 font-semibold">⚠️ {bottleneck.message}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Forecasted Muscle Fatigue - Simplified Visualization */}
                 <div className="mt-4">
                   <h4 className="font-semibold mb-2">Forecasted Muscle Fatigue</h4>
                   <SimpleMuscleVisualization
-                    muscleStates={calculateForecastedMuscleStates()}
+                    muscleStates={forecastData?.forecast
+                      ? Object.entries(forecastData.forecast).reduce((acc, [muscle, fatigue]) => {
+                          acc[muscle] = {
+                            currentFatiguePercent: fatigue,
+                            lastWorkoutDate: muscleStates[muscle]?.lastWorkoutDate || null
+                          };
+                          return acc;
+                        }, {} as MuscleStatesResponse)
+                      : calculateForecastedMuscleStates()
+                    }
                     muscleBaselines={muscleBaselines}
                   />
                 </div>
@@ -1068,6 +1325,19 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             </div>
           </div>
         )}
+
+        {/* Baseline Update Modal (Story 3.1) */}
+        <BaselineUpdateModal
+          isOpen={showBaselineModal}
+          updates={baselineSuggestions.map(suggestion => ({
+            muscle: suggestion.muscle as Muscle,
+            oldMax: suggestion.currentBaseline,
+            newMax: suggestion.suggestedBaseline,
+            sessionVolume: suggestion.volumeAchieved
+          }))}
+          onConfirm={handleConfirmBaselineUpdates}
+          onDecline={handleDeclineBaselineUpdates}
+        />
       </div>
     </div>
   );

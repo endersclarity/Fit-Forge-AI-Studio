@@ -1,0 +1,219 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1</storyId>
+    <title>Implement Fatigue Calculation Service</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/1-1-implement-fatigue-calculation-service.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>backend service</asA>
+    <iWant>to calculate muscle-specific fatigue from workout data</iWant>
+    <soThat>the app can accurately track how much each muscle group was worked</soThat>
+    <tasks>
+      - Task 1: Create backend/services/ folder structure
+      - Task 2: Port exercise data loader from logic-sandbox
+      - Task 3: Implement volume calculation logic
+      - Task 4: Implement fatigue percentage calculation
+      - Task 5: Implement return data structure
+      - Task 6: Add input validation and error handling
+      - Task 7: Export service with CommonJS module pattern
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given a completed workout with sets (reps, weight, exercise), when the fatigue calculation service processes the workout, then it calculates total volume per muscle using formula: (reps × weight × muscleEngagement%) summed across all sets
+
+    2. And it calculates fatigue percentage as: (totalMuscleVolume / baseline) × 100
+
+    3. And it returns fatigue data for all 15 muscle groups
+
+    4. And it tracks when muscles exceed baseline capacity (fatigue > 100%)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- PRD -->
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-2: Muscle Fatigue Tracking</section>
+        <snippet>Calculate muscle-specific fatigue after workout using formula: (totalMuscleVolume / baseline) × 100. Display fatigue as percentage of baseline capacity. Track 15 muscle groups independently.</snippet>
+      </doc>
+
+      <!-- Architecture -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Backend Services Location</section>
+        <snippet>Create backend/services/ folder. Standard Express pattern, separates business logic from data access. CommonJS module.exports pattern for Node.js files. Services throw errors, routes catch and control HTTP codes.</snippet>
+      </doc>
+
+      <!-- Logic Sandbox - Primary Algorithm Source -->
+      <doc>
+        <path>docs/logic-sandbox/scripts/calculate-workout-fatigue.mjs</path>
+        <title>Validated Fatigue Calculation Algorithm</title>
+        <section>Complete Implementation</section>
+        <snippet>Source algorithm for fatigue calculation. Implements volume calculation (reps × weight × muscleEngagement%), accumulates by muscle, calculates fatigue percentage, handles baseline comparisons. Lines 41-64 contain core calculation logic, lines 80-112 contain fatigue analysis. CRITICAL: Keep formulas EXACTLY as validated.</snippet>
+      </doc>
+
+      <!-- Exercise Data -->
+      <doc>
+        <path>docs/logic-sandbox/exercises.json</path>
+        <title>Validated Exercise Library (48 exercises)</title>
+        <section>Exercise Data</section>
+        <snippet>48 validated exercises with corrected muscle engagement percentages (all sum to 100%). Format: {id, name, equipment, category, muscles: [{muscle, percentage, primary}]}. USE THIS DATA - DO NOT USE backend/constants.ts or shared/exercise-library.ts (incorrect percentages).</snippet>
+      </doc>
+
+      <!-- Baselines Data -->
+      <doc>
+        <path>docs/logic-sandbox/baselines.json</path>
+        <title>Muscle Baseline Capacities</title>
+        <section>Baseline Data</section>
+        <snippet>Muscle baseline capacities for all 15 muscle groups. Format: {baselines: [{muscle, baselineCapacity}]}. Example: Quadriceps: 2880 lbs, Hamstrings: 2880 lbs.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Existing Database Module -->
+      <artifact>
+        <path>backend/database/database.js</path>
+        <kind>database-access</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Centralized database access layer. All DB operations go through this module. Use CommonJS module.exports pattern (matches this file).</reason>
+      </artifact>
+
+      <!-- Server Entry Point -->
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>server</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Main Express server with 20+ existing endpoints. Uses TypeScript ES6 export pattern. New service will be imported here for Epic 2 API endpoints.</reason>
+      </artifact>
+
+      <!-- Type Definitions -->
+      <artifact>
+        <path>backend/types.ts</path>
+        <kind>types</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>TypeScript type definitions for backend. May need to reference existing workout/exercise types.</reason>
+      </artifact>
+
+      <!-- Database Schema -->
+      <artifact>
+        <path>backend/database/schema.sql</path>
+        <kind>schema</kind>
+        <symbol>muscle_baselines</symbol>
+        <lines>N/A</lines>
+        <reason>Contains muscle_baselines table schema. Baseline data will come from database queries via this schema.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <better-sqlite3>^12.4.1</better-sqlite3>
+        <axios>^1.12.2</axios>
+        <react>^19.2.0</react>
+        <react-dom>^19.2.0</react-dom>
+      </node>
+      <devDependencies>
+        <vitest>latest</vitest>
+        <jsdom>^27.0.1</jsdom>
+        <testing-library-react>^16.3.0</testing-library-react>
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    1. CRITICAL: Use exercises.json from docs/logic-sandbox (corrected percentages = 100%). DO NOT USE backend/constants.ts or shared/exercise-library.ts (incorrect percentages > 100%).
+
+    2. Service Structure: Location backend/services/fatigueCalculator.js. Export pattern: CommonJS module.exports (matches database.js). Pure functions - no direct DB access.
+
+    3. Algorithm Fidelity: Keep formulas EXACTLY as validated in logic-sandbox. Port from docs/logic-sandbox/scripts/calculate-workout-fatigue.mjs. Maintain exact calculation precision (no premature rounding).
+
+    4. Error Handling: Throw errors for invalid data (caught by routes). Services don't control HTTP status codes.
+
+    5. Naming Convention: camelCase for files and functions (matches existing backend).
+
+    6. 15 Muscle Groups: Must handle all - Pectoralis, Latissimus Dorsi, Deltoids (Anterior), Deltoids (Posterior), Trapezius, Rhomboids, Erector Spinae, Obliques, Rectus Abdominis, Biceps, Triceps, Forearms, Quadriceps, Hamstrings, Glutes, Calves.
+
+    7. Data Sources: Exercise library from JSON file using require() or fs.readFileSync(). Baseline data from function parameter (passed from database by route handler).
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>calculateMuscleFatigue</name>
+      <kind>function</kind>
+      <signature>
+/**
+ * Calculate muscle fatigue from workout data
+ * @param {Object} workout - Workout with exercises and sets
+ * @param {Array} exercises - Exercise library with muscle engagement
+ * @param {Object} baselines - Muscle baseline capacities
+ * @returns {Object} Fatigue data by muscle
+ */
+function calculateMuscleFatigue(workout, exercises, baselines)
+      </signature>
+      <path>backend/services/fatigueCalculator.js</path>
+    </interface>
+
+    <interface>
+      <name>Return Structure</name>
+      <kind>object</kind>
+      <signature>
+{
+  muscleStates: [
+    {
+      muscle: string,
+      volume: number,
+      baseline: number,
+      fatiguePercent: number,
+      displayFatigue: number,  // min(100, fatiguePercent)
+      exceededBaseline: boolean
+    }
+  ],
+  warnings: string[],  // muscles approaching/exceeding capacity
+  timestamp: string    // ISO 8601
+}
+      </signature>
+      <path>backend/services/fatigueCalculator.js</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Test Framework: Vitest (package.json shows vitest as test runner).
+      Pattern: Unit tests for business logic, integration tests for component interactions.
+      Location: backend/services/__tests__/fatigueCalculator.test.js
+      Coverage: Use vitest run --coverage to check coverage.
+      Execution: npm run test or vitest
+    </standards>
+
+    <locations>
+      - backend/services/__tests__/fatigueCalculator.test.js (new file)
+      - backend/__tests__/ (existing test directory)
+    </locations>
+
+    <ideas>
+      Test 1 (AC 1): Valid workout with multiple exercises → Verify correct volume calculation using formula (reps × weight × muscleEngagement%)
+
+      Test 2 (AC 2): Valid workout → Verify correct fatigue percentage calculation: (totalMuscleVolume / baseline) × 100
+
+      Test 3 (AC 3): Valid workout → Verify all 15 muscle groups present in response
+
+      Test 4 (AC 4): Workout exceeding baseline → Verify fatigue > 100% flagged correctly with exceededBaseline: true
+
+      Test 5 (Validation): Invalid inputs (null workout, empty exercises, missing baselines) → Verify descriptive errors thrown
+
+      Test 6 (Edge Case): Zero baseline → Verify descriptive error thrown
+
+      Test 7 (Validation Data): Use "Legs Day A" workout from logic-sandbox (docs/logic-sandbox/workouts/2025-11-08-legs-day-a.json) for validation
+    </ideas>
+  </tests>
+</story-context>

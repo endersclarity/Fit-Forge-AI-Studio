@@ -1,0 +1,295 @@
+<story-context id="{bmad_folder}/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>3</storyId>
+    <title>Implement Exercise Recommendation Scoring Engine</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/1-3-implement-exercise-recommendation-scoring-engine.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>backend service</asA>
+    <iWant>to score and rank exercises based on multiple factors</iWant>
+    <soThat>users get intelligent exercise suggestions that maximize efficiency and safety</soThat>
+    <tasks>- [ ] Task 1: Port recommendation algorithm design from logic-sandbox (AC: 1)
+  - [ ] Subtask 1.1: Read `docs/logic-sandbox/workout-builder-recommendations.md` for validated algorithm design
+  - [ ] Subtask 1.2: Create `backend/services/exerciseRecommender.js`
+  - [ ] Subtask 1.3: Implement 5-factor scoring with configurable weights
+  - [ ] Subtask 1.4: Load exercise data from `docs/logic-sandbox/exercises.json` (48 validated exercises)
+
+- [ ] Task 2: Implement target muscle match factor (AC: 1 - 40% weight)
+  - [ ] Subtask 2.1: Extract target muscle engagement percentage from exercise data
+  - [ ] Subtask 2.2: Calculate score: (targetEngagement / 100) × 40
+  - [ ] Subtask 2.3: Prioritize exercises with higher engagement of target muscle
+  - [ ] Subtask 2.4: Handle edge case: exercise doesn't work target muscle at all
+
+- [ ] Task 3: Implement muscle freshness factor (AC: 1 - 25% weight)
+  - [ ] Subtask 3.1: Calculate weighted average fatigue of all muscles in exercise
+  - [ ] Subtask 3.2: Weight fatigue by muscle engagement percentage
+  - [ ] Subtask 3.3: Calculate freshness score: ((100 - weightedAvgFatigue) / 100) × 25
+  - [ ] Subtask 3.4: Prefer exercises using fresh muscles over fatigued ones
+
+- [ ] Task 4: Implement variety factor (AC: 1 - 15% weight)
+  - [ ] Subtask 4.1: Accept workout history parameter (recent exercises performed)
+  - [ ] Subtask 4.2: Count similar movement patterns in workout history
+  - [ ] Subtask 4.3: Calculate variety score: max(0, 1 - (samePatternCount / 5)) × 15
+  - [ ] Subtask 4.4: Penalize exercises with similar patterns to recent history
+
+- [ ] Task 5: Implement user preference factor (AC: 1 - 10% weight)
+  - [ ] Subtask 5.1: Accept user preferences parameter (preferred/avoided exercises)
+  - [ ] Subtask 5.2: Award 10 points if exercise is in user's favorites list
+  - [ ] Subtask 5.3: Award 0 points if not in favorites
+  - [ ] Subtask 5.4: Filter out exercises in user's avoided list before scoring
+
+- [ ] Task 6: Implement primary/secondary balance factor (AC: 1 - 10% weight)
+  - [ ] Subtask 6.1: Check if target muscle is marked as primary in exercise data
+  - [ ] Subtask 6.2: Award 10 points if target is primary muscle
+  - [ ] Subtask 6.3: Award 5 points if target is secondary muscle
+  - [ ] Subtask 6.4: Prefer primary engagement for better targeting
+
+- [ ] Task 7: Implement bottleneck detection and safety filtering (AC: 2)
+  - [ ] Subtask 7.1: Calculate estimated volume impact for each exercise
+  - [ ] Subtask 7.2: Check if any supporting muscle would exceed 100% fatigue
+  - [ ] Subtask 7.3: Mark exercise as unsafe if bottleneck detected
+  - [ ] Subtask 7.4: Include warning with muscle name and projected fatigue
+
+- [ ] Task 8: Implement equipment availability filtering (AC: 4)
+  - [ ] Subtask 8.1: Accept available equipment parameter (array of equipment types)
+  - [ ] Subtask 8.2: Filter exercises requiring unavailable equipment
+  - [ ] Subtask 8.3: Match equipment strings exactly from exercise data
+  - [ ] Subtask 8.4: Return only exercises user has equipment for
+
+- [ ] Task 9: Implement ranking and return structure (AC: 3)
+  - [ ] Subtask 9.1: Sort scored exercises by total score (descending)
+  - [ ] Subtask 9.2: Separate safe recommendations from unsafe ones
+  - [ ] Subtask 9.3: Return top 10-15 safe recommendations
+  - [ ] Subtask 9.4: Include score breakdown by factor for transparency
+
+- [ ] Task 10: Add input validation and error handling (Testing)
+  - [ ] Subtask 10.1: Validate target muscle is valid muscle group name
+  - [ ] Subtask 10.2: Validate muscle recovery states array structure
+  - [ ] Subtask 10.3: Validate equipment availability array
+  - [ ] Subtask 10.4: Throw descriptive errors for invalid inputs
+
+- [ ] Task 11: Create comprehensive test suite (Testing)
+  - [ ] Subtask 11.1: Test 5-factor scoring with known inputs
+  - [ ] Subtask 11.2: Test bottleneck detection (safe vs unsafe exercises)
+  - [ ] Subtask 11.3: Test equipment filtering
+  - [ ] Subtask 11.4: Test ranking and sorting logic
+  - [ ] Subtask 11.5: Test edge cases (no safe exercises, no equipment, all muscles fatigued)
+
+- [ ] Task 12: Export service with ES6 module pattern (Testing)
+  - [ ] Subtask 12.1: Export `recommendExercises` function with ES6 `export`
+  - [ ] Subtask 12.2: Add comprehensive JSDoc comments with parameter types
+  - [ ] Subtask 12.3: Follow camelCase naming convention
+  - [ ] Subtask 12.4: Document 5-factor scoring algorithm in comments</tasks>
+  </story>
+
+  <acceptanceCriteria>1. **Given** a target muscle group and current muscle recovery states
+   **When** the recommendation engine scores all available exercises
+   **Then** it applies 5-factor scoring algorithm:
+   - Target Muscle Match (40%): Higher score if exercise works the target muscle
+   - Muscle Freshness (25%): Higher score if supporting muscles are recovered
+   - Variety (15%): Higher score for exercises not recently performed
+   - User Preference (10%): Higher score for user's favorite exercises
+   - Primary/Secondary Balance (10%): Prefer exercises where target is primary
+
+2. **And** it filters out exercises that would create bottlenecks (over-fatigued supporting muscles)
+
+3. **And** it returns ranked list with scores and safety warnings
+
+4. **And** it respects equipment availability filters</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/logic-sandbox/workout-builder-recommendations.md</path>
+        <title>Workout Builder: Exercise Recommendation Algorithm</title>
+        <section>Complete Algorithm Design</section>
+        <snippet>Defines the 5-factor scoring algorithm for ranking exercises: Target Muscle Engagement (40%), Muscle Freshness (25%), Movement Variety (15%), User Preference (10%), Primary/Secondary Balance (10%). Includes bottleneck detection, safety filtering, and implementation examples.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>FitForge-Local - Epic Breakdown</title>
+        <section>Epic 1: Muscle Intelligence Services / Story 1.3</section>
+        <snippet>Story 1.3 implements the exercise recommendation scoring engine to rank exercises based on multiple factors including target muscle match, muscle freshness, variety, user preferences, and primary/secondary engagement. Must filter unsafe exercises that would create bottlenecks.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>FitForge-Local Architecture Document</title>
+        <section>Implementation Patterns - Backend Services</section>
+        <snippet>Backend services should be created in `backend/services/` folder. Use ES6 modules (project has "type": "module" in package.json). Services should throw errors for invalid inputs (caught by API routes). All DB operations go through `database.js`.</snippet>
+      </doc>
+      <doc>
+        <path>docs/logic-sandbox/exercises.json</path>
+        <title>Exercise Library - Validated Data</title>
+        <section>48 Validated Exercises</section>
+        <snippet>Contains 48 exercises with corrected muscle engagement percentages that sum to 100%. Each exercise includes: id, name, equipment, category, and muscles array with muscle name, percentage, and primary flag. THIS IS THE AUTHORITATIVE SOURCE - do not use backend/constants.ts or shared/exercise-library.ts.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/services/fatigueCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateMuscleFatigue</symbol>
+        <lines>1-200</lines>
+        <reason>Provides muscle fatigue data structure that exercise recommender needs for muscle freshness scoring. Returns muscleStates array with volume, baseline, and fatiguePercent for each muscle.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/recoveryCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateRecoveryState</symbol>
+        <lines>1-150</lines>
+        <reason>Provides recovery state data structure (currentFatigue, projections, fullyRecoveredAt) that can be used as input to exercise recommender for muscle freshness calculations.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/__tests__/fatigueCalculator.test.js</path>
+        <kind>test</kind>
+        <symbol>Vitest test suite</symbol>
+        <lines>all</lines>
+        <reason>Example test pattern using Vitest framework. Shows how to structure tests with describe/it blocks, test data setup, and comprehensive assertions. Pattern to follow for exerciseRecommender.test.js.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/__tests__/recoveryCalculator.test.js</path>
+        <kind>test</kind>
+        <symbol>Vitest test suite</symbol>
+        <lines>all</lines>
+        <reason>Example test pattern with 33 comprehensive tests including edge cases and error scenarios. Demonstrates input validation testing, algorithm validation, and JSDoc standards.</reason>
+      </artifact>
+      <artifact>
+        <path>docs/logic-sandbox/baselines.json</path>
+        <kind>data</kind>
+        <symbol>Muscle baselines</symbol>
+        <lines>all</lines>
+        <reason>Contains baseline capacity data for all 15 muscle groups. Needed for bottleneck detection - calculate if adding exercise would push any muscle over 100% baseline capacity.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>vitest</package>
+        <version>^4.0.3</version>
+        <usage>Test framework - used for all service testing</usage>
+      </node>
+      <node>
+        <package>better-sqlite3</package>
+        <version>^12.4.1</version>
+        <usage>Database access (if needed for user preferences/history)</usage>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>MUST use ES6 module exports (export keyword, not module.exports) - project has "type": "module" in package.json</constraint>
+    <constraint>MUST load exercise data from docs/logic-sandbox/exercises.json (48 validated exercises with corrected percentages)</constraint>
+    <constraint>DO NOT use backend/constants.ts or shared/exercise-library.ts - they have incorrect percentages that exceed 100%</constraint>
+    <constraint>MUST handle all 15 muscle groups: Pectoralis, Latissimus Dorsi, Deltoids (Anterior), Deltoids (Posterior), Trapezius, Rhomboids, Erector Spinae, Obliques, Rectus Abdominis, Biceps, Triceps, Forearms, Quadriceps, Hamstrings, Glutes, Calves</constraint>
+    <constraint>MUST use camelCase naming convention for files and functions (matches existing codebase pattern)</constraint>
+    <constraint>MUST throw descriptive errors for invalid inputs (errors will be caught by API routes in Epic 2)</constraint>
+    <constraint>MUST follow 5-factor scoring algorithm with exact weights: Target Match 40%, Freshness 25%, Variety 15%, Preference 10%, Primary/Secondary 10%</constraint>
+    <constraint>MUST implement bottleneck detection using conservative 80% fatigue threshold for safety warnings</constraint>
+    <constraint>Test file location: backend/services/__tests__/exerciseRecommender.test.js (follows established pattern)</constraint>
+    <constraint>MUST use Vitest test framework (established in Stories 1.1 and 1.2)</constraint>
+    <constraint>MUST include comprehensive JSDoc comments with @param, @returns, @throws, and @example tags</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>recommendExercises</name>
+      <kind>function signature</kind>
+      <signature>export function recommendExercises(targetMuscle: string, muscleStates: Array, options?: Object): Object</signature>
+      <path>backend/services/exerciseRecommender.js</path>
+      <description>Main recommendation function. Takes target muscle, current muscle states (from fatigue/recovery calculator), and optional parameters (equipment, history, preferences). Returns ranked safe/unsafe recommendations with scores and warnings.</description>
+    </interface>
+    <interface>
+      <name>Muscle State Input (from fatigueCalculator)</name>
+      <kind>data structure</kind>
+      <signature>{ muscle: string, fatiguePercent: number, volume: number, baseline: number }</signature>
+      <path>backend/services/fatigueCalculator.js</path>
+      <description>Output from fatigue calculator - provides current fatigue state for each muscle. Exercise recommender uses fatiguePercent for muscle freshness scoring.</description>
+    </interface>
+    <interface>
+      <name>Recovery State Input (from recoveryCalculator)</name>
+      <kind>data structure</kind>
+      <signature>{ muscle: string, currentFatigue: number, projections: Object, fullyRecoveredAt: string }</signature>
+      <path>backend/services/recoveryCalculator.js</path>
+      <description>Output from recovery calculator - provides current and projected recovery states. Exercise recommender can use currentFatigue for muscle freshness scoring.</description>
+    </interface>
+    <interface>
+      <name>Exercise Library Data Structure</name>
+      <kind>data structure</kind>
+      <signature>{ id: string, name: string, equipment: string, category: string, muscles: [{ muscle: string, percentage: number, primary: boolean }] }</signature>
+      <path>docs/logic-sandbox/exercises.json</path>
+      <description>Exercise data with muscle engagement percentages. MUST load from this JSON file using fs.readFileSync() or dynamic import. Contains 48 validated exercises.</description>
+    </interface>
+    <interface>
+      <name>Options Parameter</name>
+      <kind>function parameter</kind>
+      <signature>{ availableEquipment?: string[], workoutHistory?: string[], userPreferences?: { favorites?: string[], avoid?: string[] } }</signature>
+      <path>backend/services/exerciseRecommender.js</path>
+      <description>Optional parameters for recommendation engine. Equipment filters exercises, history affects variety scoring, preferences affect user preference scoring.</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Vitest framework (v4.0.3) established in Stories 1.1 and 1.2. Test files use describe/it blocks with comprehensive assertions. Pattern: Import service functions, create test data fixtures (exercise library, muscle states, baselines), test each function independently, validate algorithm calculations, test edge cases and error scenarios. All tests must pass before story completion. Test coverage should include: input validation (throw errors), algorithm validation (correct scores), edge cases (no safe exercises, minimal equipment, all muscles fatigued), and integration with fatigue/recovery calculator outputs. Follow JSDoc standards from recoveryCalculator.test.js (33 passing tests example).</standards>
+    <locations>backend/services/__tests__/exerciseRecommender.test.js</locations>
+    <ideas>
+      <testIdea ac="1">
+        <description>Test 5-factor scoring calculation with known inputs</description>
+        <details>Create mock exercise with known muscle engagement (e.g., 65% quads), mock muscle states (e.g., quads 50% fatigued), calculate expected scores for each factor, verify total score matches formula: (65/100)*40 + freshness + variety + preference + primary</details>
+      </testIdea>
+      <testIdea ac="1">
+        <description>Test target muscle match scoring (40% weight)</description>
+        <details>Compare two exercises: one with 85% target engagement vs one with 50%. Verify higher engagement exercise scores higher on target match factor. Test edge case where exercise has 0% engagement of target muscle (should be filtered out).</details>
+      </testIdea>
+      <testIdea ac="1">
+        <description>Test muscle freshness scoring (25% weight)</description>
+        <details>Test exercise with all fresh muscles (0% fatigue) vs one with fatigued muscles (80% avg). Fresh muscles should score max 25 points, fatigued should score lower. Use weighted average by muscle engagement percentage.</details>
+      </testIdea>
+      <testIdea ac="1">
+        <description>Test variety scoring (15% weight)</description>
+        <details>Test with workout history containing similar exercises. If 3 squat patterns already in history, new squat should be penalized. Verify formula: max(0, 1 - (samePatternCount / 5)) * 15</details>
+      </testIdea>
+      <testIdea ac="1">
+        <description>Test user preference scoring (10% weight)</description>
+        <details>Test exercise in favorites list (should get 10 points) vs exercise not in list (0 points). Verify exercises in "avoid" list are filtered out before scoring.</details>
+      </testIdea>
+      <testIdea ac="1">
+        <description>Test primary/secondary balance scoring (10% weight)</description>
+        <details>Test exercise where target muscle is marked primary (10 points) vs secondary (5 points). Verify primary engagement preferred for better targeting.</details>
+      </testIdea>
+      <testIdea ac="2">
+        <description>Test bottleneck detection for unsafe exercises</description>
+        <details>Create scenario where supporting muscle is already 85% fatigued. Exercise targeting different muscle but using fatigued supporting muscle should be flagged unsafe with warning message including muscle name and fatigue level.</details>
+      </testIdea>
+      <testIdea ac="3">
+        <description>Test ranking and sorting logic</description>
+        <details>Create 5 exercises with known scores (87, 75, 60, 45, 30). Verify returned list is sorted descending by score. Verify separate safe vs unsafe lists. Verify top 10-15 limit applied.</details>
+      </testIdea>
+      <testIdea ac="4">
+        <description>Test equipment availability filtering</description>
+        <details>Test with availableEquipment: ["dumbbell", "bodyweight"]. Exercises requiring barbell should be filtered out. Only dumbbell and bodyweight exercises should be scored and returned.</details>
+      </testIdea>
+      <testIdea ac="all">
+        <description>Edge case: No safe exercises available</description>
+        <details>All muscles near 100% fatigue. All exercises should be flagged unsafe. Verify returns empty safe array but populated unsafe array with warnings for each exercise.</details>
+      </testIdea>
+      <testIdea ac="all">
+        <description>Edge case: Target muscle already maxed at 98%</description>
+        <details>Target muscle at 98% fatigue. Most exercises targeting it should be unsafe. Verify recommendations still returned with appropriate warnings.</details>
+      </testIdea>
+      <testIdea ac="all">
+        <description>Edge case: User has minimal equipment (bodyweight only)</description>
+        <details>availableEquipment: ["bodyweight"]. Verify only bodyweight exercises returned. Verify equipment filtering works correctly.</details>
+      </testIdea>
+      <testIdea ac="all">
+        <description>Input validation: Invalid target muscle</description>
+        <details>Test with null target, empty string, invalid muscle name. Should throw descriptive error: "Target muscle is required" or "Invalid muscle group name".</details>
+      </testIdea>
+      <testIdea ac="all">
+        <description>Input validation: Invalid muscle states array</description>
+        <details>Test with null, undefined, non-array, array with invalid objects. Should throw descriptive error: "Muscle states array is required" or "Invalid muscle state format".</details>
+      </testIdea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,129 @@
+{
+  "baselines": [
+    {
+      "muscle": "Pectoralis",
+      "baselineCapacity": 3744,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "TRX Pushup - 3×20 @ 130 lb",
+      "notes": "Maximum volume across all chest exercises in isolation"
+    },
+    {
+      "muscle": "Triceps",
+      "baselineCapacity": 2520,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "TRX Tricep Extension - 3×15 @ 80 lb",
+      "notes": "Maximum volume across all tricep exercises in isolation"
+    },
+    {
+      "muscle": "AnteriorDeltoids",
+      "baselineCapacity": 3024,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Plank - 2 min hold @ 140 lb",
+      "notes": "Front deltoids - stabilization in plank revealed highest capacity"
+    },
+    {
+      "muscle": "PosteriorDeltoids",
+      "baselineCapacity": 1440,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Face Pull - 3×15 @ 80 lb",
+      "notes": "Rear deltoids - maximum volume from face pulls"
+    },
+    {
+      "muscle": "Lats",
+      "baselineCapacity": 3000,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "TRX Pull-up - 3×10 @ 200 lb",
+      "notes": "Maximum volume across all lat exercises in isolation"
+    },
+    {
+      "muscle": "Biceps",
+      "baselineCapacity": 2205,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "TRX Bicep Curl - 3×15 @ 70 lb",
+      "notes": "Maximum volume across all bicep exercises in isolation"
+    },
+    {
+      "muscle": "Rhomboids",
+      "baselineCapacity": 1260,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Face Pull - 3×15 @ 80 lb",
+      "notes": "Maximum volume across all rhomboid exercises in isolation"
+    },
+    {
+      "muscle": "Trapezius",
+      "baselineCapacity": 2678,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Shoulder Shrugs - 3×10 @ 105 lb",
+      "notes": "Maximum volume from isolation exercise"
+    },
+    {
+      "muscle": "Forearms",
+      "baselineCapacity": 1560,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Hanging Leg Raises - 3×13 @ 200 lb",
+      "notes": "Maximum volume from grip-intensive exercises"
+    },
+    {
+      "muscle": "Quadriceps",
+      "baselineCapacity": 8400,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Box Step-ups - 3×40 @ 200 lb",
+      "notes": "Maximum volume across all quad exercises in isolation"
+    },
+    {
+      "muscle": "Glutes",
+      "baselineCapacity": 10800,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Box Step-ups - 3×40 @ 200 lb",
+      "notes": "Highest baseline - glutes are strongest muscle group"
+    },
+    {
+      "muscle": "Hamstrings",
+      "baselineCapacity": 2880,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Box Step-ups - 3×40 @ 200 lb",
+      "notes": "Maximum volume across all hamstring exercises in isolation"
+    },
+    {
+      "muscle": "Calves",
+      "baselineCapacity": 34200,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Calf Raises - 3×60 @ 200 lb",
+      "notes": "Exceptional endurance capacity - highest total volume"
+    },
+    {
+      "muscle": "Core",
+      "baselineCapacity": 9750,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Average of all core exercises",
+      "notes": "Perplexity-verified average: Plank (16,800), Spider Planks (6,000), Mountain Climbers (8,400), Hanging Leg Raises (7,800)"
+    },
+    {
+      "muscle": "LowerBack",
+      "baselineCapacity": 315,
+      "unit": "lbs",
+      "lastUpdated": "2025-11-08",
+      "source": "Romanian Deadlift - 3×20 @ 105 lb",
+      "notes": "Stabilizer muscle in deadlift variations"
+    }
+  ],
+  "metadata": {
+    "lastUpdated": "2025-11-08",
+    "method": "Maximum volume across all exercises performed in isolation",
+    "notes": "Deltoids split into Anterior (push/core) and Posterior (pull). Core baseline uses average per Perplexity research. Push-ups corrected to 65% BW. Isometric holds calculated as seconds × load."
+  }
+}

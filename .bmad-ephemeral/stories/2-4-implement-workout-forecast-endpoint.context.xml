@@ -1,0 +1,518 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>4</storyId>
+    <title>Implement Workout Forecast Endpoint</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/2-4-implement-workout-forecast-endpoint.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>frontend application</asA>
+    <iWant>to preview fatigue impact before starting a workout</iWant>
+    <soThat>users can plan workouts without creating bottlenecks</soThat>
+    <tasks>
+- Task 1: Create POST endpoint structure (AC: 1)
+  - Subtask 1.1: Add route definition `POST /api/forecast/workout` in `backend/server.ts`
+  - Subtask 1.2: Define TypeScript request interface: `WorkoutForecastRequest` with plannedExercises array (exercise, sets, reps, weight)
+  - Subtask 1.3: Define TypeScript response interface: `WorkoutForecastResponse` with current/predicted fatigue, bottlenecks, warnings
+  - Subtask 1.4: Add error handling middleware pattern matching existing endpoints
+  - Subtask 1.5: Validate required field: plannedExercises must be provided and non-empty
+
+- Task 2: Fetch current recovery states (AC: 1)
+  - Subtask 2.1: Query database for latest `muscle_states` record for all 15 muscles using `database.js`
+  - Subtask 2.2: Get current timestamp for recovery calculations
+  - Subtask 2.3: Call `recoveryCalculator.calculateRecovery()` service for each muscle (from Story 1.2)
+  - Subtask 2.4: Build muscle recovery states array with currentFatigue for each muscle
+  - Subtask 2.5: Handle edge case where no workout history exists (all muscles at 0% fatigue)
+
+- Task 3: Calculate predicted fatigue without saving (AC: 2, 3)
+  - Subtask 3.1: Import `fatigueCalculator.calculateMuscleFatigue()` service (from Story 1.1)
+  - Subtask 3.2: Convert request plannedExercises into workout structure expected by fatigue calculator
+  - Subtask 3.3: Load exercise library from `docs/logic-sandbox/exercises.json` (corrected percentages)
+  - Subtask 3.4: Load muscle baselines from database using `getMuscleBaselines()`
+  - Subtask 3.5: Call fatigue calculator with planned workout (no database save)
+  - Subtask 3.6: Extract predicted fatigue deltas by muscle
+  - Subtask 3.7: Combine current fatigue + predicted deltas to get projected total fatigue
+  - Subtask 3.8: Handle service errors and return 500 on calculation failure
+
+- Task 4: Identify bottleneck risks (AC: 4)
+  - Subtask 4.1: For each muscle, compare projected total fatigue against safe threshold (from baselines)
+  - Subtask 4.2: Flag muscles that would exceed 100% fatigue as critical bottlenecks
+  - Subtask 4.3: Flag muscles between 80-100% as warning bottlenecks
+  - Subtask 4.4: Create warnings array with muscle name, currentFatigue, projectedFatigue, threshold, severity
+  - Subtask 4.5: Sort bottlenecks by severity (critical first, then warnings)
+
+- Task 5: Format and return response without database modification (AC: 5)
+  - Subtask 5.1: Build response with current muscle states (from recovery calculation)
+  - Subtask 5.2: Include predicted fatigue deltas by muscle
+  - Subtask 5.3: Include projected total fatigue by muscle (current + predicted)
+  - Subtask 5.4: Include bottleneck warnings array
+  - Subtask 5.5: Include isSafe boolean (true if no critical bottlenecks)
+  - Subtask 5.6: Return 200 status with complete WorkoutForecastResponse
+  - Subtask 5.7: VERIFY no database writes occur during forecast
+
+- Task 6: Add comprehensive endpoint tests (Testing)
+  - Subtask 6.1: Test successful forecast with planned workout
+  - Subtask 6.2: Test recovery service integration (current fatigue calculated correctly)
+  - Subtask 6.3: Test fatigue calculator integration (predicted fatigue calculated correctly)
+  - Subtask 6.4: Test fatigue combination (current + predicted = projected)
+  - Subtask 6.5: Test bottleneck identification (muscles exceeding thresholds flagged)
+  - Subtask 6.6: Test critical vs warning severity levels
+  - Subtask 6.7: Test edge case: no workout history (all muscles fresh, no bottlenecks)
+  - Subtask 6.8: Test edge case: empty plannedExercises array (400 error)
+  - Subtask 6.9: Test edge case: invalid exercise in plan (400 error)
+  - Subtask 6.10: Test edge case: all muscles already maxed (critical bottlenecks for all)
+  - Subtask 6.11: Test 500 error when fatigue calculator fails
+  - Subtask 6.12: VERIFY no database writes occur (mock db.save methods)
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** a planned workout with exercises and estimated sets
+   **When** POST request sent to `/api/forecast/workout`
+   **Then** the endpoint fetches current recovery states
+
+2. **And** it calculates predicted fatigue using fatigue calculator (without saving)
+
+3. **And** it combines current fatigue + predicted additional fatigue
+
+4. **And** it identifies bottleneck risks (muscles that would exceed safe thresholds)
+
+5. **And** it returns forecast without modifying database
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2: API Integration Layer</title>
+        <section>Story 2.4: Implement Workout Forecast Endpoint</section>
+        <snippet>As a frontend application, I want to preview fatigue impact before starting a workout, so that users can plan workouts without creating bottlenecks. Endpoint fetches current recovery states, calculates predicted fatigue using fatigue calculator (without saving), combines current + predicted fatigue, identifies bottleneck risks, and returns forecast without modifying database.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Decisions</title>
+        <section>Decision Summary - API Patterns</section>
+        <snippet>Backend Services Location: Create backend/services/ folder. API Response Format: Direct responses (no wrapper). Error Handling: Throw in services, catch in routes. Database Access: All DB ops through database.js. API URL Pattern: /api/resource/:id/action matches existing endpoints.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Project Structure</title>
+        <section>Existing Structure - Integration Points</section>
+        <snippet>FitForge-Local is 80% complete brownfield project. Components need API integration: WorkoutBuilder.tsx needs Forecast API integration, RecoveryDashboard.tsx needs Timeline API integration, ExerciseRecommendations.tsx needs Scoring API integration.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/2-3-implement-exercise-recommendation-endpoint.md</path>
+        <title>Story 2.3 Learnings</title>
+        <section>Dev Notes - Learnings from Previous Story</section>
+        <snippet>Endpoint Pattern: TypeScript interfaces inline, Recovery service integration pattern, Fatigue calculator import pattern, Error handling with try/catch and 500 status, Edge case handling for no workout history returns all 15 muscles at 0% fatigue, Response format: Direct JSON response (no wrapper). Recovery Service Integration: Recovery calculator expects calculateRecovery(muscleStatesArray, workoutTimestamp, currentTime). Must build array with {muscle: string, fatiguePercent: number} for ALL 15 muscles. Call ONCE with full array (NOT per-muscle calls).</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/1-1-implement-fatigue-calculation-service.md</path>
+        <title>Story 1.1: Fatigue Calculation Service</title>
+        <section>Service Interface</section>
+        <snippet>calculateMuscleFatigue(workout, exercises, baselines) - Calculates muscle-specific fatigue from workout data using validated algorithm ported from docs/logic-sandbox/scripts/calculate-workout-fatigue.mjs. Returns muscleStates array with volume, baseline, fatiguePercent, displayFatigue, exceededBaseline for all 15 muscles.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/1-2-implement-recovery-calculation-service.md</path>
+        <title>Story 1.2: Recovery Calculation Service</title>
+        <section>Service Interface</section>
+        <snippet>calculateRecovery(muscleStatesArray, workoutTimestamp, currentTime) - Calculates current recovery state using linear recovery model: 15% of fatigue per 24 hours. Returns recovery data with currentFatigue, projections at 24h/48h/72h, and full recovery timestamp.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-endpoint</kind>
+        <symbol>POST /api/forecast/workout</symbol>
+        <lines>1368-1461</lines>
+        <reason>Existing forecast endpoint implementation - needs review against story requirements. Already implements current recovery fetch, predicted fatigue calculation, fatigue combination, bottleneck identification, and read-only response.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-endpoint</kind>
+        <symbol>POST /api/workouts/:id/complete</symbol>
+        <lines>1037-1150</lines>
+        <reason>Reference endpoint pattern for Epic 2 - shows TypeScript interfaces, service integration (fatigue calculator), database access, error handling pattern to follow.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-endpoint</kind>
+        <symbol>GET /api/recovery/timeline</symbol>
+        <lines>1151-1239</lines>
+        <reason>Reference endpoint showing recovery service integration pattern - demonstrates recovery calculator usage and response formatting.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-endpoint</kind>
+        <symbol>POST /api/recommendations/exercises</symbol>
+        <lines>1240-1367</lines>
+        <reason>Reference endpoint from Story 2.3 showing recovery + fatigue service composition pattern. Demonstrates handling no workout history edge case (all muscles at 0% fatigue).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/fatigueCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateMuscleFatigue</symbol>
+        <lines>1-200</lines>
+        <reason>Epic 1 Story 1.1 service - calculates muscle-specific fatigue from workout data. Returns muscleStates array with fatiguePercent and displayFatigue for all 15 muscles. Used by forecast endpoint to calculate predicted fatigue.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/recoveryCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateRecovery</symbol>
+        <lines>1-250</lines>
+        <reason>Epic 1 Story 1.2 service - calculates current recovery state using linear recovery model (15% per 24h). Takes muscleStatesArray, workoutTimestamp, currentTime. Returns currentFatigue for each muscle. Used by forecast endpoint to get starting fatigue levels.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/dataLoaders.js</path>
+        <kind>service</kind>
+        <symbol>loadExerciseLibrary</symbol>
+        <lines>1-100</lines>
+        <reason>Shared data loader - loads exercise library from docs/logic-sandbox/exercises.json. Used by forecast endpoint to map exercises to muscle groups with engagement percentages.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/database/database.js</path>
+        <kind>database</kind>
+        <symbol>getMuscleStates</symbol>
+        <lines>265-310</lines>
+        <reason>Database query interface - returns muscle_states for all 15 muscles with fatiguePercent, volumeToday, recoveredAt, lastTrained. Used by forecast endpoint to get current muscle state (READ ONLY).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/database/database.js</path>
+        <kind>database</kind>
+        <symbol>getMuscleBaselines</symbol>
+        <lines>424-440</lines>
+        <reason>Database query interface - returns muscle baselines with systemLearnedMax and userOverride values. Used by forecast endpoint to determine safe thresholds for bottleneck identification (READ ONLY).</reason>
+      </artifact>
+      <artifact>
+        <path>docs/logic-sandbox/exercises.json</path>
+        <kind>data</kind>
+        <symbol>Exercise Library</symbol>
+        <lines>all</lines>
+        <reason>Exercise library with corrected muscle engagement percentages. Required by fatigue calculator to map exercises to muscle groups. Used by forecast endpoint for predicting fatigue from planned exercises.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/__tests__/workoutCompletion.test.ts</path>
+        <kind>test</kind>
+        <symbol>Workout Completion Tests</symbol>
+        <lines>all</lines>
+        <reason>Reference test file for Epic 2 Story 2.1 - shows testing patterns for endpoints that integrate fatigue calculator and database operations.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/__tests__/recoveryTimeline.test.ts</path>
+        <kind>test</kind>
+        <symbol>Recovery Timeline Tests</symbol>
+        <lines>all</lines>
+        <reason>Reference test file for Epic 2 Story 2.2 - shows testing patterns for endpoints that integrate recovery calculator service.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/__tests__/exerciseRecommendations.test.ts</path>
+        <kind>test</kind>
+        <symbol>Exercise Recommendations Tests</symbol>
+        <lines>all</lines>
+        <reason>Reference test file for Epic 2 Story 2.3 - shows testing patterns for endpoints that compose recovery + other services. Includes edge case testing for no workout history.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>express</package>
+        <version>^4.18.0</version>
+        <usage>Web framework for API endpoints</usage>
+      </node>
+      <node>
+        <package>typescript</package>
+        <version>^5.0.0</version>
+        <usage>Type definitions for Request/Response interfaces</usage>
+      </node>
+      <node>
+        <package>vitest</package>
+        <version>^1.0.0</version>
+        <usage>Test framework for endpoint testing</usage>
+      </node>
+      <node>
+        <package>better-sqlite3</package>
+        <version>^9.0.0</version>
+        <usage>Database driver for muscle_states and muscle_baselines queries</usage>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>architecture</type>
+      <rule>All API endpoints must be added to existing backend/server.ts file (no new route files)</rule>
+    </constraint>
+    <constraint>
+      <type>architecture</type>
+      <rule>Follow existing endpoint pattern: TypeScript interfaces inline, try/catch error handling, direct JSON response (no wrapper)</rule>
+    </constraint>
+    <constraint>
+      <type>architecture</type>
+      <rule>All database operations must go through backend/database/database.js centralized layer</rule>
+    </constraint>
+    <constraint>
+      <type>architecture</type>
+      <rule>Services are pure functions - no database access inside service functions</rule>
+    </constraint>
+    <constraint>
+      <type>data-integrity</type>
+      <rule>CRITICAL: Forecast endpoint must be READ ONLY - absolutely no database writes (no saves to muscle_states or any other table)</rule>
+    </constraint>
+    <constraint>
+      <type>data-integrity</type>
+      <rule>Must handle edge case: no workout history exists (return all 15 muscles at 0% fatigue)</rule>
+    </constraint>
+    <constraint>
+      <type>service-integration</type>
+      <rule>Recovery calculator must be called ONCE with full muscleStatesArray (NOT per-muscle calls) - follows pattern from Story 2.3</rule>
+    </constraint>
+    <constraint>
+      <type>service-integration</type>
+      <rule>Fatigue calculator expects workout structure with exercises array containing exerciseId, sets/reps/weight</rule>
+    </constraint>
+    <constraint>
+      <type>module-system</type>
+      <rule>ES6 imports for TypeScript files: import { calculateRecovery } from './services/recoveryCalculator.js'</rule>
+    </constraint>
+    <constraint>
+      <type>module-system</type>
+      <rule>CommonJS for JavaScript services: const { calculateMuscleFatigue } = require('./services/fatigueCalculator.js')</rule>
+    </constraint>
+    <constraint>
+      <type>module-system</type>
+      <rule>Use @ts-ignore for JS modules without TypeScript definitions</rule>
+    </constraint>
+    <constraint>
+      <type>testing</type>
+      <rule>All endpoint tests go in backend/__tests__/ directory using Vitest framework</rule>
+    </constraint>
+    <constraint>
+      <type>testing</type>
+      <rule>Must verify no database writes occur during forecast (mock db.save methods and assert NOT called)</rule>
+    </constraint>
+    <constraint>
+      <type>error-handling</type>
+      <rule>400 errors: Invalid input (missing plannedExercises, empty array, invalid exercise)</rule>
+    </constraint>
+    <constraint>
+      <type>error-handling</type>
+      <rule>500 errors: Service failures or database errors with descriptive messages</rule>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/forecast/workout</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request Body:
+{
+  plannedExercises: [
+    {
+      exercise: string,  // Exercise name from library
+      sets: number,
+      reps: number,
+      weight: number
+    }
+  ]
+}
+
+Response (200 OK):
+{
+  currentFatigue: Record&lt;string, number&gt;,    // Current fatigue % by muscle
+  predictedFatigue: Record&lt;string, number&gt;,   // Predicted delta from workout
+  projectedFatigue: Record&lt;string, number&gt;,   // Combined (current + predicted)
+  bottlenecks: [
+    {
+      muscle: string,
+      currentFatigue: number,
+      predictedDelta: number,
+      projectedFatigue: number,
+      threshold: number,
+      severity: 'critical' | 'warning',
+      message: string
+    }
+  ],
+  isSafe: boolean  // True if no critical bottlenecks
+}
+
+Error Responses:
+400: { error: string }  // Invalid input
+500: { error: string }  // Service failure
+      </signature>
+      <path>backend/server.ts</path>
+    </interface>
+
+    <interface>
+      <name>calculateMuscleFatigue</name>
+      <kind>service function</kind>
+      <signature>
+function calculateMuscleFatigue(
+  workout: { id: any, exercises: Array&lt;{exerciseId: string, sets?: Array&lt;{weight: number, reps: number}&gt;, totalVolume?: number}&gt; },
+  exercises: Array&lt;{id: string, muscles: Array&lt;{muscle: string, percentage: number}&gt;}&gt; | {exercises: Array},
+  baselines: Record&lt;string, number&gt;
+): {
+  muscleStates: Array&lt;{
+    muscle: string,
+    volume: number,
+    baseline: number,
+    fatiguePercent: number,
+    displayFatigue: number,
+    exceededBaseline: boolean
+  }&gt;,
+  warnings: Array&lt;string&gt;,
+  timestamp: string
+}
+      </signature>
+      <path>backend/services/fatigueCalculator.js</path>
+    </interface>
+
+    <interface>
+      <name>calculateRecovery</name>
+      <kind>service function</kind>
+      <signature>
+function calculateRecovery(
+  muscleStatesArray: Array&lt;{muscle: string, fatiguePercent: number}&gt;,
+  workoutTimestamp: Date,
+  currentTime: Date
+): Array&lt;{
+  muscle: string,
+  currentFatigue: number,
+  projection24h: number,
+  projection48h: number,
+  projection72h: number,
+  fullRecoveryAt: string | null
+}&gt;
+      </signature>
+      <path>backend/services/recoveryCalculator.js</path>
+    </interface>
+
+    <interface>
+      <name>getMuscleStates</name>
+      <kind>database query</kind>
+      <signature>
+function getMuscleStates(): Record&lt;string, {
+  fatiguePercent: number,
+  volumeToday: number,
+  recoveredAt: string | null,
+  lastTrained: string | null
+}&gt;
+      </signature>
+      <path>backend/database/database.js</path>
+    </interface>
+
+    <interface>
+      <name>getMuscleBaselines</name>
+      <kind>database query</kind>
+      <signature>
+function getMuscleBaselines(): Record&lt;string, {
+  systemLearnedMax: number,
+  userOverride: number | null
+}&gt;
+      </signature>
+      <path>backend/database/database.js</path>
+    </interface>
+
+    <interface>
+      <name>loadExerciseLibrary</name>
+      <kind>data loader</kind>
+      <signature>
+function loadExerciseLibrary(): {
+  exercises: Array&lt;{
+    id: string,
+    name: string,
+    muscles: Array&lt;{muscle: string, percentage: number}&gt;
+  }&gt;
+}
+      </signature>
+      <path>backend/services/dataLoaders.js</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing Framework: Vitest (established in Epic 1)
+Test Location: backend/__tests__/workoutForecast.test.ts (new file to be created)
+Testing Strategy:
+  - Unit tests: Mock services and database for isolated endpoint testing
+  - Integration tests: Use real services to verify end-to-end flow
+  - Edge case coverage: No workout history, empty inputs, invalid exercises, service failures
+  - Mock Strategy: Mock calculateMuscleFatigue, calculateRecovery, database queries
+  - CRITICAL TEST: Verify no database writes occur (mock db.save and assert NOT called)
+Pattern References:
+  - backend/__tests__/workoutCompletion.test.ts - Endpoint + service integration
+  - backend/__tests__/recoveryTimeline.test.ts - Recovery service integration
+  - backend/__tests__/exerciseRecommendations.test.ts - Service composition patterns
+    </standards>
+
+    <locations>
+      <location>backend/__tests__/workoutForecast.test.ts</location>
+      <location>backend/__tests__/</location>
+    </locations>
+
+    <ideas>
+      <test id="AC1" desc="Fetch current recovery states">
+        <scenario>Valid planned workout → current recovery states fetched and calculated correctly</scenario>
+        <verify>Recovery calculator called with muscleStatesArray, current fatigue extracted for all 15 muscles</verify>
+      </test>
+
+      <test id="AC2" desc="Calculate predicted fatigue without saving">
+        <scenario>Valid planned workout → fatigue calculator called with workout structure</scenario>
+        <verify>Fatigue calculator called with planned exercises, predicted deltas extracted, NO database writes</verify>
+      </test>
+
+      <test id="AC3" desc="Combine current + predicted fatigue">
+        <scenario>Current fatigue + predicted delta → projected total fatigue calculated</scenario>
+        <verify>For each muscle: projectedFatigue = currentFatigue + predictedDelta</verify>
+      </test>
+
+      <test id="AC4" desc="Identify bottleneck risks">
+        <scenario>Projected fatigue exceeds thresholds → bottlenecks flagged with severity</scenario>
+        <verify>Critical: projected >= 100%, Warning: projected >= 80%, sorted by severity</verify>
+      </test>
+
+      <test id="AC5" desc="Return forecast without modifying database">
+        <scenario>Complete forecast flow → response returned with all data</scenario>
+        <verify>Response includes currentFatigue, predictedFatigue, projectedFatigue, bottlenecks, isSafe. VERIFY no database writes</verify>
+      </test>
+
+      <test id="EDGE1" desc="No workout history">
+        <scenario>New user with no workout history → all muscles fresh</scenario>
+        <verify>All 15 muscles return 0% current fatigue, no bottlenecks for reasonable workout</verify>
+      </test>
+
+      <test id="EDGE2" desc="Empty plannedExercises">
+        <scenario>Request with empty plannedExercises array → 400 error</scenario>
+        <verify>Error response: 400 with message about required field</verify>
+      </test>
+
+      <test id="EDGE3" desc="Invalid exercise">
+        <scenario>Planned exercise not in library → 400 error</scenario>
+        <verify>Error response: 400 with descriptive message about invalid exercise</verify>
+      </test>
+
+      <test id="EDGE4" desc="All muscles maxed">
+        <scenario>User already at 100% fatigue on all muscles → critical bottlenecks</scenario>
+        <verify>All planned exercises flagged as critical bottlenecks, isSafe=false</verify>
+      </test>
+
+      <test id="ERROR1" desc="Fatigue calculator failure">
+        <scenario>Fatigue calculator throws error → 500 error handled gracefully</scenario>
+        <verify>Error caught, 500 response with descriptive message</verify>
+      </test>
+
+      <test id="ERROR2" desc="Database query failure">
+        <scenario>Database query fails → 500 error with message</scenario>
+        <verify>Error caught, 500 response indicating database failure</verify>
+      </test>
+
+      <test id="CRITICAL" desc="No database writes verification">
+        <scenario>Complete forecast flow → verify read-only operation</scenario>
+        <verify>Mock all database write methods (saveMuscleStates, etc.) and assert NONE are called during forecast</verify>
+      </test>
+    </ideas>
+  </tests>
+</story-context>
