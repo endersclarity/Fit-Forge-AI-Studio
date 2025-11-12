@@ -60,12 +60,12 @@ development_status:
   3-1-connect-workoutbuilder-to-workout-completion-api: done
   3-2-connect-recoverydashboard-to-recovery-timeline-api: done
   3-3-connect-exerciserecommendations-to-recommendation-api: done
-  3-4-connect-workoutbuilder-to-forecast-api-real-time-preview: review
+  3-4-connect-workoutbuilder-to-forecast-api-real-time-preview: done
   epic-3-retrospective: optional
 
   # Epic 4: Integration Testing & MVP Launch
   epic-4: backlog
-  4-1-end-to-end-integration-testing-local-docker: backlog
+  4-1-end-to-end-integration-testing-local-docker: review
   4-2-performance-validation-optimization: backlog
   4-3-production-deployment-to-railway: backlog
   4-4-production-smoke-testing-monitoring: backlog
