@@ -9,14 +9,79 @@ Audience: AI-assisted debugging and developer reference.
 
 ## [Unreleased] - 2025-11-11
 
-### Epic 3: Frontend Intelligence Integration - IN PROGRESS 🚧
+### Epic 3: Frontend Intelligence Integration - COMPLETE ✅
 
-**Status**: 🚧 3 OF 4 STORIES COMPLETE
+**Status**: ✅ 4 OF 4 STORIES COMPLETE
 **Epic Goal**: Connect existing UI components to new muscle intelligence APIs
 **Prerequisites**: ✅ Epic 2 complete (all 4 API endpoints working)
 **Started**: 2025-11-11
+**Completed**: 2025-11-12
 
-**Epic Summary**: Epic 3 integrates Epic 2's REST API endpoints into the frontend components to provide users with real-time muscle intelligence features through intuitive visualizations and interactive feedback.
+**Epic Summary**: Epic 3 integrates Epic 2's REST API endpoints into the frontend components to provide users with real-time muscle intelligence features through intuitive visualizations and interactive feedback. All 4 stories successfully completed with comprehensive testing and code review approval.
+
+#### Story 3.4: Connect WorkoutBuilder to Forecast API (Real-Time Preview) - COMPLETE ✅
+- **Commits**:
+  - `1b64b5e` - Story 3.4: Initial implementation
+  - `e364c74` - Story 3.4: Code review fixes applied
+- **Date**: 2025-11-12
+- **Status**: ✅ DONE (Code review approved after fixes)
+- **Component**: WorkoutBuilder
+- **Purpose**: Display real-time workout forecast with color-coded muscle fatigue predictions and bottleneck warnings during workout planning
+- **Files Changed**:
+  - `components/WorkoutBuilder.tsx`: Integrated API call to POST /api/forecast/workout with debouncing, color-coded display, and dual forecast functions
+  - `api.ts`: Updated WorkoutForecastRequest/Response interfaces to match API structure
+  - `components/__tests__/WorkoutBuilder.forecast.integration.test.tsx`: Comprehensive test suite (21 tests: 13 unit + 8 React integration)
+  - `.bmad-ephemeral/stories/3-4-connect-workoutbuilder-to-forecast-api-real-time-preview.md`: Story file
+  - `.bmad-ephemeral/stories/3-4-connect-workoutbuilder-to-forecast-api-real-time-preview.context.xml`: Technical context
+  - `docs/sprint-status.yaml`: Status tracking
+- **Integration**:
+  - Connects to POST `/api/forecast/workout` endpoint (Epic 2 Story 2.4)
+  - Real-time updates triggered by Story 3.3's onAddToWorkout callback
+  - Debounced API calls (500ms delay) prevent excessive requests
+  - Dual forecast functions: API forecast (planning mode with bottlenecks) + local fallback (execution mode)
+- **Key Features**:
+  - Custom debounce implementation (no lodash dependency) with 500ms delay
+  - API integration with state management (forecastData, isForecastLoading, forecastError)
+  - Auto-triggers on workout.sets changes via useEffect in planning mode only
+  - Data formatting helper (formatSetsForAPI) groups sets by exercise
+  - Color-coded fatigue display with 4 zones:
+    - Green (0-60%): Safe training zone
+    - Yellow (61-90%): Moderate intensity
+    - Red (91-100%): High intensity, approaching limit
+    - Dark Red (>100%): Bottleneck - overtraining risk
+  - Bottleneck warnings: Red-highlighted warnings when muscles exceed 100% fatigue
+  - Warning messages: "⚠️ Hamstrings would reach 115% - risk of overtraining"
+  - Loading state: "Calculating..." message during API calls
+  - Error handling: User-friendly error messages for network failures and API errors
+  - Empty state: Message when no exercises added yet
+  - Proper cleanup on unmount prevents memory leaks
+- **Testing**:
+  - ✅ 21 comprehensive tests (13 unit + 8 React integration) covering all acceptance criteria
+  - ✅ formatSetsForAPI helper logic tests
+  - ✅ getFatigueColorClass color zone tests
+  - ✅ Debounce behavior tests (delay, cancellation, cleanup)
+  - ✅ API request/response structure validation
+  - ✅ React Testing Library tests: component mounting, rendering, user interactions, DOM verification
+  - ✅ Error handling (network errors, API failures)
+  - ✅ Empty workout handling
+  - ✅ Mode switching (planning ↔ execution)
+- **Code Review**:
+  - Decision (First Pass): **CHANGES REQUESTED** - 1 HIGH, 2 MEDIUM issues
+  - Decision (Second Pass): **APPROVE** ✅
+  - Reviewer: Senior Developer AI (Kaelen)
+  - First Pass Findings:
+    - HIGH: Task 1.5 falsely marked complete (old function not removed)
+    - MEDIUM: Missing React integration tests
+    - MEDIUM: Story 3.3 integration verification needed
+  - Fixes Applied:
+    - Clarified dual forecast functions with documentation (API + local fallback)
+    - Added 8 React Testing Library integration tests
+    - Verified and documented Story 3.3 integration chain
+  - Second Pass Findings: 0 HIGH, 0 MEDIUM, 0 LOW severity issues
+  - All 7 acceptance criteria verified with code evidence
+  - All 55 tasks and subtasks verified complete (zero false completions)
+  - Excellent implementation quality - production-ready
+- **Next Epic**: Epic 4 - Integration Testing & MVP Launch
 
 #### Story 3.3: Connect ExerciseRecommendations to Recommendation API - COMPLETE ✅
 - **Commit**: `82a118c` - Story 3.3: Initial implementation
