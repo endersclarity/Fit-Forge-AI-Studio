@@ -42,6 +42,63 @@ db.pragma('journal_mode = DELETE'); // DELETE mode for Docker compatibility (WAL
 
 console.log(`Database initialized at: ${DB_PATH}`);
 
+// ============================================
+// N+1 Query Detection (Story 4.2)
+// ============================================
+
+/**
+ * Module-level variables for query tracking
+ */
+let queryCount = 0;
+let queryLog: string[] = [];
+let originalPrepare: typeof db.prepare;
+
+/**
+ * Enable query logging and N+1 detection
+ *
+ * Usage:
+ *   enableQueryLogging();
+ *   // ... execute endpoint code ...
+ *   const stats = getQueryStats();
+ *   if (stats.count > 10) console.warn('N+1 issue detected');
+ */
+export function enableQueryLogging(): void {
+  // Reset counters
+  queryCount = 0;
+  queryLog = [];
+
+  // Store original prepare if not already stored
+  if (!originalPrepare) {
+    originalPrepare = db.prepare.bind(db);
+  }
+
+  // Wrap db.prepare to count queries
+  db.prepare = function (sql: string): any {
+    queryCount++;
+    queryLog.push(sql.trim().split('\n')[0].substring(0, 100)); // Store first 100 chars
+
+    // Warn if query count exceeds threshold
+    if (queryCount > 10) {
+      console.warn(`[N+1 WARNING] ${queryCount} queries executed in this request`);
+      console.warn(`Recent queries: ${queryLog.slice(-5).join(', ')}`);
+    }
+
+    return originalPrepare(sql);
+  };
+}
+
+/**
+ * Get query statistics for debugging
+ *
+ * Returns count and log of SQL queries executed since enableQueryLogging() was called
+ */
+export function getQueryStats(): { count: number; log: string[] } {
+  return {
+    count: queryCount,
+    log: [...queryLog]
+  };
+}
+
 // Run schema to create tables
 const schemaPath = path.join(__dirname, 'schema.sql');
 const schema = fs.readFileSync(schemaPath, 'utf8');

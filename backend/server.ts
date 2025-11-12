@@ -8,6 +8,7 @@ import bodyParser from 'body-parser';
 import * as db from './database/database';
 import { getAnalytics, AnalyticsResponse, calculateWorkoutMetrics, CalculatedMetricsResponse } from './database/analytics';
 import { getExerciseByName } from './constants';
+import { performanceMiddleware } from './middleware/performance';
 // Epic 1 Services (Story 1.1, 1.2, 1.3, 1.4)
 // @ts-ignore - JS module without type definitions
 import { calculateMuscleFatigue } from './services/fatigueCalculator.js';
@@ -71,6 +72,9 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Performance monitoring middleware (Story 4.2)
+app.use(performanceMiddleware);
 
 // Logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {

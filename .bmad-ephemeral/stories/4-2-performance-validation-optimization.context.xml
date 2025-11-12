@@ -1,0 +1,461 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>2</storyId>
+    <title>Performance Validation & Optimization</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/4-2-performance-validation-optimization.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>backend engineer</asA>
+    <iWant>to measure and optimize API response times</iWant>
+    <soThat>muscle intelligence features feel instant to users</soThat>
+    <tasks>
+      - Task 1: Implement performance monitoring middleware (AC: 5)
+      - Task 2: Create API performance tests (AC: 6)
+      - Task 3: Create database query profiling script (AC: 7)
+      - Task 4: Implement N+1 query detection (AC: 8)
+      - Task 5: Create Lighthouse audit documentation (AC: 9)
+      - Task 6: Run performance profiling and document results (AC: 1, 2, 3, 4, 10)
+      - Task 7: Optimize any performance bottlenecks (if needed) (AC: 1, 2, 3, 4)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. All API endpoints meet performance targets:
+       - POST /api/workouts/:id/complete - &lt;500ms
+       - GET /api/recovery/timeline - &lt;200ms
+       - POST /api/recommendations/exercises - &lt;300ms
+       - POST /api/forecast/workout - &lt;250ms
+
+    2. Database queries execute efficiently (&lt;50ms each)
+
+    3. No N+1 query issues exist
+
+    4. Frontend initial page load &lt;2s
+
+    5. Performance monitoring middleware implemented in backend to track endpoint response times
+
+    6. API endpoint performance tests exist in backend/__tests__/performance/api-performance.test.ts with:
+       - Database seeded with 50+ workouts for realistic testing
+       - Response time measurements and assertions for all 4 endpoints
+       - Logged actual performance metrics
+
+    7. Database query profiling script at backend/scripts/profile-queries.js with:
+       - EXPLAIN QUERY PLAN analysis for critical queries
+       - Execution time measurement (&lt;50ms target)
+       - Index usage verification
+       - Index statistics reporting
+
+    8. N+1 query detection in database wrapper with:
+       - Query counting and logging
+       - Warning when &gt;10 queries executed
+       - Stats API for debugging
+
+    9. Lighthouse performance audit documentation at docs/testing/lighthouse-audit.md with:
+       - Performance budget targets
+       - CLI and DevTools run instructions
+       - Core Web Vitals thresholds
+
+    10. Performance results documented in CHANGELOG.md including:
+        - Measured API response times (with ✓ if passing targets)
+        - Average database query time
+        - Frontend load metrics
+        - Lighthouse scores
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 4 Story Definition -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 4: Integration Testing & MVP Launch - Story 4.2</title>
+        <section>Story 4.2: Performance Validation & Optimization</section>
+        <snippet>Complete specification including performance targets, middleware implementation patterns, test code examples, database profiling scripts, N+1 detection patterns, and frontend optimization checklists. Lines 1454-1868 provide comprehensive implementation guidance.</snippet>
+      </doc>
+
+      <!-- Architecture -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>FitForge Architecture</title>
+        <section>Backend Architecture & Performance</section>
+        <snippet>Backend service architecture running on Express, database layer using better-sqlite3, API endpoint structure for muscle intelligence services.</snippet>
+      </doc>
+
+      <!-- Database Schema -->
+      <doc>
+        <path>backend/database/schema.sql</path>
+        <title>Database Schema with Indexes</title>
+        <section>Database Indexes (lines 165-179)</section>
+        <snippet>14 existing indexes covering workouts (user_id+date, date), exercise_sets (workout_id, to_failure), muscle_states (user_id), muscle_baselines (user_id, updated_at), detailed_muscle_states (user_id, visualization_muscle_name, role, updated_at), workout_templates (user_id), and user_exercise_calibrations (user_id+exercise_id, user_id).</snippet>
+      </doc>
+
+      <!-- Test Framework Configuration -->
+      <doc>
+        <path>vitest.config.ts</path>
+        <title>Vitest Configuration</title>
+        <section>Test Framework Setup</section>
+        <snippet>Vitest configured with jsdom environment, React plugin, globals enabled. Performance tests will use the same framework with perf_hooks for timing measurements.</snippet>
+      </doc>
+
+      <!-- Docker Environment -->
+      <doc>
+        <path>docker-compose.yml</path>
+        <title>Docker Compose Configuration</title>
+        <section>Local Development Environment</section>
+        <snippet>Frontend on port 3000, backend on port 3001. Performance testing will run against this environment with production-like data volumes.</snippet>
+      </doc>
+
+      <!-- Previous Story Context -->
+      <doc>
+        <path>.bmad-ephemeral/stories/4-1-end-to-end-integration-testing-local-docker.md</path>
+        <title>Story 4.1: End-to-End Integration Testing</title>
+        <section>Dev Notes & Learnings</section>
+        <snippet>Integration testing infrastructure complete with 5 integration tests. Test framework patterns established: Vitest with jsdom, HTTP-only API calls (no direct database imports to avoid SQLite binding issues), test fixtures at backend/__tests__/fixtures/integration-test-data.ts. API contract learnings: verify response formats before writing assertions. Critical: use same HTTP-only pattern for performance tests.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Backend Server -->
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>server</kind>
+        <symbol>app</symbol>
+        <lines>1-100</lines>
+        <reason>Express server where performance middleware will be added. Currently has logging middleware and CORS configuration. Performance middleware should be added after CORS and body-parser, before route handlers.</reason>
+      </artifact>
+
+      <!-- Database Layer -->
+      <artifact>
+        <path>backend/database/database.ts</path>
+        <kind>database</kind>
+        <symbol>db</symbol>
+        <lines>all</lines>
+        <reason>Database wrapper where N+1 query detection will be implemented. Contains db.prepare() calls that need to be wrapped for query counting and logging.</reason>
+      </artifact>
+
+      <!-- Existing Integration Tests (patterns to reuse) -->
+      <artifact>
+        <path>backend/__tests__/integration/workout-completion.test.ts</path>
+        <kind>test</kind>
+        <symbol>integration tests</symbol>
+        <lines>all</lines>
+        <reason>Example integration test using HTTP-only pattern with fetch(). Performance tests will follow same pattern but add performance.now() timing measurements.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/__tests__/integration/recovery-timeline.test.ts</path>
+        <kind>test</kind>
+        <symbol>integration tests</symbol>
+        <lines>all</lines>
+        <reason>Integration test for GET /api/recovery/timeline endpoint. Performance test will measure response time against &lt;200ms target.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/__tests__/integration/exercise-recommendations.test.ts</path>
+        <kind>test</kind>
+        <symbol>integration tests</symbol>
+        <lines>all</lines>
+        <reason>Integration test for POST /api/recommendations/exercises endpoint. Performance test will measure response time against &lt;300ms target.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/__tests__/integration/workout-forecast.test.ts</path>
+        <kind>test</kind>
+        <symbol>integration tests</symbol>
+        <lines>all</lines>
+        <reason>Integration test for POST /api/forecast/workout endpoint. Performance test will measure response time against &lt;250ms target.</reason>
+      </artifact>
+
+      <!-- Test Fixtures (for data seeding) -->
+      <artifact>
+        <path>backend/__tests__/fixtures/integration-test-data.ts</path>
+        <kind>test-fixture</kind>
+        <symbol>test data</symbol>
+        <lines>all</lines>
+        <reason>Centralized test fixtures with TEST_USER_ID, BASELINE_WORKOUT, EXPECTED_FATIGUE values. Can be reused for seeding 50+ workouts in performance tests.</reason>
+      </artifact>
+
+      <!-- API Endpoint Implementations -->
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-endpoint</kind>
+        <symbol>POST /api/workouts/:id/complete</symbol>
+        <lines>search for endpoint</lines>
+        <reason>Workout completion endpoint to be profiled. Target: &lt;500ms response time.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-endpoint</kind>
+        <symbol>GET /api/recovery/timeline</symbol>
+        <lines>search for endpoint</lines>
+        <reason>Recovery timeline endpoint to be profiled. Target: &lt;200ms response time.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-endpoint</kind>
+        <symbol>POST /api/recommendations/exercises</symbol>
+        <lines>search for endpoint</lines>
+        <reason>Exercise recommendations endpoint to be profiled. Target: &lt;300ms response time.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-endpoint</kind>
+        <symbol>POST /api/forecast/workout</symbol>
+        <lines>search for endpoint</lines>
+        <reason>Workout forecast endpoint to be profiled. Target: &lt;250ms response time.</reason>
+      </artifact>
+
+      <!-- Fatigue Calculator Service -->
+      <artifact>
+        <path>backend/services/fatigueCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateMuscleFatigue</symbol>
+        <lines>all</lines>
+        <reason>Core service used by workout completion endpoint. May contain database queries that need optimization.</reason>
+      </artifact>
+
+      <!-- Baseline Updater Service -->
+      <artifact>
+        <path>backend/services/baselineUpdater.js</path>
+        <kind>service</kind>
+        <symbol>checkForBaselineUpdates</symbol>
+        <lines>all</lines>
+        <reason>Service that may execute multiple database queries. Candidate for N+1 query detection.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="express" version="^4.x" purpose="Web server framework" />
+        <package name="better-sqlite3" version="^12.4.1" purpose="Database driver with sync API" />
+        <package name="vitest" version="^4.0.3" purpose="Test framework for performance tests" />
+        <package name="tsx" version="^4.20.6" purpose="TypeScript execution for scripts" />
+        <package name="@types/node" version="^22.14.0" purpose="Node.js types including perf_hooks" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Performance middleware must not significantly impact response times (&lt;5ms overhead)
+    - N+1 query detection must be opt-in to avoid production performance impact
+    - Use HTTP-only testing pattern (no direct database imports) to avoid SQLite binding issues on host machine
+    - Tests must run against Docker environment (localhost:3001) not in-memory database
+    - Seed realistic data volumes (50+ workouts) for accurate performance measurements
+    - Database profiling scripts must run standalone (not as Vitest tests) to avoid test framework overhead
+    - Performance results must be documented in CHANGELOG.md for baseline tracking
+    - Existing database indexes must be verified (do not add new indexes without EXPLAIN QUERY PLAN analysis)
+    - Frontend performance testing is optional but documentation required (Lighthouse audit guide)
+    - All performance tests must log actual measured values (not just pass/fail)
+  </constraints>
+
+  <interfaces>
+    <!-- API Endpoints to Profile -->
+    <interface>
+      <name>POST /api/workouts/:id/complete</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/workouts/:id/complete
+Request: { workoutId: number }
+Response: { fatigue: Record&lt;string, number&gt;, baselineUpdates?: Array, recommendations?: Array }
+Target: &lt;500ms</signature>
+      <path>backend/server.ts</path>
+    </interface>
+
+    <interface>
+      <name>GET /api/recovery/timeline</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/recovery/timeline
+Response: { muscles: Array&lt;{ name: string, current: number, projections: Array }&gt; }
+Target: &lt;200ms</signature>
+      <path>backend/server.ts</path>
+    </interface>
+
+    <interface>
+      <name>POST /api/recommendations/exercises</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/recommendations/exercises
+Request: { targetMuscle: string, equipmentAvailable: string[] }
+Response: { recommendations: Array&lt;{ exercise: string, score: number, reason: string }&gt; }
+Target: &lt;300ms</signature>
+      <path>backend/server.ts</path>
+    </interface>
+
+    <interface>
+      <name>POST /api/forecast/workout</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/forecast/workout
+Request: { exercises: Array&lt;{ exerciseId: string, sets: number, reps: number, weight: number }&gt; }
+Response: { projectedFatigue: Record&lt;string, number&gt;, warnings?: Array }
+Target: &lt;250ms</signature>
+      <path>backend/server.ts</path>
+    </interface>
+
+    <!-- Performance Monitoring Interface -->
+    <interface>
+      <name>performanceMiddleware</name>
+      <kind>Express middleware</kind>
+      <signature>export const performanceMiddleware = (req: Request, res: Response, next: NextFunction) =&gt; void
+Logs: [PERF] method path: duration(ms)
+Warns: [SLOW] if duration &gt; 200ms</signature>
+      <path>backend/middleware/performance.ts (to be created)</path>
+    </interface>
+
+    <!-- Query Logging Interface -->
+    <interface>
+      <name>enableQueryLogging</name>
+      <kind>Database wrapper function</kind>
+      <signature>export const enableQueryLogging = () =&gt; void
+Wraps db.prepare() to count and log queries
+Warns when queryCount &gt; 10</signature>
+      <path>backend/database/database.ts</path>
+    </interface>
+
+    <interface>
+      <name>getQueryStats</name>
+      <kind>Database wrapper function</kind>
+      <signature>export const getQueryStats = () =&gt; { count: number, log: string[] }
+Returns query statistics for debugging</signature>
+      <path>backend/database/database.ts</path>
+    </interface>
+
+    <!-- Node.js Performance API -->
+    <interface>
+      <name>performance.now()</name>
+      <kind>Node.js API</kind>
+      <signature>import { performance } from 'perf_hooks'
+const start = performance.now()
+const duration = performance.now() - start
+Returns high-resolution millisecond timestamp</signature>
+      <path>perf_hooks module</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest test framework with HTTP-only API calls against Docker environment (localhost:3001).
+      Performance tests use performance.now() from perf_hooks for high-resolution timing.
+      All tests must log actual measured values using console.log() for documentation.
+      Seed realistic data volumes (50+ workouts) in beforeAll hooks.
+      Assert response times against targets using expect(duration).toBeLessThan(target).
+      Database profiling uses standalone scripts (not Vitest) to avoid test framework overhead.
+      EXPLAIN QUERY PLAN analysis to verify index usage.
+      N+1 detection wraps db.prepare() to count queries per endpoint.
+    </standards>
+
+    <locations>
+      - Performance tests: backend/__tests__/performance/api-performance.test.ts (to be created)
+      - Database profiling: backend/scripts/profile-queries.js (to be created)
+      - Integration tests (reference): backend/__tests__/integration/*.test.ts
+      - Test fixtures: backend/__tests__/fixtures/integration-test-data.ts
+    </locations>
+
+    <ideas>
+      <!-- AC 6: API Performance Tests -->
+      <test id="ac-6" description="API endpoint performance tests with 50+ workout data">
+        Test: POST /api/workouts/:id/complete responds in &lt;500ms
+        - Seed 50 workouts in beforeAll using fetch POST /api/workouts
+        - Store testWorkoutId from first workout
+        - Measure duration with performance.now() before/after fetch
+        - Assert response.ok and duration &lt; 500
+        - Log actual duration for documentation
+
+        Test: GET /api/recovery/timeline responds in &lt;200ms
+        - Use data seeded in beforeAll
+        - Measure duration and assert &lt; 200ms
+        - Log actual duration
+
+        Test: POST /api/recommendations/exercises responds in &lt;300ms
+        - Request with targetMuscle: 'Quadriceps', equipmentAvailable: ['Dumbbells']
+        - Measure duration and assert &lt; 300ms
+        - Log actual duration
+
+        Test: POST /api/forecast/workout responds in &lt;250ms
+        - Request with test exercises (ex02: Dumbbell Bench 3x10@50)
+        - Measure duration and assert &lt; 250ms
+        - Log actual duration
+      </test>
+
+      <!-- AC 7: Database Query Profiling -->
+      <test id="ac-7" description="Database query profiling script">
+        Script: backend/scripts/profile-queries.js
+        - Require better-sqlite3 and open ./data/fitforge.db
+        - Enable timer: db.pragma('timer = ON')
+        - Define array of critical queries (muscle states, workout with sets, baselines, recent workouts)
+        - For each query: run EXPLAIN QUERY PLAN, measure execution time, log results
+        - Mark PASS (&lt;50ms) or SLOW (&gt;50ms)
+        - Query sqlite_master for all idx_* indexes and log count/list
+      </test>
+
+      <!-- AC 8: N+1 Query Detection -->
+      <test id="ac-8" description="N+1 query detection in database wrapper">
+        Implementation: backend/database/database.ts
+        - Add module-level variables: queryCount = 0, queryLog: string[] = []
+        - Export enableQueryLogging() to reset counters and wrap db.prepare
+        - Increment queryCount and push SQL to queryLog on each db.prepare() call
+        - Log warning if queryCount &gt; 10 with recent queries
+        - Export getQueryStats() returning { count, log }
+        - Document usage pattern in comments
+      </test>
+
+      <!-- AC 5: Performance Monitoring Middleware -->
+      <test id="ac-5" description="Performance monitoring middleware">
+        Implementation: backend/middleware/performance.ts
+        - Export performanceMiddleware function accepting (req, res, next)
+        - Capture performance.now() at request start
+        - Add res.on('finish') listener to calculate duration
+        - Log slow requests (&gt;200ms) with [SLOW] prefix
+        - Log all requests with [PERF] prefix and duration
+        - Add to backend/server.ts: app.use(performanceMiddleware)
+      </test>
+
+      <!-- AC 9: Lighthouse Documentation -->
+      <test id="ac-9" description="Lighthouse audit documentation">
+        Documentation: docs/testing/lighthouse-audit.md
+        - "Run Audit" section with DevTools steps
+        - "Performance Budget" section with Core Web Vitals targets (FCP &lt;1.5s, LCP &lt;2.5s, TTI &lt;3.5s, TBT &lt;200ms, CLS &lt;0.1)
+        - "Run from CLI" section with installation and example command
+      </test>
+
+      <!-- AC 1-4, 10: Performance Profiling Execution and Documentation -->
+      <test id="ac-1-4-10" description="Run profiling and document results">
+        Execution steps:
+        1. Start Docker: docker-compose up -d
+        2. Run performance tests: npm run test -- backend/__tests__/performance/
+        3. Collect response times from test output
+        4. Run profiling script: node backend/scripts/profile-queries.js
+        5. Verify all queries &lt;50ms
+        6. Check for N+1 warnings in endpoint logs
+        7. Run Lighthouse audit on http://localhost:3000
+        8. Verify frontend load &lt;2s (LCP metric)
+        9. Open docs/CHANGELOG.md and add "Performance Validation - 2025-11-12" section
+        10. Document API response times with ✓ if passing
+        11. Document database query performance (average, slowest, N+1 status)
+        12. Document frontend performance (initial load, LCP, TTI)
+        13. Save CHANGELOG.md
+      </test>
+
+      <!-- AC 1-4: Optimization (if needed) -->
+      <test id="optimization" description="Optimize performance bottlenecks if any found">
+        Review steps:
+        - Check test results for endpoints exceeding targets
+        - Check query profiling for slow queries (&gt;50ms)
+        - Check N+1 warnings from query logging
+        - Check Lighthouse report for optimization opportunities
+
+        Potential fixes:
+        - Add React.memo() for expensive components
+        - Add useMemo() for expensive calculations
+        - Add useCallback() for event handlers
+        - Optimize database queries (add indexes, reduce JOINs)
+        - Re-run tests after optimizations
+        - Update CHANGELOG.md with optimization notes
+      </test>
+    </ideas>
+  </tests>
+</story-context>

@@ -65,8 +65,8 @@ development_status:
 
   # Epic 4: Integration Testing & MVP Launch
   epic-4: backlog
-  4-1-end-to-end-integration-testing-local-docker: backlog
-  4-2-performance-validation-optimization: backlog
+  4-1-end-to-end-integration-testing-local-docker: review
+  4-2-performance-validation-optimization: drafted
   4-3-production-deployment-to-railway: backlog
   4-4-production-smoke-testing-monitoring: backlog
   epic-4-retrospective: optional
