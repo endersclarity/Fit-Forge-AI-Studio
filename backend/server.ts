@@ -8,6 +8,13 @@ import bodyParser from 'body-parser';
 import * as db from './database/database';
 import { getAnalytics, AnalyticsResponse, calculateWorkoutMetrics, CalculatedMetricsResponse } from './database/analytics';
 import { getExerciseByName } from './constants';
+// Epic 1 Services (Story 1.1, 1.2, 1.3, 1.4)
+// @ts-ignore - JS module without type definitions
+import { calculateMuscleFatigue } from './services/fatigueCalculator.js';
+// @ts-ignore - JS module without type definitions
+import { checkForBaselineUpdates } from './services/baselineUpdater.js';
+// @ts-ignore - JS module without type definitions
+import { loadExerciseLibrary, loadBaselineData } from './services/dataLoaders.js';
 import {
   ProfileResponse,
   ProfileUpdateRequest,
@@ -975,23 +982,76 @@ app.delete('/api/calibrations/:exerciseId', (req: Request, res: Response<{ messa
 // Muscle Intelligence API Endpoints (Epic 2)
 // ============================================
 
-// Import calculation services
-const fatigueCalculator = require('./services/fatigueCalculator');
+// Additional services (using require for now - to be migrated to ES6)
 const recoveryCalculator = require('./services/recoveryCalculator');
 const exerciseRecommender = require('./services/exerciseRecommender');
-const baselineUpdater = require('./services/baselineUpdater');
 
-// POST /api/workouts/:id/complete - Calculate fatigue after workout completion
-app.post('/api/workouts/:id/complete', async (req: Request, res: Response) => {
+// TypeScript interfaces for workout completion endpoint (Story 2.1)
+interface WorkoutCompletionRequest {
+  exercises: Array<{
+    exerciseId: string;
+    sets: Array<{
+      reps: number;
+      weight: number;
+      toFailure: boolean;
+    }>;
+  }>;
+}
+
+interface BaselineSuggestion {
+  muscle: string;
+  currentBaseline: number;
+  suggestedBaseline: number;
+  achievedVolume: number;
+  exercise: string;
+  date: string;
+  percentIncrease: number;
+}
+
+interface WorkoutCompletionResponse {
+  fatigue: Record<string, number>;
+  baselineSuggestions: BaselineSuggestion[];
+  summary: {
+    totalVolume: number;
+    prsAchieved: string[];
+  };
+}
+
+// POST /api/workouts/:id/complete - Calculate fatigue after workout completion (Story 2.1)
+app.post('/api/workouts/:id/complete', async (req: Request, res: Response<WorkoutCompletionResponse | ApiErrorResponse>) => {
   try {
     const workoutId = parseInt(req.params.id);
+    const { exercises } = req.body as WorkoutCompletionRequest;
 
     // Input validation
     if (isNaN(workoutId) || workoutId <= 0) {
       return res.status(400).json({ error: 'Invalid workout ID' });
     }
 
-    // Get workout from database
+    if (!exercises || !Array.isArray(exercises)) {
+      return res.status(400).json({ error: 'Invalid request: exercises array required' });
+    }
+
+    if (exercises.length === 0) {
+      return res.status(400).json({ error: 'Invalid request: exercises array cannot be empty' });
+    }
+
+    // Validate exercises structure
+    for (const exercise of exercises) {
+      if (!exercise.exerciseId || typeof exercise.exerciseId !== 'string') {
+        return res.status(400).json({ error: 'Invalid request: each exercise must have an exerciseId string' });
+      }
+      if (!exercise.sets || !Array.isArray(exercise.sets)) {
+        return res.status(400).json({ error: 'Invalid request: each exercise must have a sets array' });
+      }
+      for (const set of exercise.sets) {
+        if (typeof set.reps !== 'number' || typeof set.weight !== 'number' || typeof set.toFailure !== 'boolean') {
+          return res.status(400).json({ error: 'Invalid request: each set must have reps (number), weight (number), and toFailure (boolean)' });
+        }
+      }
+    }
+
+    // Verify workout exists in database
     const allWorkouts = db.getWorkouts();
     const workout = allWorkouts.find((w: any) => w.id === workoutId);
 
@@ -999,67 +1059,73 @@ app.post('/api/workouts/:id/complete', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Workout not found' });
     }
 
-    // Get user's current muscle baselines
-    const baselineData = db.getMuscleBaselines();
+    // Load exercise library and baseline data (Epic 1 data loaders)
+    const exerciseLibrary = loadExerciseLibrary();
+    const baselineData = loadBaselineData();
+
+    // Convert baseline data to format expected by calculateMuscleFatigue
     const baselines: Record<string, number> = {};
-
-    // Convert baseline data to simple map
-    Object.keys(baselineData).forEach(muscle => {
-      const baseline = baselineData[muscle];
-      baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
+    baselineData.forEach((baseline: any) => {
+      baselines[baseline.muscle] = baseline.baselineCapacity;
     });
 
-    // Calculate fatigue using the service
-    const fatigueResults = fatigueCalculator.calculateFatigue(workout, baselines);
+    // Calculate fatigue using Epic 1 service (Story 1.1)
+    // Transform exercises into workout format expected by service
+    const workoutForCalculation = {
+      exercises: exercises.map(ex => ({
+        exerciseId: ex.exerciseId,
+        sets: ex.sets
+      }))
+    };
 
-    // Check for baseline updates
-    const muscleVolumes: Record<string, number> = {};
-    Object.keys(fatigueResults).forEach(muscle => {
-      muscleVolumes[muscle] = fatigueResults[muscle].volume;
-    });
+    const fatigueResults = calculateMuscleFatigue(workoutForCalculation, exerciseLibrary, baselines);
 
-    const baselineUpdateCheck = baselineUpdater.checkBaselineUpdates(
-      muscleVolumes,
-      baselines,
-      new Date(workout.date),
-      workoutId
-    );
+    // Check for baseline updates using Epic 1 service (Story 1.4)
+    const baselineSuggestions = checkForBaselineUpdates(exercises, new Date().toISOString());
 
-    // Store muscle fatigue states in database
+    // Store muscle fatigue states in database (AC 3)
     const muscleStatesToStore: Record<string, any> = {};
-    Object.keys(fatigueResults).forEach(muscle => {
-      muscleStatesToStore[muscle] = {
-        fatigue_percent: fatigueResults[muscle].displayFatigue,
-        volume_today: fatigueResults[muscle].volume,
-        recovered_at: null,
-        last_trained: workout.date
+    fatigueResults.muscleStates.forEach((muscleState: any) => {
+      muscleStatesToStore[muscleState.muscle] = {
+        fatiguePercent: muscleState.displayFatigue,
+        volumeToday: muscleState.volume,
+        recoveredAt: null,
+        lastTrained: workout.date || new Date().toISOString()
       };
     });
     db.updateMuscleStates(muscleStatesToStore);
 
-    // Calculate workout summary
-    const totalVolume = Object.values(muscleVolumes).reduce((sum, vol) => sum + vol, 0);
-    const prsAchieved = baselineUpdateCheck.suggestions.length;
+    // Calculate workout summary metrics (AC 4)
+    // Total volume: sum of (weight × reps) for all sets
+    const totalVolume = exercises.reduce((sum, ex) => {
+      return sum + ex.sets.reduce((setSum, set) => setSum + (set.weight * set.reps), 0);
+    }, 0);
 
-    // Return response
-    return res.json({
-      fatigue: Object.keys(fatigueResults).reduce((acc, muscle) => {
-        acc[muscle] = fatigueResults[muscle].displayFatigue;
-        return acc;
-      }, {} as Record<string, number>),
-      baselineSuggestions: baselineUpdateCheck.suggestions,
+    // PRs achieved: Use detectPRsForWorkout to check for personal records
+    const prsDetected = db.detectPRsForWorkout(workoutId);
+    const prsAchieved: string[] = prsDetected.map((pr: any) => pr.exerciseName);
+
+    // Format and return response (AC 4, 5)
+    const fatigue: Record<string, number> = {};
+    fatigueResults.muscleStates.forEach((muscleState: any) => {
+      fatigue[muscleState.muscle] = muscleState.displayFatigue;
+    });
+
+    const response: WorkoutCompletionResponse = {
+      fatigue,
+      baselineSuggestions,
       summary: {
         totalVolume: Math.round(totalVolume),
-        prsAchieved,
-        musclesWorked: Object.keys(fatigueResults).length,
-        workoutDate: workout.date
+        prsAchieved
       }
-    });
+    };
+
+    return res.status(200).json(response);
 
   } catch (error) {
     console.error('Error completing workout:', error);
     return res.status(500).json({
-      error: 'Failed to calculate workout fatigue',
+      error: 'Failed to complete workout',
       message: (error as Error).message
     });
   }
@@ -1217,6 +1283,9 @@ app.post('/api/forecast/workout', async (req: Request, res: Response) => {
       baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
     });
 
+    // Load exercise library for fatigue calculation (Epic 1)
+    const exerciseLibrary = loadExerciseLibrary();
+
     // Create a mock workout object for fatigue calculation
     const plannedWorkout = {
       id: -1,
@@ -1224,8 +1293,14 @@ app.post('/api/forecast/workout', async (req: Request, res: Response) => {
       exercises: exercises
     };
 
-    // Calculate predicted fatigue
-    const predictedFatigue = fatigueCalculator.calculateFatigue(plannedWorkout, baselines);
+    // Calculate predicted fatigue using Epic 1 service
+    const predictedFatigueResults = calculateMuscleFatigue(plannedWorkout, exerciseLibrary, baselines);
+
+    // Convert to simple object format for compatibility
+    const predictedFatigue: Record<string, any> = {};
+    predictedFatigueResults.muscleStates.forEach((ms: any) => {
+      predictedFatigue[ms.muscle] = { fatiguePercent: ms.displayFatigue };
+    });
 
     // Calculate final fatigue (current + predicted)
     const finalFatigue: Record<string, number> = {};

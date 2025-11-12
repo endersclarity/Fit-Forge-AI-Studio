@@ -1,0 +1,282 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>1</storyId>
+    <title>Implement Workout Completion Endpoint</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-11</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/2-1-implement-workout-completion-endpoint.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>frontend application</asA>
+    <iWant>to submit a completed workout and receive fatigue calculations</iWant>
+    <soThat>users can see how much each muscle was worked</soThat>
+    <tasks>
+      <task id="1" ac="1">
+        <description>Create POST endpoint structure</description>
+        <subtasks>
+          <subtask id="1.1">Add route definition POST /api/workouts/:id/complete in backend/server.ts</subtask>
+          <subtask id="1.2">Define TypeScript request body interface with workoutId, exercises array structure</subtask>
+          <subtask id="1.3">Define TypeScript response interface WorkoutCompletionResponse with fatigue, baselineSuggestions, summary fields</subtask>
+          <subtask id="1.4">Add error handling middleware pattern matching existing endpoints</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="5">
+        <description>Validate request and workout ownership</description>
+        <subtasks>
+          <subtask id="2.1">Validate request body structure (exercises array, required fields)</subtask>
+          <subtask id="2.2">Query database to verify workout exists using database.js</subtask>
+          <subtask id="2.3">Return 404 if workout not found</subtask>
+          <subtask id="2.4">Return 400 if request body invalid with descriptive error</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="1">
+        <description>Calculate fatigue using service</description>
+        <subtasks>
+          <subtask id="3.1">Import fatigueCalculator.js service (from Story 1.1)</subtask>
+          <subtask id="3.2">Transform request body to service input format</subtask>
+          <subtask id="3.3">Call calculateFatigue() with workout exercises data</subtask>
+          <subtask id="3.4">Handle service errors and return 500 on calculation failure</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="2">
+        <description>Check for baseline updates</description>
+        <subtasks>
+          <subtask id="4.1">Import baselineUpdater.js service (from Story 1.4)</subtask>
+          <subtask id="4.2">Call checkForBaselineUpdates() with workout data and current date</subtask>
+          <subtask id="4.3">Receive array of baseline suggestions (if any muscles exceeded)</subtask>
+          <subtask id="4.4">Include suggestions in response payload</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="3">
+        <description>Store muscle fatigue states in database</description>
+        <subtasks>
+          <subtask id="5.1">Use existing database.js muscle_states operations</subtask>
+          <subtask id="5.2">Transform fatigue calculation results to database format</subtask>
+          <subtask id="5.3">Update or insert muscle_states records for all 15 muscles</subtask>
+          <subtask id="5.4">Include workoutId and timestamp in stored states</subtask>
+          <subtask id="5.5">Use transaction to ensure atomicity (calculate → store → respond)</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="4">
+        <description>Calculate workout summary metrics</description>
+        <subtasks>
+          <subtask id="6.1">Calculate total volume across all exercises: sum of (weight × reps) for all sets</subtask>
+          <subtask id="6.2">Check for personal records by comparing to existing PRs in database</subtask>
+          <subtask id="6.3">Identify any exercises where weight/reps exceeded previous best</subtask>
+          <subtask id="6.4">Build summary object with totalVolume and prsAchieved array</subtask>
+        </subtasks>
+      </task>
+      <task id="7" ac="4,5">
+        <description>Return formatted response</description>
+        <subtasks>
+          <subtask id="7.1">Format fatigue data as {muscle: percentage} for all 15 muscles</subtask>
+          <subtask id="7.2">Include baselineSuggestions array (empty if none)</subtask>
+          <subtask id="7.3">Include summary object with totalVolume and prsAchieved</subtask>
+          <subtask id="7.4">Return 200 status with complete WorkoutCompletionResponse</subtask>
+          <subtask id="7.5">Ensure response matches expected format for frontend consumption</subtask>
+        </subtasks>
+      </task>
+      <task id="8" ac="all">
+        <description>Add comprehensive endpoint tests</description>
+        <subtasks>
+          <subtask id="8.1">Test successful completion flow with valid workout data</subtask>
+          <subtask id="8.2">Test fatigue calculation integration (service called correctly)</subtask>
+          <subtask id="8.3">Test baseline update detection (suggestions returned when exceeded)</subtask>
+          <subtask id="8.4">Test muscle_states database writes (data persisted correctly)</subtask>
+          <subtask id="8.5">Test 404 error when workout not found</subtask>
+          <subtask id="8.6">Test 400 error with invalid request body</subtask>
+          <subtask id="8.7">Test 500 error when calculation service fails</subtask>
+          <subtask id="8.8">Test transaction rollback on database error</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">
+      <given>a completed workout with exercise sets data</given>
+      <when>POST request sent to /api/workouts/:id/complete</when>
+      <then>the endpoint calls fatigue calculation service</then>
+    </criterion>
+    <criterion id="2">
+      <and>it calls baseline update trigger to check for exceeded baselines</and>
+    </criterion>
+    <criterion id="3">
+      <and>it stores muscle fatigue states in muscle_states table</and>
+    </criterion>
+    <criterion id="4">
+      <and>it returns response with:
+        - Fatigue percentages for all 15 muscles
+        - Baseline update suggestions (if any)
+        - Workout summary (total volume, PRs achieved)</and>
+    </criterion>
+    <criterion id="5">
+      <and>it returns 200 status on success or appropriate error status</and>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2: API Integration Layer - Story 2.1</title>
+        <section>Epic 2.1: Implement Workout Completion Endpoint</section>
+        <snippet>POST endpoint at /api/workouts/:id/complete that calls fatigue calculation service, checks baseline updates, stores muscle states, and returns fatigue percentages, baseline suggestions, and workout summary. Request body includes workoutId and exercises array with sets data.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Decisions - API Patterns</title>
+        <section>API Response Format and Error Handling</section>
+        <snippet>Direct responses (no wrapper), throw in services and catch in routes. Error format: 400 for validation, 404 for missing resources, 500 for server errors. ES6 exports for TypeScript. All DB ops through database.js centralized layer.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Muscle Intelligence System</section>
+        <snippet>15 muscle groups tracked with fatigue percentages, recovery calculations, baseline updates, and exercise recommendations. Core value: Help users train smarter by understanding muscle fatigue and recovery states.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/services/fatigueCalculator.js</path>
+        <kind>service</kind>
+        <symbol>calculateMuscleFatigue</symbol>
+        <lines>48-150</lines>
+        <reason>Epic 1 Story 1.1 fatigue calculation service - required for AC1. Takes workout exercises, returns muscle fatigue percentages for all 15 muscles. Already implemented and tested.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/baselineUpdater.js</path>
+        <kind>service</kind>
+        <symbol>checkForBaselineUpdates</symbol>
+        <lines>1-180</lines>
+        <reason>Epic 1 Story 1.4 baseline update trigger - required for AC2. Analyzes "to failure" sets, detects exceeded baselines, returns suggestions array. Already implemented and tested.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/database/database.js</path>
+        <kind>data-access</kind>
+        <symbol>updateMuscleStates, getMuscleStates</symbol>
+        <lines>265-320</lines>
+        <reason>Database operations for muscle_states table - required for AC3. Existing centralized DB layer for storing/retrieving muscle fatigue states.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-server</kind>
+        <symbol>app.post endpoint patterns</symbol>
+        <lines>250-320</lines>
+        <reason>Existing POST endpoint patterns to follow: /api/workouts (line 250), /api/workouts/:id/calculate-metrics (line 294). Shows error handling, TypeScript interfaces, response formatting standards.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/services/dataLoaders.js</path>
+        <kind>helper</kind>
+        <symbol>loadExerciseLibrary, loadBaselineData</symbol>
+        <lines>1-50</lines>
+        <reason>Shared data loaders for exercise library and baseline data. Already in use by fatigueCalculator and baselineUpdater services.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <runtime>
+          <package name="express" version="^4.18.2">Backend API framework</package>
+          <package name="better-sqlite3" version="^9.2.2">Database layer</package>
+          <package name="cors" version="^2.8.5">Cross-origin resource sharing</package>
+          <package name="body-parser" version="^1.20.2">Request body parsing</package>
+        </runtime>
+        <dev>
+          <package name="typescript" version="^5.3.3">Type safety for server.ts</package>
+          <package name="@types/express" version="^4.17.21">Express type definitions</package>
+          <package name="ts-node" version="^10.9.2">TypeScript runtime</package>
+          <package name="nodemon" version="^3.0.2">Dev server with hot reload</package>
+          <package name="vitest" version="^4.0.3">Testing framework (Epic 1 tests)</package>
+        </dev>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Use TypeScript for type safety - define WorkoutCompletionRequest and WorkoutCompletionResponse interfaces</constraint>
+    <constraint>Follow ES6 module pattern (import/export) matching existing server.ts code</constraint>
+    <constraint>All database operations MUST go through centralized database.js layer - no direct DB access</constraint>
+    <constraint>Error handling pattern: throw in services, catch in route with try/catch</constraint>
+    <constraint>HTTP status codes: 200 success, 400 validation error, 404 not found, 500 server error</constraint>
+    <constraint>Direct response format (no wrapper object) - matches architectural decision</constraint>
+    <constraint>Use transaction pattern for atomicity: calculate → store → respond (all-or-nothing)</constraint>
+    <constraint>Process all 15 muscle groups: Pectoralis, Lats, AnteriorDeltoids, PosteriorDeltoids, Trapezius, Rhomboids, LowerBack, Core, Biceps, Triceps, Forearms, Quadriceps, Hamstrings, Glutes, Calves</constraint>
+    <constraint>Validate request body before processing - return descriptive error messages</constraint>
+    <constraint>Import services from Epic 1 (already validated and tested) - do not reimplement logic</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>POST /api/workouts/:id/complete</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Request Body: {
+          workoutId: number,
+          exercises: Array&lt;{
+            exerciseId: string,
+            sets: Array&lt;{
+              reps: number,
+              weight: number,
+              toFailure: boolean
+            }&gt;
+          }&gt;
+        }
+
+        Response: {
+          fatigue: Record&lt;Muscle, number&gt;,
+          baselineSuggestions: Array&lt;{
+            muscle: string,
+            currentBaseline: number,
+            suggestedBaseline: number,
+            achievedVolume: number,
+            exercise: string,
+            date: string,
+            percentIncrease: number
+          }&gt;,
+          summary: {
+            totalVolume: number,
+            prsAchieved: string[]
+          }
+        }
+      </signature>
+      <path>backend/server.ts</path>
+    </interface>
+    <interface>
+      <name>calculateMuscleFatigue</name>
+      <kind>service function</kind>
+      <signature>calculateMuscleFatigue(workout, exercises, baselines) -&gt; { muscleStates, warnings, timestamp }</signature>
+      <path>backend/services/fatigueCalculator.js</path>
+    </interface>
+    <interface>
+      <name>checkForBaselineUpdates</name>
+      <kind>service function</kind>
+      <signature>checkForBaselineUpdates(workoutExercises, workoutDate) -&gt; Array&lt;{ muscle, currentBaseline, suggestedBaseline, achievedVolume, exercise, date, percentIncrease }&gt;</signature>
+      <path>backend/services/baselineUpdater.js</path>
+    </interface>
+    <interface>
+      <name>updateMuscleStates</name>
+      <kind>database operation</kind>
+      <signature>updateMuscleStates(states: Array&lt;{ muscle, fatigue, updated_at }&gt;) -&gt; void</signature>
+      <path>backend/database/database.js</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Vitest testing framework established in Epic 1. All service tests use ES6 imports (import { describe, it, expect } from 'vitest'). Tests load real data from docs/logic-sandbox/ for integration testing. Mock strategy: Mock services for unit tests, use real services for integration tests. Pattern: Descriptive test names, comprehensive edge cases, error handling validation. 100% test pass rate required before story completion.</standards>
+    <locations>backend/__tests__/ for endpoint tests OR backend/services/__tests__/ for service-level tests. Pattern: {feature}.test.ts or {feature}.test.js. Server endpoint tests would go in backend/__tests__/server.test.ts or create new backend/__tests__/workoutCompletion.test.ts</locations>
+    <ideas>
+      <idea ac="1">Test successful workout completion flow: valid workout data → fatigue calculated → 200 response with all 15 muscles in fatigue object</idea>
+      <idea ac="2">Test baseline update detection: workout with "to failure" sets exceeding baseline → suggestions array populated with muscle, currentBaseline, suggestedBaseline fields</idea>
+      <idea ac="2">Test no baseline updates: normal workout without exceeding baselines → empty suggestions array returned</idea>
+      <idea ac="3">Test muscle_states database write: after completion → verify all 15 muscles stored in database with correct fatiguePercent and workoutId</idea>
+      <idea ac="4">Test response structure: verify fatigue object has all 15 muscles, baselineSuggestions is array, summary has totalVolume and prsAchieved fields</idea>
+      <idea ac="4">Test workout summary calculation: totalVolume = sum of (weight × reps) across all sets, prsAchieved includes exercises where new PR achieved</idea>
+      <idea ac="5">Test 404 error: request with non-existent workoutId → 404 status with error message</idea>
+      <idea ac="5">Test 400 error: invalid request body (missing exercises, invalid format) → 400 status with descriptive error</idea>
+      <idea ac="5">Test 500 error: mock service failure in calculateFatigue → 500 status with error handled gracefully</idea>
+      <idea ac="all">Test transaction atomicity: mock database write failure → verify no partial state saved, entire operation rolled back</idea>
+      <idea ac="all">Test service integration: verify calculateFatigue and checkForBaselineUpdates called with correct parameters</idea>
+    </ideas>
+  </tests>
+</story-context>
