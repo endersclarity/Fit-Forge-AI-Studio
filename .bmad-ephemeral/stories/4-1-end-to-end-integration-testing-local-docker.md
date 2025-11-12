@@ -442,3 +442,262 @@ Created complete integration testing infrastructure for end-to-end workflow vali
 |------|---------|-------------|
 | 2025-11-12 | 1.0 | Story created |
 | 2025-11-12 | 2.0 | Implementation completed - Integration test suite created with 5 tests across 4 files, test fixtures with validated data, manual testing checklist, and Docker environment verification |
+| 2025-11-12 | 2.1 | Senior Developer Review notes appended |
+
+---
+
+## Senior Developer Review (AI)
+
+### Reviewer
+Kaelen
+
+### Date
+2025-11-12
+
+### Outcome
+**BLOCKED** - Multiple HIGH severity issues prevent approval
+
+### Summary
+
+Story 4.1 represents significant effort in creating integration testing infrastructure, including test fixtures, 4 integration test files (5 tests total), and comprehensive manual testing documentation. However, systematic validation revealed **critical API contract mismatches** between the tests and actual API implementations, plus **test executability failures** that prevent the tests from running successfully. While the test file structure and manual checklist are well-designed, the implementation contains fundamental issues that must be resolved before the story can be marked complete.
+
+### Key Findings
+
+#### HIGH SEVERITY ISSUES
+
+**Finding 1: API Response Format Mismatch - Workout Completion Endpoint** 🔴
+- **Location**: `backend/__tests__/integration/workout-completion.test.ts:80-115`
+- **Issue**: Tests expect `completion.muscleStates.Quadriceps.fatiguePercent` but API returns `completion.fatigue.Quadriceps` (flat object, not nested)
+- **Evidence**:
+  - API Response Format (backend/server.ts:1130-1137):
+    ```typescript
+    const response: WorkoutCompletionResponse = {
+      fatigue,  // Record<string, number> - flat object
+      baselineSuggestions,
+      summary: { totalVolume, prsAchieved }
+    };
+    ```
+  - Test Expectation (workout-completion.test.ts:84-87):
+    ```typescript
+    expect(completion.muscleStates.Quadriceps.fatiguePercent).toBeCloseTo(
+      EXPECTED_FATIGUE.Quadriceps, 0
+    );
+    ```
+- **Impact**: All 15 fatigue assertions in Test 1 will fail (lines 83-115)
+- **Root Cause**: Tests written against incorrect API contract
+
+**Finding 2: API Response Format Mismatch - Recovery Timeline Endpoint** 🔴
+- **Location**: `backend/__tests__/integration/recovery-timeline.test.ts:83-110`
+- **Issue**: Tests expect `timeline.current.Hamstrings` and `timeline.projections['24h']` but API returns `timeline.muscles[]` array
+- **Evidence**:
+  - API Response Format (backend/server.ts:1228):
+    ```typescript
+    const response: RecoveryTimelineResponse = { muscles };
+    // Format: { muscles: [{ name, currentFatigue, projections, fullyRecoveredAt }] }
+    ```
+  - Test Expectation (recovery-timeline.test.ts:91-95):
+    ```typescript
+    expect(timeline.current.Hamstrings).toBeDefined();
+    expect(timeline.current.Hamstrings.fatiguePercent).toBeCloseTo(...);
+    expect(timeline.projections['24h'].Hamstrings).toBeDefined();
+    ```
+- **Impact**: All assertions in recovery timeline test will fail (lines 83-130)
+- **Root Cause**: Tests written against non-existent API structure
+
+**Finding 3: Integration Tests Cannot Execute on Host Machine** 🔴
+- **Location**: All 4 integration test files
+- **Issue**: Tests fail with "Could not locate the bindings file" error for better-sqlite3 native module
+- **Evidence**: Test execution output shows 20 failed suites due to database binding errors
+- **Impact**: Story AC1 "all test scenarios pass validation" cannot be verified
+- **Root Cause**: Tests are supposed to use HTTP-only API calls (per completion notes) but implementation still attempts to import database modules
+- **Workaround Mentioned**: Completion notes state "Tests use HTTP API calls only to avoid native binding issues" but this was not fully implemented
+
+**Finding 4: Baseline Suggestions Field Name Mismatch** 🔴
+- **Location**: `backend/__tests__/integration/workout-completion.test.ts:160-162`
+- **Issue**: Test expects `s.muscleName` but API returns `s.muscle`
+- **Evidence**:
+  - Service Returns (backend/services/baselineUpdater.js:100): `{ muscle: "Pectoralis", ... }`
+  - Test Expects (workout-completion.test.ts:161): `s.muscleName === EXPECTED_BASELINE_UPDATE.muscleName`
+- **Impact**: Baseline update modal test will fail to find Hamstrings suggestion
+- **Root Cause**: Inconsistent field naming between service and test expectations
+
+#### MEDIUM SEVERITY ISSUES
+
+**Finding 5: Missing Database Reset Implementation**
+- **Location**: All 4 integration test files - beforeEach hooks
+- **Issue**: beforeEach hooks are empty placeholders with TODO comments
+- **Evidence**:
+  - workout-completion.test.ts:30-34: "Reset database via API endpoint (if available) // For now, tests will run independently"
+  - All test files have identical empty beforeEach blocks
+- **Impact**: Tests cannot guarantee clean state between runs, may produce flaky results
+- **Severity**: MEDIUM (tests might still pass if run in isolation, but violates AC requirement for independent tests)
+
+**Finding 6: Incomplete Test Coverage - Docker Environment Verification**
+- **Location**: Task 7 (AC2) marked complete but no automated verification
+- **Issue**: AC2 requires "test setup verifies Docker Compose environment" but no programmatic verification exists
+- **Evidence**:
+  - Story claims AC2 complete: "✅ Docker Compose environment verified (both services healthy)"
+  - No test code performs docker-compose ps check or health endpoint verification
+  - Manual verification performed but not codified in test suite
+- **Impact**: Docker environment issues won't be caught by automated tests
+- **Severity**: MEDIUM (manual checklist covers this, but automated verification missing)
+
+#### LOW SEVERITY ISSUES
+
+**Finding 7: Test Data Fixture Field Naming Inconsistency**
+- **Location**: `backend/__tests__/fixtures/integration-test-data.ts:28-47`
+- **Issue**: Fixture uses `exercise` field for workout save but API expects workout saves to use exercise name strings
+- **Evidence**: BASELINE_WORKOUT.exercises[0].exercise: 'Goblet Squat' (string)
+- **Impact**: Minor - tests handle this correctly by using proper format in API calls
+- **Severity**: LOW (cosmetic inconsistency, doesn't affect test execution once response format is fixed)
+
+### Acceptance Criteria Coverage
+
+| AC | Description | Status | Evidence |
+|----|-------------|--------|----------|
+| AC1 | All test scenarios pass validation | ❌ MISSING | Tests cannot run due to SQLite binding errors; API contract mismatches would cause failures even if runnable |
+| AC2 | Docker environment verified | ⚠️ PARTIAL | Docker verified manually (services healthy), but no automated verification in test suite |
+| AC3 | Test fixtures exist with required data | ✅ IMPLEMENTED | File: backend/__tests__/fixtures/integration-test-data.ts (lines 1-146) |
+| AC4 | Workout completion test passes | ❌ MISSING | File exists but would fail due to API response format mismatch (Finding 1 & 4) |
+| AC5 | Recovery timeline test passes | ❌ MISSING | File exists but would fail due to API response format mismatch (Finding 2) |
+| AC6 | Exercise recommendations test passes | ⚠️ QUESTIONABLE | File exists; structure appears correct but cannot verify due to execution errors |
+| AC7 | Workout forecast test passes | ⚠️ QUESTIONABLE | File exists; structure appears correct but cannot verify due to execution errors |
+| AC8 | Manual testing checklist created | ✅ IMPLEMENTED | File: docs/testing/integration-checklist.md (362 lines, comprehensive) |
+
+**Summary**: 2 of 8 ACs fully implemented, 2 partial, 4 missing/blocked
+
+### Task Completion Validation
+
+| Task | Marked As | Verified As | Evidence |
+|------|-----------|-------------|----------|
+| Task 1: Test fixtures | ❌ NOT DONE | ✅ VERIFIED | File created: backend/__tests__/fixtures/integration-test-data.ts |
+| Subtask 1.1-1.7 | ❌ NOT DONE | ✅ VERIFIED | All fixture constants defined correctly |
+| Task 2: Workout completion test | ❌ NOT DONE | ⚠️ PARTIAL | File created but contains API contract errors |
+| Subtask 2.1-2.15 | ❌ NOT DONE | ⚠️ PARTIAL | Test structure exists but assertions target wrong response format |
+| Task 3: Recovery timeline test | ❌ NOT DONE | ⚠️ PARTIAL | File created but contains API contract errors |
+| Subtask 3.1-3.9 | ❌ NOT DONE | ⚠️ PARTIAL | Test structure exists but assertions target wrong response format |
+| Task 4: Exercise recommendations test | ❌ NOT DONE | ⚠️ QUESTIONABLE | File created; cannot verify due to execution errors |
+| Subtask 4.1-4.11 | ❌ NOT DONE | ⚠️ QUESTIONABLE | Test structure appears reasonable |
+| Task 5: Workout forecast test | ❌ NOT DONE | ⚠️ QUESTIONABLE | File created; structure appears correct |
+| Subtask 5.1-5.8 | ❌ NOT DONE | ⚠️ QUESTIONABLE | Test assertions use reasonable tolerance values |
+| Task 6: Manual checklist | ❌ NOT DONE | ✅ VERIFIED | File: docs/testing/integration-checklist.md (comprehensive) |
+| Subtask 6.1-6.8 | ❌ NOT DONE | ✅ VERIFIED | All 5 test scenarios documented with detailed steps |
+| Task 7: Docker verification | ❌ NOT DONE | ✅ VERIFIED | Docker environment confirmed running and healthy |
+| Subtask 7.1-7.8 | ❌ NOT DONE | ⚠️ PARTIAL | Manual verification done; automated verification missing |
+| Task 8: Run tests and verify passing | ❌ NOT DONE | ❌ NOT DONE | Tests cannot execute successfully (SQLite binding errors) |
+| Subtask 8.1-8.8 | ❌ NOT DONE | ❌ NOT DONE | npm test fails for all integration test files |
+| Task 9: Execute manual checklist | ❌ NOT DONE | ❌ NOT DONE | No evidence of manual testing execution in story notes |
+| Subtask 9.1-9.8 | ❌ NOT DONE | ❌ NOT DONE | Manual checklist created but not executed |
+
+**Critical Note**: Story file shows all tasks marked as unchecked ([ ]) but completion notes claim implementation complete. This discrepancy suggests the task checklist was not maintained during development.
+
+**Summary**: Files created (6 of 9 task groups), but functionality broken (4 groups have critical issues), execution verification missing (2 groups).
+
+### Test Coverage and Gaps
+
+**Test Files Created** (4 files, 5 tests total):
+1. ✅ workout-completion.test.ts (2 tests) - **BLOCKED by API contract mismatch**
+2. ✅ recovery-timeline.test.ts (1 test) - **BLOCKED by API contract mismatch**
+3. ⚠️ exercise-recommendations.test.ts (1 test) - **CANNOT VERIFY due to execution errors**
+4. ⚠️ workout-forecast.test.ts (1 test) - **CANNOT VERIFY due to execution errors**
+
+**Test Quality Issues**:
+- ❌ Tests cannot execute on host machine (SQLite native binding errors)
+- ❌ API response format mismatches prevent meaningful assertions
+- ❌ No database cleanup implementation (empty beforeEach hooks)
+- ❌ No programmatic Docker environment verification
+- ✅ Test structure follows best practices (Arrange-Act-Assert pattern)
+- ✅ Assertions use appropriate tolerance (toBeCloseTo with precision 0)
+- ✅ Test fixtures well-documented with expected values
+
+**Coverage Gaps**:
+1. No tests actually execute against live Docker environment (blocked by errors)
+2. No verification that tests run independently (no cleanup between tests)
+3. No automated Docker health check integration
+4. Manual testing checklist not executed (no results documented)
+
+### Architectural Alignment
+
+**Tech Spec Compliance**: ✅ PASS
+- Test framework: Vitest with jsdom (per architecture.md) ✅
+- Test location: backend/__tests__/integration/ ✅
+- Fixtures location: backend/__tests__/fixtures/ ✅
+- Docker environment: localhost:3000 (frontend), localhost:3001 (backend) ✅
+
+**Architecture Violations**: ❌ FAIL
+- **Violation**: Tests import database modules directly (violates "HTTP API calls only" design decision stated in completion notes)
+- **Evidence**: All test files fail with SQLite binding errors when run on host
+- **Expected Pattern**: Tests should use only fetch() API calls to avoid native dependencies
+- **Actual Pattern**: Test files attempt to import or indirectly reference database.ts module
+
+### Security Notes
+
+No security concerns identified. Tests operate against local Docker environment only.
+
+### Best Practices and References
+
+**Testing Best Practices Applied**:
+- ✅ Centralized test fixtures ([Vitest Best Practices](https://vitest.dev/guide/test-context.html))
+- ✅ Descriptive test names following "should/when/given" pattern
+- ✅ Comprehensive manual testing documentation
+- ❌ Missing test isolation (empty beforeEach hooks)
+- ❌ No retry logic for potentially flaky API calls
+
+**Vitest Documentation References**:
+- [expect.toBeCloseTo()](https://vitest.dev/api/expect.html#tobecloseto) - Used correctly for numeric tolerance
+- [beforeEach hooks](https://vitest.dev/api/#beforeeach) - Declared but not implemented
+- [Testing Best Practices](https://vitest.dev/guide/test-context.html) - Test structure follows guide
+
+### Action Items
+
+#### Code Changes Required
+
+**CRITICAL - Must Fix Before Approval:**
+
+- [ ] **[High]** Fix workout completion API response assertions (AC #4) [file: backend/__tests__/integration/workout-completion.test.ts:80-115]
+  - Change `completion.muscleStates.Quadriceps.fatiguePercent` to `completion.fatigue.Quadriceps`
+  - Update all 15 muscle fatigue assertions (Quadriceps, Glutes, Hamstrings, Core, LowerBack)
+  - Expected format: `completion.fatigue` is `Record<string, number>`, not nested object
+
+- [ ] **[High]** Fix recovery timeline API response assertions (AC #5) [file: backend/__tests__/integration/recovery-timeline.test.ts:83-130]
+  - API returns `{ muscles: Array<MuscleRecoveryState> }`, not `{ current, projections }`
+  - Rewrite assertions to find muscle by name in muscles array: `timeline.muscles.find(m => m.name === 'Hamstrings')`
+  - Update current fatigue access: `muscle.currentFatigue` not `timeline.current.Hamstrings.fatiguePercent`
+  - Update projections access: `muscle.projections['24h']` not `timeline.projections['24h'].Hamstrings`
+
+- [ ] **[High]** Fix baseline suggestions field name (AC #4) [file: backend/__tests__/integration/workout-completion.test.ts:160-162]
+  - Change `s.muscleName` to `s.muscle` (API returns `muscle` not `muscleName`)
+  - Line 161: Update to `(s: any) => s.muscle === EXPECTED_BASELINE_UPDATE.muscleName`
+
+- [ ] **[High]** Resolve SQLite native binding errors to enable test execution (AC #1) [file: All integration test files]
+  - Option A: Run tests inside Docker container where bindings exist
+  - Option B: Remove any imports that trigger database.ts module loading
+  - Option C: Create HTTP-only test utilities that don't touch database module
+  - Document chosen solution and update test execution instructions
+
+- [ ] **[Med]** Implement database cleanup in beforeEach hooks (AC #1) [file: All 4 integration test files]
+  - Add API endpoint for test database reset OR
+  - Document that tests must run in Docker where direct database access is possible OR
+  - Accept that tests share state and document ordering requirements
+
+- [ ] **[Med]** Add automated Docker environment verification (AC #2) [file: backend/__tests__/integration/ - new file or setup]
+  - Create setup script that checks `docker-compose ps` output
+  - Verify fitforge-frontend:3000 and fitforge-backend:3001 are healthy
+  - Fail fast if environment not ready before running integration tests
+
+- [ ] **[Med]** Execute manual testing checklist and document results (AC #8) [file: docs/testing/integration-checklist.md]
+  - Complete all 5 test scenarios manually
+  - Document pass/fail results for each checklist item
+  - Add results section to story completion notes
+
+- [ ] **[Med]** Update task completion checkboxes in story file [file: .bmad-ephemeral/stories/4-1-*.md:69-169]
+  - Mark completed tasks/subtasks with [x]
+  - Leave incomplete tasks as [ ]
+  - Ensure task list reflects actual implementation status
+
+#### Advisory Notes
+
+- Note: Consider adding test retry logic for API calls (network flakiness mitigation)
+- Note: Integration tests should ideally run in CI/CD pipeline inside Docker environment
+- Note: Document test execution procedure: "Run tests inside Docker container OR fix SQLite bindings on host"
+- Note: Story completion notes claim "Tests functional but require minor API response format adjustments" - these are not "minor" but critical breaking changes to all assertions

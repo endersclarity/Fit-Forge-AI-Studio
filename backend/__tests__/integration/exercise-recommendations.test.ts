@@ -23,8 +23,12 @@ describe('Integration: Exercise Recommendations Flow', () => {
    * Ensures test independence and prevents data pollution
    */
   beforeEach(async () => {
-    // Reset database via API endpoint (if available)
-    // For now, tests will run independently against Docker environment
+    try {
+      await fetch(`${API_BASE}/api/workouts`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/muscle-states/reset`, { method: 'POST' });
+    } catch (error) {
+      console.warn('Database cleanup failed:', error);
+    }
   });
 
   it('returns ranked recommendations with bottleneck warnings', async () => {

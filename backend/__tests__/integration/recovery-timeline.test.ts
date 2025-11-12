@@ -26,8 +26,13 @@ describe('Integration: Recovery Timeline Flow', () => {
    * Ensures test independence and prevents data pollution
    */
   beforeEach(async () => {
-    // Reset database via API endpoint (if available)
-    // For now, tests will run independently against Docker environment
+    // Clean up database via DELETE requests to clear test data
+    try {
+      await fetch(`${API_BASE}/api/workouts`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/muscle-states/reset`, { method: 'POST' });
+    } catch (error) {
+      console.warn('Database cleanup failed:', error);
+    }
   });
 
   it('returns current recovery state with 24h/48h/72h projections', async () => {
@@ -80,53 +85,48 @@ describe('Integration: Recovery Timeline Flow', () => {
     const timeline = await timelineResponse.json();
 
     // Assert: Verify timeline structure
-    expect(timeline.current).toBeDefined();
-    expect(timeline.projections).toBeDefined();
-    expect(timeline.projections['24h']).toBeDefined();
-    expect(timeline.projections['48h']).toBeDefined();
-    expect(timeline.projections['72h']).toBeDefined();
+    expect(timeline.muscles).toBeDefined();
+    expect(Array.isArray(timeline.muscles)).toBe(true);
+    expect(timeline.muscles.length).toBeGreaterThan(0);
+
+    // Find muscle states by name
+    const hamstrings = timeline.muscles.find((m: any) => m.name === 'Hamstrings');
+    const glutes = timeline.muscles.find((m: any) => m.name === 'Glutes');
+    const quadriceps = timeline.muscles.find((m: any) => m.name === 'Quadriceps');
 
     // Verify current state matches expected fatigue from workout completion
     // Hamstrings should have highest fatigue at 31%
-    expect(timeline.current.Hamstrings).toBeDefined();
-    expect(timeline.current.Hamstrings.fatiguePercent).toBeCloseTo(
-      EXPECTED_FATIGUE.Hamstrings,
-      0
-    );
+    expect(hamstrings).toBeDefined();
+    expect(hamstrings.currentFatigue).toBeCloseTo(EXPECTED_FATIGUE.Hamstrings, 0);
 
     // Verify 24h projection (15% recovery per day)
     // Hamstrings: 31% - 15% = 16%
-    expect(timeline.projections['24h'].Hamstrings).toBeDefined();
-    expect(timeline.projections['24h'].Hamstrings.fatiguePercent).toBeCloseTo(16, 0);
+    expect(hamstrings.projections).toBeDefined();
+    expect(hamstrings.projections['24h']).toBeCloseTo(16, 0);
 
     // Verify 48h projection (30% total recovery over 2 days)
     // Hamstrings: 31% - 30% = 1%
-    expect(timeline.projections['48h'].Hamstrings).toBeDefined();
-    expect(timeline.projections['48h'].Hamstrings.fatiguePercent).toBeCloseTo(1, 0);
+    expect(hamstrings.projections['48h']).toBeCloseTo(1, 0);
 
     // Verify 72h projection (fully recovered)
     // Hamstrings: 31% - 45% = 0% (capped at 0)
-    expect(timeline.projections['72h'].Hamstrings).toBeDefined();
-    expect(timeline.projections['72h'].Hamstrings.fatiguePercent).toBe(0);
+    expect(hamstrings.projections['72h']).toBe(0);
 
     // Verify Glutes recovery projections (26% starting fatigue)
-    expect(timeline.current.Glutes).toBeDefined();
-    expect(timeline.current.Glutes.fatiguePercent).toBeCloseTo(EXPECTED_FATIGUE.Glutes, 0);
+    expect(glutes).toBeDefined();
+    expect(glutes.currentFatigue).toBeCloseTo(EXPECTED_FATIGUE.Glutes, 0);
 
     // Glutes 24h: 26% - 15% = 11%
-    expect(timeline.projections['24h'].Glutes.fatiguePercent).toBeCloseTo(11, 0);
+    expect(glutes.projections['24h']).toBeCloseTo(11, 0);
 
     // Glutes 48h: 26% - 30% = 0% (fully recovered)
-    expect(timeline.projections['48h'].Glutes.fatiguePercent).toBe(0);
+    expect(glutes.projections['48h']).toBe(0);
 
     // Verify Quadriceps recovery projections (15% starting fatigue)
-    expect(timeline.current.Quadriceps).toBeDefined();
-    expect(timeline.current.Quadriceps.fatiguePercent).toBeCloseTo(
-      EXPECTED_FATIGUE.Quadriceps,
-      0
-    );
+    expect(quadriceps).toBeDefined();
+    expect(quadriceps.currentFatigue).toBeCloseTo(EXPECTED_FATIGUE.Quadriceps, 0);
 
     // Quadriceps 24h: 15% - 15% = 0% (fully recovered in 24h)
-    expect(timeline.projections['24h'].Quadriceps.fatiguePercent).toBe(0);
+    expect(quadriceps.projections['24h']).toBe(0);
   });
 });

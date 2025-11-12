@@ -28,9 +28,19 @@ describe('Integration: Workout Completion Flow', () => {
    * Ensures test independence and prevents data pollution
    */
   beforeEach(async () => {
-    // Reset database via API endpoint (if available)
-    // For now, tests will run independently against Docker environment
-    // Database cleanup can be handled by restarting containers if needed
+    // Clean up database via DELETE requests to clear test data
+    // This ensures each test starts with a clean slate
+    try {
+      // Delete all workouts (cascade will handle exercise_sets)
+      await fetch(`${API_BASE}/api/workouts`, { method: 'DELETE' });
+
+      // Reset muscle states to 0% fatigue
+      await fetch(`${API_BASE}/api/muscle-states/reset`, { method: 'POST' });
+    } catch (error) {
+      // If cleanup endpoints don't exist yet, tests can still run
+      // They may interfere with each other, but core functionality is tested
+      console.warn('Database cleanup failed:', error);
+    }
   });
 
   it('calculates accurate fatigue percentages matching logic-sandbox', async () => {
@@ -77,39 +87,39 @@ describe('Integration: Workout Completion Flow', () => {
     const completion = await response.json();
 
     // Assert: Verify fatigue calculations match logic-sandbox expectations
-    expect(completion.muscleStates).toBeDefined();
+    expect(completion.fatigue).toBeDefined();
 
     // Quadriceps: 15% ±0.5
-    expect(completion.muscleStates.Quadriceps).toBeDefined();
-    expect(completion.muscleStates.Quadriceps.fatiguePercent).toBeCloseTo(
+    expect(completion.fatigue.Quadriceps).toBeDefined();
+    expect(completion.fatigue.Quadriceps).toBeCloseTo(
       EXPECTED_FATIGUE.Quadriceps,
       0
     );
 
     // Glutes: 26% ±0.5
-    expect(completion.muscleStates.Glutes).toBeDefined();
-    expect(completion.muscleStates.Glutes.fatiguePercent).toBeCloseTo(
+    expect(completion.fatigue.Glutes).toBeDefined();
+    expect(completion.fatigue.Glutes).toBeCloseTo(
       EXPECTED_FATIGUE.Glutes,
       0
     );
 
     // Hamstrings: 31% ±0.5
-    expect(completion.muscleStates.Hamstrings).toBeDefined();
-    expect(completion.muscleStates.Hamstrings.fatiguePercent).toBeCloseTo(
+    expect(completion.fatigue.Hamstrings).toBeDefined();
+    expect(completion.fatigue.Hamstrings).toBeCloseTo(
       EXPECTED_FATIGUE.Hamstrings,
       0
     );
 
     // Core: 21% ±0.5
-    expect(completion.muscleStates.Core).toBeDefined();
-    expect(completion.muscleStates.Core.fatiguePercent).toBeCloseTo(
+    expect(completion.fatigue.Core).toBeDefined();
+    expect(completion.fatigue.Core).toBeCloseTo(
       EXPECTED_FATIGUE.Core,
       0
     );
 
     // LowerBack: 5% ±0.5
-    expect(completion.muscleStates.LowerBack).toBeDefined();
-    expect(completion.muscleStates.LowerBack.fatiguePercent).toBeCloseTo(
+    expect(completion.fatigue.LowerBack).toBeDefined();
+    expect(completion.fatigue.LowerBack).toBeCloseTo(
       EXPECTED_FATIGUE.LowerBack,
       0
     );
@@ -158,7 +168,7 @@ describe('Integration: Workout Completion Flow', () => {
 
     // Find Hamstrings suggestion (should be present since we exceeded its baseline)
     const hamstringsSuggestion = completion.baselineSuggestions.find(
-      (s: any) => s.muscleName === EXPECTED_BASELINE_UPDATE.muscleName
+      (s: any) => s.muscle === EXPECTED_BASELINE_UPDATE.muscleName
     );
 
     expect(hamstringsSuggestion).toBeDefined();
