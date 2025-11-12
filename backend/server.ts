@@ -1246,22 +1246,93 @@ app.post('/api/recommendations/exercises', async (req: Request, res: Response) =
       return res.status(400).json({ error: 'targetMuscle is required' });
     }
 
+    // Define all 15 muscle groups
+    const ALL_MUSCLES = [
+      'Pectoralis', 'Lats', 'AnteriorDeltoids', 'PosteriorDeltoids',
+      'Trapezius', 'Rhomboids', 'LowerBack', 'Core', 'Biceps',
+      'Triceps', 'Forearms', 'Quadriceps', 'Hamstrings', 'Glutes', 'Calves'
+    ];
+
     // Get current muscle states for recovery data
-    const muscleStates = db.getMuscleStates();
+    const muscleStatesFromDb = db.getMuscleStates();
+    const currentTime = new Date().toISOString();
+
+    // Edge case: No workout history - all muscles at 0% fatigue
+    if (!muscleStatesFromDb || Object.keys(muscleStatesFromDb).length === 0) {
+      const currentFatigue: Record<string, number> = {};
+      const currentMuscleVolumes: Record<string, number> = {};
+
+      ALL_MUSCLES.forEach(muscle => {
+        currentFatigue[muscle] = 0;
+        currentMuscleVolumes[muscle] = 0;
+      });
+
+      // Get baselines
+      const baselineData = db.getMuscleBaselines();
+      const baselines: Record<string, number> = {};
+      Object.keys(baselineData).forEach(muscle => {
+        const baseline = baselineData[muscle];
+        baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
+      });
+
+      // Get recommendations (all exercises will be safe)
+      const recommendations = exerciseRecommender.recommendExercises({
+        targetMuscle,
+        currentWorkout,
+        currentFatigue,
+        currentMuscleVolumes,
+        baselines,
+        availableEquipment
+      });
+
+      return res.json(recommendations);
+    }
+
+    // Build muscle states array for recovery calculator
+    const muscleStatesArray: Array<{ muscle: string, fatiguePercent: number }> = [];
+    const workoutTimestamps: Record<string, string> = {};
+
+    // Process each muscle from database
+    for (const muscleName of ALL_MUSCLES) {
+      const state = muscleStatesFromDb[muscleName];
+
+      if (state && state.lastTrained) {
+        // Muscle has workout history
+        muscleStatesArray.push({
+          muscle: muscleName,
+          fatiguePercent: state.fatiguePercent || 0
+        });
+        workoutTimestamps[muscleName] = state.lastTrained;
+      } else {
+        // Muscle has no workout history - treat as 0% fatigue
+        muscleStatesArray.push({
+          muscle: muscleName,
+          fatiguePercent: 0
+        });
+        workoutTimestamps[muscleName] = currentTime;
+      }
+    }
+
+    // Find the most recent workout timestamp (used as reference for recovery calculations)
+    const recentWorkoutTimestamp = Object.values(workoutTimestamps)
+      .filter(ts => ts !== currentTime)
+      .sort()
+      .reverse()[0] || currentTime;
+
+    // Calculate recovery using the Epic 1 service (Story 1.2)
+    const recoveryResult = recoveryCalculator.calculateRecovery(
+      muscleStatesArray,
+      recentWorkoutTimestamp,
+      currentTime
+    );
+
+    // Build current fatigue and volumes maps for recommender
     const currentFatigue: Record<string, number> = {};
     const currentMuscleVolumes: Record<string, number> = {};
 
-    Object.keys(muscleStates).forEach(muscle => {
-      const state = muscleStates[muscle];
-      const lastTrainedDate = state.lastTrained || new Date().toISOString();
-      const workoutTimestamp = new Date(lastTrainedDate);
-      const recovery = recoveryCalculator.calculateRecovery(
-        state.initialFatiguePercent,
-        workoutTimestamp,
-        new Date()
-      );
-      currentFatigue[muscle] = recovery.currentFatigue;
-      currentMuscleVolumes[muscle] = 0; // Default to 0 for MVP
+    recoveryResult.muscleStates.forEach((muscleState: any) => {
+      currentFatigue[muscleState.muscle] = muscleState.currentFatigue;
+      currentMuscleVolumes[muscleState.muscle] = 0; // Default to 0 for MVP
     });
 
     // Get baselines
