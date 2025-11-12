@@ -17,15 +17,15 @@ describe('RecoveryCalculator', () => {
       const result = calculateRecovery(sampleMuscleStates, workoutTimestamp, currentTime);
 
       // Quadriceps: 94.4 - 15 = 79.4
-      const quads = result.muscles.find(m => m.muscle === 'Quadriceps');
+      const quads = result.muscleStates.find(m => m.muscle === 'Quadriceps');
       expect(quads.currentFatigue).toBe(79.4);
 
       // Hamstrings: 113.1 - 15 = 98.1
-      const hamstrings = result.muscles.find(m => m.muscle === 'Hamstrings');
+      const hamstrings = result.muscleStates.find(m => m.muscle === 'Hamstrings');
       expect(hamstrings.currentFatigue).toBe(98.1);
 
       // Glutes: 72.0 - 15 = 57.0
-      const glutes = result.muscles.find(m => m.muscle === 'Glutes');
+      const glutes = result.muscleStates.find(m => m.muscle === 'Glutes');
       expect(glutes.currentFatigue).toBe(57.0);
     });
 
@@ -34,11 +34,11 @@ describe('RecoveryCalculator', () => {
       const result = calculateRecovery(sampleMuscleStates, workoutTimestamp, currentTime);
 
       // Quadriceps: 94.4 - 30 = 64.4
-      const quads = result.muscles.find(m => m.muscle === 'Quadriceps');
+      const quads = result.muscleStates.find(m => m.muscle === 'Quadriceps');
       expect(quads.currentFatigue).toBe(64.4);
 
       // Hamstrings: 113.1 - 30 = 83.1
-      const hamstrings = result.muscles.find(m => m.muscle === 'Hamstrings');
+      const hamstrings = result.muscleStates.find(m => m.muscle === 'Hamstrings');
       expect(hamstrings.currentFatigue).toBe(83.1);
     });
 
@@ -47,11 +47,11 @@ describe('RecoveryCalculator', () => {
       const result = calculateRecovery(sampleMuscleStates, workoutTimestamp, currentTime);
 
       // Quadriceps: 94.4 - 45 = 49.4
-      const quads = result.muscles.find(m => m.muscle === 'Quadriceps');
+      const quads = result.muscleStates.find(m => m.muscle === 'Quadriceps');
       expect(quads.currentFatigue).toBe(49.4);
 
       // Hamstrings: 113.1 - 45 = 68.1
-      const hamstrings = result.muscles.find(m => m.muscle === 'Hamstrings');
+      const hamstrings = result.muscleStates.find(m => m.muscle === 'Hamstrings');
       expect(hamstrings.currentFatigue).toBe(68.1);
     });
 
@@ -61,7 +61,7 @@ describe('RecoveryCalculator', () => {
       const currentTime = '2025-11-11T08:00:00Z';
       const result = calculateRecovery(lowFatigueMuscle, workoutTimestamp, currentTime);
 
-      const biceps = result.muscles.find(m => m.muscle === 'Biceps');
+      const biceps = result.muscleStates.find(m => m.muscle === 'Biceps');
       expect(biceps.currentFatigue).toBe(0);
     });
 
@@ -72,7 +72,7 @@ describe('RecoveryCalculator', () => {
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
       // 80 - 7.5 = 72.5
-      const pec = result.muscles.find(m => m.muscle === 'Pectoralis');
+      const pec = result.muscleStates.find(m => m.muscle === 'Pectoralis');
       expect(pec.currentFatigue).toBe(72.5);
     });
   });
@@ -82,7 +82,7 @@ describe('RecoveryCalculator', () => {
       const currentTime = '2025-11-11T08:00:00Z'; // 24 hours after workout
       const result = calculateRecovery(sampleMuscleStates, workoutTimestamp, currentTime);
 
-      const quads = result.muscles.find(m => m.muscle === 'Quadriceps');
+      const quads = result.muscleStates.find(m => m.muscle === 'Quadriceps');
       // Current: 79.4 (after 24h from workout)
       // Projections from current time:
       expect(quads.projections['24h']).toBe(64.4); // 79.4 - 15
@@ -95,7 +95,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Triceps', fatiguePercent: 20 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const triceps = result.muscles.find(m => m.muscle === 'Triceps');
+      const triceps = result.muscleStates.find(m => m.muscle === 'Triceps');
       // Current: 5 (20 - 15)
       expect(triceps.currentFatigue).toBe(5);
       // Projections should be 0
@@ -110,7 +110,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Deltoids (Anterior)', fatiguePercent: 90 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const delts = result.muscles.find(m => m.muscle === 'Deltoids (Anterior)');
+      const delts = result.muscleStates.find(m => m.muscle === 'Deltoids (Anterior)');
       // Current: 90 - 30 = 60
       expect(delts.currentFatigue).toBe(60);
       // Projections from NOW (not from workout):
@@ -126,7 +126,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Quadriceps', fatiguePercent: 94.4 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const quads = result.muscles.find(m => m.muscle === 'Quadriceps');
+      const quads = result.muscleStates.find(m => m.muscle === 'Quadriceps');
       // Current fatigue: 79.4
       // Hours to recover: (79.4 / 15) * 24 = 127.04 hours
       // Recovery time: 2025-11-11T08:00:00Z + 127.04 hours
@@ -147,7 +147,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Calves', fatiguePercent: 0 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const calves = result.muscles.find(m => m.muscle === 'Calves');
+      const calves = result.muscleStates.find(m => m.muscle === 'Calves');
       expect(calves.currentFatigue).toBe(0);
       expect(calves.fullyRecoveredAt).toBeNull();
     });
@@ -157,7 +157,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Hamstrings', fatiguePercent: 113.1 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const hamstrings = result.muscles.find(m => m.muscle === 'Hamstrings');
+      const hamstrings = result.muscleStates.find(m => m.muscle === 'Hamstrings');
       // Current: 98.1 (113.1 - 15)
       // Hours to recover: (98.1 / 15) * 24 = 156.96 hours
       // Should be approximately 6.54 days from current time
@@ -176,7 +176,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Biceps', fatiguePercent: 80 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const biceps = result.muscles.find(m => m.muscle === 'Biceps');
+      const biceps = result.muscleStates.find(m => m.muscle === 'Biceps');
       // 80 - 105 = -25, floored to 0
       expect(biceps.currentFatigue).toBe(0);
       expect(biceps.fullyRecoveredAt).toBeNull();
@@ -190,7 +190,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Erector Spinae', fatiguePercent: 150 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const erector = result.muscles.find(m => m.muscle === 'Erector Spinae');
+      const erector = result.muscleStates.find(m => m.muscle === 'Erector Spinae');
       // 150 - 15 = 135 (still very high)
       expect(erector.currentFatigue).toBe(135);
 
@@ -208,10 +208,10 @@ describe('RecoveryCalculator', () => {
       const result = calculateRecovery(sampleMuscleStates, workoutTimestamp, currentTime);
 
       // Should process all muscles
-      expect(result.muscles.length).toBe(sampleMuscleStates.length);
+      expect(result.muscleStates.length).toBe(sampleMuscleStates.length);
 
       // Each muscle should have correct structure
-      result.muscles.forEach(muscle => {
+      result.muscleStates.forEach(muscle => {
         expect(muscle).toHaveProperty('muscle');
         expect(muscle).toHaveProperty('currentFatigue');
         expect(muscle).toHaveProperty('projections');
@@ -227,7 +227,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Pectoralis', fatiguePercent: 80 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const pec = result.muscles.find(m => m.muscle === 'Pectoralis');
+      const pec = result.muscleStates.find(m => m.muscle === 'Pectoralis');
       // No time has passed, fatigue should be unchanged
       expect(pec.currentFatigue).toBe(80);
     });
@@ -293,13 +293,24 @@ describe('RecoveryCalculator', () => {
   });
 
   describe('Return Data Structure', () => {
+    it('should return muscleStates property (not muscles) for exerciseRecommender compatibility', () => {
+      const currentTime = '2025-11-11T08:00:00Z';
+      const result = calculateRecovery(sampleMuscleStates, workoutTimestamp, currentTime);
+
+      // NEW TEST: This should expect muscleStates, not muscles
+      expect(result).toHaveProperty('muscleStates');
+      expect(result).not.toHaveProperty('muscles');
+      expect(Array.isArray(result.muscleStates)).toBe(true);
+      expect(result.timestamp).toBe(currentTime);
+    });
+
     it('should return correct structure', () => {
       const currentTime = '2025-11-11T08:00:00Z';
       const result = calculateRecovery(sampleMuscleStates, workoutTimestamp, currentTime);
 
-      expect(result).toHaveProperty('muscles');
+      expect(result).toHaveProperty('muscleStates');
       expect(result).toHaveProperty('timestamp');
-      expect(Array.isArray(result.muscles)).toBe(true);
+      expect(Array.isArray(result.muscleStates)).toBe(true);
       expect(result.timestamp).toBe(currentTime);
     });
 
@@ -307,11 +318,11 @@ describe('RecoveryCalculator', () => {
       const currentTime = '2025-11-11T08:00:00Z';
       const result = calculateRecovery(sampleMuscleStates, workoutTimestamp, currentTime);
 
-      expect(result.muscles.length).toBe(sampleMuscleStates.length);
+      expect(result.muscleStates.length).toBe(sampleMuscleStates.length);
 
       // Verify all original muscles are present
       sampleMuscleStates.forEach(original => {
-        const found = result.muscles.find(m => m.muscle === original.muscle);
+        const found = result.muscleStates.find(m => m.muscle === original.muscle);
         expect(found).toBeDefined();
       });
     });
@@ -321,7 +332,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Pectoralis', fatiguePercent: 80 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const pec = result.muscles.find(m => m.muscle === 'Pectoralis');
+      const pec = result.muscleStates.find(m => m.muscle === 'Pectoralis');
       // Should be formatted to 1 decimal place
       expect(pec.currentFatigue).toBe(72.5);
       expect(pec.projections['24h']).toBe(57.5);
@@ -334,7 +345,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Quadriceps', fatiguePercent: 45 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const quads = result.muscles.find(m => m.muscle === 'Quadriceps');
+      const quads = result.muscleStates.find(m => m.muscle === 'Quadriceps');
       if (quads.fullyRecoveredAt) {
         // Should be valid ISO 8601
         const date = new Date(quads.fullyRecoveredAt);
@@ -359,7 +370,7 @@ describe('RecoveryCalculator', () => {
       const muscle = [{ muscle: 'Hamstrings', fatiguePercent: 113.1 }];
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const hamstrings = result.muscles.find(m => m.muscle === 'Hamstrings');
+      const hamstrings = result.muscleStates.find(m => m.muscle === 'Hamstrings');
 
       // After 1 day: 113.1 - 15 = 98.1
       expect(hamstrings.currentFatigue).toBe(98.1);
@@ -382,7 +393,7 @@ describe('RecoveryCalculator', () => {
         currentTime.setHours(currentTime.getHours() + test.hours);
         const result = calculateRecovery(muscle, workoutTimestamp, currentTime.toISOString());
 
-        const hamstrings = result.muscles.find(m => m.muscle === 'Hamstrings');
+        const hamstrings = result.muscleStates.find(m => m.muscle === 'Hamstrings');
         expect(hamstrings.currentFatigue).toBeCloseTo(test.expected, 1);
       });
     });
@@ -394,7 +405,7 @@ describe('RecoveryCalculator', () => {
       const currentTime = '2025-11-11T08:00:00Z';
       const result = calculateRecovery(muscle, workoutTimestamp, currentTime);
 
-      const quads = result.muscles.find(m => m.muscle === 'Quadriceps');
+      const quads = result.muscleStates.find(m => m.muscle === 'Quadriceps');
       expect(quads.currentFatigue).toBe(85); // 100 - 15
     });
   });

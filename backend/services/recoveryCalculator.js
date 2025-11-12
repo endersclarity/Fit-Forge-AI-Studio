@@ -145,11 +145,11 @@ function calculateMuscleRecovery(muscleState, workoutTimestamp, currentTime) {
  * @param {string} currentTime - Current timestamp for recovery calculation (ISO 8601 format)
  *
  * @returns {Object} Recovery state with current fatigue and projections
- * @returns {Array<Object>} returns.muscles - Recovery states for all muscles
- * @returns {string} returns.muscles[].muscle - Muscle group name
- * @returns {number} returns.muscles[].currentFatigue - Current fatigue percentage
- * @returns {Object} returns.muscles[].projections - Future projections (24h, 48h, 72h)
- * @returns {string|null} returns.muscles[].fullyRecoveredAt - ISO 8601 timestamp when fully recovered
+ * @returns {Array<Object>} returns.muscleStates - Recovery states for all muscles
+ * @returns {string} returns.muscleStates[].muscle - Muscle group name
+ * @returns {number} returns.muscleStates[].currentFatigue - Current fatigue percentage
+ * @returns {Object} returns.muscleStates[].projections - Future projections (24h, 48h, 72h)
+ * @returns {string|null} returns.muscleStates[].fullyRecoveredAt - ISO 8601 timestamp when fully recovered
  * @returns {string} returns.timestamp - ISO 8601 timestamp of calculation
  *
  * @throws {Error} If muscleStates is not an array or is empty
@@ -168,7 +168,7 @@ function calculateMuscleRecovery(muscleState, workoutTimestamp, currentTime) {
  * );
  * // Returns:
  * // {
- * //   muscles: [
+ * //   muscleStates: [
  * //     {
  * //       muscle: "Quadriceps",
  * //       currentFatigue: 79.4,
@@ -225,7 +225,7 @@ function calculateRecovery(muscleStates, workoutTimestamp, currentTime) {
   });
 
   return {
-    muscles: recoveryStates,
+    muscleStates: recoveryStates,
     timestamp: currentTime
   };
 }
