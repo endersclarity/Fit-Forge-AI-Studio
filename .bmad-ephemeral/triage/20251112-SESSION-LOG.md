@@ -209,8 +209,9 @@ async function ensureDefaultUser() {
 
 **Git Commit:**
 - Branch: `claude/search-muscle-lab-docs-011CUw3X3MNMCpbxyaadYYvR`
-- Commit message: "fix(triage): add ensureDefaultUser guard for fresh installations"
-- Files changed: 5 (3 modified, 1 deleted, 1 new)
+- Commit: `595b5e1` - "fix(triage): add ensureDefaultUser guard for fresh installations"
+- Commit: `34f754a` - "docs: add commit hash to triage fix changelog entry"
+- Files changed: 11 (4 modified, 1 deleted, 6 new)
 
 ---
 
@@ -292,7 +293,7 @@ async function ensureDefaultUser() {
 ### Git References
 - **Branch:** `claude/search-muscle-lab-docs-011CUw3X3MNMCpbxyaadYYvR`
 - **Original Regression:** Commit `bd2e128`
-- **Fix Commit:** [Will be added after commit]
+- **Fix Commits:** `595b5e1`, `34f754a`
 
 ---
 
