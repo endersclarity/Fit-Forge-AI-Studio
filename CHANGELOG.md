@@ -11,12 +11,63 @@ Audience: AI-assisted debugging and developer reference.
 
 ### Epic 3: Frontend Intelligence Integration - IN PROGRESS 🚧
 
-**Status**: 🚧 2 OF 4 STORIES COMPLETE
+**Status**: 🚧 3 OF 4 STORIES COMPLETE
 **Epic Goal**: Connect existing UI components to new muscle intelligence APIs
 **Prerequisites**: ✅ Epic 2 complete (all 4 API endpoints working)
 **Started**: 2025-11-11
 
 **Epic Summary**: Epic 3 integrates Epic 2's REST API endpoints into the frontend components to provide users with real-time muscle intelligence features through intuitive visualizations and interactive feedback.
+
+#### Story 3.3: Connect ExerciseRecommendations to Recommendation API - COMPLETE ✅
+- **Commit**: `82a118c` - Story 3.3: Initial implementation
+- **Date**: 2025-11-12
+- **Status**: ✅ DONE (Code review approved)
+- **Component**: ExerciseRecommendations
+- **Purpose**: Display AI-powered exercise recommendations with composite scores, factor breakdowns, and safety warnings
+- **Files Changed**:
+  - `components/ExerciseRecommendations.tsx`: Integrated API call to POST /api/recommendations/exercises with score badges and warnings
+  - `components/RecommendationCard.tsx`: Added score badge with tooltip and warning badges for bottleneck risks
+  - `components/__tests__/ExerciseRecommendations.integration.test.tsx`: Comprehensive integration test suite (15 tests)
+  - `.bmad-ephemeral/stories/3-3-connect-exerciserecommendations-to-recommendation-api.md`: Story file
+  - `.bmad-ephemeral/stories/3-3-connect-exerciserecommendations-to-recommendation-api.context.xml`: Technical context
+  - `docs/sprint-status.yaml`: Status tracking
+- **Integration**:
+  - Connects to POST `/api/recommendations/exercises` endpoint (Epic 2 Story 2.3)
+  - Replaces local calculateRecommendations() with API-driven intelligence
+  - Equipment filtering from user's available equipment list
+  - Integrates with WorkoutBuilder via onAddToWorkout callback (Story 3.4 trigger)
+- **Key Features**:
+  - API integration with state management (recommendations, isLoading, error)
+  - Auto-triggers on selectedMuscles or equipment changes via useEffect
+  - Data transformation: API response → ExerciseRecommendation interface with Exercise lookup
+  - Score mapping: excellent (80+), good (60-79), suboptimal (40-59), not-recommended (0-39)
+  - Score badges: Blue rounded badges displaying composite scores (0-100)
+  - Tooltips: Hover over score shows breakdown of all 5 factors with weights:
+    - Target Match (40% weight)
+    - Muscle Freshness (25% weight)
+    - Variety (15% weight)
+    - User Preference (10% weight)
+    - Primary/Secondary (10% weight)
+  - Warning badges: Red badges with ⚠️ icon for bottleneck risks (supporting muscles >80% fatigued)
+  - Loading state: Spinner with "Loading Recommendations..." message
+  - Error handling: User-friendly error messages with retry button
+  - Empty states: Different messages for no equipment, no muscle selected, or no results
+- **Testing**:
+  - ✅ 15 integration test cases covering all acceptance criteria
+  - ✅ API call verification (endpoint, method, request body structure)
+  - ✅ Response parsing and data transformation tests
+  - ✅ UI element rendering (badges, tooltips, warnings)
+  - ✅ User interactions (Add to Workout button, onAddToWorkout callback)
+  - ✅ Error handling (network errors, 500s, empty results)
+  - ✅ Edge cases fully covered
+- **Code Review**:
+  - Decision: **APPROVE** ✅
+  - Reviewer: Senior Developer AI (Kaelen)
+  - Findings: 0 HIGH severity issues, 0 MEDIUM severity issues, 3 LOW severity advisory notes
+  - All 7 acceptance criteria verified with code evidence
+  - All 48 tasks and subtasks verified complete (zero false completions)
+  - Excellent implementation quality - production-ready
+- **Next Story**: Story 3.4 - Connect WorkoutBuilder to Forecast API (Real-Time Preview)
 
 #### Story 3.2: Connect RecoveryDashboard to Recovery Timeline API - COMPLETE ✅
 - **Commit**: `d5e0aa4` - Story 3.2: Initial implementation
