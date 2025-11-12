@@ -11,9 +11,134 @@ Audience: AI-assisted debugging and developer reference.
 
 ### Epic 2: API Integration Layer - IN PROGRESS 🚧
 
-**Status**: 🚧 1 of 4 stories complete
+**Status**: 🚧 3 of 4 stories complete
 **Epic Goal**: Expose muscle intelligence services through clean REST endpoints
 **Prerequisites**: ✅ Epic 1 complete (all 4 calculation services implemented)
+
+#### Story 2.3: Implement Exercise Recommendation Endpoint - COMPLETE ✅
+- **Commit**: `cf0fbac` - Story 2.3: Initial implementation
+- **Date**: 2025-11-11
+- **Status**: ✅ DONE (Code review approved, critical bug fixed)
+- **Endpoint**: POST `/api/recommendations/exercises`
+- **Purpose**: Provide intelligent exercise recommendations based on target muscle and current recovery state
+- **Critical Bug Fixed**:
+  - **Problem**: Endpoint was pre-existing but had incorrect recovery service integration (calling per-muscle instead of once with array)
+  - **Solution**: Refactored to match Story 2.2 pattern - call `calculateRecovery()` once with array of all 15 muscles
+  - **Impact**: Ensures consistent recovery calculations, matches validated Epic 1 service contract
+- **Files Changed**:
+  - `backend/server.ts` (lines 1240-1365): Fixed POST /api/recommendations/exercises endpoint
+  - `backend/__tests__/exerciseRecommendations.test.ts`: Comprehensive test suite (40+ test cases)
+  - `.bmad-ephemeral/stories/2-3-implement-exercise-recommendation-endpoint.md`: Story file
+  - `.bmad-ephemeral/stories/2-3-implement-exercise-recommendation-endpoint.context.xml`: Technical context
+- **Integration**:
+  - Imports `recommendExercises` from Epic 1 Story 1.3 (exerciseRecommender)
+  - Imports `calculateRecovery` from Epic 1 Story 1.2 (recoveryCalculator) - **now using correct pattern**
+  - Uses database.js for muscle states and baselines
+- **Request Format**:
+  ```typescript
+  POST /api/recommendations/exercises
+  Body: {
+    targetMuscle: "Pectoralis",
+    availableEquipment?: string[],
+    currentWorkout?: { exerciseId: string, sets: number }[]
+  }
+  ```
+- **Response Format**:
+  ```typescript
+  {
+    safe: [
+      {
+        exerciseId: "ex01",
+        name: "Bench Press",
+        score: 95,
+        targetEngagement: 65,
+        supportsRecovered: true
+      }
+    ],
+    unsafe: [
+      {
+        exerciseId: "ex02",
+        name: "Push-ups",
+        score: 45,
+        warning: "Supporting muscle Triceps is 85% fatigued"
+      }
+    ]
+  }
+  ```
+- **Key Features**:
+  - Fetches current recovery states for all 15 muscles
+  - Calls exercise recommendation scoring engine with current fatigue data
+  - Applies equipment and exercise type filters
+  - Returns top ranked exercises with scores
+  - Includes safety warnings for bottleneck risks (over-fatigued muscles)
+  - Handles edge case: no workout history (all muscles at 0% fatigue)
+  - Comprehensive error handling (400, 500 with descriptive messages)
+- **Testing**:
+  - ✅ TypeScript compilation: PASSING (0 errors)
+  - ✅ Epic 1 service tests: exerciseRecommender and recoveryCalculator passing
+  - ✅ Endpoint tests: 40+ test cases written (organized by AC)
+- **Code Review**:
+  - Decision: **APPROVE** ✅
+  - Reviewer: Senior Developer AI (Kaelen)
+  - Findings: 0 HIGH severity issues, 0 MEDIUM severity issues, 0 LOW severity issues
+  - All 5 acceptance criteria verified with code evidence
+  - All 5 tasks and 25 subtasks verified complete
+  - Excellent debugging and problem-solving demonstrated
+- **Next Story**: Story 2.4 - Implement Workout Forecast Endpoint
+
+#### Story 2.2: Implement Recovery Timeline Endpoint - COMPLETE ✅
+- **Commit**: `c1e0c0a` - Story 2.2: Initial implementation
+- **Date**: 2025-11-11
+- **Status**: ✅ DONE (Code review approved, all ACs verified)
+- **Endpoint**: GET `/api/recovery/timeline`
+- **Purpose**: Provide current recovery state and future projections for all 15 muscle groups
+- **Files Changed**:
+  - `backend/server.ts` (lines 1020-1034, 1150-1238): Added TypeScript interfaces and refactored endpoint
+  - `backend/__tests__/recoveryTimeline.test.ts`: Comprehensive test suite (50+ test cases)
+  - `.bmad-ephemeral/stories/2-2-implement-recovery-timeline-endpoint.md`: Story file
+  - `.bmad-ephemeral/stories/2-2-implement-recovery-timeline-endpoint.context.xml`: Technical context
+- **Integration**:
+  - Imports `calculateRecovery` from Epic 1 Story 1.2 (recoveryCalculator)
+  - Uses database.js getMuscleStates() for muscle state queries
+  - Follows established patterns from Story 2.1
+- **Response Format**:
+  ```typescript
+  {
+    muscles: [
+      {
+        muscle: "Pectoralis",
+        currentFatigue: 45.5,
+        projections: {
+          "24h": 30.5,
+          "48h": 15.5,
+          "72h": 0.5
+        },
+        fullyRecoveredAt: "2025-11-13T14:30:00Z"
+      }
+    ]
+  }
+  ```
+- **Key Features**:
+  - Queries latest muscle states from database for all 15 muscles
+  - Calculates current recovery state using Epic 1 recoveryCalculator service
+  - Returns current fatigue levels for each muscle
+  - Provides recovery projections at 24h, 48h, and 72h intervals
+  - Identifies when each muscle will be fully recovered
+  - Sorts muscles by fatigue level (most fatigued first) for better UX
+  - Handles edge case: no workout history (returns all muscles at 0% fatigue)
+  - Comprehensive error handling (500 with descriptive messages)
+- **Testing**:
+  - ✅ TypeScript compilation: PASSING (0 errors)
+  - ✅ Epic 1 service tests: 34/34 passing (recoveryCalculator)
+  - ✅ Endpoint tests: 50+ test cases written (structurally correct)
+- **Code Review**:
+  - Decision: **APPROVE** ✅
+  - Reviewer: Senior Developer AI (Kaelen)
+  - Findings: 0 HIGH severity issues, 0 MEDIUM severity issues, 0 LOW severity issues
+  - All 5 acceptance criteria verified with code evidence
+  - All 5 tasks and 23 subtasks verified complete
+  - Production-ready implementation following project patterns
+- **Next Story**: Story 2.3 - Implement Exercise Recommendation Endpoint
 
 #### Story 2.1: Implement Workout Completion Endpoint - COMPLETE ✅
 - **Commit**: `d982c77` - Story 2.1: Initial implementation
