@@ -83,7 +83,7 @@ development_status:
   # Epic 6: Core Interaction Redesign (NEW - UI Redesign Phase 2)
   epic-6: backlog
   6-1-bottom-sheet-navigation-component: drafted
-  6-2-reduce-modal-nesting: drafted
+  6-2-reduce-modal-nesting: done
   6-3-inline-number-pickers: drafted
   6-4-touch-target-compliance-audit: drafted
   6-5-fab-patterns-and-modal-standardization: drafted
