@@ -72,13 +72,13 @@ development_status:
   epic-4-retrospective: done
 
   # Epic 5: Design System Foundation (NEW - UI Redesign Phase 1)
-  epic-5: backlog
+  epic-5: done
   5-1-tailwind-cdn-to-postcss-migration: done
   5-2-design-tokens-and-tailwind-config: done
   5-3-primitive-components-library: done
   5-4-font-integration-cinzel-lato: done
   5-5-storybook-documentation: done
-  epic-5-retrospective: optional
+  epic-5-retrospective: completed
 
   # Epic 6: Core Interaction Redesign (NEW - UI Redesign Phase 2)
   epic-6: backlog
