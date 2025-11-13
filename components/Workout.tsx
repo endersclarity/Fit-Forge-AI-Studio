@@ -69,15 +69,15 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
         <div className="fixed inset-0 bg-brand-dark z-20 p-4 flex flex-col">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Add Exercise</h2>
-                <button onClick={onDone} className="text-brand-cyan">Done</button>
+                <button onClick={onDone} className="text-brand-cyan font-semibold min-w-[60px] min-h-[60px] flex items-center justify-center">Done</button>
             </div>
 
             {/* Category Filter */}
             <div className="mb-3">
                 <label className="block text-xs font-semibold text-slate-400 mb-1">CATEGORY</label>
-                <div className="flex space-x-2 overflow-x-auto pb-2">
+                <div className="flex gap-2 overflow-x-auto pb-2">
                     {(['All', 'Push', 'Pull', 'Legs', 'Core'] as const).map(cat => (
-                        <button key={cat} onClick={() => setCategoryFilter(cat)} className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${categoryFilter === cat ? 'bg-brand-cyan text-brand-dark font-semibold' : 'bg-brand-surface'}`}>
+                        <button key={cat} onClick={() => setCategoryFilter(cat)} className={`px-4 py-2 h-12 rounded-full text-sm font-semibold whitespace-nowrap min-w-[60px] ${categoryFilter === cat ? 'bg-brand-cyan text-brand-dark' : 'bg-brand-surface'}`}>
                             {cat}
                         </button>
                     ))}
@@ -87,9 +87,9 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
             {/* Equipment Filter */}
             <div className="mb-3">
                 <label className="block text-xs font-semibold text-slate-400 mb-1">EQUIPMENT</label>
-                <div className="flex space-x-2 overflow-x-auto pb-2">
+                <div className="flex gap-2 overflow-x-auto pb-2">
                     {equipmentOptions.map(eq => (
-                        <button key={eq} onClick={() => setEquipmentFilter(eq)} className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${equipmentFilter === eq ? 'bg-brand-cyan text-brand-dark font-semibold' : 'bg-brand-surface'}`}>
+                        <button key={eq} onClick={() => setEquipmentFilter(eq)} className={`px-4 py-2 h-12 rounded-full text-sm font-semibold whitespace-nowrap min-w-[60px] ${equipmentFilter === eq ? 'bg-brand-cyan text-brand-dark' : 'bg-brand-surface'}`}>
                             {eq}
                         </button>
                     ))}
@@ -99,9 +99,9 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
             {/* Muscle Filter */}
             <div className="mb-3">
                 <label className="block text-xs font-semibold text-slate-400 mb-1">MUSCLE GROUP</label>
-                <div className="flex space-x-2 overflow-x-auto pb-2">
+                <div className="flex gap-2 overflow-x-auto pb-2">
                     {muscleOptions.map(muscle => (
-                        <button key={muscle} onClick={() => setMuscleFilter(muscle)} className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${muscleFilter === muscle ? 'bg-brand-cyan text-brand-dark font-semibold' : 'bg-brand-surface'}`}>
+                        <button key={muscle} onClick={() => setMuscleFilter(muscle)} className={`px-4 py-2 h-12 rounded-full text-sm font-semibold whitespace-nowrap min-w-[60px] ${muscleFilter === muscle ? 'bg-brand-cyan text-brand-dark' : 'bg-brand-surface'}`}>
                             {muscle}
                         </button>
                     ))}
@@ -117,12 +117,12 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
                     filteredExercises.map(ex => {
                         const equipmentDisplay = Array.isArray(ex.equipment) ? ex.equipment.join(' / ') : ex.equipment;
                         return (
-                            <button key={ex.id} onClick={() => onSelect(ex)} className="w-full text-left bg-brand-surface p-3 rounded-lg flex justify-between items-center">
-                                <div>
+                            <button key={ex.id} onClick={() => onSelect(ex)} className="w-full text-left bg-brand-surface p-4 rounded-lg flex justify-between items-center min-h-[60px] gap-4">
+                                <div className="flex-1">
                                     <p className="font-semibold">{ex.name}</p>
                                     <p className="text-xs text-slate-400">{equipmentDisplay}</p>
                                 </div>
-                                <PlusIcon className="w-5 h-5 text-brand-cyan"/>
+                                <PlusIcon className="w-6 h-6 text-brand-cyan shrink-0"/>
                             </button>
                         );
                     })
@@ -149,10 +149,10 @@ const RestTimer: React.FC<{
             </div>
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => onAdd(15)} className="text-sm font-semibold bg-brand-muted px-3 py-1 rounded-md">+15s</button>
+                    <button onClick={() => onAdd(15)} className="text-sm font-semibold bg-brand-muted px-4 py-2 rounded-md min-w-[60px] min-h-[60px] flex items-center justify-center">+15s</button>
                     <span className="text-3xl font-bold font-mono tracking-wider">{timeString}</span>
                 </div>
-                <button onClick={onClose} className="text-sm font-semibold text-slate-300">
+                <button onClick={onClose} className="text-sm font-semibold text-slate-300 min-w-[60px] min-h-[60px] flex items-center justify-center">
                     {timer.remaining > 0 ? 'Skip' : 'Done'}
                 </button>
             </div>
@@ -795,21 +795,22 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
                       return (
                       <div key={s.id} className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 items-center mb-2">
-                          <div className="flex justify-center">
+                          <div className="flex flex-col items-center gap-1">
                             <button
                               onClick={() => toggleSetFailure(ex.id, s.id)}
-                              className="w-11 h-11 p-2 rounded flex items-center justify-center transition-all active:scale-95"
+                              className="min-w-[60px] min-h-[60px] p-2 rounded flex items-center justify-center transition-all active:scale-95 gap-2"
                               title={toFailure ? "Taken to failure" : "Not to failure"}
                               aria-label={toFailure ? "Set taken to failure. Click to mark as not to failure." : "Set not to failure. Click to mark as taken to failure."}
                               aria-pressed={toFailure}
                               role="switch"
                             >
-                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-brand-cyan border-brand-cyan' : 'border-slate-400'}`}>
-                                {toFailure && <span className="text-brand-dark font-bold text-sm">✓</span>}
+                              <div className={`w-7 h-7 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-brand-cyan border-brand-cyan' : 'border-slate-400'}`}>
+                                {toFailure && <span className="text-brand-dark font-bold text-lg">✓</span>}
                               </div>
+                              <span className="text-xs font-semibold text-slate-300">To Failure</span>
                             </button>
+                            <span className="text-center font-bold text-slate-300 text-sm">{i + 1}</span>
                           </div>
-                          <span className="text-center font-bold text-slate-300">{i + 1}</span>
                           <div className="flex items-center gap-1">
                             <input type="number" step="0.25" value={s.weight}
                                 onChange={e => updateSet(ex.id, s.id, 'weight', parseFloat(e.target.value) || 0)}

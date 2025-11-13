@@ -1,0 +1,141 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>4</storyId>
+    <title>Touch Target Compliance Audit</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-4-touch-target-compliance-audit.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a mobile user with sweaty fingers or gloves at the gym</asA>
+    <iWant>all interactive elements to be large enough (60x60px minimum) to tap accurately</iWant>
+    <soThat>I can log workouts efficiently without frustration from missed taps or accidental clicks</soThat>
+    <tasks>
+      - Audit all interactive elements across all 96 components
+      - Create audit spreadsheet listing all interactive elements with current and target sizes
+      - Enlarge buttons, checkboxes, inputs to 60x60px minimum
+      - Add text label to "To Failure" checkbox in Workout.tsx
+      - Ensure 8px minimum spacing between adjacent interactive targets
+      - Test on mobile devices to confirm improved tap accuracy
+      - Verify WCAG 2.1 AA compliance with automated and manual tests
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    - AC1: Audit spreadsheet created listing all interactive elements
+    - AC2: 90%+ components at 60x60px minimum
+    - AC3: "To Failure" checkbox enlarged with text label
+    - AC4: Adequate spacing between targets (8px minimum)
+    - AC5: Mobile device testing confirms improved accuracy
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/prd-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Product Requirements Document</title>
+        <section>Epic 6: Core Interaction Redesign - Touch Target Compliance</section>
+        <snippet>Touch targets too small (20×20px checkbox vs 44pt WCAG minimum). Enlarge ALL interactive elements to 60×60px minimum. WCAG 2.1 AA compliance (44pt minimum, exceeding to 60pt). Target: 90%+ of interactive elements at 60×60px minimum.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Epic 6: Core Interaction Redesign</section>
+        <snippet>Day 4: Enlarge touch targets audit - Update all className usages to ensure min-w-[60px] min-h-[60px] for buttons, checkboxes, and interactive elements. Verify 8px minimum spacing between targets.</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system-quick-reference.md</path>
+        <title>Design System Quick Reference</title>
+        <section>Button Patterns</section>
+        <snippet>Primary button: h-10 (40px height minimum) with rounded-full, bg-primary, shadow-button-primary. Buttons should use flex items-center justify-center for consistent sizing.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/Workout.tsx</path>
+        <kind>component</kind>
+        <symbol>WorkoutTracker</symbol>
+        <lines>798-812</lines>
+        <reason>"To Failure" checkbox (currently w-11 h-11 = 44x44px, needs to be 60x60px with text label)</reason>
+      </artifact>
+      <artifact>
+        <path>components/Workout.tsx</path>
+        <kind>component</kind>
+        <symbol>ExerciseSelector</symbol>
+        <lines>28-133</lines>
+        <reason>Filter pills (px-3 py-1) need size audit - should be h-12 minimum (48px) for thumb tapping</reason>
+      </artifact>
+      <artifact>
+        <path>components/Workout.tsx</path>
+        <kind>component</kind>
+        <symbol>RestTimer</symbol>
+        <lines>135-161</lines>
+        <reason>+15s button and Skip button need size audit</reason>
+      </artifact>
+      <artifact>
+        <path>components/ui/Button.tsx</path>
+        <kind>component</kind>
+        <symbol>Button</symbol>
+        <lines>1-52</lines>
+        <reason>Base Button component sizes (sm=32px, md=40px, lg=48px) all below 60px target - need new xl size or min-w/min-h enforcement</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <react>^19.2.0</react>
+        <react-dom>^19.2.0</react-dom>
+        <tailwindcss>^3.4.18</tailwindcss>
+        <vite>^6.2.0</vite>
+        <typescript>~5.8.2</typescript>
+        <vitest>^4.0.3</vitest>
+        <axe-core>^4.11.0</axe-core>
+        <@axe-core/react>^4.11.0</@axe-core/react>
+        <@testing-library/react>^16.3.0</@testing-library/react>
+        <@testing-library/user-event>^14.6.1</@testing-library/user-event>
+        <playwright>^1.56.1</playwright>
+        <@storybook/addon-a11y>^9.1.15</@storybook/addon-a11y>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - ALL interactive elements must be minimum 60x60px (exceeds WCAG 44pt requirement)
+    - Maintain 8px minimum spacing between adjacent touch targets
+    - Preserve existing design system colors and styling
+    - Use Tailwind classes: min-w-[60px] min-h-[60px] for enforcement
+    - Add text labels to checkboxes for clarity (e.g., "To Failure" checkbox needs visible label)
+    - Ensure changes don't break existing HMR (Hot Module Reload) workflow
+    - Test on mobile devices (iOS Safari, Android Chrome) to verify tap accuracy
+    - Verify WCAG 2.1 AA compliance with automated tools (Lighthouse, axe-core)
+  </constraints>
+  <interfaces>
+    No new interfaces required - modifications to existing components only
+  </interfaces>
+  <tests>
+    <standards>
+      Testing framework: Vitest with React Testing Library
+      Accessibility testing: jest-axe for automated WCAG compliance checks
+      Component tests location: components/**/*.test.tsx or components/__tests__/*.test.tsx
+      Integration tests use user-event for realistic interaction simulation
+      All interactive components must pass axe accessibility audit with no violations
+      Touch target size verification: components must have h-15 (60px) or min-h-[60px] classes
+      Test pattern: Describe blocks for Rendering, Interaction, Accessibility, Visual States
+    </standards>
+    <locations>
+      components/**/*.test.tsx
+      components/__tests__/*.integration.test.tsx
+    </locations>
+    <ideas>
+      AC1: Create audit test that scans all components and lists touch target sizes
+      AC2: Update Button.test.tsx to verify 60px minimum size for all variants
+      AC3: Add test for Workout.tsx "To Failure" checkbox - verify 60x60px and visible label
+      AC4: Test spacing between adjacent targets (measure getBoundingClientRect gaps)
+      AC5: Add Playwright test for mobile device touch accuracy simulation
+      General: Run axe-core accessibility audit on updated components to verify WCAG AA compliance
+      General: Test keyboard navigation still works after size changes
+    </ideas>
+  </tests>
+</story-context>

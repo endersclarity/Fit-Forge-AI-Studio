@@ -85,4 +85,6 @@ development_status:
   6-1-bottom-sheet-navigation-component: done
   6-2-reduce-modal-nesting: review
   6-3-inline-number-pickers: done
+  6-4-touch-target-compliance-audit: review
+  6-5-fab-patterns-and-modal-standardization: drafted
   epic-6-retrospective: optional

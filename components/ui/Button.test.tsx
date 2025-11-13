@@ -25,15 +25,22 @@ describe('Button Component', () => {
       expect(screen.getByRole('button')).toHaveClass('bg-transparent');
     });
 
-    it('renders all sizes correctly', () => {
+    it('renders all sizes correctly with WCAG compliance', () => {
       const { rerender } = render(<Button onClick={() => {}} size="sm">Small</Button>);
-      expect(screen.getByRole('button')).toHaveClass('h-8');
+      expect(screen.getByRole('button')).toHaveClass('min-h-[60px]');
+      expect(screen.getByRole('button')).toHaveClass('min-w-[60px]');
 
       rerender(<Button onClick={() => {}} size="md">Medium</Button>);
-      expect(screen.getByRole('button')).toHaveClass('h-10');
+      expect(screen.getByRole('button')).toHaveClass('min-h-[60px]');
+      expect(screen.getByRole('button')).toHaveClass('min-w-[60px]');
 
       rerender(<Button onClick={() => {}} size="lg">Large</Button>);
-      expect(screen.getByRole('button')).toHaveClass('h-12');
+      expect(screen.getByRole('button')).toHaveClass('min-h-[60px]');
+      expect(screen.getByRole('button')).toHaveClass('min-w-[80px]');
+
+      rerender(<Button onClick={() => {}} size="xl">Extra Large</Button>);
+      expect(screen.getByRole('button')).toHaveClass('min-h-[72px]');
+      expect(screen.getByRole('button')).toHaveClass('min-w-[100px]');
     });
 
     it('applies custom className', () => {
@@ -109,10 +116,24 @@ describe('Button Component', () => {
       expect(button).toHaveClass('focus-visible:ring-primary');
     });
 
-    it('meets minimum touch target size (lg variant)', () => {
-      render(<Button onClick={() => {}} size="lg">Large Button</Button>);
+    it('meets minimum touch target size (60px WCAG AA+)', () => {
+      render(<Button onClick={() => {}} size="sm">Small Button</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('h-12'); // 48px - exceeds 44px minimum
+      expect(button).toHaveClass('min-h-[60px]'); // 60px - exceeds 44px WCAG minimum
+      expect(button).toHaveClass('min-w-[60px]');
+    });
+
+    it('all button sizes meet 60px minimum requirement', () => {
+      const sizes: Array<'sm' | 'md' | 'lg' | 'xl'> = ['sm', 'md', 'lg', 'xl'];
+      sizes.forEach(size => {
+        const { container } = render(<Button onClick={() => {}} size={size}>Button</Button>);
+        const button = container.querySelector('button');
+        const classes = button?.className || '';
+        // Verify height is at least 60px (matches 60, 72, or any higher value)
+        expect(classes).toMatch(/min-h-\[([6-9]\d|\d{3,})px\]/);
+        // Verify width is at least 60px (matches 60, 80, 100, or any higher value)
+        expect(classes).toMatch(/min-w-\[([6-9]\d|\d{3,})px\]/);
+      });
     });
   });
 
