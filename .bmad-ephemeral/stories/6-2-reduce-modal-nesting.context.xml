@@ -1,0 +1,204 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>2</storyId>
+    <title>Reduce Modal Nesting</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-2-reduce-modal-nesting.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user navigating the Dashboard workflow</asA>
+    <iWant>to access QuickAdd and ExercisePicker functionality without deep modal nesting</iWant>
+    <soThat>the interface feels responsive, accessible, and easier to navigate without getting lost in layers of overlays</soThat>
+    <tasks>
+      - Convert FABMenu from modal to floating menu component
+      - Refactor QuickAdd to use BottomSheet component (60% height)
+      - Integrate ExercisePicker to replace QuickAdd content at same level (content swap pattern)
+      - Implement Exercise detail view as Level 2 full-screen bottom sheet
+      - Audit all modal/sheet paths to confirm max 2-level depth
+      - Update Dashboard.tsx to work with new FABMenu pattern
+      - Test all dismiss methods (back button, backdrop click, swipe down)
+      - Verify no regressions in existing workflows
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    - AC1: FABMenu converted to floating button menu (not modal)
+    - AC2: QuickAdd opens as bottom sheet (60% height)
+    - AC3: ExercisePicker replaces QuickAdd content (same level)
+    - AC4: Exercise detail opens as Level 2 full-screen
+    - AC5: Audit confirms no path allows 3+ nested modals
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/prd-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Product Requirements Document</title>
+        <section>Epic 6: Core Interaction Redesign</section>
+        <snippet>Epic 6 Goal: Reduce per-set interactions from 8-12 clicks → 3-4 taps. Story 2: Reduce modal nesting to 2 levels max - Convert FABMenu → floating button menu (not modal), Make QuickAdd open as bottom sheet (60% height), ExercisePicker replaces QuickAdd content (same level), Exercise detail opens as Level 2 full-screen. Audit: Ensure no path allows 3+ nested modals.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Section 2.4: Feature Flag System & Section 5: Migration Plan - Epic 6</section>
+        <snippet>Epic 6 (Weeks 2-3): Refactor modal hierarchy. Current: Dashboard → FABMenu → QuickAdd → ExercisePicker (4 levels). Target: Dashboard → QuickAdd (bottom sheet) → Done (2 levels). Actions: Convert FABMenu to floating button (not modal), Make QuickAdd open as bottom sheet (60% height), ExercisePicker replaces QuickAdd content (same sheet), Exercise detail opens as full-screen (Level 2). Test escape paths (swipe, backdrop, X, ESC key).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epic-6-prerequisites.md</path>
+        <title>Epic 6 Prerequisites - Known Issues from Epic 5</title>
+        <section>Summary</section>
+        <snippet>Epic 5 delivered solid foundation (123/123 tests passing). Epic 6 Status: READY TO START. All components implemented and tested, components work in production app, design tokens defined, no blocking dependencies. Epic 6 is about integration, not typography.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Epic 6: Core Interaction Redesign - Story 6.2</section>
+        <snippet>Story 6.2: Exercise Selection Modal Redesign - Replace exercise picker with Sheet component, Apply Card primitives for exercise list items, Add Input primitive for exercise search/filter, Maintain exercise recommendation integration.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>src/design-system/components/primitives/Sheet.tsx</path>
+        <kind>component</kind>
+        <symbol>Sheet</symbol>
+        <lines>1-182</lines>
+        <reason>Epic 5 Sheet component - bottom drawer with Vaul library. Configurable heights (sm/md/lg = 40vh/60vh/90vh). Will be used to replace current modal implementations in FABMenu, QuickAdd, and ExercisePicker. Provides accessible drawer with swipe-to-dismiss, backdrop dismiss, and keyboard support.</reason>
+      </file>
+      <file>
+        <path>components/FABMenu.tsx</path>
+        <kind>component</kind>
+        <symbol>FABMenu</symbol>
+        <lines>1-88</lines>
+        <reason>Current FABMenu implementation - opens as full-screen modal with backdrop. AC1 requires converting this to a floating button menu (not modal). Current pattern: fixed inset-0 backdrop with rounded-t-2xl drawer animation.</reason>
+      </file>
+      <file>
+        <path>components/QuickAdd.tsx</path>
+        <kind>component</kind>
+        <symbol>QuickAdd</symbol>
+        <lines>1-50+</lines>
+        <reason>Current QuickAdd modal component. State machine with modes: exercise-picker, set-entry, summary. AC2 requires opening as bottom sheet (60% height). Needs to integrate with Sheet component and maintain existing workout logging logic.</reason>
+      </file>
+      <file>
+        <path>components/ExercisePicker.tsx</path>
+        <kind>component</kind>
+        <symbol>ExercisePicker</symbol>
+        <lines>1-100+</lines>
+        <reason>Exercise selection component with search, category filters, recent exercises, and calibration integration. AC3 requires this to replace QuickAdd content at same sheet level (content swap pattern). Currently rendered in its own modal context.</reason>
+      </file>
+      <file>
+        <path>components/Dashboard.tsx</path>
+        <kind>component</kind>
+        <symbol>Dashboard</symbol>
+        <lines>1-50+</lines>
+        <reason>Main dashboard component that orchestrates FABMenu, QuickAdd, and workout builder. Needs updating to work with new FABMenu floating pattern and Sheet-based QuickAdd. Imports FABMenu (line 18), QuickAdd (line 12), and manages their state.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package name="react">19.2.0</package>
+        <package name="react-dom">19.2.0</package>
+        <package name="react-router-dom">6.30.1</package>
+        <package name="vaul">1.1.2</package>
+        <package name="framer-motion">12.23.24</package>
+        <package name="@fontsource/cinzel">5.2.8</package>
+        <package name="@fontsource/lato">5.2.7</package>
+        <package name="tailwindcss">3.4.18 (devDependency)</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Must maintain existing QuickAdd workout logging logic - multi-exercise, multi-set state machine (exercise-picker, set-entry, summary modes)</constraint>
+    <constraint>Must preserve ExercisePicker functionality - search, category filters, recent exercises, calibration integration</constraint>
+    <constraint>Max 2 modal depth enforced - no path should allow 3+ nested overlays</constraint>
+    <constraint>Must use Sheet component from Epic 5 (src/design-system/components/primitives/Sheet.tsx) - Vaul-based with heights sm/md/lg</constraint>
+    <constraint>Content swap pattern required for ExercisePicker - replaces QuickAdd content at same sheet level, not nested</constraint>
+    <constraint>All dismiss methods must work - swipe down, backdrop click, X button, ESC key (already in Sheet component)</constraint>
+    <constraint>Must maintain mobile-first responsive behavior - all components work on 375px viewport</constraint>
+    <constraint>Zero regressions - existing workflows must continue working during migration</constraint>
+    <constraint>Use design system tokens from tailwind.config.js - primary colors (#758AC6), glass morphism (white/50 + backdrop-blur)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Sheet Component API</name>
+      <kind>React Component Props</kind>
+      <signature>
+        interface SheetProps {
+          open: boolean;
+          onOpenChange: (open: boolean) => void;
+          children: React.ReactNode;
+          height?: 'sm' | 'md' | 'lg';  // 40vh, 60vh, 90vh
+          title?: string;
+          description?: string;
+          className?: string;
+          showHandle?: boolean;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Sheet.tsx</path>
+    </interface>
+    <interface>
+      <name>FABMenu Props</name>
+      <kind>React Component Props</kind>
+      <signature>
+        interface FABMenuProps {
+          isOpen: boolean;
+          onClose: () => void;
+          onLogWorkout: () => void;
+          onBuildWorkout: () => void;
+          onLoadTemplate: () => void;
+        }
+      </signature>
+      <path>components/FABMenu.tsx</path>
+    </interface>
+    <interface>
+      <name>QuickAdd Props</name>
+      <kind>React Component Props</kind>
+      <signature>
+        interface QuickAddProps {
+          isOpen: boolean;
+          onClose: () => void;
+          onSuccess: () => void;
+          onToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+        }
+      </signature>
+      <path>components/QuickAdd.tsx</path>
+    </interface>
+    <interface>
+      <name>ExercisePicker Props</name>
+      <kind>React Component Props</kind>
+      <signature>
+        interface ExercisePickerProps {
+          onSelect: (exercise: Exercise) => void;
+        }
+      </signature>
+      <path>components/ExercisePicker.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest 4.0.3 with React Testing Library 16.3.0
+      Accessibility: jest-axe 10.0.0 for automated a11y checks
+      Pattern: Epic 5 tests in src/design-system/components/primitives/__tests__/ use describe/it/expect with jest-axe.toHaveNoViolations()
+      Coverage: Unit tests for component rendering, props, accessibility, user interactions
+      Test commands: npm test (watch), npm run test:run (CI), npm run test:coverage
+    </standards>
+    <locations>
+      components/__tests__/          - Existing component tests (if any)
+      src/design-system/components/primitives/__tests__/  - Epic 5 primitive tests (Sheet, Button, Card, Input)
+      Test files follow pattern: ComponentName.test.tsx
+    </locations>
+    <ideas>
+      <idea ac="AC1">FABMenu converts to floating button menu (not modal) - Test: verify FABMenu renders as fixed position button, not full-screen overlay. Test: verify clicking button opens menu options without backdrop. Test: verify menu closes on option selection.</idea>
+      <idea ac="AC2">QuickAdd opens as bottom sheet (60% height) - Test: verify Sheet component with height="md" (60vh). Test: verify QuickAdd content renders inside Sheet. Test: verify swipe-to-dismiss works. Test: verify backdrop click closes sheet.</idea>
+      <idea ac="AC3">ExercisePicker replaces QuickAdd content (same level) - Test: verify only one Sheet is open at a time. Test: verify ExercisePicker content replaces QuickAdd content without nested sheets. Test: verify back navigation returns to QuickAdd content.</idea>
+      <idea ac="AC4">Exercise detail opens as Level 2 full-screen - Test: verify exercise detail opens in new Sheet with height="lg" (90vh). Test: verify max 2 Sheets can be stacked. Test: verify closing detail returns to ExercisePicker.</idea>
+      <idea ac="AC5">Audit confirms no path allows 3+ nested modals - Test: integration test that walks through Dashboard → FABMenu → QuickAdd → ExercisePicker → Detail flow. Assert at each step: count open Sheets/modals never exceeds 2. Test: verify no z-index stacking above 2 levels.</idea>
+    </ideas>
+  </tests>
+</story-context>

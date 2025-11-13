@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from './ui/Modal';
+import Sheet from '../src/design-system/components/primitives/Sheet';
 import { getExerciseCalibrations } from '../api';
 import { ExerciseCalibrationData, ExerciseEngagement } from '../types';
 
@@ -68,17 +68,17 @@ export const EngagementViewer: React.FC<EngagementViewerProps> = ({
       <div key={engagement.muscle} className="mb-4">
         {/* Muscle name and label */}
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm font-medium text-white">
+          <span className="text-sm font-medium text-gray-900">
             {engagement.muscle}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-600">
             {engagement.isCalibrated ? 'Calibrated by you' : 'Default'}
           </span>
         </div>
 
         {/* Progress bar */}
         <div className="flex items-center gap-2">
-          <div className="flex-1 bg-white/10 rounded-full h-6 overflow-hidden">
+          <div className="flex-1 bg-gray-200/50 rounded-full h-6 overflow-hidden">
             <div
               className={`${colorClass} h-full transition-all duration-300 flex items-center justify-end pr-2`}
               style={{ width: `${engagement.percentage}%` }}
@@ -91,7 +91,7 @@ export const EngagementViewer: React.FC<EngagementViewerProps> = ({
             </div>
           </div>
           {engagement.percentage <= 10 && (
-            <span className="text-xs font-medium text-gray-300 min-w-[40px]">
+            <span className="text-xs font-medium text-gray-700 min-w-[40px]">
               {engagement.percentage.toFixed(0)}%
             </span>
           )}
@@ -100,22 +100,30 @@ export const EngagementViewer: React.FC<EngagementViewerProps> = ({
     );
   };
 
+  const handleSheetOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
+    <Sheet
+      open={isOpen}
+      onOpenChange={handleSheetOpenChange}
+      height="lg"
       title={data ? `${data.exerciseName} Muscle Engagement` : 'Muscle Engagement'}
+      description="View and edit muscle engagement percentages"
     >
       {loading && (
         <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-600 border-t-primary"></div>
-          <p className="mt-2 text-gray-400">Loading engagement data...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-primary"></div>
+          <p className="mt-2 text-gray-600">Loading engagement data...</p>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-900/20 border border-red-500 rounded-lg p-4 mb-4">
-          <p className="text-red-400">{error}</p>
+        <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-4">
+          <p className="text-red-700">{error}</p>
         </div>
       )}
 
@@ -127,7 +135,7 @@ export const EngagementViewer: React.FC<EngagementViewerProps> = ({
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-4 mb-6 text-xs text-gray-400">
+          <div className="flex items-center gap-4 mb-6 text-xs text-gray-600">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span>High (&ge;60%)</span>
@@ -153,12 +161,12 @@ export const EngagementViewer: React.FC<EngagementViewerProps> = ({
           )}
 
           {/* Info text */}
-          <p className="mt-4 text-xs text-gray-400 text-center">
+          <p className="mt-4 text-xs text-gray-600 text-center">
             Adjust engagement if exercises feel different to you based on your biomechanics and form.
           </p>
         </>
       )}
-    </Modal>
+    </Sheet>
   );
 };
 

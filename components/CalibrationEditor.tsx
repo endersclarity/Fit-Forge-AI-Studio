@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal } from './ui/Modal';
+import Sheet from '../src/design-system/components/primitives/Sheet';
 import { saveExerciseCalibrations, deleteExerciseCalibrations } from '../api';
 import { ExerciseCalibrationData, ExerciseEngagement } from '../types';
 
@@ -179,23 +179,30 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
     return 'text-yellow-400';
   };
 
+  const handleSheetOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
+    <Sheet
+      open={isOpen}
+      onOpenChange={handleSheetOpenChange}
+      height="lg"
       title={`Calibrate ${initialData.exerciseName} Engagement`}
-      className="max-w-2xl"
+      description="Adjust muscle engagement percentages based on your biomechanics"
     >
       {showResetConfirm ? (
         // Reset confirmation dialog
         <div className="text-center py-4">
-          <p className="text-white mb-6">
+          <p className="text-gray-900 mb-6">
             Are you sure you want to reset this exercise to default engagement percentages?
           </p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => setShowResetConfirm(false)}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              className="px-4 py-2 bg-gray-100/50 hover:bg-gray-200/50 text-gray-900 rounded-lg transition-colors"
               disabled={saving}
             >
               Cancel
@@ -213,8 +220,8 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
         <>
           {/* Error message */}
           {error && (
-            <div className="bg-red-900/20 border border-red-500 rounded-lg p-4 mb-4">
-              <p className="text-red-400">{error}</p>
+            <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-4">
+              <p className="text-red-700">{error}</p>
             </div>
           )}
 
@@ -229,10 +236,10 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
                 <div key={engagement.muscle} className="space-y-2">
                   {/* Muscle name and current value */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-sm font-medium text-gray-900">
                       {engagement.muscle}
                     </span>
-                    <span className="text-lg font-bold text-white">
+                    <span className="text-lg font-bold text-gray-900">
                       {currentValue.toFixed(0)}%
                     </span>
                   </div>
@@ -241,7 +248,7 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleIncrement(engagement.muscle, -5)}
-                      className="w-8 h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      className="w-8 h-8 flex items-center justify-center bg-gray-100/50 hover:bg-gray-200/50 text-gray-900 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       aria-label={`Decrease ${engagement.muscle} by 5%`}
                     >
                       −
@@ -254,15 +261,12 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
                       step="1"
                       value={currentValue}
                       onChange={(e) => handleSliderChange(engagement.muscle, Number(e.target.value))}
-                      className="flex-1 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
-                      style={{
-                        background: `linear-gradient(to right, rgb(var(--color-primary)) 0%, rgb(var(--color-primary)) ${currentValue}%, rgba(255,255,255,0.1) ${currentValue}%, rgba(255,255,255,0.1) 100%)`
-                      }}
+                      className="flex-1 h-2 bg-gray-200/50 rounded-lg appearance-none cursor-pointer accent-primary"
                     />
 
                     <button
                       onClick={() => handleIncrement(engagement.muscle, 5)}
-                      className="w-8 h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      className="w-8 h-8 flex items-center justify-center bg-gray-100/50 hover:bg-gray-200/50 text-gray-900 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       aria-label={`Increase ${engagement.muscle} by 5%`}
                     >
                       +
@@ -270,7 +274,7 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
                   </div>
 
                   {/* Default comparison */}
-                  <div className={`text-xs ${getDeviationColor(engagement.muscle)}`}>
+                  <div className="text-xs text-gray-600">
                     Default: {defaultValue.toFixed(0)}%
                     {diff !== 0 && ` (${diff > 0 ? '+' : ''}${diff.toFixed(0)}%)`}
                   </div>
@@ -282,15 +286,15 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
           {/* Total engagement display */}
           <div className={`p-4 rounded-lg mb-6 ${
             totalEngagement < 100 || totalEngagement > 300
-              ? 'bg-yellow-900/20 border border-yellow-500'
-              : 'bg-green-900/20 border border-green-500'
+              ? 'bg-yellow-50 border border-yellow-300'
+              : 'bg-green-50 border border-green-300'
           }`}>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-white">Total Engagement:</span>
-              <span className="text-xl font-bold text-white">{totalEngagement.toFixed(0)}%</span>
+              <span className="text-sm font-medium text-gray-900">Total Engagement:</span>
+              <span className="text-xl font-bold text-gray-900">{totalEngagement.toFixed(0)}%</span>
             </div>
             {(totalEngagement < 100 || totalEngagement > 300) && (
-              <p className="text-xs text-yellow-400 mt-1">
+              <p className="text-xs text-yellow-700 mt-1">
                 Typical range: 100-300%
               </p>
             )}
@@ -298,9 +302,9 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
 
           {/* Warnings */}
           {validation.warnings.length > 0 && (
-            <div className="bg-yellow-900/20 border border-yellow-500 rounded-lg p-4 mb-6 space-y-2">
+            <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-6 space-y-2">
               {validation.warnings.map((warning, idx) => (
-                <p key={idx} className="text-xs text-yellow-400">⚠️ {warning}</p>
+                <p key={idx} className="text-xs text-yellow-700">⚠️ {warning}</p>
               ))}
             </div>
           )}
@@ -309,7 +313,7 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
           <div className="flex gap-3">
             <button
               onClick={() => setShowResetConfirm(true)}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
+              className="px-4 py-2 bg-gray-100/50 hover:bg-gray-200/50 text-gray-900 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
               disabled={saving}
             >
               Reset to Default
@@ -317,7 +321,7 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
             <div className="flex-1"></div>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
+              className="px-4 py-2 bg-gray-100/50 hover:bg-gray-200/50 text-gray-900 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
               disabled={saving}
             >
               Cancel
@@ -332,12 +336,12 @@ export const CalibrationEditor: React.FC<CalibrationEditorProps> = ({
           </div>
 
           {/* Help text */}
-          <p className="mt-4 text-xs text-gray-400 text-center">
+          <p className="mt-4 text-xs text-gray-600 text-center">
             💡 Tip: Start with small adjustments (±10-20%) and test how recommendations change.
           </p>
         </>
       )}
-    </Modal>
+    </Sheet>
   );
 };
 

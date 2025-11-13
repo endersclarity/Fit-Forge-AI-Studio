@@ -4,6 +4,7 @@ import { fetchSmartDefaults, SmartDefaults } from '../utils/smartDefaults';
 import { quickAddAPI } from '../api';
 import ExercisePicker from './ExercisePicker';
 import QuickAddForm from './QuickAddForm';
+import Sheet from '../src/design-system/components/primitives/Sheet';
 
 interface QuickAddProps {
   isOpen: boolean;
@@ -84,26 +85,7 @@ const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess, onToast
     }
   }, [state.currentExercise]);
 
-  // Close modal on Escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        handleClose();
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
-
-  // Prevent body scroll when modal open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
+  // Note: Escape key and body scroll handling now managed by Sheet component
 
   const handleClose = () => {
     // Check if any exercises have been logged
@@ -291,125 +273,104 @@ const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess, onToast
     }
   };
 
-  if (!isOpen) return null;
+  const handleSheetOpenChange = (open: boolean) => {
+    if (!open) {
+      handleClose();
+    }
+  };
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
-      onClick={(e) => {
-        // Only allow backdrop click to close if no exercises logged
-        if (state.exercises.length === 0) {
-          handleClose();
-        }
-      }}
+    <Sheet
+      open={isOpen}
+      onOpenChange={handleSheetOpenChange}
+      height="md"
+      title="Quick Workout Logger"
+      description="Log exercises and sets quickly"
+      className="space-y-4"
     >
-      <div
-        className="bg-brand-surface rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto animate-fade-in"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Quick Workout Logger</h3>
-          <button
-            onClick={handleClose}
-            className="text-slate-400 hover:text-white text-2xl leading-none"
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </header>
 
-        {/* Exercise Picker Mode */}
-        {state.mode === 'exercise-picker' && (
-          <>
-            {state.exercises.length > 0 && (
-              <div className="mb-4 p-3 bg-brand-muted rounded-lg">
-                <p className="text-sm text-slate-400">
-                  {state.exercises.length} exercise{state.exercises.length > 1 ? 's' : ''} logged
-                </p>
-              </div>
-            )}
-            <ExercisePicker onSelect={handleExerciseSelect} />
-          </>
-        )}
+      {/* Exercise Picker Mode */}
+      {state.mode === 'exercise-picker' && (
+        <>
+          {state.exercises.length > 0 && (
+            <div className="mb-4 p-3 bg-primary/10 rounded-lg">
+              <p className="text-sm text-gray-600">
+                {state.exercises.length} exercise{state.exercises.length > 1 ? 's' : ''} logged
+              </p>
+            </div>
+          )}
+          <ExercisePicker onSelect={handleExerciseSelect} />
+        </>
+      )}
 
-        {/* Set Entry Mode */}
-        {state.mode === 'set-entry' && state.currentExercise && (
-          <QuickAddForm
-            exercise={state.currentExercise}
-            setNumber={state.currentSetNumber}
-            weight={state.weight}
-            reps={state.reps}
-            toFailure={state.toFailure}
-            smartDefaults={state.smartDefaults}
-            loading={state.loading}
-            error={state.error}
-            onWeightChange={(weight) => setState(prev => ({ ...prev, weight }))}
-            onRepsChange={(reps) => setState(prev => ({ ...prev, reps }))}
-            onToFailureChange={(toFailure) => setState(prev => ({ ...prev, toFailure }))}
-            onSubmit={handleLogSet}
-            onBack={handleBack}
-          />
-        )}
+      {/* Set Entry Mode */}
+      {state.mode === 'set-entry' && state.currentExercise && (
+        <QuickAddForm
+          exercise={state.currentExercise}
+          setNumber={state.currentSetNumber}
+          weight={state.weight}
+          reps={state.reps}
+          toFailure={state.toFailure}
+          smartDefaults={state.smartDefaults}
+          loading={state.loading}
+          error={state.error}
+          onWeightChange={(weight) => setState(prev => ({ ...prev, weight }))}
+          onRepsChange={(reps) => setState(prev => ({ ...prev, reps }))}
+          onToFailureChange={(toFailure) => setState(prev => ({ ...prev, toFailure }))}
+          onSubmit={handleLogSet}
+          onBack={handleBack}
+        />
+      )}
 
-        {/* Summary Mode */}
-        {state.mode === 'summary' && (
-          <div className="space-y-4">
-            {/* Workout Summary */}
-            <div className="space-y-3">
-              {state.exercises.map((exercise) => (
-                <div key={exercise.exerciseId} className="bg-brand-muted p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">{exercise.exerciseName}</h4>
-                  <div className="space-y-1">
-                    {exercise.sets.map((set) => (
-                      <div key={set.setNumber} className="text-sm text-slate-300">
-                        Set {set.setNumber}: {set.reps} reps @ {set.weight} lbs
-                        {set.toFailure && ' 🔥'}
-                      </div>
-                    ))}
-                  </div>
+      {/* Summary Mode */}
+      {state.mode === 'summary' && (
+        <div className="space-y-4">
+          {/* Workout Summary */}
+          <div className="space-y-3">
+            {state.exercises.map((exercise) => (
+              <div key={exercise.exerciseId} className="bg-gray-100/50 p-4 rounded-lg">
+                <h4 className="font-semibold mb-2 text-gray-900">{exercise.exerciseName}</h4>
+                <div className="space-y-1">
+                  {exercise.sets.map((set) => (
+                    <div key={set.setNumber} className="text-sm text-gray-700">
+                      Set {set.setNumber}: {set.reps} reps @ {set.weight} lbs
+                      {set.toFailure && ' 🔥'}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-2 pt-2">
-              {state.currentExercise && (
-                <button
-                  onClick={handleAnotherSet}
-                  disabled={state.loading}
-                  className="w-full bg-brand-muted text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-50"
-                >
-                  Another Set ({state.currentExercise.name})
-                </button>
-              )}
-              <button
-                onClick={handleAddExercise}
-                disabled={state.loading}
-                className="w-full bg-brand-muted text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-50"
-              >
-                Add Exercise
-              </button>
-              <button
-                onClick={handleFinishWorkout}
-                disabled={state.loading}
-                className="w-full bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50"
-              >
-                {state.loading ? 'Saving...' : 'Finish Workout'}
-              </button>
-            </div>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
-      <style>{`
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out forwards;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
-    </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-2 pt-2">
+            {state.currentExercise && (
+              <button
+                onClick={handleAnotherSet}
+                disabled={state.loading}
+                className="w-full bg-gray-100/50 text-gray-900 font-semibold py-3 px-4 rounded-lg hover:bg-gray-200/50 transition-colors disabled:opacity-50"
+              >
+                Another Set ({state.currentExercise.name})
+              </button>
+            )}
+            <button
+              onClick={handleAddExercise}
+              disabled={state.loading}
+              className="w-full bg-gray-100/50 text-gray-900 font-semibold py-3 px-4 rounded-lg hover:bg-gray-200/50 transition-colors disabled:opacity-50"
+            >
+              Add Exercise
+            </button>
+            <button
+              onClick={handleFinishWorkout}
+              disabled={state.loading}
+              className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
+            >
+              {state.loading ? 'Saving...' : 'Finish Workout'}
+            </button>
+          </div>
+        </div>
+      )}
+    </Sheet>
   );
 };
 

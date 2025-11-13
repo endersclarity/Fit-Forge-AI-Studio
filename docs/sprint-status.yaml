@@ -82,5 +82,6 @@ development_status:
 
   # Epic 6: Core Interaction Redesign
   epic-6: backlog
-  6-1-bottom-sheet-navigation-component: review
+  6-1-bottom-sheet-navigation-component: done
+  6-2-reduce-modal-nesting: review
   epic-6-retrospective: optional

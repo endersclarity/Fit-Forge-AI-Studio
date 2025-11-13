@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 interface FABMenuProps {
   isOpen: boolean;
@@ -8,6 +8,14 @@ interface FABMenuProps {
   onLoadTemplate: () => void;
 }
 
+/**
+ * FABMenu - Floating Action Button Menu
+ *
+ * Converted from modal to floating button menu (Story 6.2 AC1)
+ * - Main FAB button fixed at bottom-right
+ * - Menu overlay appears above FAB (not as modal)
+ * - No backdrop overlay - not a modal layer
+ */
 const FABMenu: React.FC<FABMenuProps> = ({
   isOpen,
   onClose,
@@ -15,69 +23,111 @@ const FABMenu: React.FC<FABMenuProps> = ({
   onBuildWorkout,
   onLoadTemplate,
 }) => {
-  if (!isOpen) return null;
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, onClose]);
+
+  // Close menu on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
+  const handleAction = (action: () => void) => {
+    action();
+    onClose(); // Close menu after selection
+  };
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-brand-surface rounded-t-2xl p-6 w-full max-w-md animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
+    <div className="fixed bottom-6 right-6 z-30" ref={menuRef}>
+      {/* Floating Action Button */}
+      <button
+        onClick={isOpen ? onClose : () => {}}
+        className="w-14 h-14 rounded-full bg-brand-cyan text-brand-dark font-bold text-2xl shadow-lg hover:bg-cyan-400 transition-all duration-200 flex items-center justify-center"
+        aria-label="Quick Actions Menu"
+        aria-expanded={isOpen}
       >
-        <h3 className="text-xl font-semibold mb-4 text-center">Quick Actions</h3>
+        {isOpen ? '×' : '+'}
+      </button>
 
-        <div className="space-y-3">
-          <button
-            onClick={onLogWorkout}
-            className="w-full bg-brand-muted text-white font-semibold py-4 px-4 rounded-lg hover:bg-brand-dark transition-colors text-left flex items-center gap-3"
-          >
-            <span className="text-2xl">📝</span>
-            <div>
-              <div className="font-bold">Log Workout</div>
-              <div className="text-sm text-slate-400">Record a completed workout</div>
-            </div>
-          </button>
+      {/* Menu Overlay - appears above FAB when open */}
+      {isOpen && (
+        <div className="absolute bottom-16 right-0 mb-2 w-72 bg-white/50 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-300/50 overflow-hidden animate-scale-in">
+          <div className="p-4">
+            <h3 className="text-lg font-semibold mb-3 text-gray-900">Quick Actions</h3>
 
-          <button
-            onClick={onBuildWorkout}
-            className="w-full bg-brand-cyan text-brand-dark font-semibold py-4 px-4 rounded-lg hover:bg-cyan-400 transition-colors text-left flex items-center gap-3"
-          >
-            <span className="text-2xl">🏗️</span>
-            <div>
-              <div className="font-bold">Build Workout</div>
-              <div className="text-sm text-slate-600">Plan and execute with timers</div>
-            </div>
-          </button>
+            <div className="space-y-2">
+              <button
+                onClick={() => handleAction(onLogWorkout)}
+                className="w-full bg-gray-100/50 text-gray-900 font-semibold py-3 px-4 rounded-lg hover:bg-gray-200/50 transition-colors text-left flex items-center gap-3"
+              >
+                <span className="text-2xl">📝</span>
+                <div>
+                  <div className="font-bold">Log Workout</div>
+                  <div className="text-sm text-gray-600">Record a completed workout</div>
+                </div>
+              </button>
 
-          <button
-            onClick={onLoadTemplate}
-            className="w-full bg-brand-muted text-white font-semibold py-4 px-4 rounded-lg hover:bg-brand-dark transition-colors text-left flex items-center gap-3"
-          >
-            <span className="text-2xl">📋</span>
-            <div>
-              <div className="font-bold">Load Template</div>
-              <div className="text-sm text-slate-400">Use a saved workout plan</div>
+              <button
+                onClick={() => handleAction(onBuildWorkout)}
+                className="w-full bg-primary/20 text-gray-900 font-semibold py-3 px-4 rounded-lg hover:bg-primary/30 transition-colors text-left flex items-center gap-3"
+              >
+                <span className="text-2xl">🏗️</span>
+                <div>
+                  <div className="font-bold">Build Workout</div>
+                  <div className="text-sm text-gray-600">Plan and execute with timers</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleAction(onLoadTemplate)}
+                className="w-full bg-gray-100/50 text-gray-900 font-semibold py-3 px-4 rounded-lg hover:bg-gray-200/50 transition-colors text-left flex items-center gap-3"
+              >
+                <span className="text-2xl">📋</span>
+                <div>
+                  <div className="font-bold">Load Template</div>
+                  <div className="text-sm text-gray-600">Use a saved workout plan</div>
+                </div>
+              </button>
             </div>
-          </button>
+          </div>
         </div>
-
-        <button
-          onClick={onClose}
-          className="mt-4 w-full py-3 text-slate-400 hover:text-white transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
+      )}
 
       <style>{`
-        .animate-slide-up {
-          animation: slideUp 0.3s ease-out forwards;
+        .animate-scale-in {
+          animation: scaleIn 0.2s ease-out forwards;
+          transform-origin: bottom right;
         }
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
         }
       `}</style>
     </div>
