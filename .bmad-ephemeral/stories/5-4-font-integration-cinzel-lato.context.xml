@@ -1,0 +1,152 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>4</storyId>
+    <title>Font Integration (Cinzel + Lato)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-4-font-integration-cinzel-lato.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Developer implementing the design system</asA>
+    <iWant>To integrate Cinzel (display) and Lato (body) fonts via @fontsource packages</iWant>
+    <soThat>The application displays premium typography with optimal performance and no FOUT/FOIT</soThat>
+    <tasks>
+      - Install @fontsource/cinzel and @fontsource/lato packages
+      - Import font CSS files in src/index.css
+      - Configure base styles for headings (Cinzel) and body text (Lato)
+      - Add font preloading to index.html
+      - Test font loading and verify no flash of unstyled text
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    - AC1: @fontsource/cinzel and @fontsource/lato installed in package.json
+    - AC2: Fonts imported in src/index.css with proper weight variants (400, 700)
+    - AC3: Headings (h1-h6) use Cinzel font family, body text uses Lato
+    - AC4: Font preloading configured in index.html for critical font files
+    - AC5: No FOUT/FOIT flash during page load (tested in dev and production)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- PRD Epic 5 Story 1 -->
+      <doc path="docs/prd-ui-redesign-2025-11-12.md" title="FitForge UI/UX Redesign - Product Requirements Document" section="Epic 5: Design System Foundation">
+        Epic 5 establishes visual identity and core component library. Story 1: "Integrate Cinzel/Lato fonts (0.5 day) - Install @fontsource/cinzel and @fontsource/lato, Update Tailwind config with font families, Apply to headers (Cinzel) and body (Lato)". Acceptance Criteria: "Fonts load correctly, Cinzel for all headlines"
+      </doc>
+
+      <!-- Architecture Integration Points -->
+      <doc path="docs/architecture-ui-redesign-2025-11-12.md" title="FitForge UI/UX Redesign - Integration Architecture" section="2.2 Tailwind Migration Architecture - Step 4: Create src/index.css">
+        Tailwind PostCSS migration requires font imports in src/index.css. Code example shows importing @fontsource/cinzel (400, 700) and @fontsource/lato (400, 700), then applying base styles: "body { font-family: 'Lato', sans-serif; } h1, h2, h3, h4, h5, h6 { font-family: 'Cinzel', serif; letter-spacing: 0.025em; }"
+      </doc>
+
+      <!-- Design System Typography Specification -->
+      <doc path="docs/design-system.md" title="FitForge Design System" section="2. Typography">
+        Font Families: "--font-display: 'Cinzel', serif (Headlines, exercise names); --font-body: 'Lato', sans-serif (Body text, UI elements)". NPM Installation recommended over CDN: "npm install @fontsource/cinzel @fontsource/lato". Import in main entry: "@fontsource/cinzel/400.css, @fontsource/cinzel/700.css, @fontsource/lato/400.css, @fontsource/lato/700.css". Type scale defines Display (Cinzel 32px/24px/18px with letter-spacing 0.05em/0.025em) and Body (Lato 16px/14px/12px).
+      </doc>
+
+      <!-- Technical Approach from Story File -->
+      <doc path=".bmad-ephemeral/stories/5-4-font-integration-cinzel-lato.md" title="Story 5-4: Font Integration" section="Technical Approach">
+        Code example shows CSS structure: "@import '@fontsource/cinzel/400.css'; @import '@fontsource/cinzel/700.css'; @import '@fontsource/lato/400.css'; @import '@fontsource/lato/700.css'; @layer base { body { font-family: 'Lato', sans-serif; } h1, h2, h3, h4, h5, h6 { font-family: 'Cinzel', serif; } }"
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Main CSS Entry Point -->
+      <file path="src/index.css" kind="stylesheet" lines="1-5" reason="Main CSS file where Tailwind directives and font imports will be added">
+        Current contents: "@tailwind base; @tailwind components; @tailwind utilities; /* Base styles will be added in Story 5-4 (Font Integration) */". This file imports Tailwind and will receive font imports and base layer styles for typography.
+      </file>
+
+      <!-- Tailwind Config with Font Tokens -->
+      <file path="tailwind.config.js" kind="configuration" lines="31-41" reason="Tailwind configuration already includes font family tokens">
+        Already configured: "fontFamily: { cinzel: ['Cinzel', 'serif'], lato: ['Lato', 'sans-serif'], display: ['Cinzel', 'serif'], body: ['Lato', 'sans-serif'] }". Also includes fontSize tokens for display variants (display-xl, display-lg, display-md) with proper line-height and letter-spacing. No changes needed - fonts just need to be installed and imported.
+      </file>
+
+      <!-- HTML Entry Point -->
+      <file path="index.html" kind="html" lines="1-28" reason="HTML entry point where font preloading can be added">
+        Current structure includes meta tags, react-grab script, and importmap. Body has "bg-brand-dark text-slate-200" classes. Font preloading can be added in head section for performance optimization.
+      </file>
+
+      <!-- Package Dependencies -->
+      <file path="package.json" kind="json" lines="19-32" reason="Dependencies section where @fontsource packages will be added">
+        Current dependencies include react, framer-motion, vaul (already installed for UI redesign). Need to add @fontsource/cinzel and @fontsource/lato to dependencies section.
+      </file>
+    </code>
+
+    <dependencies>
+      <npm>
+        <package name="@fontsource/cinzel" version="^5.0.0" status="to-install">Display font package with woff2 files for Cinzel serif</package>
+        <package name="@fontsource/lato" version="^5.0.0" status="to-install">Body font package with woff2 files for Lato sans-serif</package>
+        <package name="tailwindcss" version="^3.4.18" status="installed">Already installed - provides @layer base directive for font styling</package>
+        <package name="postcss" version="^8.5.6" status="installed">Already installed - processes Tailwind CSS</package>
+        <package name="autoprefixer" version="^10.4.22" status="installed">Already installed - adds vendor prefixes</package>
+      </npm>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - MUST use @fontsource npm packages (NOT Google Fonts CDN) for self-hosted font files and better performance
+    - Font weights: Only 400 (regular) and 700 (bold) variants needed - keeps bundle size minimal (~300KB total)
+    - MUST use @layer base directive in Tailwind for font family declarations to ensure proper cascade
+    - Headings MUST use Cinzel with letter-spacing: 0.025em for elegant serif aesthetic
+    - Body text MUST use Lato for clean, readable sans-serif UI
+    - Font-display: swap strategy to prevent FOIT (invisible text) and minimize FOUT (flash of unstyled text)
+    - Preload critical font files in index.html to reduce LCP (Largest Contentful Paint)
+    - Testing: Verify fonts load in both development (HMR) and production (Railway) builds
+    - NO breaking changes to existing components - fonts apply via global base styles
+  </constraints>
+
+  <interfaces>
+    <interface name="src/index.css" kind="stylesheet" signature="@import statements + @layer base styles">
+      <path>src/index.css</path>
+      Entry point for all CSS. Currently imports Tailwind directives. Will receive font imports and base layer typography rules.
+    </interface>
+
+    <interface name="tailwind.config.js fontFamily tokens" kind="configuration" signature="theme.extend.fontFamily object">
+      <path>tailwind.config.js</path>
+      Already defines cinzel, lato, display, body tokens. Components can use classes like "font-cinzel", "font-lato", "font-display", "font-body".
+    </interface>
+
+    <interface name="index.html preload" kind="html" signature="<link rel='preload' as='font' ...>">
+      <path>index.html</path>
+      Font preloading in head section for performance. Preload critical font files (Cinzel-700, Lato-400) to reduce layout shift.
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing standards: Visual regression testing for font rendering, performance testing for bundle size and load times. Use browser DevTools to verify fonts load correctly and measure Web Vitals (LCP, CLS). No automated unit tests needed for font integration - focus on manual verification in dev and prod environments.
+    </standards>
+
+    <locations>
+      - Manual testing: Open app in browser, inspect Elements panel, verify computed font-family for headings (Cinzel) and body (Lato)
+      - Performance testing: Chrome DevTools Network tab, verify font files load (~300KB total), check LCP impact
+      - Visual testing: Take screenshots before/after, verify no FOUT/FOIT flash on page load
+      - Production testing: Deploy to Railway staging, verify fonts load from self-hosted @fontsource files
+    </locations>
+
+    <ideas>
+      <test id="AC1" description="Verify @fontsource packages installed">
+        Check package.json dependencies section contains "@fontsource/cinzel" and "@fontsource/lato". Run "npm list @fontsource/cinzel @fontsource/lato" to confirm installation.
+      </test>
+
+      <test id="AC2" description="Verify font imports in src/index.css">
+        Open src/index.css, verify imports for: @fontsource/cinzel/400.css, @fontsource/cinzel/700.css, @fontsource/lato/400.css, @fontsource/lato/700.css. Check @layer base block exists with body and heading styles.
+      </test>
+
+      <test id="AC3" description="Verify fonts apply to headings and body">
+        Run dev server (npm run dev), open browser DevTools, inspect h1-h6 elements, verify computed font-family is "Cinzel, serif". Inspect body/p elements, verify computed font-family is "Lato, sans-serif".
+      </test>
+
+      <test id="AC4" description="Verify font preloading in index.html">
+        Open index.html, check head section contains link rel="preload" tags for critical font files (Cinzel-700.woff2, Lato-400.woff2). Verify crossorigin and type attributes are correct.
+      </test>
+
+      <test id="AC5" description="Verify no FOUT/FOIT on page load">
+        Clear browser cache, reload app, watch for font flash. Use DevTools Performance recording to capture page load. Check Network tab waterfall - fonts should load early. Measure CLS (Cumulative Layout Shift) < 0.1 to verify no layout shift from font swap.
+      </test>
+    </ideas>
+  </tests>
+</story-context>

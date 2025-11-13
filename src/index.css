@@ -1,5 +1,21 @@
+/* Font Imports */
+@import '@fontsource/cinzel/400.css';
+@import '@fontsource/cinzel/700.css';
+@import '@fontsource/lato/400.css';
+@import '@fontsource/lato/700.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles will be added in Story 5-4 (Font Integration) */
+/* Base Typography Styles */
+@layer base {
+  body {
+    font-family: 'Lato', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.025em;
+  }
+}

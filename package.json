@@ -17,6 +17,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@fontsource/cinzel": "^5.2.8",
+    "@fontsource/lato": "^5.2.7",
     "@types/better-sqlite3": "^7.6.13",
     "axios": "^1.12.2",
     "better-sqlite3": "^12.4.1",
