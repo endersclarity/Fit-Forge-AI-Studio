@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>3</storyId>
+    <title>Primitive Components Library</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-3-primitive-components-library.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>The FitForge UI redesign implementation</asA>
+    <iWant>Reusable primitive components (Button, Card, Sheet, Input) with glass morphism and variant support</iWant>
+    <soThat>All 96 components in the redesigned UI have consistent, premium visual appearance and behavior</soThat>
+    <tasks>
+      <task id="AC1">Button component with variants (primary, secondary, ghost) and sizes (sm, md, lg)</task>
+      <task id="AC2">Card component with glass morphism (white/50, backdrop-blur-sm, border-gray-300/50)</task>
+      <task id="AC3">Sheet component (Vaul wrapper) with heights (40vh, 60vh, 90vh)</task>
+      <task id="AC4">Input component with glass background and focus ring</task>
+      <task id="AC5">All components use design tokens from tailwind.config.js</task>
+      <task id="AC6">Storybook stories created for each component with all variants</task>
+      <task id="AC7">Accessibility verified (keyboard nav, ARIA labels, focus indicators)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Button component with variants (primary, secondary, ghost) and sizes (sm, md, lg)</criterion>
+    <criterion id="AC2">Card component with glass morphism (white/50, backdrop-blur-sm, border-gray-300/50)</criterion>
+    <criterion id="AC3">Sheet component (Vaul wrapper) with heights (40vh, 60vh, 90vh)</criterion>
+    <criterion id="AC4">Input component with glass background and focus ring</criterion>
+    <criterion id="AC5">All components use design tokens from tailwind.config.js</criterion>
+    <criterion id="AC6">Storybook stories created for each component with all variants</criterion>
+    <criterion id="AC7">Accessibility verified (keyboard nav, ARIA labels, focus indicators)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/ux-design-premium-system-2025-11-12.md</path>
+        <title>FitForge UX Design Specification - Premium System</title>
+        <section>2. Design System Application - Component Specifications</section>
+        <snippet>Detailed specifications for Button, Card, Sheet, and Input components with glass morphism styling, color values, and interactive states as per premium design system</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system.md</path>
+        <title>FitForge Design System</title>
+        <section>1. Color System and 2. Typography</section>
+        <snippet>Complete color palette (primary blues: #758AC6, #344161, #566890, #8997B8, #A8B6D5), glass surfaces (white/50, white/60), typography hierarchy (Cinzel for display, Lato for body), and design tokens</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system-quick-reference.md</path>
+        <title>Design System Quick Reference</title>
+        <section>Component Primitives</section>
+        <snippet>Quick lookup for design token values, color codes, shadow definitions, and component spacing patterns for rapid development</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>FitForge Epic Breakdown - Epic 5 Context</title>
+        <section>Epic 5: Design System Foundation</section>
+        <snippet>Epic context showing Story 5-3 as the primitive components library that unifies visual consistency across all 96 planned UI components with glass morphism and premium aesthetic</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/5-2-design-tokens-and-tailwind-config.md</path>
+        <title>Story 5-2: Design Tokens and Tailwind Config (Dependency)</title>
+        <section>Completed prerequisite</section>
+        <snippet>Story 5-2 establishes the design tokens and Tailwind configuration that Story 5-3 components depend on. Must reference and use those tokens in all primitive components.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>src/design-system/tokens/colors.ts</path>
+        <kind>module</kind>
+        <symbol>colors, getColor()</symbol>
+        <reason>Core color token definitions that components must use. Provides programmatic access to primary blues (#758AC6, #344161, #566890, #8997B8, #A8B6D5) and badge colors</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/tokens/typography.ts</path>
+        <kind>module</kind>
+        <symbol>typography, fontFamily, displayScale, bodyScale</symbol>
+        <reason>Typography tokens for Cinzel (display) and Lato (body) fonts. Components must use these for consistent text styling</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/tokens/shadows.ts</path>
+        <kind>module</kind>
+        <symbol>shadows, glassShadows, elevation</symbol>
+        <reason>Shadow definitions including glass morphism shadows and button-primary shadow. Components use these for depth and glass effect</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/tokens/spacing.ts</path>
+        <kind>module</kind>
+        <symbol>spacing, semanticSpacing, borderRadius</symbol>
+        <reason>Spacing and border radius tokens for consistent padding, margins, and rounded corners across primitives</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/tokens/index.ts</path>
+        <kind>module</kind>
+        <symbol>All token exports</symbol>
+        <reason>Central export point for all design tokens. Components should import from this barrel export for convenience</reason>
+      </artifact>
+      <artifact>
+        <path>tailwind.config.js</path>
+        <kind>config</kind>
+        <symbol>theme.extend.colors, fontFamily, fontSize, boxShadow, backgroundImage, borderRadius</symbol>
+        <reason>Tailwind configuration with custom design system theme. Components use Tailwind classes referencing these tokens. Contains primary colors, font families (cinzel, lato), custom shadows (button-primary), and glass morphism utilities</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <ecosystem name="npm">
+        <package name="react" version="^19.2.0">React library for component development</package>
+        <package name="framer-motion" version="^12.23.24">Animation library for component transitions and interactive states</package>
+        <package name="vaul" version="^1.1.2">Sheet/drawer library used for Sheet component wrapper</package>
+        <package name="tailwindcss" version="^3.4.18">CSS framework for component styling</package>
+        <package name="postcss" version="^8.5.6">CSS processor for Tailwind compilation</package>
+        <package name="autoprefixer" version="^10.4.22">PostCSS plugin for vendor prefixes</package>
+      </ecosystem>
+      <ecosystem name="devDependencies">
+        <package name="@storybook/react-vite" version="^9.1.15">Storybook integration for component documentation</package>
+        <package name="@storybook/addon-a11y" version="^9.1.15">Accessibility testing addon for Storybook</package>
+        <package name="vitest" version="^4.0.3">Unit test framework</package>
+        <package name="@testing-library/react" version="^16.3.0">React component testing utilities</package>
+        <package name="@axe-core/react" version="^4.11.0">Accessibility auditing library</package>
+        <package name="jest-axe" version="^10.0.0">Jest integration for accessibility testing</package>
+        <package name="typescript" version="~5.8.2">Type safety for component props and interfaces</package>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="design-tokens">All components must use design tokens from src/design-system/tokens/. Do not hardcode color values or spacing. Reference tokens programmatically and via Tailwind classes.</constraint>
+    <constraint id="glass-morphism">Implement glass morphism using Tailwind utilities: bg-white/50 (or bg-white/60), backdrop-blur-sm, border border-gray-300/50. Match design system specifications exactly.</constraint>
+    <constraint id="accessibility">All components must meet WCAG AA standards. Implement proper keyboard navigation (Tab, Enter, Escape), ARIA labels, role attributes, and focus indicators. Verify with axe-core.</constraint>
+    <constraint id="storybook-documentation">Create Storybook stories for each component showing all variants. Use @storybook/addon-a11y for accessibility checks. Stories serve as living documentation.</constraint>
+    <constraint id="type-safety">Use TypeScript for all components. Define strict prop interfaces. Export prop types for consumer code.</constraint>
+    <constraint id="responsive-design">Components should work across device sizes. Test at mobile, tablet, and desktop breakpoints. Use Tailwind's responsive prefixes (sm:, md:, lg:) as needed.</constraint>
+    <constraint id="component-location">Create all primitives in src/design-system/components/primitives/ directory. Create index.ts barrel export for convenient importing.</constraint>
+    <constraint id="dependency">Story 5-2 (Design Tokens) must be completed first. This story depends on tokens and Tailwind config from 5-2.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ButtonProps</name>
+      <kind>React Component Interface</kind>
+      <signature>
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  children: React.ReactNode;
+  disabled?: boolean;
+  onClick?: (event: React.MouseEvent&lt;HTMLButtonElement&gt;) => void;
+  className?: string;
+  type?: 'button' | 'submit' | 'reset';
+  ariaLabel?: string;
+  [key: string]: any;
+}
+      </signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+
+    <interface>
+      <name>CardProps</name>
+      <kind>React Component Interface</kind>
+      <signature>
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: (event: React.MouseEvent&lt;HTMLDivElement&gt;) => void;
+  variant?: 'default' | 'elevated';
+  [key: string]: any;
+}
+      </signature>
+      <path>src/design-system/components/primitives/Card.tsx</path>
+    </interface>
+
+    <interface>
+      <name>SheetProps</name>
+      <kind>React Component Interface (Vaul wrapper)</kind>
+      <signature>
+interface SheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+  height?: 'sm' | 'md' | 'lg'; // 40vh, 60vh, 90vh
+  title?: string;
+  description?: string;
+  [key: string]: any;
+}
+      </signature>
+      <path>src/design-system/components/primitives/Sheet.tsx</path>
+    </interface>
+
+    <interface>
+      <name>InputProps</name>
+      <kind>React Component Interface</kind>
+      <signature>
+interface InputProps extends React.InputHTMLAttributes&lt;HTMLInputElement&gt; {
+  variant?: 'default' | 'error';
+  size?: 'sm' | 'md' | 'lg';
+  placeholder?: string;
+  value?: string;
+  onChange?: (event: React.ChangeEvent&lt;HTMLInputElement&gt;) => void;
+  disabled?: boolean;
+  ariaLabel?: string;
+}
+      </signature>
+      <path>src/design-system/components/primitives/Input.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Unit Testing Framework: Vitest with React Testing Library and Jest DOM matchers. Test component rendering with different props, variant combinations, sizes, and states. Use userEvent for interaction testing. Accessibility testing via jest-axe and @storybook/addon-a11y.
+
+Storybook Testing: Create .stories.tsx files for each component. Use Storybook's controls addon for interactive prop exploration. Include accessibility checks via addon-a11y. Test user interactions (click, focus, keyboard) in story interactions.
+
+Accessibility Standards: Components must meet WCAG AA. Test keyboard navigation (Tab/Shift+Tab through interactive elements, Enter/Space for activation, Escape to close). Verify ARIA attributes (role, aria-label, aria-describedby) where applicable. Check focus indicators are visible (outline, ring utilities). Use contrast checker for text colors.
+
+Component Testing Focus: Props validation (valid variants passed, unsupported props ignored), rendering consistency (same props produce same output), interactive behavior (click handlers fire, focus states visible), accessibility (keyboard nav, ARIA labels, focus management), glass morphism styling (correct classes applied).
+    </standards>
+
+    <locations>
+      <location>src/design-system/components/primitives/__tests__/ (unit tests with Vitest)</location>
+      <location>src/design-system/components/primitives/*.stories.tsx (Storybook documentation)</location>
+      <location>.storybook/ (Storybook configuration with a11y addon)</location>
+    </locations>
+
+    <ideas>
+      <idea testId="AC1-button-rendering">Test Button component renders with default props and all variant/size combinations (primary-sm, primary-md, primary-lg, secondary-sm, secondary-md, secondary-lg, ghost-sm, ghost-md, ghost-lg). Verify correct classes applied per variant.</idea>
+      <idea testId="AC1-button-interaction">Test Button click handler fires when clicked. Test keyboard activation (Space/Enter when focused). Test disabled state (no click, visual feedback).</idea>
+      <idea testId="AC1-button-accessibility">Test Button has proper role=button (or native button). Test ARIA labels work. Test focus ring visible on keyboard focus. Test keyboard navigation with Tab/Shift+Tab.</idea>
+
+      <idea testId="AC2-card-rendering">Test Card renders children with glass morphism classes (bg-white/50, backdrop-blur-sm, border border-gray-300/50). Test rounded corners match design tokens.</idea>
+      <idea testId="AC2-card-variants">Test Card variant prop applies correct styling (default glass, elevated with shadow). Test className prop merges with default classes.</idea>
+      <idea testId="AC2-card-glass-effect">Verify CSS classes produce glass morphism visual effect in browser. Check border, backdrop blur, opacity values match design system.</idea>
+
+      <idea testId="AC3-sheet-rendering">Test Sheet component renders with Vaul wrapper. Test open/close state controls visibility. Test height variants apply correct viewport heights (40vh, 60vh, 90vh).</idea>
+      <idea testId="AC3-sheet-interaction">Test Sheet opens when open=true, closes when open=false. Test onOpenChange callback fires when user clicks outside or presses Escape. Test draggable handle behavior.</idea>
+      <idea testId="AC3-sheet-accessibility">Test Sheet focus trap when open. Test Escape key closes sheet. Test title and description for proper ARIA labels.</idea>
+
+      <idea testId="AC4-input-rendering">Test Input renders with glass background (bg-white/50) and focus ring. Test placeholder displays. Test value prop works.</idea>
+      <idea testId="AC4-input-states">Test disabled state prevents input. Test error variant changes border/text color. Test size variants (sm, md, lg) apply correct padding.</idea>
+      <idea testId="AC4-input-focus">Test focus ring appears on keyboard focus. Test focus ring color matches primary design token. Test focus state uses correct Tailwind utilities.</idea>
+      <idea testId="AC4-input-interaction">Test onChange handler fires on input. Test keyboard input works (typing characters, backspace, etc.). Test tab navigation works.</idea>
+
+      <idea testId="AC5-token-usage">Verify all color values come from design tokens (colors.primary, colors.badge). Verify spacing uses tokens. Verify typography uses Tailwind font-cinzel/font-lato classes.</idea>
+
+      <idea testId="AC6-storybook-coverage">Verify Storybook contains stories for Button (all variants/sizes), Card (all variants), Sheet (all heights), Input (all sizes/variants). Each story has proper controls for interactive testing. a11y addon runs on all stories.</idea>
+
+      <idea testId="AC7-wcag-compliance">Run jest-axe on all component tests. Run @storybook/addon-a11y on all stories. Fix any violations (color contrast, missing labels, keyboard navigation). Document accessibility features in comments.</idea>
+    </ideas>
+  </tests>
+</story-context>

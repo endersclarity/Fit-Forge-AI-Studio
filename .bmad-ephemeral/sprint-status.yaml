@@ -75,7 +75,7 @@ development_status:
   epic-5: backlog
   5-1-tailwind-cdn-to-postcss-migration: done
   5-2-design-tokens-and-tailwind-config: done
-  5-3-primitive-components-library: drafted
+  5-3-primitive-components-library: review
   5-4-font-integration-cinzel-lato: drafted
   5-5-storybook-documentation: drafted
   epic-5-retrospective: optional
