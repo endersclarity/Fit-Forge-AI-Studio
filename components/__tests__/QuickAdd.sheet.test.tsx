@@ -67,18 +67,18 @@ describe('QuickAdd - Story 6.2 AC2 & AC3', () => {
 
   describe('AC2: QuickAdd opens as bottom sheet (60% height)', () => {
     it('should render as Sheet component with height="md" (60vh)', () => {
-      const { container } = render(<QuickAdd {...defaultProps} />);
+      render(<QuickAdd {...defaultProps} />);
 
-      // Sheet component should be present with proper height
-      const sheetContent = container.querySelector('[style*="60vh"]');
-      expect(sheetContent).toBeInTheDocument();
+      // Sheet component should be present with proper height - Vaul renders in Portal
+      const sheetContent = document.querySelector('[style*="60vh"]');
+      expect(sheetContent).toBeTruthy();
     });
 
     it('should NOT render as modal with fixed inset-0 backdrop', () => {
-      const { container } = render(<QuickAdd {...defaultProps} />);
+      render(<QuickAdd {...defaultProps} />);
 
       // Old modal pattern should NOT exist
-      const oldModalBackdrop = container.querySelector('.fixed.inset-0.bg-black.bg-opacity-70');
+      const oldModalBackdrop = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-70');
       expect(oldModalBackdrop).toBeNull();
     });
 
@@ -99,22 +99,22 @@ describe('QuickAdd - Story 6.2 AC2 & AC3', () => {
 
   describe('AC3: ExercisePicker replaces QuickAdd content (same level)', () => {
     it('should render ExercisePicker content within Sheet (not as nested modal)', () => {
-      const { container } = render(<QuickAdd {...defaultProps} />);
+      render(<QuickAdd {...defaultProps} />);
 
       // ExercisePicker should be rendered
       expect(screen.getByPlaceholderText('Search exercises...')).toBeInTheDocument();
 
-      // Should NOT create nested Sheet or Modal
-      const sheets = container.querySelectorAll('[data-vaul-drawer]');
+      // Should NOT create nested Sheet or Modal - Vaul renders in Portal
+      const sheets = document.querySelectorAll('.fixed.bottom-0');
       expect(sheets.length).toBeLessThanOrEqual(1); // Only QuickAdd Sheet
     });
 
     it('should swap to set-entry mode within same Sheet after exercise selection', async () => {
       render(<QuickAdd {...defaultProps} />);
 
-      // Select an exercise
-      const benchPressButton = screen.getByText('Bench Press');
-      fireEvent.click(benchPressButton);
+      // Select an exercise - use an exercise that exists in EXERCISE_LIBRARY
+      const exerciseButton = screen.getByText('Dumbbell Bench Press');
+      fireEvent.click(exerciseButton);
 
       // Should transition to set-entry mode (QuickAddForm) within same Sheet
       await waitFor(() => {
@@ -129,8 +129,8 @@ describe('QuickAdd - Story 6.2 AC2 & AC3', () => {
     it('should swap to summary mode within same Sheet after logging set', async () => {
       render(<QuickAdd {...defaultProps} />);
 
-      // Select exercise
-      fireEvent.click(screen.getByText('Bench Press'));
+      // Select exercise - use an exercise that exists in EXERCISE_LIBRARY
+      fireEvent.click(screen.getByText('Dumbbell Bench Press'));
 
       await waitFor(() => {
         expect(screen.getByLabelText(/Weight/i)).toBeInTheDocument();
@@ -152,7 +152,7 @@ describe('QuickAdd - Story 6.2 AC2 & AC3', () => {
       render(<QuickAdd {...defaultProps} />);
 
       // Go through flow: pick exercise -> log set -> summary
-      fireEvent.click(screen.getByText('Bench Press'));
+      fireEvent.click(screen.getByText('Dumbbell Bench Press'));
       await waitFor(() => {
         expect(screen.getByLabelText(/Weight/i)).toBeInTheDocument();
       });
@@ -174,11 +174,11 @@ describe('QuickAdd - Story 6.2 AC2 & AC3', () => {
 
   describe('Dismiss Methods', () => {
     it('should close Sheet on backdrop click', () => {
-      const { container } = render(<QuickAdd {...defaultProps} />);
+      render(<QuickAdd {...defaultProps} />);
 
-      // Find Sheet overlay (backdrop)
-      const overlay = container.querySelector('.fixed.inset-0.z-40');
-      expect(overlay).toBeInTheDocument();
+      // Find Sheet overlay (backdrop) - Vaul renders in Portal
+      const overlay = document.querySelector('.fixed.inset-0.z-40');
+      expect(overlay).toBeTruthy();
 
       fireEvent.click(overlay!);
 
@@ -201,19 +201,18 @@ describe('QuickAdd - Story 6.2 AC2 & AC3', () => {
 
       render(<QuickAdd {...defaultProps} />);
 
-      // Log an exercise
-      fireEvent.click(screen.getByText('Bench Press'));
+      // Log an exercise - use an exercise that exists in EXERCISE_LIBRARY
+      fireEvent.click(screen.getByText('Dumbbell Bench Press'));
       await waitFor(() => {
         expect(screen.getByLabelText(/Weight/i)).toBeInTheDocument();
       });
       fireEvent.click(screen.getByText(/Log Set/i));
 
-      // Try to close
-      const { container } = render(<QuickAdd {...defaultProps} isOpen={true} />);
-      const overlay = container.querySelector('.fixed.inset-0.z-40');
+      // Try to close - Vaul renders in Portal
+      const overlay = document.querySelector('.fixed.inset-0.z-40');
       fireEvent.click(overlay!);
 
-      // Should not close without confirmation when exercises logged
+      // Should show confirmation when exercises logged
       expect(confirmSpy).toHaveBeenCalled();
 
       confirmSpy.mockRestore();
@@ -222,22 +221,22 @@ describe('QuickAdd - Story 6.2 AC2 & AC3', () => {
 
   describe('Modal Depth Verification', () => {
     it('should maintain max 1 Sheet level (QuickAdd Sheet only)', () => {
-      const { container } = render(<QuickAdd {...defaultProps} />);
+      render(<QuickAdd {...defaultProps} />);
 
-      // Count Vaul drawer instances
-      const drawers = container.querySelectorAll('[data-vaul-drawer]');
-      expect(drawers.length).toBe(1);
+      // Count Vaul sheets - Vaul renders in Portal using .fixed.bottom-0
+      const sheets = document.querySelectorAll('.fixed.bottom-0');
+      expect(sheets.length).toBe(1);
 
       // Verify no nested modals
-      const modals = container.querySelectorAll('[role="dialog"][aria-modal="true"]');
+      const modals = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
       expect(modals.length).toBe(0); // Sheet uses different ARIA pattern
     });
 
     it('should NOT nest modals when navigating between modes', async () => {
-      const { container } = render(<QuickAdd {...defaultProps} />);
+      render(<QuickAdd {...defaultProps} />);
 
       // Navigate: ExercisePicker -> SetEntry -> Summary
-      fireEvent.click(screen.getByText('Bench Press'));
+      fireEvent.click(screen.getByText('Dumbbell Bench Press'));
       await waitFor(() => {
         expect(screen.getByLabelText(/Weight/i)).toBeInTheDocument();
       });
@@ -247,8 +246,8 @@ describe('QuickAdd - Story 6.2 AC2 & AC3', () => {
       });
 
       // Verify still only 1 Sheet
-      const drawers = container.querySelectorAll('[data-vaul-drawer]');
-      expect(drawers.length).toBe(1);
+      const sheets = document.querySelectorAll('.fixed.bottom-0');
+      expect(sheets.length).toBe(1);
     });
   });
 
@@ -267,7 +266,7 @@ describe('QuickAdd - Story 6.2 AC2 & AC3', () => {
       expect(results).toHaveNoViolations();
 
       // Navigate to set-entry mode
-      fireEvent.click(screen.getByText('Bench Press'));
+      fireEvent.click(screen.getByText('Dumbbell Bench Press'));
       await waitFor(() => {
         expect(screen.getByLabelText(/Weight/i)).toBeInTheDocument();
       });

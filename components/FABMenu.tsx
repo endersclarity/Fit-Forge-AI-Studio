@@ -63,7 +63,7 @@ const FABMenu: React.FC<FABMenuProps> = ({
       {/* Floating Action Button */}
       <button
         onClick={isOpen ? onClose : () => {}}
-        className="w-14 h-14 rounded-full bg-brand-cyan text-brand-dark font-bold text-2xl shadow-lg hover:bg-cyan-400 transition-all duration-200 flex items-center justify-center"
+        className="w-14 h-14 rounded-full bg-primary text-white font-bold text-2xl shadow-lg hover:bg-primary/90 transition-all duration-200 flex items-center justify-center"
         aria-label="Quick Actions Menu"
         aria-expanded={isOpen}
       >
