@@ -32,6 +32,9 @@ RUN npm run build
 # Copy .js service files to dist (TypeScript only compiles .ts files)
 RUN mkdir -p dist/backend/services && cp services/*.js dist/backend/services/
 
+# Copy JSON data files needed by services
+RUN mkdir -p dist/docs/logic-sandbox && cp -r ../docs/logic-sandbox/*.json dist/docs/logic-sandbox/
+
 # Remove devDependencies to reduce image size
 RUN npm prune --production
 
