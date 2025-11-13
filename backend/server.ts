@@ -46,6 +46,14 @@ import {
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
+// Default workout parameters for recommendation safety checking
+// Based on typical intermediate lifter 3x10 hypertrophy protocol
+const DEFAULT_RECOMMENDATION_PARAMS = {
+  ESTIMATED_SETS: 3,
+  ESTIMATED_REPS: 10,
+  ESTIMATED_WEIGHT_LBS: 100
+} as const;
+
 // Middleware
 // CORS configuration - supports both development and production
 const allowedOrigins = [
@@ -1292,9 +1300,9 @@ app.post('/api/recommendations/exercises', async (req: Request, res: Response) =
         {
           availableEquipment,
           workoutHistory: currentWorkout,
-          estimatedSets: 3,
-          estimatedReps: 10,
-          estimatedWeight: 100
+          estimatedSets: DEFAULT_RECOMMENDATION_PARAMS.ESTIMATED_SETS,
+          estimatedReps: DEFAULT_RECOMMENDATION_PARAMS.ESTIMATED_REPS,
+          estimatedWeight: DEFAULT_RECOMMENDATION_PARAMS.ESTIMATED_WEIGHT_LBS
         }
       );
 
@@ -1360,9 +1368,9 @@ app.post('/api/recommendations/exercises', async (req: Request, res: Response) =
       {
         availableEquipment,
         workoutHistory: currentWorkout,
-        estimatedSets: 3,
-        estimatedReps: 10,
-        estimatedWeight: 100
+        estimatedSets: DEFAULT_RECOMMENDATION_PARAMS.ESTIMATED_SETS,
+        estimatedReps: DEFAULT_RECOMMENDATION_PARAMS.ESTIMATED_REPS,
+        estimatedWeight: DEFAULT_RECOMMENDATION_PARAMS.ESTIMATED_WEIGHT_LBS
       }
     );
 

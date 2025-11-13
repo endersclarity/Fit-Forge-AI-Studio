@@ -22,8 +22,7 @@ WORKDIR /app
 COPY shared/ ./shared/
 COPY types.ts ./types.ts
 
-# Copy docs folder (needed for exercise data files)
-COPY docs/ ./docs/
+# Note: docs folder copied later with explicit file filtering
 
 # Copy backend source files (preserves directory structure)
 COPY backend/ ./backend/
@@ -32,11 +31,18 @@ COPY backend/ ./backend/
 WORKDIR /app/backend
 RUN npm run build
 
-# Copy .js service files to dist (TypeScript only compiles .ts files)
-RUN mkdir -p dist/backend/services && cp services/*.js dist/backend/services/
+# Copy production .js service files to dist (TypeScript only compiles .ts files)
+# Explicitly list files to exclude test files from production build
+RUN mkdir -p dist/backend/services && \
+    cp services/baselineUpdater.js dist/backend/services/ && \
+    cp services/dataLoaders.js dist/backend/services/ && \
+    cp services/exerciseRecommender.js dist/backend/services/ && \
+    cp services/fatigueCalculator.js dist/backend/services/ && \
+    cp services/recoveryCalculator.js dist/backend/services/
 
-# Copy JSON data files needed by services
-RUN mkdir -p dist/docs/logic-sandbox && cp -r ../docs/logic-sandbox/*.json dist/docs/logic-sandbox/
+# Copy only required exercise data file (not entire docs folder)
+RUN mkdir -p dist/docs/logic-sandbox
+COPY docs/logic-sandbox/exercises.json dist/docs/logic-sandbox/
 
 # Remove devDependencies to reduce image size
 RUN npm prune --production
