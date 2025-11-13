@@ -323,7 +323,7 @@
 
     <check if="ad_hoc_review_mode != true">
       <action>Determine target status based on review outcome:
-        - If {{outcome}} == "Approve" → target_status = "done"
+        - If {{outcome}} == "Approve" → target_status = "review" (keep in review - story-done workflow will mark as done)
         - If {{outcome}} == "Changes Requested" → target_status = "in-progress"
         - If {{outcome}} == "Blocked" → target_status = "review" (stay in review)
       </action>
