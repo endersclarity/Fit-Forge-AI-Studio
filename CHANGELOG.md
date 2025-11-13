@@ -7,6 +7,55 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+## [Unreleased] - 2025-11-13
+
+### Story 5.4: Font Integration (Cinzel + Lato) ✅
+
+**Epic**: 5 - Design System Foundation
+**Status**: DONE
+**Date**: 2025-11-13
+**Commit**: 39af3ee
+
+#### Summary
+
+Integrated premium typography using self-hosted Cinzel (display) and Lato (body) fonts via @fontsource packages. Fonts load efficiently via CSS @import with font-display: swap strategy, ensuring optimal performance and preventing FOUT/FOIT.
+
+#### Changes Made
+
+- **Package Dependencies**: Installed @fontsource/cinzel@5.2.8 and @fontsource/lato@5.2.7
+- **CSS Imports**: Added font imports to src/index.css (400 and 700 weights for both fonts)
+- **Base Styles**: Configured @layer base with Cinzel for headings (h1-h6), Lato for body text
+- **Letter Spacing**: Applied 0.025em to headings for elegant serif aesthetic
+
+#### Key Features
+
+1. **Self-Hosted Fonts**: npm packages provide faster, more reliable loading than CDN (~175KB total)
+2. **Performance Optimization**: font-display: swap prevents FOIT and minimizes FOUT
+3. **Production Build**: All 14 font variants properly bundled with asset hashing
+4. **Typography Hierarchy**: Clear distinction between display (Cinzel) and body (Lato) text
+
+#### Files Modified
+
+- `package.json` - Added @fontsource dependencies
+- `src/index.css` - Font imports and base layer typography styles
+- `index.html` - No preload tags (CSS approach is production-safe with Vite)
+
+#### Testing Results
+
+- ✅ Production build successful (5.46s)
+- ✅ All font files included in dist/assets/ (14 files with proper hashing)
+- ✅ CSS bundle: 64.57 kB (gzip: 17.57 kB)
+- ✅ No new test failures (19 pre-existing backend failures unrelated)
+
+#### Code Review
+
+- **Decision**: APPROVED (2nd pass)
+- **Acceptance Criteria**: 5/5 met (100%)
+- **Issues Resolved**: Removed broken font preload tags (MEDIUM severity)
+- **Production Ready**: Verified working in production build
+
+---
+
 ## [Unreleased] - 2025-11-12
 
 ### Story 5.3: Primitive Components Library ✅
