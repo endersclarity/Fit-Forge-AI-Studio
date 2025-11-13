@@ -2778,6 +2778,89 @@ Epic 5 established the design system foundation (Button, Card, Input, Sheet prim
 
 ---
 
+## Epic 7: Intelligence Shortcuts
+
+**Epic Goal**: Implement productivity-focused shortcuts that make workout logging faster and more intelligent, leveraging the design system foundation and new interaction patterns.
+
+**Status**: READY TO START
+**Priority**: HIGH
+**Estimated Time**: 6-8 hours (5 stories)
+
+### Background
+
+Epics 1-4 delivered the muscle intelligence core (calculation services, APIs, frontend integration). Epic 5 built the design system foundation (bottom sheets, inline pickers, touch compliance). Epic 6 redesigned core interactions using those primitives. Epic 7 delivers user-facing smart features that reduce logging friction by 50%+.
+
+### User Value
+
+- **Set Logging Time**: Reduce from 15-20 seconds → 5-8 seconds per set (60% improvement)
+- **Cognitive Load**: Collapse advanced options by default, progressive disclosure
+- **Equipment Context**: Only suggest exercises user can actually perform
+- **Rest Management**: Automatic rest timer eliminates manual timer management
+
+### Stories
+
+#### Story 7.1: Auto-Starting Rest Timer
+- Create `RestTimerBanner` component (fixed position at top)
+- Auto-start when user logs a set with haptic feedback
+- Show skip button and progress bar
+- Auto-dismiss when timer completes
+- **Benefit**: Users don't need to manually start rest timers
+
+#### Story 7.2: "Log All Sets?" Smart Shortcut
+- Detect pattern: 2-3 sets logged with matching weight/reps
+- Show bottom sheet modal: "Log all remaining sets at 135 lbs, 8 reps?"
+- One-tap confirmation to fill all remaining sets
+- **Benefit**: Reduces set logging from 4-6 clicks per set → 1 tap for all remaining
+
+#### Story 7.3: One-Tap Set Duplication
+- Add "Copy Previous Set" button next to weight/reps inputs
+- Copies weight, reps, and to-failure flag from prior set
+- Include haptic feedback
+- **Benefit**: Cuts logging time when doing multiple sets of same weight/reps
+
+#### Story 7.4: Equipment Filtering
+- Update ExercisePicker to filter by user's available equipment
+- Add toggle for "Show All" (bypass filter)
+- Persist filter preference to localStorage
+- Display active filter count badge
+- **Benefit**: Eliminates suggestions for exercises user can't perform
+
+#### Story 7.5: Progressive Disclosure
+- Collapse advanced options (rest time, notes, to-failure) by default
+- Show/hide toggle on workout and dashboard forms
+- Keep primary inputs (weight, reps, log) always visible
+- Persist collapsed/expanded state to localStorage
+- **Benefit**: Reduces cognitive load for casual loggers
+
+### Acceptance Criteria (Epic Level)
+
+- [ ] Auto rest timer starts correctly after set logged
+- [ ] "Log All Sets?" appears after 2-3 matching sets
+- [ ] Copy Previous Set button works on all set logging forms
+- [ ] Equipment filter persists between sessions
+- [ ] Progressive disclosure state persists
+- [ ] All new components maintain 60x60px touch targets (WCAG AA)
+- [ ] Haptic feedback on all shortcuts (where supported)
+- [ ] No regressions on existing features
+- [ ] All existing tests still passing (476+ tests)
+- [ ] New interaction tests added for all shortcuts
+
+### Technical Notes
+
+- Use Sheet component from Epic 5 for "Log All Sets?" modal
+- Use InlineNumberPicker patterns from Epic 6
+- RestTimerBanner uses fixed positioning (z-index below Sheet)
+- Equipment filter requires localStorage integration
+- All shortcuts should be discoverable but not intrusive
+
+### Dependencies
+
+- Epic 5 (Design System Foundation) ✅ COMPLETE
+- Epic 6 (Core Interaction Redesign) ✅ COMPLETE
+- Muscle Intelligence APIs (Epics 1-4) ✅ COMPLETE
+
+---
+
 _For implementation: Use the `create-story` workflow to generate individual story implementation plans from this epic breakdown._
 
 _Next Steps: Run `/bmad:bmm:workflows:architecture` to design technical architecture before implementation, or proceed directly to `/bmad:bmm:workflows:create-story` for Story 1.1 if architecture already documented._
