@@ -495,10 +495,101 @@ suggestedWeight = lastWeight × 1.03  // 3% increase
 
 ---
 
+## 7. Exercise Selection Flow Analysis
+
+### Entry Points (3 Contexts)
+
+**1. Quick Add Modal** - `QuickAdd.tsx`
+- Most common path
+- Flow: Select exercise → Smart defaults load → Log sets
+- **Clicks to add: 3-4**
+
+**2. Set Configurator** - `SetConfigurator.tsx`
+- During live workout
+- Auto-fetches history on selection
+- **Clicks to add: 4-5**
+
+**3. AI Recommendations** - `ExerciseRecommendations.tsx`
+- Muscle-based filtering
+- Direct "Add to Workout" button
+- **Clicks to add: 2** (most efficient)
+
+### Filtering System
+
+**Category Tabs:**
+- 4 categories: Push, Pull, Legs, Core
+- "All" shows grouped view
+- Active tab: Cyan background
+
+**Search:**
+- Real-time text search
+- Searches: name, category, equipment
+- Case-insensitive
+- No autocomplete or typo correction
+
+**Equipment Filtering:**
+- Only in Recommendations flow
+- Maps user's equipment to exercise requirements
+- Shows ✅/❌ availability on cards
+
+### Information Architecture
+
+**ExercisePicker Card (Compact):**
+- Exercise name
+- Equipment text
+- Difficulty badge (color-coded)
+- "View Engagement" link
+
+**RecommendationCard (Comprehensive):**
+- Status badge (Excellent/Good/Suboptimal)
+- Opportunity score (5-factor breakdown)
+- Muscle engagement pills (color-coded by %)
+- Equipment availability
+- Warning badges for bottlenecks
+- "Add to Workout" button
+
+### Critical Friction Points
+
+**Issue 1: No Equipment Filtering in Quick Add**
+- Shows ALL exercises regardless of available equipment
+- Users can select exercises without proper equipment
+- Component: `ExercisePicker.tsx`
+- **Priority: HIGH**
+
+**Issue 2: Difficulty Not Filterable**
+- Badge shown but can't filter by difficulty level
+- Must scan 20+ exercises to find beginner-friendly
+- **Priority: MEDIUM**
+
+**Issue 3: No Muscle Group Secondary Filter**
+- Category tabs don't align with muscle selection
+- Recommendations filter by muscle, QuickAdd doesn't
+- **Priority: MEDIUM**
+
+**Issue 4: Search Doesn't Auto-Select Category**
+- Searching "bench" shows results but tab stays "All"
+- Expected: Auto-switch to "Push" category
+- **Priority: LOW**
+
+**Issue 5: Recent Exercises Not in Recommendations**
+- Recent list only in ExercisePicker
+- AI flow doesn't show frequently-used exercises
+- **Priority: LOW**
+
+### Interaction Metrics
+
+| Path | Clicks to Add | Best For |
+|------|--------------|----------|
+| AI Recommendations | 2 | Guided, muscle-focused |
+| Quick Add | 3-4 | General browsing |
+| Live Workout | 4-5 | Mid-session additions |
+
+---
+
 ## Next Steps
 
 - [x] Task 1.1: Component architecture mapped
 - [x] Task 1.2: Workout logging flow analyzed
-- [ ] Task 1.3: Deep dive into exercise selection flow
+- [x] Task 1.3: Exercise selection flow analyzed
 - [ ] Task 1.4: Analyze modal and navigation patterns in detail
 - [ ] Task 1.5: Analyze visual density and information hierarchy
