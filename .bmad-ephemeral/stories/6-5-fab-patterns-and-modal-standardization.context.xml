@@ -1,0 +1,278 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>5</storyId>
+    <title>FAB Patterns and Modal Standardization</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-fab-patterns-and-modal-standardization.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>mobile user</asA>
+    <iWant>consistent floating action button (FAB) component and standardized modal dismiss methods</iWant>
+    <soThat>I can quickly access primary actions with my thumb and dismiss modals using any of 4 intuitive methods (swipe/tap/X/ESC)</soThat>
+    <tasks>
+      - Create design system FAB component (64x64px, bottom-right, primary color, shadow: 0 4px 16px rgba(117,138,198,0.4))
+      - Add spring physics entrance animation to FAB
+      - Verify all existing modals support 4 dismiss methods (swipe down, backdrop tap, X button, ESC key)
+      - Ensure focus trap and keyboard navigation work in all modals
+      - Document FAB component in Storybook
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    - AC1: FAB component (64x64px, primary color, bottom-right position)
+    - AC2: Shadow: 0 4px 16px rgba(117,138,198,0.4)
+    - AC3: Entrance animation (spring physics)
+    - AC4: All modals support 4 dismiss methods
+    - AC5: Focus trap and keyboard navigation verified
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Architecture Documentation -->
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Epic 6: Core Interaction Redesign - FAB Patterns</section>
+        <snippet>FAB Patterns: Primary action button (64×64px, bottom-right), Shadow: 0 4px 16px rgba(117,138,198,0.4), Icon: 28px Material Icon, States: hover (scale 1.05), active (scale 0.95), Entrance animation (spring physics), Position: fixed bottom-6 right-6 (thumb-friendly zone)</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Epic 6: Core Interaction Redesign - Standardize Modal Dismiss</section>
+        <snippet>Standardize Modal Dismiss: Create Modal wrapper component with 4 dismiss methods: swipe down, backdrop tap, X button, ESC key. Trap focus inside modal. Return focus to trigger on close. Prevent scroll on body when open. Add ARIA attributes (role="dialog", aria-modal="true")</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Core Interaction Redesign</title>
+        <section>Background</section>
+        <snippet>Epic 5 established the design system foundation (Button, Card, Input, Sheet primitives). Epic 6 applies these components to existing workout flows, replacing legacy modals and interactions with the new bottom-sheet patterns and glass morphism styling.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Existing FAB Component (needs update to design system) -->
+      <artifact>
+        <path>components/layout/FAB.tsx</path>
+        <kind>component</kind>
+        <symbol>FAB</symbol>
+        <lines>1-35</lines>
+        <reason>Existing FAB component that needs to be migrated to design system patterns (src/design-system/components/patterns/FAB.tsx) with proper shadow, size (64x64px), and spring animation</reason>
+      </artifact>
+
+      <!-- Existing Modal Component (needs standardization) -->
+      <artifact>
+        <path>components/ui/Modal.tsx</path>
+        <kind>component</kind>
+        <symbol>Modal</symbol>
+        <lines>1-84</lines>
+        <reason>Existing Modal component with ESC key and backdrop click support. Needs verification that focus trap and keyboard navigation work correctly, and ensure all 4 dismiss methods (swipe/tap/X/ESC) are supported</reason>
+      </artifact>
+
+      <!-- Design System Primitives (dependencies) -->
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>component</kind>
+        <symbol>Button</symbol>
+        <lines>1-146</lines>
+        <reason>Button primitive from Story 5.3 - provides foundation for FAB styling (rounded-full, primary color, shadow-button-primary)</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Sheet.tsx</path>
+        <kind>component</kind>
+        <symbol>Sheet</symbol>
+        <lines>1-182</lines>
+        <reason>Sheet component from Story 6.1 - uses Vaul library with swipe-to-dismiss, backdrop overlay, and proper accessibility. Reference for modal dismiss patterns</reason>
+      </artifact>
+
+      <!-- All Modal Components (need verification) -->
+      <artifact>
+        <path>components/ProfileModal.tsx</path>
+        <kind>component</kind>
+        <symbol>ProfileModal</symbol>
+        <reason>Modal that needs verification for 4 dismiss methods and focus trap</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/WorkoutSummaryModal.tsx</path>
+        <kind>component</kind>
+        <symbol>WorkoutSummaryModal</symbol>
+        <reason>Modal that needs verification for 4 dismiss methods and focus trap</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/MuscleDeepDiveModal.tsx</path>
+        <kind>component</kind>
+        <symbol>MuscleDeepDiveModal</symbol>
+        <reason>Modal that needs verification for 4 dismiss methods and focus trap</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/WorkoutPlannerModal.tsx</path>
+        <kind>component</kind>
+        <symbol>WorkoutPlannerModal</symbol>
+        <reason>Modal that needs verification for 4 dismiss methods and focus trap</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/SetEditModal.tsx</path>
+        <kind>component</kind>
+        <symbol>SetEditModal</symbol>
+        <reason>Modal that needs verification for 4 dismiss methods and focus trap</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/BaselineUpdateModal.tsx</path>
+        <kind>component</kind>
+        <symbol>BaselineUpdateModal</symbol>
+        <reason>Modal that needs verification for 4 dismiss methods and focus trap</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/modals/MuscleDetailModal.tsx</path>
+        <kind>component</kind>
+        <symbol>MuscleDetailModal</symbol>
+        <reason>Modal that needs verification for 4 dismiss methods and focus trap</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package>react</package>
+        <version>19.2.0</version>
+      </node>
+      <node>
+        <package>framer-motion</package>
+        <version>12.23.24</version>
+        <note>For FAB spring animation (already installed)</note>
+      </node>
+      <node>
+        <package>react-focus-lock</package>
+        <version>*</version>
+        <note>Used in existing Modal.tsx for focus trap</note>
+      </node>
+      <node>
+        <package>vaul</package>
+        <version>1.1.2</version>
+        <note>Used in Sheet.tsx for swipe-to-dismiss pattern reference</note>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - FAB must be 64x64px (not 16 as shown in existing FAB.tsx which uses w-16 h-16)
+    - Shadow must match spec exactly: 0 4px 16px rgba(117,138,198,0.4)
+    - Position must be bottom-right (bottom-6 right-6) in thumb-friendly zone
+    - All modals must support 4 dismiss methods: swipe down, backdrop tap, X button, ESC key
+    - Focus must be trapped inside modal and returned to trigger element on close
+    - Keyboard navigation must work (Tab, Shift+Tab, Escape)
+    - ARIA attributes required: role="dialog", aria-modal="true", aria-labelledby
+    - FAB entrance animation must use spring physics (Framer Motion)
+    - Modal backdrop must prevent body scroll when open
+  </constraints>
+
+  <interfaces>
+    <!-- FAB Component Interface -->
+    <interface>
+      <name>FABProps</name>
+      <kind>React Component Props</kind>
+      <signature>
+        interface FABProps {
+          icon: string;         // Material Symbol name
+          label: string;        // ARIA label
+          onClick: () => void;
+          disabled?: boolean;
+          className?: string;
+        }
+      </signature>
+      <path>src/design-system/components/patterns/FAB.tsx</path>
+    </interface>
+
+    <!-- Modal Component Interface (existing) -->
+    <interface>
+      <name>ModalProps</name>
+      <kind>React Component Props</kind>
+      <signature>
+        interface ModalProps {
+          isOpen: boolean;
+          onClose: () => void;
+          title: string;
+          children: React.ReactNode;
+          className?: string;
+        }
+      </signature>
+      <path>components/ui/Modal.tsx</path>
+    </interface>
+
+    <!-- Button Props (from design system) -->
+    <interface>
+      <name>ButtonProps</name>
+      <kind>React Component Props</kind>
+      <signature>
+        interface ButtonProps {
+          variant?: 'primary' | 'secondary' | 'ghost';
+          size?: 'sm' | 'md' | 'lg';
+          children: React.ReactNode;
+          ariaLabel?: string;
+          className?: string;
+          disabled?: boolean;
+          type?: 'button' | 'submit' | 'reset';
+          onClick?: (event: React.MouseEvent) => void;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      - Use Vitest for unit tests
+      - Use React Testing Library for component testing
+      - Test accessibility with @testing-library/jest-dom matchers
+      - Verify keyboard navigation (Tab, Escape keys)
+      - Test focus trap behavior (focus stays within modal)
+      - Verify ARIA attributes are present
+      - Test animation with Framer Motion (spring physics)
+      - Mock window.matchMedia for responsive tests
+    </standards>
+
+    <locations>
+      - src/design-system/components/patterns/__tests__/FAB.test.tsx
+      - components/ui/__tests__/Modal.test.tsx (update existing)
+      - src/design-system/components/patterns/FAB.stories.tsx
+    </locations>
+
+    <ideas>
+      <!-- FAB Component Tests -->
+      - AC1: FAB renders with correct size (64x64px)
+      - AC1: FAB positioned bottom-right (bottom-6 right-6)
+      - AC1: FAB uses primary color background
+      - AC2: FAB has correct shadow (0 4px 16px rgba(117,138,198,0.4))
+      - AC3: FAB has entrance animation with spring physics
+      - AC3: FAB hover state scales to 1.05
+      - AC3: FAB active state scales to 0.95
+      - Test: FAB disabled state shows opacity-50
+      - Test: FAB click handler fires correctly
+      - Test: FAB has proper ARIA label
+
+      <!-- Modal Standardization Tests -->
+      - AC4: Modal closes on ESC key press
+      - AC4: Modal closes on backdrop click
+      - AC4: Modal closes on X button click
+      - AC4: Modal closes on swipe down gesture (if Sheet-based)
+      - AC5: Focus is trapped inside modal when open
+      - AC5: Tab key cycles through focusable elements
+      - AC5: Shift+Tab reverses focus direction
+      - AC5: Focus returns to trigger element on close
+      - AC5: Modal has role="dialog" and aria-modal="true"
+      - Test: Body scroll is prevented when modal is open
+      - Test: Body scroll is restored when modal closes
+    </ideas>
+  </tests>
+</story-context>
