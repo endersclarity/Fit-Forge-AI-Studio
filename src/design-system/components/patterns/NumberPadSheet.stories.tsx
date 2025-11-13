@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { NumberPadSheet } from './NumberPadSheet';
-import { Button } from '../primitives/Button';
+import Button from '../primitives/Button';
 
 const meta = {
   title: 'Design System/Patterns/NumberPadSheet',
