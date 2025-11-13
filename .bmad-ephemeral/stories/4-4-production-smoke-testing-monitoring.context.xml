@@ -1,0 +1,307 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4</storyId>
+    <title>Production Smoke Testing & Monitoring</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>c:\Users\ender\.claude\projects\FitForge-Local\.bmad-ephemeral\stories\4-4-production-smoke-testing-monitoring.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>product owner</asA>
+    <iWant>to verify MVP works in production and monitor for errors</iWant>
+    <soThat>we can confidently launch to users</soThat>
+    <tasks>- [ ] Task 1: Create production smoke test documentation (AC: 1, 2, 3, 4)
+  - [ ] Subtask 1.1: Create `docs/testing/production-smoke-test.md` with comprehensive test checklist
+  - [ ] Subtask 1.2: Include pre-test setup (DevTools, browser configuration)
+  - [ ] Subtask 1.3: Document Test 1: Home page load & performance (<2s)
+  - [ ] Subtask 1.4: Document Test 2: Workout completion flow (fatigue calculation)
+  - [ ] Subtask 1.5: Document Test 3: Recovery timeline (24h/48h/72h projections)
+  - [ ] Subtask 1.6: Document Test 4: Exercise recommendations (scoring engine)
+  - [ ] Subtask 1.7: Document Test 5: Real-time workout forecast
+  - [ ] Subtask 1.8: Document Test 6: Cross-device testing (desktop/mobile browsers)
+  - [ ] Subtask 1.9: Document Test 7: Database persistence between sessions
+  - [ ] Subtask 1.10: Document Test 8: Performance monitoring (API response times)
+  - [ ] Subtask 1.11: Document Test 9: Error monitoring (Railway logs)
+  - [ ] Subtask 1.12: Document Test 10: Console error check (browser DevTools)
+
+- [ ] Task 2: Execute production smoke tests (AC: 1, 2, 3, 4)
+  - [ ] Subtask 2.1: Test 1: Navigate to production URL, verify page load <2s, no console errors
+  - [ ] Subtask 2.2: Test 2: Complete workout (Goblet Squat 3×10@70lbs, Romanian Deadlift 3×10@100lbs), verify fatigue displays (Hamstrings ~31%, Glutes ~26%, Quadriceps ~15%)
+  - [ ] Subtask 2.3: Test 3: Navigate to Dashboard, verify recovery timeline shows 24h/48h/72h projections with correct decay
+  - [ ] Subtask 2.4: Test 4: Navigate to Recommendations, select Quadriceps target, verify ranked results with scores >70
+  - [ ] Subtask 2.5: Test 5: Add exercises to workout plan (Dumbbell Bench Press, Pull-ups), verify forecast updates in <250ms
+  - [ ] Subtask 2.6: Test 6: Test on Desktop Chrome, Desktop Firefox, Mobile Chrome, Mobile Safari - verify all features work
+  - [ ] Subtask 2.7: Test 7: Complete workout, close browser, reopen, verify data persists
+  - [ ] Subtask 2.8: Test 8: Record all API response times in DevTools Network tab, verify meet targets
+  - [ ] Subtask 2.9: Test 9: Check Railway logs with `railway logs --tail 100`, verify no 500 errors or exceptions
+  - [ ] Subtask 2.10: Test 10: Review browser console during all tests, verify no red errors or React warnings
+
+- [ ] Task 3: Verify API performance targets (AC: 4)
+  - [ ] Subtask 3.1: Verify POST `/api/workouts/:id/complete` responds in <500ms (target)
+  - [ ] Subtask 3.2: Verify GET `/api/recovery/timeline` responds in <200ms (target)
+  - [ ] Subtask 3.3: Verify POST `/api/recommendations/exercises` responds in <300ms (target)
+  - [ ] Subtask 3.4: Verify POST `/api/forecast/workout` responds in <250ms (target)
+  - [ ] Subtask 3.5: Document any performance issues or deviations from targets
+  - [ ] Subtask 3.6: If performance targets not met, note for future optimization
+
+- [ ] Task 4: Enable basic error monitoring (AC: 5)
+  - [ ] Subtask 4.1: Verify Railway log retention settings (default: 7 days)
+  - [ ] Subtask 4.2: Document Railway CLI commands for log access:
+    - `railway logs --tail 100` (view recent logs)
+    - `railway logs --follow` (watch real-time)
+    - `railway logs | grep -i error` (filter errors)
+  - [ ] Subtask 4.3: Test Railway logs CLI access locally
+  - [ ] Subtask 4.4: Document log monitoring procedure in production-smoke-test.md
+  - [ ] Subtask 4.5: Note: Advanced monitoring (Sentry, LogRocket) out of MVP scope - can add later
+
+- [ ] Task 5: Document test results and update CHANGELOG (AC: 1-5)
+  - [ ] Subtask 5.1: Create results section in production-smoke-test.md with test date, tester name, pass/fail status
+  - [ ] Subtask 5.2: Document any failed tests with details (screenshot, logs, reproduction steps)
+  - [ ] Subtask 5.3: Open docs/CHANGELOG.md for editing
+  - [ ] Subtask 5.4: Add "MVP Launch - {date}" section
+  - [ ] Subtask 5.5: Document smoke test completion status
+  - [ ] Subtask 5.6: Document production URL and verified features
+  - [ ] Subtask 5.7: Document known issues or limitations (if any)
+  - [ ] Subtask 5.8: Save CHANGELOG.md</tasks>
+  </story>
+
+  <acceptanceCriteria>1. **Given** FitForge deployed to Railway at https://fit-forge-ai-studio-production-6b5b.up.railway.app/
+   **When** smoke tests execute on production URL
+   **Then** all critical paths work correctly:
+   - Home page loads in <2s
+   - Complete workout → Fatigue displays with correct percentages
+   - Dashboard shows recovery timeline with 24h/48h/72h projections
+   - Exercise recommendations return ranked results
+   - Workout forecast updates in real-time when adding exercises
+
+2. **And** no console errors in browser DevTools
+
+3. **And** no 500 errors in Railway logs
+
+4. **And** API response times meet targets (<500ms)
+
+5. **And** monitoring is enabled for error tracking</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 4: Integration Testing &amp; MVP Launch</title>
+        <section>Story 4.4: Production Smoke Testing &amp; Monitoring</section>
+        <snippet>Validate that all muscle intelligence features work end-to-end and deploy to production. Ensures MVP is reliable, performant, and ready for real users. Confirms all 6 functional requirements work as specified.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing/integration-checklist.md</path>
+        <title>Integration Testing Checklist</title>
+        <section>Manual Test Scenarios 1-5</section>
+        <snippet>Manual testing checklist for end-to-end integration testing in local Docker. Includes 5 test scenarios: Workout Completion, Baseline Exceeded, Recovery Timeline, Exercise Recommendations, Workout Forecast. Each scenario has detailed steps, expected results, and verification procedures.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/4-3-production-deployment-to-railway.md</path>
+        <title>Story 4.3: Production Deployment to Railway</title>
+        <section>Railway Infrastructure and Deployment Notes</section>
+        <snippet>Production URL: https://fit-forge-ai-studio-production-6b5b.up.railway.app/. Two-service topology: frontend (port 3000), backend (port 3001). Database: SQLite at /data/fitforge.db with persistent volume. Environment variables: VITE_API_URL, NODE_ENV=production, PORT=3001, DB_PATH=/data/fitforge.db.</snippet>
+      </doc>
+      <doc>
+        <path>docs/CHANGELOG.md</path>
+        <title>FitForge Performance Changelog</title>
+        <section>Performance Validation - 2025-11-12</section>
+        <snippet>Performance baseline established. API response times: workout completion 535ms (35ms over target), recovery timeline 7ms, forecast 10ms. Database queries average 3.19ms. Performance monitoring enabled via middleware.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing/lighthouse-audit.md</path>
+        <title>Lighthouse Performance Audit</title>
+        <section>Frontend Performance Testing Guide</section>
+        <snippet>Documentation for running Lighthouse audits on production frontend to measure page load times, performance scores, and user experience metrics.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/server.ts</path>
+        <kind>api-server</kind>
+        <symbol>app</symbol>
+        <lines>1040-1432</lines>
+        <reason>API endpoints for Epic 1-3 features: workout completion, recovery timeline, exercise recommendations, workout forecast. Critical for smoke testing validation.</reason>
+      </artifact>
+      <artifact>
+        <path>Dockerfile</path>
+        <kind>dockerfile</kind>
+        <symbol>Frontend Production Build</symbol>
+        <lines>1-38</lines>
+        <reason>Frontend production build configuration for Railway deployment. Multi-stage build with Vite compilation and serve hosting on port 3000.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/Dockerfile</path>
+        <kind>dockerfile</kind>
+        <symbol>Backend Production Build</symbol>
+        <lines>1-43</lines>
+        <reason>Backend production build configuration for Railway deployment. TypeScript compilation, SQLite database at /data/fitforge.db, runs on port 3001.</reason>
+      </artifact>
+      <artifact>
+        <path>railway.json</path>
+        <kind>config</kind>
+        <symbol>Railway Deployment Config</symbol>
+        <lines>1-12</lines>
+        <reason>Railway deployment configuration: Dockerfile builder, restart policy on failure with 10 retries, single replica deployment.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/__tests__/integration/workout-completion.test.ts</path>
+        <kind>test</kind>
+        <symbol>Workout Completion Integration Tests</symbol>
+        <lines>all</lines>
+        <reason>Integration tests for POST /api/workouts/:id/complete endpoint. Test patterns can inform smoke test scenarios.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/__tests__/integration/recovery-timeline.test.ts</path>
+        <kind>test</kind>
+        <symbol>Recovery Timeline Integration Tests</symbol>
+        <lines>all</lines>
+        <reason>Integration tests for GET /api/recovery/timeline endpoint. Validates 24h/48h/72h projections logic.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/__tests__/integration/exercise-recommendations.test.ts</path>
+        <kind>test</kind>
+        <symbol>Exercise Recommendations Integration Tests</symbol>
+        <kind>all</kind>
+        <reason>Integration tests for POST /api/recommendations/exercises endpoint. Validates ranking and scoring logic.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/__tests__/integration/workout-forecast.test.ts</path>
+        <kind>test</kind>
+        <symbol>Workout Forecast Integration Tests</symbol>
+        <lines>all</lines>
+        <reason>Integration tests for POST /api/forecast/workout endpoint. Validates real-time fatigue prediction.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/__tests__/performance/api-performance.test.ts</path>
+        <kind>test</kind>
+        <symbol>API Performance Tests</symbol>
+        <lines>all</lines>
+        <reason>Performance validation tests for all 4 API endpoints. Establishes response time baselines: completion 535ms, timeline 7ms, recommendations (skipped), forecast 10ms.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <frontend>
+        <framework>React 19.2.0</framework>
+        <framework>Vite 6.2.0</framework>
+        <framework>React Router 6.30.1</framework>
+        <framework>TypeScript 5.8.2</framework>
+        <library>axios 1.12.2 (HTTP client)</library>
+        <library>recharts 3.3.0 (data visualization)</library>
+        <library>react-body-highlighter 2.0.5 (muscle visualization)</library>
+        <testing>Vitest 4.0.3, Playwright 1.56.1, Testing Library 16.3.0</testing>
+      </frontend>
+      <backend>
+        <framework>Node.js 20 (alpine/slim)</framework>
+        <framework>Express 4.18.2</framework>
+        <framework>TypeScript 5.3.3</framework>
+        <database>SQLite via better-sqlite3 9.2.2</database>
+        <library>cors 2.8.5 (cross-origin requests)</library>
+        <library>body-parser 1.20.2 (request parsing)</library>
+        <library>dotenv 17.2.3 (environment variables)</library>
+      </backend>
+      <production>
+        <tool>Railway (deployment platform)</tool>
+        <tool>Docker (containerization)</tool>
+        <tool>serve (static file hosting for frontend)</tool>
+        <tool>Railway CLI (log monitoring)</tool>
+      </production>
+      <testing>
+        <tool>Browser DevTools (Console, Network, Performance tabs)</tool>
+        <tool>Lighthouse (frontend performance auditing)</tool>
+        <tool>cURL (API endpoint testing)</tool>
+        <tool>Railway CLI (backend log monitoring)</tool>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>No code changes allowed - this is a testing and documentation story only</constraint>
+    <constraint>Tests must execute on production URL: https://fit-forge-ai-studio-production-6b5b.up.railway.app/</constraint>
+    <constraint>Production deployment (Story 4.3) must be complete before executing smoke tests</constraint>
+    <constraint>Known acceptable performance issue: workout completion endpoint at 535ms (35ms over 500ms target) per Story 4.2 decision</constraint>
+    <constraint>19 test failures in local environment are documented as non-blocking for MVP per Story 4.3 decision</constraint>
+    <constraint>All smoke test documentation must be created in docs/testing/ directory</constraint>
+    <constraint>CHANGELOG.md must be updated with MVP Launch section after tests complete</constraint>
+    <constraint>Use browser DevTools for manual testing (Console, Network, Performance tabs)</constraint>
+    <constraint>Use Railway CLI for log monitoring: railway logs --tail 100, railway logs --follow</constraint>
+    <constraint>Cross-browser testing required: Desktop Chrome, Desktop Firefox, Mobile Chrome, Mobile Safari</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>POST /api/workouts/:id/complete</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/workouts/:id/complete
+Request: { exercises: ExerciseData[] }
+Response: WorkoutCompletionResponse | ApiErrorResponse
+Target: &lt;500ms (actual: 535ms)</signature>
+      <path>backend/server.ts:1040-1152</path>
+    </interface>
+    <interface>
+      <name>GET /api/recovery/timeline</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/recovery/timeline
+Response: RecoveryTimelineResponse | ApiErrorResponse
+Returns: { current, projections: { "24h", "48h", "72h" } }
+Target: &lt;200ms (actual: 7ms)</signature>
+      <path>backend/server.ts:1154-1240</path>
+    </interface>
+    <interface>
+      <name>POST /api/recommendations/exercises</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/recommendations/exercises
+Request: { targetMuscle, currentWorkout?, availableEquipment? }
+Response: RecommendationsResponse
+Returns: Ranked exercises with 5-factor scoring
+Target: &lt;300ms (actual: ~19ms when working)</signature>
+      <path>backend/server.ts:1243-1368</path>
+    </interface>
+    <interface>
+      <name>POST /api/forecast/workout</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/forecast/workout
+Request: { plannedExercises: PlannedExercise[] }
+Response: WorkoutForecastResponse
+Returns: Predicted muscle fatigue percentages
+Target: &lt;250ms (actual: 10ms)</signature>
+      <path>backend/server.ts:1371-1432</path>
+    </interface>
+    <interface>
+      <name>Railway Production Environment</name>
+      <kind>Infrastructure</kind>
+      <signature>Production URL: https://fit-forge-ai-studio-production-6b5b.up.railway.app/
+Frontend: Port 3000 (Vite static files via serve)
+Backend: Port 3001 (Node.js/Express API)
+Database: SQLite at /data/fitforge.db (persistent volume)
+Logs: Railway CLI (7-day retention)</signature>
+      <path>railway.json, Dockerfile, backend/Dockerfile</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Manual smoke testing methodology for production environment. Tests execute on live Railway deployment at https://fit-forge-ai-studio-production-6b5b.up.railway.app/. Uses browser DevTools (Console, Network, Performance tabs) for frontend validation and Railway CLI for backend log monitoring. Cross-browser testing required (Desktop Chrome/Firefox, Mobile Chrome/Safari). All tests documented in comprehensive checklist format at docs/testing/production-smoke-test.md. Success criteria: all critical paths work, no console errors, no 500 errors in logs, API response times meet targets (with known acceptable deviations documented), error monitoring accessible. Known acceptable issues: workout completion endpoint at 535ms (35ms over 500ms target), 19 local test failures marked non-blocking per Story 4.3 decision. No code changes - documentation and validation only.</standards>
+    <locations>
+      <location>docs/testing/production-smoke-test.md (to be created)</location>
+      <location>docs/CHANGELOG.md (MVP Launch section to be added)</location>
+      <location>backend/__tests__/integration/ (reference patterns)</location>
+      <location>backend/__tests__/performance/ (performance baselines)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test 1: Home page load performance - Navigate to production URL, measure load time with Performance tab, verify &lt;2s target, check for console errors</idea>
+      <idea ac="1">Test 2: Workout completion flow - Complete workout with Goblet Squat 3x10@70lbs and Romanian Deadlift 3x10@100lbs, verify fatigue displays (Hamstrings ~31%, Glutes ~26%, Quadriceps ~15%)</idea>
+      <idea ac="1">Test 3: Recovery timeline projections - Navigate to Dashboard, verify recovery timeline shows 24h/48h/72h projections with correct decay rates (15% per day)</idea>
+      <idea ac="1">Test 4: Exercise recommendations ranking - Select Quadriceps target muscle, available equipment Dumbbells, verify ranked results with scores &gt;70</idea>
+      <idea ac="1">Test 5: Real-time workout forecast - Add exercises (Dumbbell Bench Press, Pull-ups) to workout plan, verify forecast updates in &lt;250ms with predicted fatigue</idea>
+      <idea ac="1">Test 6: Cross-device compatibility - Test all features on Desktop Chrome, Desktop Firefox, Mobile Chrome, Mobile Safari, verify consistent behavior</idea>
+      <idea ac="1">Test 7: Database persistence - Complete workout, close browser, reopen, verify data persists across sessions</idea>
+      <idea ac="2">Test 8: Console error monitoring - Review browser console during all tests, verify no red errors or React warnings appear</idea>
+      <idea ac="3">Test 9: Railway logs check - Use Railway CLI (railway logs --tail 100), verify no 500 errors or exceptions in backend logs</idea>
+      <idea ac="4">Test 10: API performance validation - Record all API response times in DevTools Network tab: POST /api/workouts/:id/complete (&lt;500ms target, expect 535ms), GET /api/recovery/timeline (&lt;200ms), POST /api/recommendations/exercises (&lt;300ms), POST /api/forecast/workout (&lt;250ms)</idea>
+      <idea ac="5">Test Railway log access - Verify Railway CLI commands work: railway logs --tail 100, railway logs --follow, railway logs | grep -i error. Document log retention settings (default 7 days)</idea>
+      <idea ac="1-5">Document test results - Create results section in production-smoke-test.md with test date, tester name, pass/fail status for each test, screenshots/logs for any failures</idea>
+      <idea ac="1-5">Update CHANGELOG - Add MVP Launch section with deployment timestamp, production URL, verified features, known issues/limitations</idea>
+    </ideas>
+  </tests>
+</story-context>
