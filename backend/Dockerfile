@@ -22,6 +22,9 @@ WORKDIR /app
 COPY shared/ ./shared/
 COPY types.ts ./types.ts
 
+# Copy docs folder (needed for exercise data files)
+COPY docs/ ./docs/
+
 # Copy backend source files (preserves directory structure)
 COPY backend/ ./backend/
 
