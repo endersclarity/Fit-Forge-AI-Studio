@@ -1,0 +1,52 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>2</storyId>
+    <title>Design Tokens and Tailwind Config</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-2-design-tokens-and-tailwind-config.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>frontend developer</asA>
+    <iWant>a complete design token system configured in Tailwind</iWant>
+    <soThat>I can build consistent UI components using the FitForge design system</soThat>
+    <tasks>
+      - Create src/design-system/tokens/colors.ts for programmatic color access
+      - Create src/design-system/tokens/typography.ts for typography scales
+      - Create src/design-system/tokens/spacing.ts for 8px grid system
+      - Create src/design-system/tokens/shadows.ts for shadow definitions
+      - Verify tailwind.config.js contains all required tokens (from 5-1)
+      - Create test component demonstrating all tokens
+      - Verify WCAG AA contrast compliance for all color combinations
+      - Document token usage patterns
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    - AC1: Primary color palette configured (#758AC6, #344161, #566890, #8997B8, #A8B6D5)
+    - AC2: Badge colors configured (#D9E1F8 bg, #BFCBEE border, #566890 text)
+    - AC3: Typography scale configured (display-xl, display-lg, display-md with Cinzel specs)
+    - AC4: Shadow tokens configured (button-primary, drawer)
+    - AC5: Background gradients configured (heavenly-gradient)
+    - AC6: Border radius tokens configured (xl: 24px, 2xl: 32px)
+    - AC7: All tokens accessible via Tailwind classes (e.g., bg-primary, text-primary-dark)
+    - AC8: Color contrast verified for WCAG AA compliance
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>{{docs_artifacts}}</docs>
+    <code>{{code_artifacts}}</code>
+    <dependencies>{{dependencies_artifacts}}</dependencies>
+  </artifacts>
+
+  <constraints>{{constraints}}</constraints>
+  <interfaces>{{interfaces}}</interfaces>
+  <tests>
+    <standards>{{test_standards}}</standards>
+    <locations>{{test_locations}}</locations>
+    <ideas>{{test_ideas}}</ideas>
+  </tests>
+</story-context>
