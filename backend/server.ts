@@ -1279,15 +1279,24 @@ app.post('/api/recommendations/exercises', async (req: Request, res: Response) =
         baselines[muscle] = baseline.userOverride || baseline.systemLearnedMax;
       });
 
+      // Build muscle states array for recommender
+      const muscleStatesArray = ALL_MUSCLES.map(muscle => ({
+        muscle,
+        currentFatigue: currentFatigue[muscle] || 0
+      }));
+
       // Get recommendations (all exercises will be safe)
-      const recommendations = exerciseRecommender.recommendExercises({
+      const recommendations = exerciseRecommender.recommendExercises(
         targetMuscle,
-        currentWorkout,
-        currentFatigue,
-        currentMuscleVolumes,
-        baselines,
-        availableEquipment
-      });
+        muscleStatesArray,
+        {
+          availableEquipment,
+          workoutHistory: currentWorkout,
+          estimatedSets: 3,
+          estimatedReps: 10,
+          estimatedWeight: 100
+        }
+      );
 
       return res.json(recommendations);
     }
@@ -1330,14 +1339,11 @@ app.post('/api/recommendations/exercises', async (req: Request, res: Response) =
       currentTime
     );
 
-    // Build current fatigue and volumes maps for recommender
-    const currentFatigue: Record<string, number> = {};
-    const currentMuscleVolumes: Record<string, number> = {};
-
-    recoveryResult.muscleStates.forEach((muscleState: any) => {
-      currentFatigue[muscleState.muscle] = muscleState.currentFatigue;
-      currentMuscleVolumes[muscleState.muscle] = 0; // Default to 0 for MVP
-    });
+    // Build muscle states array for recommender (already in correct format from recovery)
+    const muscleStatesForRecommender = recoveryResult.muscleStates.map((muscleState: any) => ({
+      muscle: muscleState.muscle,
+      currentFatigue: muscleState.currentFatigue
+    }));
 
     // Get baselines
     const baselineData = db.getMuscleBaselines();
@@ -1348,14 +1354,17 @@ app.post('/api/recommendations/exercises', async (req: Request, res: Response) =
     });
 
     // Get recommendations
-    const recommendations = exerciseRecommender.recommendExercises({
+    const recommendations = exerciseRecommender.recommendExercises(
       targetMuscle,
-      currentWorkout,
-      currentFatigue,
-      currentMuscleVolumes,
-      baselines,
-      availableEquipment
-    });
+      muscleStatesForRecommender,
+      {
+        availableEquipment,
+        workoutHistory: currentWorkout,
+        estimatedSets: 3,
+        estimatedReps: 10,
+        estimatedWeight: 100
+      }
+    );
 
     return res.json(recommendations);
 
