@@ -350,9 +350,155 @@ Each complex component maintains its own state:
 
 ---
 
+## 6. Workout Logging Flow Analysis
+
+### Entry Points (4 Pathways)
+
+**Pathway 1: Quick Add** (28-38 clicks for 3 sets)
+- Entry: FAB button → "Quick Workout"
+- Components: `QuickAdd.tsx`, `QuickAddForm.tsx`
+- Flow: ExercisePicker → QuickAddForm → Log sets → Finish
+- Time: 3-4 minutes
+- Best for: Simple, completed workouts
+
+**Pathway 2: Workout Builder** (23 clicks total)
+- Entry: Dashboard → "Plan Workout"
+- Components: `WorkoutBuilder.tsx`, `SetConfigurator.tsx`, `CurrentSetDisplay.tsx`
+- Flow: Planning mode → Volume slider → Execution mode → One-click logging
+- Time: 5-8 minutes
+- Best for: Progressive overload planning
+
+**Pathway 3: Recommended Workout** (14-18 clicks)
+- Entry: Dashboard recommendation card
+- Components: `Dashboard.tsx`, recovery algorithm
+- Flow: Pre-loaded exercises → Log sets → Finish
+- Time: 2-3 minutes
+- Best for: AI-driven, minimal decisions
+
+**Pathway 4: Templates** (Manual)
+- Entry: Navigation → Templates → Select variation
+- Components: `WorkoutTemplates.tsx`
+- Flow: Load template → Log sets → Finish
+
+### Interaction Count Per Set
+
+**Standard Set Logging: 8-12 clicks**
+1. To-failure toggle: 0-1 click (optional)
+2. Weight input: 2-3 clicks (type or use +/- buttons)
+3. Reps input: 2 clicks (type value)
+4. Log button: 1 click
+5. Rest timer: 0-1 click (optional)
+
+**Input Methods:**
+
+*Pattern A: Increment Buttons + Direct Input (Quick Add)*
+```
+[-5 lbs] [-2.5 lbs] [input: 100] [+2.5 lbs] [+5 lbs]
+```
+
+*Pattern B: Direct Input Only (Workout Tracking)*
+```
+[input field: 100]  [Use BW button]
+```
+
+**Validation:**
+- Weight: 0-500 lbs, rounds to 0.25 lbs
+- Reps: 1-50, integers only
+- **Issue:** Silent validation failures (no error messages)
+
+### Smart Features
+
+**Progressive Overload Algorithm:**
+```typescript
+suggestedWeight = lastWeight × 1.03  // 3% increase
+```
+
+**Smart Defaults:**
+- Fetches exercise history asynchronously
+- Displays: "Last: 100 lbs × 8 reps (3 days ago)"
+- Suggests: "Try: 103 lbs × 8 reps (↑3.0%)"
+- Component: `QuickAdd.tsx` lines 59-85
+
+**Auto PR Detection:**
+- Calculates `setVolume = reps × weight`
+- Compares against `personalBests[exerciseId].bestSingleSet`
+- Shows ⭐ trophy icon automatically
+- Component: `Workout.tsx` lines 791-792
+
+**Real-Time Muscle Capacity:**
+- Updates as each set is logged
+- Shows % fatigue per muscle group
+- Color-coded: Green (<40%) → Yellow (40-70%) → Red (>70%)
+- Component: `Workout.tsx` lines 589-632
+
+### Critical Friction Points
+
+**Issue 1: To-Failure Checkbox Too Small**
+- Current: 20×20px target
+- Required: 44×44px (WCAG 2.1 AA mobile)
+- Impact: Hard to tap accurately on phones
+- Component: `Workout.tsx` lines 798-810
+- **Priority: HIGH**
+
+**Issue 2: Inconsistent Weight/Reps Controls**
+- Quick Add has -/+ buttons (clear affordances)
+- Workout Tracking has plain inputs (unclear if editable)
+- Component: `Workout.tsx` lines 813-824 vs `QuickAddForm.tsx` lines 111-178
+- **Priority: HIGH**
+
+**Issue 3: Rest Timer Covers Action Buttons**
+- Full-width timer at bottom obscures next set details
+- User can't see what's coming while resting
+- Component: `RestTimer`, `Workout.tsx` lines 146-160
+- **Priority: MEDIUM**
+
+**Issue 4: "Add Set" Button Requires Scrolling**
+- Button at bottom of expanded exercise section
+- After logging last set, must scroll to find it
+- Component: `Workout.tsx` line 836
+- **Priority: MEDIUM**
+
+**Issue 5: Silent Validation Failures**
+- Invalid inputs rejected with no feedback
+- Example: Type "600" for weight (max 500), nothing happens
+- Component: `Workout.tsx` lines 512-513
+- **Priority: MEDIUM**
+
+### Completion Flow
+
+**Finish Workout:**
+1. Click "Finish" button (header, top-right)
+2. `WorkoutSummaryModal` displays:
+   - Duration, Total Volume, Exercise Count
+   - Progressive Overload comparison (vs. last workout)
+   - Muscles Worked with recovery estimates
+   - Personal Records (if any)
+   - Smart Suggestions (if under-fatigued)
+3. Click "Done"
+4. Backend updates: saves session, updates PRs, updates muscle states
+5. Shows `BaselineUpdateModal` if PRs detected (separate modal)
+6. Returns to Dashboard
+
+**Issue: Two-Step Completion**
+- Summary modal → Baseline update modal (feels like "one more thing")
+- Recommendation: Consolidate into single view
+
+### Interaction Metrics Summary
+
+| Pathway | Total Clicks (3 sets) | Time Estimate | Difficulty |
+|---------|----------------------|---------------|------------|
+| Quick Add | 28-38 | 3-4 min | Easy |
+| Workout Builder | 23 (incl. planning) | 5-8 min | Medium |
+| Recommended | 14-18 | 2-3 min | Easiest |
+
+**Per-Set Average: 8-12 clicks**
+
+---
+
 ## Next Steps
 
-- [ ] Task 1.2: Deep dive into workout logging flow
+- [x] Task 1.1: Component architecture mapped
+- [x] Task 1.2: Workout logging flow analyzed
 - [ ] Task 1.3: Deep dive into exercise selection flow
 - [ ] Task 1.4: Analyze modal and navigation patterns in detail
 - [ ] Task 1.5: Analyze visual density and information hierarchy
