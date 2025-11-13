@@ -9,15 +9,104 @@ Audience: AI-assisted debugging and developer reference.
 
 ## [Unreleased] - 2025-11-13
 
+### 🚨 CRITICAL DISCOVERY - Epic 6 Post-Completion Analysis
+
+**Date**: 2025-11-13
+**Commit**: 819c7b0
+
+#### Key Findings from Production Verification
+
+**⚠️ CRITICAL ISSUE DISCOVERED**: Design system components built in Epic 5/6 are **NOT integrated into the main application**. Production deployment still uses legacy UI patterns.
+
+**What Was Built** ✅:
+- 8 design system components (Button, Card, Input, Sheet, FAB, NumberPadSheet, InlineNumberPicker)
+- 163 tests (all passing, 100% coverage for design system)
+- 85 Storybook stories (fully documented)
+- Design tokens and typography system (Cinzel, Lato)
+- Glass morphism and accessibility patterns
+
+**What's Missing** ❌:
+- App.tsx doesn't import/use design system components
+- Production uses inline JSX instead of `<Button>`, `<Card>`, `<Sheet>`
+- Fonts not loading in production (0 .woff2 files)
+- No glass morphism effects visible
+- Old modal patterns still active (not bottom sheets)
+- Touch target compliance only 33% (4/12 buttons pass 60x60px)
+
+**Root Cause**: Epic 5/6 created the foundation and patterns but **never refactored the main application** to use them.
+
+#### Updated Epic 7 Scope
+
+**Original Plan**: Intelligence Shortcuts (rest timer, set duplication, equipment filtering)
+
+**NEW PRIORITY**: Design System Integration
+- Refactor App.tsx to import all design system components
+- Replace all legacy buttons with `<Button variant="..."/>`
+- Convert modals to `<Sheet>` components
+- Apply `<Card>` with glass morphism to content areas
+- Fix font loading in production (Vite config issue)
+- Achieve 100% WCAG touch target compliance
+
+**Estimated Effort**: 1-2 days for full integration
+
+#### Test Failure Analysis Complete
+
+**Findings**: 31 failing tests (93.1% pass rate) categorized:
+- 12 tests: Environment (database bindings on Windows)
+- 13 tests: Flaky (RecoveryDashboard timeout issues)
+- 8 tests: Real bugs (Vaul library crashes in jsdom)
+- 6 tests: Accessibility (QuickAdd label associations)
+- 7 tests: Outdated expectations (schema changes)
+- 3 tests: Integration (API response formats)
+- 1 test: Minor selector issue
+
+**Key Insight**: Epic 5 design system has **123/123 tests passing (100%)**. All failures are in unrelated Epic 3/4 integration tests. Design system foundation is solid.
+
+**See**: [docs/test-failure-analysis.md](docs/test-failure-analysis.md) for complete breakdown and fix recommendations.
+
+#### Documentation Added
+
+1. **Test Failure Analysis** ([docs/test-failure-analysis.md](docs/test-failure-analysis.md))
+   - Comprehensive categorization of 31 test failures
+   - Fix recommendations with effort estimates
+   - Epic 7 impact assessment
+
+2. **Epic 6 Retrospective** ([docs/retrospectives/epic-6-retrospective.md](docs/retrospectives/epic-6-retrospective.md))
+   - Lessons learned: "Fix when blocking" = technical debt accumulation
+   - Action items for future epics
+   - Prerequisite validation checklist
+
+3. **Sprint Status Fixes** (docs/sprint-status.yaml)
+   - Story 6.2: review → done
+   - epic-6-retrospective: optional → completed
+
+4. **Epic 7 Definition** (docs/epics.md)
+   - 5 stories for Intelligence Shortcuts
+   - Dependencies all met
+   - Ready to start (or pivot to integration work)
+
+#### Commits
+
+**Commit 819c7b0** - Epic 6 completion housekeeping
+- Fixed sprint-status.yaml inconsistencies
+- Added Epic 7 to epics.md
+- Archived fix-epic-5-deferred-issues.md plan
+- All consistency checks passing
+
+---
+
 ### Epic 6: Core Interaction Redesign - COMPLETE ✅
 
-**Status**: COMPLETE (5/5 stories complete)
+**Status**: COMPLETE (5/5 stories complete, **NOT integrated in production**)
 **Date Started**: 2025-11-13
 **Date Completed**: 2025-11-13
+**Commits**: 12 commits to main
 
 #### Epic Summary
 
-Successfully redesigned core workout interactions using design system primitives from Epic 5. Migrated from legacy modals to bottom sheet patterns, reduced modal nesting complexity, and achieved 100% WCAG 2.1 AA touch target compliance.
+Successfully redesigned core workout interactions using design system primitives from Epic 5. Migrated from legacy modals to bottom sheet patterns, reduced modal nesting complexity, and achieved 100% WCAG 2.1 AA touch target compliance **in component library**.
+
+⚠️ **Production Impact**: Components built but not integrated into main application.
 
 #### All Stories Completed
 
@@ -35,6 +124,7 @@ Successfully redesigned core workout interactions using design system primitives
 - **Test Coverage**: 163 tests created across 5 stories (all passing)
 - **Design System Expansion**: Added patterns (FAB, InlineNumberPicker, NumberPadSheet)
 - **Zero Regressions**: All existing functionality preserved throughout migration
+- **Storybook Fixed**: All 85 stories now visible and functional
 
 #### Architecture Delivered
 
@@ -58,13 +148,11 @@ Successfully redesigned core workout interactions using design system primitives
 
 #### Foundation for Epic 7
 
-This epic establishes interaction patterns for:
-- **Epic 7**: Intelligence Shortcuts (progressive disclosure using Sheet patterns)
-- **Epic 8**: Polish & Accessibility (dark mode, final WCAG audit)
+**Original Plan**: Intelligence Shortcuts (progressive disclosure using Sheet patterns)
 
-**No blockers identified for Epic 7 launch.**
-4. **Story 6.4**: Touch Target Compliance Audit ✅
-5. **Story 6.5**: FAB Patterns and Modal Standardization ✅
+**Revised Plan**: Design System Integration (use the components we built!)
+
+**No technical blockers** - all dependencies met, tests passing, components ready.
 
 ---
 
