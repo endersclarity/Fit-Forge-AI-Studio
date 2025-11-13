@@ -84,4 +84,5 @@ development_status:
   epic-6: backlog
   6-1-bottom-sheet-navigation-component: done
   6-2-reduce-modal-nesting: review
+  6-3-inline-number-pickers: done
   epic-6-retrospective: optional
