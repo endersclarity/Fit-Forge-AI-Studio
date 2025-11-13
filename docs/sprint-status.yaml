@@ -70,3 +70,17 @@ development_status:
   4-3-production-deployment-to-railway: done
   4-4-production-smoke-testing-monitoring: done
   epic-4-retrospective: optional
+
+  # Epic 5: Design System Foundation
+  epic-5: backlog
+  5-1-tailwind-postcss-migration: done
+  5-2-design-tokens-configuration: done
+  5-3-primitive-components-library: done
+  5-4-glass-morphism-implementation: done
+  5-5-storybook-documentation: done
+  epic-5-retrospective: optional
+
+  # Epic 6: Core Interaction Redesign
+  epic-6: backlog
+  6-1-bottom-sheet-navigation-component: review
+  epic-6-retrospective: optional

@@ -2717,6 +2717,67 @@ All 6 functional requirements from PRD are addressed:
 
 ---
 
+## Epic 6: Core Interaction Redesign
+
+**Epic Goal**: Redesign core workout interactions using the new design system primitives (bottom sheets, modal patterns) for better UX and consistency.
+
+**Status**: IN PROGRESS
+**Priority**: HIGH
+**Estimated Time**: 6-8 hours (4 stories)
+
+### Background
+
+Epic 5 established the design system foundation (Button, Card, Input, Sheet primitives). Epic 6 applies these components to existing workout flows, replacing legacy modals and interactions with the new bottom-sheet patterns and glass morphism styling.
+
+### Stories
+
+#### Story 6.1: Workout Builder Modal Redesign
+- Replace legacy workout builder modal with Sheet component (bottom drawer)
+- Apply glass morphism styling from design tokens
+- Integrate Button primitives for all actions
+- Ensure mobile-first responsive behavior
+
+#### Story 6.2: Exercise Selection Modal Redesign
+- Replace exercise picker with Sheet component
+- Apply Card primitives for exercise list items
+- Add Input primitive for exercise search/filter
+- Maintain exercise recommendation integration
+
+#### Story 6.3: Recovery Dashboard Interaction Redesign
+- Replace muscle detail modals with Sheet component
+- Apply Card primitives for recovery timeline display
+- Integrate typography scale (Cinzel headers, Lato body)
+- Add progressive disclosure patterns
+
+#### Story 6.4: Baseline Update Modal Redesign
+- Replace baseline update modal with Sheet component
+- Apply Input primitives for baseline value editing
+- Add validation feedback using design tokens
+- Ensure smooth animations with Sheet height variants
+
+### Acceptance Criteria (Epic Level)
+- [ ] All 4 modal interactions use Sheet component
+- [ ] All buttons use Button primitive (consistent styling)
+- [ ] All form inputs use Input primitive
+- [ ] All cards use Card primitive
+- [ ] Glass morphism applied consistently
+- [ ] Typography scale applied (Cinzel + Lato)
+- [ ] Mobile-first responsive on all interactions
+- [ ] No visual regressions on existing features
+- [ ] All existing tests still passing
+- [ ] New interaction tests added
+
+### Technical Notes
+- Use existing Sheet component from Epic 5 ([src/design-system/components/primitives/Sheet.tsx](src/design-system/components/primitives/Sheet.tsx))
+- Reference design tokens in [tailwind.config.js](tailwind.config.js)
+- Known issues from Epic 5 (fonts, storybook) will be fixed as they arise
+- Fix issues just-in-time, not speculatively
+
+### Dependencies
+- Epic 5 (Design System Foundation) ✅ COMPLETE
+
+---
+
 _For implementation: Use the `create-story` workflow to generate individual story implementation plans from this epic breakdown._
 
 _Next Steps: Run `/bmad:bmm:workflows:architecture` to design technical architecture before implementation, or proceed directly to `/bmad:bmm:workflows:create-story` for Story 1.1 if architecture already documented._

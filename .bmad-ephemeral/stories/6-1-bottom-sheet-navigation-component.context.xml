@@ -1,0 +1,296 @@
+<story-context id="{bmad_folder}/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>1</storyId>
+    <title>Workout Builder Modal Redesign</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-1-bottom-sheet-navigation-component.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>FitForge user</asA>
+    <iWant>the workout builder modal to use the new Sheet component (bottom drawer) with glass morphism styling</iWant>
+    <soThat>I can access workout planning features with a modern, mobile-friendly interface that follows the new design system</soThat>
+    <tasks>
+      - Task 1: Create BottomSheet Wrapper Component (AC: #1, #2)
+        - 1.1: Integrate Vaul library for bottom sheet functionality
+        - 1.2: Configure height variant (60vh)
+        - 1.3: Implement drag handle UI (48×6px pale blue bar)
+        - 1.4: Apply glass morphism styling (white/50, backdrop-blur-sm, border)
+        - 1.5: Add rounded-t-[24px] top corners
+        - 1.6: Test swipe-to-dismiss gesture on mobile devices
+        - 1.7: Verify backdrop click-to-close works
+
+      - Task 2: Migrate WorkoutBuilder to Use Sheet (AC: #1, #4)
+        - 2.1: Replace existing modal implementation with BottomSheet wrapper
+        - 2.2: Update trigger button to open Sheet instead of full-screen modal
+        - 2.3: Implement spring animation for sheet entrance (Framer Motion)
+        - 2.4: Add focus trap using Vaul's built-in focus management
+        - 2.5: Implement ESC key handler to dismiss sheet
+        - 2.6: Test focus returns to FAB button after sheet closes
+
+      - Task 3: Replace Buttons with Design System Primitives (AC: #3)
+        - 3.1: Import Button component from @/src/design-system/components/primitives/Button
+        - 3.2: Replace "Save Workout" button with primary Button variant
+        - 3.3: Replace "Cancel" button with secondary Button variant
+        - 3.4: Replace any tertiary actions with ghost Button variant
+        - 3.5: Verify all buttons are 60×60px minimum (WCAG compliance)
+        - 3.6: Test button hover/active states with glass background
+
+      - Task 4: Responsive Testing and Polish (AC: #4)
+        - 4.1: Test on iPhone SE (375px width) - verify sheet doesn't obstruct content
+        - 4.2: Test on Android (various screen sizes) - verify swipe gestures work
+        - 4.3: Test with gloves - ensure drag handle is easy to grab
+        - 4.4: Verify keyboard navigation works (Tab through inputs, ESC to close)
+        - 4.5: Test in both light mode and dark mode (when available)
+        - 4.6: Lighthouse accessibility audit (target 90+)
+
+      - Task 5: Integration Testing (AC: #1, #2, #3, #4)
+        - 5.1: Test complete workout builder flow (open → add exercises → save → close)
+        - 5.2: Verify sheet doesn't conflict with other modals or sheets
+        - 5.3: Test performance (60fps animation, no jank)
+        - 5.4: Verify glass effect looks good on heavenly gradient background
+        - 5.5: Cross-browser testing (Chrome, Safari, Firefox, Edge)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC1: Replace Legacy Modal with Sheet Component
+    - Replace existing workout builder full-screen modal with Sheet component (bottom drawer pattern)
+    - Implement 60vh height for optimal mobile thumb-reach
+    - Add drag handle (48×6px, pale blue #A8B6D5) at top of sheet
+    - Support swipe-to-dismiss gesture
+
+    AC2: Apply Glass Morphism Styling
+    - Apply glass morphism background: rgba(255, 255, 255, 0.50) with backdrop-blur-sm
+    - Add subtle border: gray-300/50
+    - Use rounded-t-[24px] for top corners
+    - Apply white/50 top border highlight for depth
+
+    AC3: Integrate Button Primitives
+    - Replace all action buttons with new Button component from design system
+    - Use primary variant for "Save Workout" action
+    - Use secondary variant for "Cancel" action
+    - Use ghost variant for tertiary actions
+    - Ensure all buttons meet 60×60px touch target minimum
+
+    AC4: Mobile-First Responsive Behavior
+    - Sheet slides up from bottom with spring animation (stiffness: 300, damping: 30)
+    - Backdrop overlay (black/40) with click-to-dismiss
+    - ESC key dismisses sheet
+    - Focus traps inside sheet when open
+    - Returns focus to trigger button on close
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Executive Summary, Design System Layer</section>
+        <snippet>Frontend-only UI/UX transformation using Tailwind PostCSS migration, design system integration into 96 existing React components. Bottom Sheet Pattern (Vaul) for industry-standard mobile UX. Sheet Component implements bottom sheet with configurable heights (40vh, 60vh, 90vh).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Core Interaction Redesign</title>
+        <section>Story 6.1: Workout Builder Modal Redesign</section>
+        <snippet>Replace legacy workout builder modal with Sheet component (bottom drawer). Apply glass morphism styling from design tokens. Integrate Button primitives for all actions. Ensure mobile-first responsive behavior.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-1-bottom-sheet-navigation-component.md</path>
+        <title>Story 6.1 Full Specification</title>
+        <section>Dev Notes - Architecture Context</section>
+        <snippet>Current State: WorkoutBuilder uses full-screen modal pattern. Target State: Replace modal with Sheet component (60vh height), use design system Button primitives, apply glass morphism styling, maintain all existing functionality.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>src/design-system/components/primitives/Sheet.tsx</path>
+        <kind>component</kind>
+        <symbol>Sheet</symbol>
+        <lines>1-178</lines>
+        <reason>Existing Sheet component built on Vaul library. Implements bottom sheet with configurable heights (sm: 40vh, md: 60vh, lg: 90vh). Includes drag handle, swipe-to-dismiss, backdrop, and accessibility features. Story will use this component to replace the legacy modal in WorkoutBuilder.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>component</kind>
+        <symbol>Button</symbol>
+        <lines>1-146</lines>
+        <reason>Design system Button component with variants (primary, secondary, ghost) and sizes (sm, md, lg). Story will replace all WorkoutBuilder action buttons with this component. Already implements WCAG-compliant touch targets.</reason>
+      </artifact>
+      <artifact>
+        <path>components/WorkoutBuilder.tsx</path>
+        <kind>component</kind>
+        <symbol>WorkoutBuilder</symbol>
+        <lines>1-100</lines>
+        <reason>Main component to migrate. Currently uses full-screen modal pattern. Will be refactored to use Sheet component while maintaining all existing workout planning functionality (exercise planning, volume sliders, forecasting).</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/tokens/colors.ts</path>
+        <kind>tokens</kind>
+        <symbol>colors</symbol>
+        <lines>12-45</lines>
+        <reason>Color palette tokens for design system. Primary palette (#758AC6, #344161, #566890), glass colors (white/50, white/60, white/20), and pale blue (#A8B6D5) for drag handle.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/__tests__/Sheet.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Sheet tests</symbol>
+        <lines>all</lines>
+        <reason>Existing unit tests for Sheet component. Provides testing patterns for open/close behavior, swipe gestures, focus management, and accessibility.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/__tests__/Button.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Button tests</symbol>
+        <lines>all</lines>
+        <reason>Existing unit tests for Button component. Provides testing patterns for button variants, sizes, click handlers, and accessibility.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <dependency name="vaul" version="^1.1.2">Bottom sheet library - already installed</dependency>
+        <dependency name="framer-motion" version="^12.23.24">Animation library for spring animations - already installed</dependency>
+        <dependency name="react" version="^19.2.0">React framework</dependency>
+        <dependency name="react-dom" version="^19.2.0">React DOM</dependency>
+        <dependency name="react-router-dom" version="^6.30.1">Client-side routing</dependency>
+        <dependency name="tailwindcss" version="^3.4.18">Utility-first CSS framework - now using PostCSS (not CDN)</dependency>
+        <dependency name="@testing-library/react" version="^16.3.0">React testing utilities</dependency>
+        <dependency name="@testing-library/jest-dom" version="^6.9.1">Jest matchers for DOM</dependency>
+        <dependency name="vitest" version="^4.0.3">Testing framework</dependency>
+        <dependency name="playwright" version="^1.56.1">E2E testing framework</dependency>
+        <dependency name="@axe-core/react" version="^4.11.0">Accessibility testing</dependency>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - MANDATORY: Frontend MUST run on port 3000, Backend on 3001 - NEVER change ports
+    - Migration Pattern: Wrap existing WorkoutBuilder components with new design system primitives (Sheet, Button)
+    - No Backend Changes: All API endpoints remain unchanged, no database modifications, frontend-only refactor
+    - Maintain Functionality: All existing workout planning features must work identically (exercise planning, volume sliders, forecasting, template saving)
+    - Glass Effect Performance: Test on iOS Safari specifically - backdrop-blur can have performance issues
+    - Touch Targets: Drag handle is 48×6px UI element, but clickable area should be larger for accessibility
+    - Animations: Spring animations should use GPU-accelerated transforms only (avoid width/height animations)
+    - Feature Flags: May be in place for gradual rollout (check if needed since Epic 5 complete)
+    - HMR: Hot Module Reload is working correctly - no container rebuilds needed for code changes
+    - Tailwind: Now using PostCSS (not CDN) - use tailwind.config.js for customization
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>SheetProps</name>
+      <kind>React Component Interface</kind>
+      <signature>
+        interface SheetProps {
+          open: boolean;
+          onOpenChange: (open: boolean) => void;
+          children: React.ReactNode;
+          height?: 'sm' | 'md' | 'lg';
+          title?: string;
+          description?: string;
+          className?: string;
+          showHandle?: boolean;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Sheet.tsx</path>
+    </interface>
+    <interface>
+      <name>ButtonProps</name>
+      <kind>React Component Interface</kind>
+      <signature>
+        interface ButtonProps extends React.ButtonHTMLAttributes&lt;HTMLButtonElement&gt; {
+          variant?: 'primary' | 'secondary' | 'ghost';
+          size?: 'sm' | 'md' | 'lg';
+          children: React.ReactNode;
+          ariaLabel?: string;
+          className?: string;
+          disabled?: boolean;
+          type?: 'button' | 'submit' | 'reset';
+          onClick?: (event: React.MouseEvent&lt;HTMLButtonElement&gt;) => void;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+    <interface>
+      <name>WorkoutBuilderProps</name>
+      <kind>React Component Interface</kind>
+      <signature>
+        interface WorkoutBuilderProps {
+          isOpen: boolean;
+          onClose: () => void;
+          onSuccess: () => void;
+          onToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+          loadedTemplate?: WorkoutTemplate | null;
+          currentBodyweight?: number;
+        }
+      </signature>
+      <path>components/WorkoutBuilder.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests using Vitest with @testing-library/react for component behavior testing. E2E tests using Playwright for complete user flows. Accessibility testing with @axe-core/react and jest-axe. All tests use TypeScript. Test files located in __tests__ directories adjacent to components. Coverage reporting via @vitest/coverage-v8. Target 90+ Lighthouse accessibility score.
+    </standards>
+
+    <locations>
+      - src/design-system/components/primitives/__tests__/*.test.tsx (unit tests for primitives)
+      - components/__tests__/*.test.tsx (integration tests)
+      - e2e/*.spec.ts (Playwright E2E tests - if directory exists)
+    </locations>
+
+    <ideas>
+      AC1 Tests:
+      - Test Sheet component opens as bottom sheet (not full-screen modal)
+      - Test Sheet height is 60vh
+      - Test drag handle renders with correct dimensions (48×6px) and color (#A8B6D5)
+      - Test swipe-to-dismiss gesture works on touch devices
+
+      AC2 Tests:
+      - Test glass morphism background applies correctly (rgba(255, 255, 255, 0.50))
+      - Test backdrop-blur-sm class is present
+      - Test border styling (gray-300/50)
+      - Test top corners have rounded-t-[24px]
+      - Test visual regression for glass effect on heavenly gradient background
+
+      AC3 Tests:
+      - Test all buttons use Button component from design system
+      - Test "Save Workout" button has primary variant
+      - Test "Cancel" button has secondary variant
+      - Test tertiary actions use ghost variant
+      - Test all buttons meet 60×60px touch target minimum
+      - Test button hover/active states work with glass background
+
+      AC4 Tests:
+      - Test sheet slides up with spring animation (Framer Motion config: stiffness 300, damping 30)
+      - Test backdrop overlay renders (black/40 opacity)
+      - Test backdrop click dismisses sheet
+      - Test ESC key dismisses sheet
+      - Test focus trap activates when sheet opens
+      - Test focus returns to FAB button after sheet closes
+      - Test keyboard navigation (Tab through inputs)
+
+      Integration Tests:
+      - Test complete workout builder flow (open → add exercises → save → close)
+      - Test sheet doesn't conflict with other modals/sheets
+      - Test 60fps animation performance (no jank)
+      - Cross-browser testing (Chrome, Safari, Firefox, Edge)
+
+      E2E Tests (Playwright):
+      - test('Workout builder opens as bottom sheet', async ({ page }) => {...})
+      - test('Sheet dismisses on swipe down', async ({ page }) => {...})
+      - test('Complete workout builder flow', async ({ page }) => {...})
+
+      Accessibility Tests:
+      - Lighthouse audit (target 90+)
+      - Keyboard-only navigation test
+      - Screen reader compatibility
+      - Focus management verification
+    </ideas>
+  </tests>
+</story-context>

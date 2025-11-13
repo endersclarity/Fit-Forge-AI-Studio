@@ -123,15 +123,19 @@ const Sheet: React.FC<SheetProps> = ({
           onClick={() => onOpenChange(false)}
         />
         <Drawer.Content
-          className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex flex-col bg-white/95 backdrop-blur-md rounded-t-2xl border-t border-gray-300/50"
-          style={{ height: heightValue, maxHeight: heightValue }}
+          className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex flex-col bg-white/50 backdrop-blur-sm rounded-t-[24px] border-t border-gray-300/50"
+          style={{
+            height: heightValue,
+            maxHeight: heightValue,
+            borderTopColor: 'rgba(255, 255, 255, 0.5)' // AC#2: white/50 top border highlight for depth
+          }}
           aria-labelledby={title ? 'sheet-title' : undefined}
           aria-describedby={description ? 'sheet-description' : undefined}
         >
-          {/* Draggable Handle */}
+          {/* Draggable Handle - AC#1: 48×6px pale blue (#A8B6D5) */}
           {showHandle && (
             <div className="flex justify-center pt-3 pb-2">
-              <div className="h-1 w-12 rounded-full bg-gray-400/50" />
+              <div className="h-1.5 w-12 rounded-full" style={{ backgroundColor: '#A8B6D5' }} />
             </div>
           )}
 

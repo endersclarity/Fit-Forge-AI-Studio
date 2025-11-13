@@ -12,6 +12,8 @@ import { generateWorkoutFromTargets, ExerciseRecommendation } from '../utils/tar
 import { generateSetsFromVolume } from '../utils/setBuilder';
 import ExerciseGroup from './ExerciseGroup';
 import BaselineUpdateModal from './BaselineUpdateModal';
+import Sheet from '@/src/design-system/components/primitives/Sheet';
+import Button from '@/src/design-system/components/primitives/Button';
 
 interface WorkoutBuilderProps {
   isOpen: boolean;
@@ -890,8 +892,6 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     onClose();
   };
 
-  if (!isOpen) return null;
-
   if (mode === 'executing') {
     const currentSet = workout.sets[workout.currentSetIndex];
     const isFinished = workout.currentSetIndex >= workout.sets.length;
@@ -910,13 +910,15 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
                 {completedSets.size} of {workout.sets.length} sets completed
               </p>
             </div>
-            <button
+            <Button
+              variant="primary"
+              size="lg"
               onClick={handleFinishWorkout}
               disabled={isCompleting}
-              className="w-full bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50"
+              className="w-full"
             >
               {isCompleting ? 'Completing...' : 'Finish Workout'}
-            </button>
+            </Button>
           </div>
         </div>
       );
@@ -978,60 +980,49 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             </button>
           </div>
 
-          <button
+          <Button
+            variant="primary"
+            size="lg"
             onClick={handleFinishWorkout}
             disabled={completedSets.size === 0 || isCompleting}
-            className="w-full mt-4 bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50"
+            className="w-full mt-4"
           >
             {isCompleting ? 'Completing...' : 'Finish Workout Early'}
-          </button>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
-      onClick={(e) => e.target === e.currentTarget && handleClose()}
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => !open && handleClose()}
+      height="md"
+      title="Build Workout"
+      showHandle={true}
     >
-      <div
-        className="bg-brand-surface rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Build Workout</h3>
-          <button onClick={handleClose} className="text-slate-400 hover:text-white text-2xl">
-            �
-          </button>
-        </header>
-
+      <div className="space-y-4">
         {loading ? (
           <div className="text-center py-8 text-slate-400">Loading...</div>
         ) : (
           <>
             {/* Planning Mode Toggle */}
-            <div className="flex items-center justify-center gap-2 bg-brand-muted p-2 rounded-lg mb-4">
-              <button
+            <div className="flex items-center justify-center gap-2 p-2 rounded-lg mb-4">
+              <Button
+                variant={planningMode === 'forward' ? 'primary' : 'ghost'}
+                size="sm"
                 onClick={() => setPlanningMode('forward')}
-                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                  planningMode === 'forward'
-                    ? 'bg-brand-cyan text-brand-dark'
-                    : 'text-slate-400 hover:text-white'
-                }`}
               >
                 Forward Planning
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={planningMode === 'target' ? 'primary' : 'ghost'}
+                size="sm"
                 onClick={() => setPlanningMode('target')}
-                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                  planningMode === 'target'
-                    ? 'bg-brand-cyan text-brand-dark'
-                    : 'text-slate-400 hover:text-white'
-                }`}
               >
                 Target-Driven
-              </button>
+              </Button>
             </div>
 
             {planningMode === 'forward' ? (
@@ -1095,14 +1086,15 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
                       ))}
                     </div>
 
-                    <button
+                    <Button
+                      variant="primary"
+                      size="lg"
                       onClick={handleAcceptRecommendations}
                       disabled={loading}
-                      className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg
-                                 hover:bg-green-700 transition-colors disabled:opacity-50"
+                      className="w-full"
                     >
                       {loading ? 'Adding...' : 'Accept All Recommendations'}
-                    </button>
+                    </Button>
                   </div>
                 )}
               </>
@@ -1193,28 +1185,34 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             )}
 
             <div className="mt-6 space-y-2">
-              <button
+              <Button
+                variant="primary"
+                size="lg"
                 onClick={handleStartWorkout}
                 disabled={workout.sets.length === 0}
-                className="w-full bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50"
+                className="w-full"
               >
                 Start Workout
-              </button>
+              </Button>
               <div className="grid grid-cols-2 gap-2">
-                <button
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={handleSaveTemplate}
                   disabled={workout.sets.length === 0}
-                  className="w-full bg-brand-muted text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-50"
+                  className="w-full"
                 >
                   Save as Template
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={handleLogAsCompleted}
                   disabled={workout.sets.length === 0 || loading}
-                  className="w-full bg-brand-muted text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-50"
+                  className="w-full"
                 >
                   Log as Completed
-                </button>
+                </Button>
               </div>
             </div>
           </>
@@ -1242,18 +1240,22 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
                 You have unsaved work from earlier. Would you like to resume or start fresh?
               </p>
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={handleRestoreDraft}
-                  className="flex-1 bg-brand-cyan text-brand-dark py-2 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
+                  className="flex-1"
                 >
                   Resume
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={handleStartFresh}
-                  className="flex-1 bg-brand-muted py-2 rounded-lg font-semibold hover:bg-brand-dark transition-colors"
+                  className="flex-1"
                 >
                   Start Fresh
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1304,23 +1306,27 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
               </label>
 
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={handleConfirmSaveTemplate}
-                  className="flex-1 bg-brand-cyan text-brand-dark py-2 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
+                  className="flex-1"
                 >
                   Save Template
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={() => {
                     setShowSaveDialog(false);
                     setTemplateName('');
                     setTemplateCategory('Push');
                     setTemplateVariation('A');
                   }}
-                  className="flex-1 bg-brand-muted py-2 rounded-lg font-semibold hover:bg-brand-dark transition-colors"
+                  className="flex-1"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1339,7 +1345,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           onDecline={handleDeclineBaselineUpdates}
         />
       </div>
-    </div>
+    </Sheet>
   );
 };
 

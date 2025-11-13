@@ -68,7 +68,7 @@ describe('Sheet Component', () => {
     });
 
     it('should render with draggable handle', () => {
-      render(
+      const { container } = render(
         <Sheet open={true} onOpenChange={() => {}}>
           <p>Content</p>
         </Sheet>
@@ -76,6 +76,12 @@ describe('Sheet Component', () => {
 
       // Verify content renders with default handle
       expect(screen.getByText('Content')).toBeInTheDocument();
+
+      // Story 6.1 AC#1: Verify drag handle is pale blue (#A8B6D5)
+      const handleElement = container.querySelector('[style*="backgroundColor"]');
+      if (handleElement) {
+        expect(handleElement).toHaveStyle('background-color: rgb(168, 182, 213)'); // #A8B6D5 in RGB
+      }
     });
 
     it('should not render handle when showHandle is false', () => {
