@@ -9,6 +9,68 @@ Audience: AI-assisted debugging and developer reference.
 
 ## [Unreleased] - 2025-11-13
 
+### Epic 6: Core Interaction Redesign - IN PROGRESS 🚧
+
+**Status**: IN PROGRESS (1/4 stories complete)
+**Date Started**: 2025-11-13
+
+#### Stories Completed
+
+1. **Story 6.1**: Workout Builder Modal Redesign ✅
+
+---
+
+### Story 6.1: Workout Builder Modal Redesign ✅
+
+**Epic**: 6 - Core Interaction Redesign
+**Status**: DONE
+**Date**: 2025-11-13
+**Commit**: 1723eb2
+
+#### Summary
+
+Migrated WorkoutBuilder from legacy full-screen modal to the new Sheet component (bottom drawer pattern) with glass morphism styling and design system Button primitives. All 4 acceptance criteria met with comprehensive test coverage (58 tests passing).
+
+#### Changes Made
+
+**Files Modified (3):**
+- `src/design-system/components/primitives/Sheet.tsx` - Updated drag handle to pale blue (#A8B6D5), applied glass morphism styling
+- `components/WorkoutBuilder.tsx` - Replaced legacy modal with Sheet component, integrated Button primitives
+- `src/design-system/components/primitives/__tests__/Sheet.test.tsx` - Added drag handle color test
+
+**Files Created (1):**
+- `components/__tests__/WorkoutBuilder.sheet.integration.test.tsx` - 24 comprehensive integration tests
+
+#### Key Features
+
+1. **Sheet Component Integration**: 60vh height (md variant), pale blue drag handle, swipe-to-dismiss gesture
+2. **Glass Morphism Styling**: rgba(255,255,255,0.50) background, backdrop-blur-sm, rounded-t-[24px]
+3. **Button Primitives**: Primary (Start Workout), Secondary (Save/Log), Ghost (planning toggles)
+4. **Mobile-First Responsive**: Spring animation, backdrop overlay, ESC key, focus trap
+
+#### Testing Results
+
+- ✅ 58 tests passing (24 integration, 34 Sheet component)
+- ✅ All 4 acceptance criteria verified
+- ✅ Zero regressions introduced
+- ✅ Comprehensive coverage across all user interactions
+
+#### Code Review
+
+- **Decision**: APPROVED (1st pass)
+- **Acceptance Criteria**: 4/4 met (100%)
+- **Tasks**: 5/5 verified complete
+- **No action items required**
+
+#### Technical Notes
+
+- Execution mode modal intentionally kept as separate modal (out of scope)
+- All existing WorkoutBuilder functionality preserved (auto-save, templates, forecasting)
+- Pre-existing backend test failures (13 files) unrelated to this story
+- Accessibility warnings from Vaul library are expected and non-blocking
+
+---
+
 ### Epic 5: Design System Foundation - COMPLETE ✅
 
 **Status**: ALL STORIES COMPLETE (5/5)
