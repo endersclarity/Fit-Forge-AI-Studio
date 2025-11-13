@@ -16,6 +16,7 @@ import Toast from './components/Toast';
 import { PRNotificationManager } from './components/PRNotification';
 import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard';
 import BaselineUpdateModal from './components/BaselineUpdateModal';
+import UXMockup from './components/ux-mockup';
 import { calculateVolume } from './utils/helpers';
 import { detectProgressionMethod } from './utils/progressionMethodDetector';
 
@@ -402,6 +403,8 @@ const App: React.FC = () => {
         <Route path="/analytics" element={<Analytics />} />
 
         <Route path="/muscle-baselines" element={<MuscleBaselinesPage />} />
+
+        <Route path="/ux-mockup" element={<UXMockup />} />
       </Routes>
     </div>
   );
