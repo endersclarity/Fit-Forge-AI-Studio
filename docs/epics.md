@@ -2778,6 +2778,215 @@ Epic 5 established the design system foundation (Button, Card, Input, Sheet prim
 
 ---
 
+## Epic 6.5: Design System Rollout
+
+**Epic Goal**: Complete the design system integration started in Epic 6 by migrating all remaining components and establishing 100% design system adoption across the codebase.
+
+**Status**: READY TO START
+**Priority**: CRITICAL (Blocks Epic 7)
+**Estimated Time**: 48-64 hours (5 stories)
+
+### Background
+
+Epic 6 successfully integrated the design system into 4 core workflow components (WorkoutBuilder, QuickAdd, CalibrationEditor, EngagementViewer), proving the patterns work. However, **73 components (~13,431 lines of code) still use legacy inline JSX** instead of design system primitives. Production verification revealed that Railway deployment doesn't reflect Epic 6 changes, and the codebase has duplicate components (e.g., `components/ui/Card.tsx` vs `src/design-system/components/primitives/Card.tsx`).
+
+Epic 7 (Intelligence Shortcuts) stories were drafted assuming the pre-6.5 architecture. Completing Epic 6.5 first ensures Epic 7 builds on a unified design system foundation.
+
+### Problem Statement
+
+**Current State:**
+- 4 components integrated ✅ (WorkoutBuilder, QuickAdd, CalibrationEditor, EngagementViewer)
+- 73 components still use legacy code ❌
+- Duplicate components exist (ui/Card, layout/FAB, etc.)
+- Railway production shows 0% design system adoption
+- Epic 7 stories reference components that will change
+
+**Desired State:**
+- 100% design system adoption across all 77 components
+- Zero duplicate components
+- Railway production fully deployed with Epic 6 changes
+- Epic 7 stories reviewed for architectural alignment
+
+### Stories
+
+#### Story 6.5.1: Railway Deployment & Missing Primitives (6-8 hours)
+- **Part A: Railway Deployment Verification** (2-3 hours)
+  - Investigate Railway dashboard for deployment status
+  - Review build logs for errors or failures
+  - Fix any deployment blockers (missing env vars, build config, etc.)
+  - Verify Epic 6 changes deploy successfully
+  - Test fonts, glass morphism, Sheet components in production
+- **Part B: Create Missing Design System Primitives** (4-5 hours)
+  - Create Badge primitive (variant-based: success/warning/error/info)
+  - Create ProgressBar primitive (with animation support)
+  - Create Select/Dropdown primitive (for filters, pickers)
+  - Add comprehensive tests for each (15+ tests per primitive)
+  - Document in Storybook with accessibility examples
+
+**Acceptance Criteria:**
+- [ ] Railway production shows Epic 6 components (Sheet, glass morphism, fonts)
+- [ ] Build logs show no errors
+- [ ] Badge primitive created with 4+ variants
+- [ ] ProgressBar primitive created with smooth animations
+- [ ] Select primitive created with keyboard navigation
+- [ ] 45+ new tests passing (15 per primitive)
+- [ ] Storybook stories for all new primitives
+
+#### Story 6.5.2: Design System Patterns & Core Pages (18-22 hours)
+- **Part A: Create Missing Patterns** (4-6 hours)
+  - Create Toast/Notification pattern (success/error/info/loading)
+  - Create CollapsibleSection pattern (accordion-style)
+  - Confirm Modal → Sheet migration strategy (document when to use Sheet vs Modal)
+  - Add tests and Storybook documentation
+- **Part B: Migrate Core Pages** (14-16 hours)
+  - Dashboard.tsx (912 lines) - main dashboard with visualizations
+  - Workout.tsx (904 lines) - active workout tracking
+  - Profile.tsx (518 lines) - user profile management
+  - ExerciseRecommendations.tsx (500 lines) - recommendation engine UI
+  - screens/RecoveryDashboard.tsx (366 lines) - recovery tracking
+  - Analytics.tsx (230 lines) - charts and progression
+  - PersonalBests.tsx (91 lines) - personal records
+  - WorkoutTemplates.tsx (226 lines) - template management
+
+**Acceptance Criteria:**
+- [ ] Toast pattern created with 4 variants
+- [ ] CollapsibleSection pattern created (expand/collapse animation)
+- [ ] Modal vs Sheet usage documented
+- [ ] All 8 core pages import from design-system
+- [ ] All pages use design tokens for colors/spacing
+- [ ] Existing tests updated for new imports
+- [ ] No visual regressions (screenshots match)
+- [ ] Touch targets remain 60x60px minimum
+
+#### Story 6.5.3: Modals & Major Features (12-16 hours)
+- **Modal Components** (6-8 hours):
+  - WorkoutPlannerModal.tsx (545 lines)
+  - MuscleDeepDiveModal.tsx (317 lines)
+  - modals/MuscleDetailModal.tsx (221 lines)
+  - WorkoutSummaryModal.tsx (208 lines)
+  - SetEditModal.tsx (263 lines)
+  - BaselineUpdateModal.tsx (77 lines)
+- **Complex Components** (6-8 hours):
+  - MuscleVisualization.tsx (379 lines)
+  - MuscleBaselinesPage.tsx (299 lines)
+  - SetConfigurator.tsx (291 lines)
+  - ExercisePicker.tsx (275 lines)
+  - RecommendationCard.tsx (215 lines)
+  - TargetModePanel.tsx (215 lines)
+  - ExerciseCard.tsx (209 lines)
+- **Onboarding Flow** (2 hours):
+  - onboarding/EquipmentStep.tsx (223 lines)
+  - onboarding/ProfileWizard.tsx (143 lines)
+
+**Acceptance Criteria:**
+- [ ] All 15 components migrated to design system
+- [ ] Modals use Sheet component (bottom drawer pattern)
+- [ ] All cards use Card primitive with glass morphism
+- [ ] All buttons use Button primitive
+- [ ] All form inputs use Input primitive
+- [ ] Existing functionality preserved (no behavior changes)
+- [ ] Tests updated for new component structure
+
+#### Story 6.5.4: Utility Components & Subdirectories (16-20 hours)
+- **Charts & Analytics** (4-5 hours):
+  - WorkoutHistorySummary, ActivityCalendarHeatmap, ExerciseProgressionChart, MuscleCapacityChart, VolumeTrendsChart (5 components, ~991 lines)
+- **Form Components** (3-4 hours):
+  - QuickAddForm, HorizontalSetInput, VolumeSlider, CurrentSetDisplay (4 components, ~677 lines)
+- **Supporting Components** (5-6 hours):
+  - RecoveryTimelineView, PlannedExerciseList, ProgressiveSuggestionButtons, FABMenu, DashboardQuickStart, TemplateCard, LastWorkoutSummary, QuickTrainingStats, TemplateSelector, ExerciseGroup, PRNotification (11 components, ~1,581 lines)
+- **Small Utilities** (2-3 hours):
+  - Toast, CollapsibleCard, CollapsibleSection, CategoryTabs, CalibrationBadge, SimpleMuscleVisualization, LastWorkoutContext, MuscleBaselineCard, onboarding/ExperienceStep, onboarding/NameStep (10 components, ~1,032 lines)
+- **Subdirectory Components** (2-3 hours):
+  - fitness/ (6 components): DetailedMuscleCard, ExerciseRecommendationCard, MuscleCard, MuscleHeatMap, StatusBadge, ProgressiveOverloadChip
+  - layout/ (3 components): CollapsibleSection, TopNav, FAB
+  - loading/ (3 components): SkeletonScreen, ErrorBanner, OfflineBanner
+
+**Acceptance Criteria:**
+- [ ] All 45 utility/supporting components migrated
+- [ ] All subdirectory components use design system
+- [ ] Charts use design tokens for colors
+- [ ] Forms use Input/Button primitives
+- [ ] Badges use Badge primitive
+- [ ] Progress bars use ProgressBar primitive
+- [ ] All tests passing (no regressions)
+
+#### Story 6.5.5: Legacy Cleanup & Epic 7 Preparation (4-6 hours)
+- **Remove Duplicate Components** (2-3 hours):
+  - Delete components/ui/Card.tsx (use design-system Card)
+  - Delete components/ui/Button.tsx (use design-system Button)
+  - Delete components/ui/Modal.tsx (migrated to Sheet)
+  - Delete components/layout/FAB.tsx (use design-system FAB)
+  - Delete components/ui/Badge.tsx (use design-system Badge)
+  - Delete components/ui/ProgressBar.tsx (use design-system ProgressBar)
+  - Consolidate CollapsibleSection variants
+- **Update Import Paths** (1 hour):
+  - Global find/replace for old component paths
+  - Update barrel exports (index.ts files)
+  - Verify no broken imports remain
+- **Epic 7 Story Review** (2-3 hours):
+  - Read all 5 Epic 7 story files
+  - Check for references to refactored components
+  - Update import paths and component APIs as needed
+  - Verify Epic 7 stories build on post-6.5 architecture
+  - Document any architectural notes for Epic 7 execution
+
+**Acceptance Criteria:**
+- [ ] Zero duplicate components remain in codebase
+- [ ] All old component files deleted
+- [ ] All imports updated to design-system paths
+- [ ] No broken imports (build succeeds)
+- [ ] Epic 7 stories reviewed and updated
+- [ ] Epic 7 architectural notes documented
+- [ ] Full test suite passing (476+ tests)
+- [ ] Railway production verified (100% design system adoption)
+
+### Acceptance Criteria (Epic Level)
+
+**Technical:**
+- [ ] 100% design system adoption (77/77 components)
+- [ ] Zero duplicate components remain
+- [ ] All components use design tokens (colors, spacing, typography)
+- [ ] Railway production shows Epic 6 + 6.5 changes
+- [ ] Fonts loading correctly in production
+- [ ] Glass morphism visible on all cards/sheets
+
+**Quality:**
+- [ ] All existing tests still passing (476+ tests minimum)
+- [ ] No visual regressions (screenshots match)
+- [ ] Touch targets remain 60x60px minimum (WCAG AA)
+- [ ] No behavior changes (feature parity maintained)
+- [ ] Build succeeds with no warnings
+
+**Documentation:**
+- [ ] Epic 7 stories reviewed for architectural alignment
+- [ ] Component migration guide documented
+- [ ] Storybook updated with all new primitives/patterns
+- [ ] Architectural notes for Epic 7 created
+
+### Technical Notes
+
+- Use design-system barrel exports: `import { Button, Card, Sheet } from '@/src/design-system/components/primitives'`
+- Reference design tokens: `bg-primary`, `text-secondary`, `spacing-md`
+- Maintain existing component APIs where possible (minimize breaking changes)
+- Test in Railway production after each story (ensure deployments work)
+- Document breaking changes for Epic 7 story updates
+
+### Dependencies
+
+- Epic 5 (Design System Foundation) ✅ COMPLETE
+- Epic 6 (Core Interaction Redesign) ✅ COMPLETE (4 components integrated)
+
+### Impact on Epic 7
+
+Epic 7 stories reference components like WorkoutBuilder, QuickAdd, Dashboard, ExercisePicker, etc. Epic 6.5 will refactor these components to use design system primitives, potentially changing:
+- Import paths (`components/ui/Card` → `@/src/design-system/components/primitives/Card`)
+- Component APIs (props, event handlers)
+- Component structure (children, composition patterns)
+
+**Story 6.5.5 includes Epic 7 story review** to ensure alignment with post-6.5 architecture.
+
+---
+
 ## Epic 7: Intelligence Shortcuts
 
 **Epic Goal**: Implement productivity-focused shortcuts that make workout logging faster and more intelligent, leveraging the design system foundation and new interaction patterns.

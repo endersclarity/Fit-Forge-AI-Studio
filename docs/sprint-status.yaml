@@ -88,3 +88,12 @@ development_status:
   6-4-touch-target-compliance-audit: done
   6-5-fab-patterns-and-modal-standardization: done
   epic-6-retrospective: completed
+
+  # Epic 6.5: Design System Rollout
+  epic-6-5: backlog
+  6-5-1-railway-deployment-missing-primitives: backlog
+  6-5-2-design-system-patterns-core-pages: backlog
+  6-5-3-modals-major-features: backlog
+  6-5-4-utility-components-subdirectories: backlog
+  6-5-5-legacy-cleanup-epic-7-preparation: backlog
+  epic-6-5-retrospective: optional
