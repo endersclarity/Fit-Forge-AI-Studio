@@ -1,0 +1,632 @@
+<story-context id="{bmad_folder}/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6.5</epicId>
+    <storyId>1</storyId>
+    <title>Railway Deployment & Missing Primitives</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-1-railway-deployment-missing-primitives.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>project stakeholder</asA>
+    <iWant>Epic 6 design system changes deployed to Railway production and missing primitive components created</iWant>
+    <soThat>the production environment reflects current development work and the design system is complete for Epic 6.5 migration</soThat>
+    <tasks>### Task 1: Railway Deployment Verification (AC: 1, 2)
+- 1.1: Investigate Railway dashboard for deployment status
+- 1.2: Review build logs for errors or failures
+- 1.3: Fix any deployment blockers
+- 1.4: Verify Epic 6 changes deploy successfully
+
+### Task 2: Create Badge Primitive Component (AC: 3, 6, 7)
+- 2.1: Create Badge component in design system
+- 2.2: Add comprehensive tests (15+ tests)
+- 2.3: Create Storybook documentation
+
+### Task 3: Create ProgressBar Primitive Component (AC: 4, 6, 7)
+- 3.1: Create ProgressBar component in design system
+- 3.2: Add comprehensive tests (15+ tests)
+- 3.3: Create Storybook documentation
+
+### Task 4: Create Select/Dropdown Primitive Component (AC: 5, 6, 7)
+- 4.1: Create Select component in design system
+- 4.2: Add comprehensive tests (15+ tests)
+- 4.3: Create Storybook documentation
+
+### Task 5: Integration & Validation (All ACs)
+- 5.1: Run complete test suite
+- 5.2: Visual validation in Storybook
+- 5.3: Production validation on Railway</tasks>
+  </story>
+
+  <acceptanceCriteria>1. Railway production shows Epic 6 components (Sheet, glass morphism, fonts)
+2. Build logs show no errors
+3. Badge primitive created with 4+ variants
+4. ProgressBar primitive created with smooth animations
+5. Select primitive created with keyboard navigation
+6. All new primitives have comprehensive tests (15+ tests per component)
+7. All new primitives documented in Storybook with accessibility examples</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 6.5 Requirements -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6.5: Design System Rollout</title>
+        <section>Story 6.5.1: Railway Deployment & Missing Primitives</section>
+        <snippet>Railway deployment verification (Part A) validates Epic 6 changes deploy successfully. Missing primitives (Part B) creates Badge, ProgressBar, and Select components with 15+ tests each and Storybook documentation before migrating 73 legacy components.</snippet>
+      </doc>
+
+      <!-- Architecture & Design System Foundation -->
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Section 2.1 Design System Layer</section>
+        <snippet>Design system structure with tokens (colors, typography, spacing, shadows, animations) and components (primitives: Button, Card, Sheet, Input; patterns: FAB, InlineNumberPicker). Design tokens defined in tailwind.config.js.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Section 2.2 Tailwind Migration Architecture</section>
+        <snippet>Tailwind PostCSS configuration established (not CDN). Design tokens extend Tailwind with primary colors (#758AC6), badge colors (#D9E1F8), Cinzel/Lato fonts, custom shadows (button-primary, drawer), glass morphism patterns.</snippet>
+      </doc>
+
+      <!-- Production Deployment Context -->
+      <doc>
+        <path>CLAUDE.md</path>
+        <title>Deployment Configuration</title>
+        <section>Production Deployment (Railway)</section>
+        <snippet>Production URL: https://fit-forge-ai-studio-production-6b5b.up.railway.app/. Railway uses Dockerfile (production build), not docker-compose.yml. Changes deploy only when pushed to GitHub. Frontend MUST run on port 3000, backend on port 3001.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Existing Design System Primitives (Reference Patterns) -->
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>component</kind>
+        <symbol>Button</symbol>
+        <lines>1-146</lines>
+        <reason>Reference for TypeScript interface pattern, variant system (primary/secondary/ghost), size variants (sm/md/lg), accessibility patterns (ARIA labels, focus management), and composability via className prop.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/__tests__/Button.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Button Component Tests</symbol>
+        <lines>1-285</lines>
+        <reason>Reference testing pattern: Vitest + React Testing Library + jest-axe. Tests rendering (variants, sizes, classes), interaction (click, keyboard), accessibility (ARIA, focus, axe audit), props/types, default values. 20+ tests per component is the standard.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>component</kind>
+        <symbol>Card</symbol>
+        <reason>Reference for glass morphism implementation (backdrop-blur-md, rgba backgrounds) using design tokens.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Input.tsx</path>
+        <kind>component</kind>
+        <symbol>Input</symbol>
+        <reason>Reference for accessibility pattern and focus management in form elements.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/patterns/FAB.tsx</path>
+        <kind>component</kind>
+        <symbol>FAB</symbol>
+        <lines>1-147</lines>
+        <reason>Reference for Framer Motion animation pattern (spring physics: stiffness 300, damping 20), hover states (scale 1.05), active states (scale 0.95), disabled state handling, custom shadows, Material Icons integration.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/patterns/__tests__/FAB.test.tsx</path>
+        <kind>test</kind>
+        <symbol>FAB Component Tests</symbol>
+        <reason>Reference for testing Framer Motion components (mocking motion, testing animations, spring variants), accessibility tests (21 comprehensive tests established as standard).</reason>
+      </artifact>
+
+      <!-- Design Tokens Configuration -->
+      <artifact>
+        <path>tailwind.config.js</path>
+        <kind>config</kind>
+        <symbol>Tailwind Config</symbol>
+        <lines>1-57</lines>
+        <reason>Design token definitions: primary colors (DEFAULT #758AC6, dark #344161, medium #566890, light #8997B8, pale #A8B6D5), badge colors (bg #D9E1F8, border #BFCBEE, text #566890), semantic color system for Badge variants (success/warning/error/info), font families (Cinzel display, Lato body), custom shadows.</reason>
+      </artifact>
+
+      <!-- Storybook Documentation Patterns -->
+      <artifact>
+        <path>src/design-system/components/primitives/Button.stories.tsx</path>
+        <kind>storybook</kind>
+        <symbol>Button Stories</symbol>
+        <reason>Reference for Storybook documentation structure: multiple stories showing variants, size variations, accessibility examples, use case documentation.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/patterns/FAB.stories.tsx</path>
+        <kind>storybook</kind>
+        <symbol>FAB Stories</symbol>
+        <reason>Reference for documenting animated components in Storybook: animation demos, physics parameters explanation, accessibility guidance, 6+ stories per component pattern.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <react>19.2.0</react>
+        <react-dom>19.2.0</react-dom>
+        <typescript>5.8.2</typescript>
+        <framer-motion>12.23.24</framer-motion>
+        <vaul>1.1.2</vaul>
+        <lucide-react>0.553.0</lucide-react>
+        <fontsource-cinzel>5.2.8</fontsource-cinzel>
+        <fontsource-lato>5.2.7</fontsource-lato>
+      </node>
+      <testing>
+        <vitest>4.0.3</vitest>
+        <testing-library-react>16.3.0</testing-library-react>
+        <testing-library-user-event>14.6.1</testing-library-user-event>
+        <jest-axe>10.0.0</jest-axe>
+        <testing-library-jest-dom>6.9.1</testing-library-jest-dom>
+        <vitest-ui>4.0.3</vitest-ui>
+        <vitest-coverage-v8>4.0.3</vitest-coverage-v8>
+      </testing>
+      <storybook>
+        <storybook>9.1.15</storybook>
+        <storybook-react-vite>9.1.15</storybook-react-vite>
+        <storybook-addon-a11y>9.1.15</storybook-addon-a11y>
+        <storybook-addon-docs>9.1.15</storybook-addon-docs>
+      </storybook>
+      <build>
+        <vite>6.2.0</vite>
+        <tailwindcss>3.4.18</tailwindcss>
+        <postcss>8.5.6</postcss>
+        <autoprefixer>10.4.22</autoprefixer>
+      </build>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <!-- Component Structure Requirements -->
+    <constraint>
+      <rule>All primitives MUST be created in src/design-system/components/primitives/</rule>
+      <source>Story Dev Notes - Project Structure Notes</source>
+    </constraint>
+
+    <constraint>
+      <rule>Component files: [Component].tsx, [Component].stories.tsx, __tests__/[Component].test.tsx</rule>
+      <source>Established design system pattern from Epic 5</source>
+    </constraint>
+
+    <!-- TypeScript & Code Quality -->
+    <constraint>
+      <rule>TypeScript interfaces with JSDoc comments required for all components</rule>
+      <source>Button.tsx reference pattern</source>
+    </constraint>
+
+    <constraint>
+      <rule>Components MUST use React.forwardRef for ref forwarding</rule>
+      <source>Button.tsx implementation</source>
+    </constraint>
+
+    <constraint>
+      <rule>Components MUST set displayName for debugging</rule>
+      <source>Button.tsx, FAB.tsx pattern</source>
+    </constraint>
+
+    <!-- Design Token System -->
+    <constraint>
+      <rule>Use Tailwind design tokens (bg-primary, text-secondary, etc.) - NO hardcoded hex colors in components</rule>
+      <source>Architecture - Design System Foundation</source>
+    </constraint>
+
+    <constraint>
+      <rule>Semantic color tokens for variants: success (green), warning (yellow), error (red), info (blue)</rule>
+      <source>Story Dev Notes - Badge component requirements</source>
+    </constraint>
+
+    <constraint>
+      <rule>Size variants MUST follow established pattern: sm, md, lg</rule>
+      <source>Button.tsx size system</source>
+    </constraint>
+
+    <!-- Animation Requirements -->
+    <constraint>
+      <rule>ProgressBar MUST use Framer Motion for smooth animations</rule>
+      <source>AC4 - Story acceptance criteria</source>
+    </constraint>
+
+    <constraint>
+      <rule>Framer Motion spring physics reference: stiffness 300, damping 20 (from FAB pattern)</rule>
+      <source>FAB.tsx animation pattern</source>
+    </constraint>
+
+    <!-- Accessibility Requirements -->
+    <constraint>
+      <rule>All components MUST support ARIA attributes (roles, labels, states)</rule>
+      <source>WCAG 2.1 requirement - Story Dev Notes</source>
+    </constraint>
+
+    <constraint>
+      <rule>Select MUST support full keyboard navigation: ArrowUp, ArrowDown, Enter, Escape, Home, End</rule>
+      <source>AC5 - Story acceptance criteria</source>
+    </constraint>
+
+    <constraint>
+      <rule>ProgressBar MUST use role="progressbar" with aria-valuenow, aria-valuemin, aria-valuemax</rule>
+      <source>Story Dev Notes - ProgressBar accessibility requirements</source>
+    </constraint>
+
+    <constraint>
+      <rule>Focus management with visual indicators required (focus:ring-2)</rule>
+      <source>Button.tsx accessibility pattern</source>
+    </constraint>
+
+    <!-- Testing Requirements -->
+    <constraint>
+      <rule>MINIMUM 15+ tests per component (45+ total new tests for 3 primitives)</rule>
+      <source>AC6 - Story acceptance criteria</source>
+    </constraint>
+
+    <constraint>
+      <rule>Test coverage: rendering (variants/sizes), interaction (click/keyboard), accessibility (ARIA/focus/axe), edge cases</rule>
+      <source>Button.test.tsx testing pattern</source>
+    </constraint>
+
+    <constraint>
+      <rule>Use Vitest + React Testing Library + user-event + jest-axe for accessibility audits</rule>
+      <source>Epic 5 established testing stack</source>
+    </constraint>
+
+    <constraint>
+      <rule>Mock Framer Motion in tests to avoid animation complexity</rule>
+      <source>FAB.test.tsx pattern</source>
+    </constraint>
+
+    <!-- Storybook Documentation -->
+    <constraint>
+      <rule>MINIMUM 6+ stories per component showing all variants and use cases</rule>
+      <source>FAB.stories.tsx pattern - Story 6.5 learnings</source>
+    </constraint>
+
+    <constraint>
+      <rule>Include accessibility guidance and WCAG examples in Storybook</rule>
+      <source>AC7 - Story acceptance criteria</source>
+    </constraint>
+
+    <!-- Railway Deployment -->
+    <constraint>
+      <rule>Verify Railway deployment succeeds BEFORE marking story complete</rule>
+      <source>AC1, AC2 - Railway production validation required</source>
+    </constraint>
+
+    <constraint>
+      <rule>Production URL: https://fit-forge-ai-studio-production-6b5b.up.railway.app/</rule>
+      <source>CLAUDE.md deployment configuration</source>
+    </constraint>
+
+    <!-- Composability -->
+    <constraint>
+      <rule>All primitives MUST support className prop for custom styling</rule>
+      <source>Button.tsx composability pattern</source>
+    </constraint>
+
+    <constraint>
+      <rule>Use semantic HTML elements (button not div, select not custom dropdown div)</rule>
+      <source>Story 6.5 learnings - Design System Patterns</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- Component Props Interfaces Pattern -->
+    <interface>
+      <name>ButtonProps (Reference Pattern)</name>
+      <kind>TypeScript Interface</kind>
+      <signature>
+export interface ButtonProps extends React.ButtonHTMLAttributes&lt;HTMLButtonElement&gt; {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  children: React.ReactNode;
+  ariaLabel?: string;
+  className?: string;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  onClick?: (event: React.MouseEvent&lt;HTMLButtonElement&gt;) =&gt; void;
+}
+      </signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+
+    <!-- Expected Badge Interface -->
+    <interface>
+      <name>BadgeProps (To Implement)</name>
+      <kind>TypeScript Interface</kind>
+      <signature>
+export interface BadgeProps {
+  variant?: 'success' | 'warning' | 'error' | 'info' | 'primary';
+  size?: 'sm' | 'md' | 'lg';
+  children: React.ReactNode;
+  className?: string;
+}
+      </signature>
+      <path>src/design-system/components/primitives/Badge.tsx (NEW)</path>
+    </interface>
+
+    <!-- Expected ProgressBar Interface -->
+    <interface>
+      <name>ProgressBarProps (To Implement)</name>
+      <kind>TypeScript Interface</kind>
+      <signature>
+export interface ProgressBarProps {
+  value: number; // 0-100
+  variant?: 'primary' | 'success' | 'warning' | 'error';
+  size?: 'sm' | 'md' | 'lg';
+  showLabel?: boolean;
+  className?: string;
+  'aria-label'?: string;
+}
+      </signature>
+      <path>src/design-system/components/primitives/ProgressBar.tsx (NEW)</path>
+    </interface>
+
+    <!-- Expected Select Interface -->
+    <interface>
+      <name>SelectProps (To Implement)</name>
+      <kind>TypeScript Interface</kind>
+      <signature>
+export interface SelectOption {
+  label: string;
+  value: string;
+  disabled?: boolean;
+}
+
+export interface SelectProps {
+  options: SelectOption[];
+  value?: string;
+  onChange: (value: string) =&gt; void;
+  placeholder?: string;
+  disabled?: boolean;
+  searchable?: boolean;
+  className?: string;
+  'aria-label'?: string;
+}
+      </signature>
+      <path>src/design-system/components/primitives/Select.tsx (NEW)</path>
+    </interface>
+
+    <!-- Framer Motion Animation API -->
+    <interface>
+      <name>Framer Motion Spring Variants (Reference)</name>
+      <kind>Animation Configuration</kind>
+      <signature>
+const springVariants = {
+  hidden: { scale: 0, opacity: 0 },
+  visible: {
+    scale: 1, opacity: 1,
+    transition: { type: 'spring', stiffness: 300, damping: 20 }
+  },
+  hover: { scale: 1.05 },
+  tap: { scale: 0.95 }
+};
+      </signature>
+      <path>src/design-system/components/patterns/FAB.tsx</path>
+    </interface>
+
+    <!-- Testing Pattern Interface -->
+    <interface>
+      <name>Test Suite Pattern (Reference)</name>
+      <kind>Test Structure</kind>
+      <signature>
+describe('[Component] Component', () =&gt; {
+  describe('Rendering', () =&gt; { /* variant, size, className tests */ });
+  describe('Interaction', () =&gt; { /* click, keyboard, disabled tests */ });
+  describe('Accessibility', () =&gt; { /* ARIA, focus, axe audit tests */ });
+  describe('Props and Types', () =&gt; { /* type safety, ref forwarding */ });
+  describe('Default Values', () =&gt; { /* default prop validation */ });
+});
+      </signature>
+      <path>src/design-system/components/primitives/__tests__/Button.test.tsx</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Testing Stack: Vitest 4.0.3 + React Testing Library 16.3.0 + user-event 14.6.1 + jest-axe 10.0.0 for accessibility auditing.
+
+Test Organization: Each primitive component requires comprehensive test suite with 15+ tests covering: (1) Rendering - all variant and size combinations render correctly, custom className support, default props validation; (2) Interaction - click handlers, keyboard navigation (Enter/Space for buttons, Arrow keys for Select), disabled state prevents interaction; (3) Accessibility - ARIA attributes present (roles, labels, states), focus management with visual indicators (focus:ring-2), axe accessibility audit passes with zero violations, keyboard-only navigation works; (4) Props and Types - TypeScript prop validation, ref forwarding works, additional HTML attributes supported; (5) Edge Cases - invalid inputs handled gracefully (ProgressBar: negative values, &gt;100%, NaN), empty states (Select with no options), boundary conditions.
+
+Animation Testing: Mock Framer Motion in tests (vi.mock('framer-motion')) to avoid animation complexity. Test animation variants exist (hidden/visible/hover/tap) but don't test actual animation frames. Verify spring physics parameters (stiffness, damping) are defined.
+
+Coverage Target: Minimum 15+ tests per component (45+ total for Badge, ProgressBar, Select). Actual standard from Epic 5 is 20+ tests per component (Button has 284 lines of tests, FAB has 21 tests). Aim for comprehensive coverage, not just meeting minimum.
+
+Test Execution: Run with 'npm test' (watch mode) or 'npm run test:run' (single run). Use 'npm run test:coverage' to verify coverage metrics. All tests must pass before deployment.
+    </standards>
+
+    <locations>
+      <location>src/design-system/components/primitives/__tests__/Badge.test.tsx (NEW)</location>
+      <location>src/design-system/components/primitives/__tests__/ProgressBar.test.tsx (NEW)</location>
+      <location>src/design-system/components/primitives/__tests__/Select.test.tsx (NEW)</location>
+      <location>src/design-system/components/primitives/__tests__/Button.test.tsx (REFERENCE)</location>
+      <location>src/design-system/components/patterns/__tests__/FAB.test.tsx (REFERENCE for Framer Motion testing)</location>
+    </locations>
+
+    <ideas>
+      <!-- Badge Component Tests (AC3, AC6) -->
+      <test-idea ac="3,6" component="Badge">
+        <category>Rendering</category>
+        <tests>
+          - Render with default props
+          - Render all 5+ variants (success, warning, error, info, primary)
+          - Render all 3 sizes (sm, md, lg)
+          - Apply variant color classes correctly (bg-green for success, bg-yellow for warning, bg-red for error, bg-blue for info)
+          - Apply size classes correctly (text-xs/sm/base, px-2/3/4)
+          - Support custom className merged with defaults
+          - Render children content correctly (text, numbers, icons)
+        </tests>
+      </test-idea>
+
+      <test-idea ac="3,6" component="Badge">
+        <category>Accessibility</category>
+        <tests>
+          - Use semantic HTML (span element, not div)
+          - Support aria-label for screen readers
+          - Pass axe accessibility audit (zero violations)
+          - Sufficient color contrast for all variants (WCAG AA)
+        </tests>
+      </test-idea>
+
+      <test-idea ac="3,6" component="Badge">
+        <category>Props and Types</category>
+        <tests>
+          - TypeScript interface enforces valid variant values
+          - Default to primary variant if not specified
+          - Default to md size if not specified
+          - Support additional HTML span attributes
+        </tests>
+      </test-idea>
+
+      <!-- ProgressBar Component Tests (AC4, AC6) -->
+      <test-idea ac="4,6" component="ProgressBar">
+        <category>Rendering</category>
+        <tests>
+          - Render with value 0%, 25%, 50%, 75%, 100%
+          - Render all 4 color variants (primary, success, warning, error)
+          - Render all 3 sizes (sm, md, lg)
+          - Show label when showLabel=true
+          - Hide label when showLabel=false
+          - Apply custom className
+        </tests>
+      </test-idea>
+
+      <test-idea ac="4,6" component="ProgressBar">
+        <category>Animation</category>
+        <tests>
+          - Use Framer Motion for progress bar fill animation
+          - Smooth transition when value changes (mock motion.div)
+          - Spring physics parameters defined (stiffness, damping)
+        </tests>
+      </test-idea>
+
+      <test-idea ac="4,6" component="ProgressBar">
+        <category>Accessibility</category>
+        <tests>
+          - Use role="progressbar"
+          - Set aria-valuenow to current value
+          - Set aria-valuemin="0"
+          - Set aria-valuemax="100"
+          - Support custom aria-label
+          - Pass axe accessibility audit
+        </tests>
+      </test-idea>
+
+      <test-idea ac="4,6" component="ProgressBar">
+        <category>Edge Cases</category>
+        <tests>
+          - Handle negative values (clamp to 0)
+          - Handle values &gt;100 (clamp to 100)
+          - Handle NaN or undefined values (default to 0)
+          - Handle decimal values (e.g., 42.7%)
+        </tests>
+      </test-idea>
+
+      <!-- Select Component Tests (AC5, AC6) -->
+      <test-idea ac="5,6" component="Select">
+        <category>Rendering</category>
+        <tests>
+          - Render with options array
+          - Show placeholder when no value selected
+          - Show selected option value
+          - Render disabled state
+          - Render individual disabled options
+          - Apply custom className
+        </tests>
+      </test-idea>
+
+      <test-idea ac="5,6" component="Select">
+        <category>Interaction - Mouse</category>
+        <tests>
+          - Click to open dropdown
+          - Click option to select it
+          - Call onChange with selected value
+          - Click outside to close dropdown
+          - Disabled select prevents opening
+          - Disabled option cannot be selected
+        </tests>
+      </test-idea>
+
+      <test-idea ac="5,6" component="Select">
+        <category>Interaction - Keyboard (AC5 Critical)</category>
+        <tests>
+          - Enter/Space opens dropdown
+          - ArrowDown moves to next option
+          - ArrowUp moves to previous option
+          - Home jumps to first option
+          - End jumps to last option
+          - Enter selects focused option and closes dropdown
+          - Escape closes dropdown without selecting
+          - Tab closes dropdown and moves focus away
+          - Keyboard navigation skips disabled options
+        </tests>
+      </test-idea>
+
+      <test-idea ac="5,6" component="Select">
+        <category>Accessibility</category>
+        <tests>
+          - Use role="listbox" for dropdown
+          - Use role="option" for each option
+          - Set aria-selected on selected option
+          - Use aria-activedescendant for keyboard focus
+          - Support custom aria-label
+          - Focus trap when dropdown open
+          - Visual focus indicator on focused option
+          - Pass axe accessibility audit
+        </tests>
+      </test-idea>
+
+      <test-idea ac="5,6" component="Select">
+        <category>Search/Filter (Optional)</category>
+        <tests>
+          - Type to filter options when searchable=true
+          - Highlight matching text
+          - Show "No results" when filter returns empty
+        </tests>
+      </test-idea>
+
+      <test-idea ac="5,6" component="Select">
+        <category>Edge Cases</category>
+        <tests>
+          - Handle empty options array
+          - Handle single option (no arrow navigation needed)
+          - Handle very long option lists (100+ options)
+          - Handle options with duplicate values
+        </tests>
+      </test-idea>
+
+      <!-- Integration Tests (AC7 - Storybook) -->
+      <test-idea ac="7" component="Storybook">
+        <category>Visual Documentation</category>
+        <tests>
+          - All variants visible in Storybook
+          - Interactive controls work (change variant, size, value)
+          - Accessibility addon shows zero violations
+          - Examples show real use cases (workout completion, status indicators, exercise filters)
+        </tests>
+      </test-idea>
+
+      <!-- Railway Deployment Tests (AC1, AC2) -->
+      <test-idea ac="1,2" component="Railway Production">
+        <category>Deployment Verification</category>
+        <tests>
+          - Build logs show zero errors
+          - Fonts (Cinzel, Lato) load correctly in production
+          - Glass morphism effects render (backdrop-blur visible)
+          - Sheet components functional (BottomSheet/Drawer)
+          - FAB component renders with correct animation
+          - New primitives (Badge, ProgressBar, Select) render in production
+        </tests>
+      </test-idea>
+    </ideas>
+  </tests>
+</story-context>
