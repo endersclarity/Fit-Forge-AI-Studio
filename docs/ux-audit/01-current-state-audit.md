@@ -586,10 +586,284 @@ suggestedWeight = lastWeight × 1.03  // 3% increase
 
 ---
 
+## 8. Modal and Navigation Patterns (Detailed)
+
+### Modal Inventory
+
+**11 Modal Components Identified:**
+1. `BaselineUpdateModal` - Post-workout calibration
+2. `SetEditModal` - Historical set editing
+3. `WorkoutSummaryModal` - Completion summary
+4. `WorkoutPlannerModal` - Planning interface
+5. `MuscleDeepDiveModal` - Muscle analytics
+6. `TemplateSelector` - Template selection
+7. `FABMenu` - Floating action menu
+8. `EquipmentModal` - Equipment setup
+9. `ExercisePicker` - Exercise selection (modal mode)
+10. `HistoryModal` - Workout history
+11. `FailureTooltip` - To-failure explanation
+
+### Dismiss Patterns Analysis
+
+**Current Patterns (Inconsistent):**
+- Some modals: Click backdrop to close
+- Some modals: X button only
+- Some modals: No ESC key support
+- FABMenu: Click-away or button toggle
+
+**No Centralized Modal Manager:**
+- Each component implements own modal logic
+- Z-index management ad-hoc
+- Focus trap implementation varies
+- No consistent keyboard navigation
+
+### Critical Modal Issues
+
+**Issue 1: Deep Modal Nesting**
+- Path: Dashboard → FABMenu → QuickAdd → ExercisePicker
+- Creates 3-4 levels of modals
+- Z-index conflicts possible
+- User confusion on escape paths
+- **Referenced in Task 1.1 Issue #1**
+
+**Issue 2: Inconsistent Dismiss Methods**
+- No standard across all modals
+- Some: backdrop click works
+- Others: only X button
+- None: consistent ESC key support
+- **Priority: HIGH**
+
+**Issue 3: BaselineUpdateModal After Summary**
+- Appears after WorkoutSummaryModal dismissed
+- Feels like "one more thing" interruption
+- Breaks completion flow
+- **Referenced in Task 1.2 completion flow**
+
+### Navigation Architecture
+
+**Routing (App.tsx):**
+```
+/ → Dashboard (default)
+/workout → Workout session
+/profile → Profile
+/personal-bests → PersonalBests
+/templates → WorkoutTemplates
+/analytics → Analytics
+/muscle-baselines → MuscleBaselinesPage
+/recovery → RecoveryDashboard
+```
+
+**Navigation Type:**
+- Programmatic navigation via callbacks
+- Bottom navigation assumed (structure suggests)
+- No breadcrumbs visible
+- Browser back button handling unclear
+
+**Props Drilling Issue:**
+- Dashboard receives 8+ navigation callbacks
+- Passes to children components
+- No Navigation Context
+- **Referenced in Task 1.1 Issue #2**
+
+---
+
+## 9. Visual Design and Information Hierarchy
+
+### Typography System (Inferred from Components)
+
+**Heading Scale:**
+- H1: Large, bold (Dashboard title)
+- H2: Medium, semi-bold (Section headers)
+- H3: Small, bold (Exercise names)
+- Body: Regular (14-16px estimated)
+- Small: Muted (12px, gray color)
+
+**No Formal Scale Detected:**
+- Sizes defined inline, not systemized
+- Inconsistent font weights
+- No design tokens visible
+
+### Color System
+
+**Brand Colors (From className patterns):**
+- `brand-cyan` - Primary actions, highlights
+- `brand-dark` - Backgrounds, inputs
+- `brand-surface` - Card backgrounds
+- `brand-muted` - Secondary backgrounds
+
+**Semantic Colors:**
+- Green: Success, low fatigue, beginner
+- Yellow: Warning, medium fatigue, intermediate
+- Red: Error, high fatigue, advanced
+- Gray: Disabled, secondary text
+
+**Inconsistencies:**
+- Color names suggest system exists
+- But inline styles also present
+- No centralized theme file visible
+
+### Spacing System
+
+**Observed Patterns:**
+- Padding: p-2, p-3, p-4, p-6 (Tailwind scale)
+- Gaps: gap-2, gap-4 (consistent)
+- Margins: Similar Tailwind scale
+
+**Consistent Use of Tailwind:**
+- 4px base unit (Tailwind default)
+- Appears well-adopted
+- Spacing more consistent than typography
+
+### Information Density Assessment
+
+**Dashboard: VERY HIGH Density**
+- 8+ feature sections visible
+- Muscle visualizations
+- Recommendations
+- Quick actions
+- Calendar heatmap
+- **Issue:** Overwhelming on first load
+- **Recommendation:** Progressive disclosure
+
+**Workout Screens: MEDIUM Density**
+- Focused on current exercise
+- Collapsible sections
+- Appropriate for task
+
+**Forms: LOW-MEDIUM Density**
+- ProfileWizard: spacious, clear
+- Set inputs: adequate spacing
+- Good white space usage
+
+### Visual Hierarchy Issues
+
+**Issue 1: Inconsistent Button Styles**
+- Primary actions: Sometimes cyan bg, sometimes border
+- Secondary actions: Varies by component
+- Destructive: Not always red
+- **Priority: MEDIUM**
+
+**Issue 2: Typography Inconsistency**
+- Heading sizes vary without pattern
+- Font weights mixed (bold/semibold/regular)
+- Line heights not systematized
+- **Priority: LOW-MEDIUM**
+
+**Issue 3: Card Patterns Vary**
+- Some cards: Rounded lg with shadow
+- Others: Rounded md, no shadow
+- Background colors inconsistent
+- **Priority: LOW**
+
+### Accessibility Concerns
+
+**Touch Targets:**
+- To-failure checkbox: 20×20px (too small)
+- Most buttons: Adequate size
+- Input fields: Good height
+
+**Color Contrast:**
+- Cyan on dark: Good contrast
+- Gray text on dark: May fail WCAG AA
+- Need formal audit
+
+**Keyboard Navigation:**
+- No visible focus indicators on many elements
+- Tab order unclear
+- No skip links visible
+
+---
+
+## 10. Phase 1 Summary: Top 15 UX Issues
+
+### Critical (P0) - Fix Immediately
+
+1. **Modal Nesting Complexity** (Issue 1.1)
+   - Deep stacking creates confusion
+   - Component: Dashboard, FABMenu, QuickAdd, ExercisePicker
+   - Fix: Modal manager component
+
+2. **To-Failure Checkbox Too Small** (Issue 1.2)
+   - 20×20px (need 44×44px for mobile)
+   - Component: Workout.tsx:798-810
+   - Fix: Enlarge + add text label
+
+3. **Props Drilling in Dashboard** (Issue 1.1 #2)
+   - 20+ props passed through children
+   - Component: Dashboard.tsx
+   - Fix: React Context for navigation
+
+4. **No Equipment Filtering in Quick Add** (Issue 1.3)
+   - Shows exercises user can't do
+   - Component: ExercisePicker.tsx
+   - Fix: Pass equipment filter prop
+
+### High Priority (P1) - Fix Soon
+
+5. **Inconsistent Weight/Reps Controls** (Issue 1.2 #2)
+   - Quick Add has +/- buttons, Workout doesn't
+   - Components: Workout.tsx vs QuickAddForm.tsx
+   - Fix: Standardize input pattern
+
+6. **Inconsistent Modal Dismiss** (Issue 1.4 #2)
+   - No standard escape methods
+   - Components: All modals
+   - Fix: Standard Modal wrapper
+
+7. **Rest Timer Covers Actions** (Issue 1.2 #3)
+   - Full-width obscures next exercise
+   - Component: RestTimer, Workout.tsx
+   - Fix: Compact timer design
+
+8. **Multiple Workout Entry Points** (Issue 1.1 #3)
+   - 4 paths with different setups
+   - Components: QuickAdd, WorkoutBuilder, Recommendations, Templates
+   - Fix: Orchestrator component
+
+### Medium Priority (P2) - Improvement Opportunities
+
+9. **BaselineUpdateModal Timing** (Issue 1.2)
+   - Interrupts completion flow
+   - Component: App.tsx, BaselineUpdateModal.tsx
+   - Fix: Consolidate into summary
+
+10. **Difficulty Not Filterable** (Issue 1.3 #2)
+    - Can't filter by skill level
+    - Component: ExercisePicker.tsx
+    - Fix: Add difficulty filter tabs
+
+11. **"Add Set" Requires Scrolling** (Issue 1.2 #4)
+    - Button at bottom of section
+    - Component: Workout.tsx:836
+    - Fix: Floating button
+
+12. **Silent Validation Failures** (Issue 1.2 #5)
+    - No error messages
+    - Component: Workout.tsx:512-513
+    - Fix: Toast notifications
+
+13. **Stale MuscleStates** (Issue 1.1 #6)
+    - Dashboard doesn't sync with auto-refresh
+    - Component: Dashboard.tsx
+    - Fix: Subscribe to hook updates
+
+14. **Inconsistent Button Styles** (Issue 1.5 #1)
+    - Primary actions vary by component
+    - Components: All
+    - Fix: Design system tokens
+
+15. **Typography Inconsistency** (Issue 1.5 #2)
+    - No formal type scale
+    - Components: All
+    - Fix: Tailwind typography plugin
+
+---
+
 ## Next Steps
 
-- [x] Task 1.1: Component architecture mapped
-- [x] Task 1.2: Workout logging flow analyzed
-- [x] Task 1.3: Exercise selection flow analyzed
-- [ ] Task 1.4: Analyze modal and navigation patterns in detail
-- [ ] Task 1.5: Analyze visual density and information hierarchy
+- [x] Task 1.1: Component architecture mapped ✅
+- [x] Task 1.2: Workout logging flow analyzed ✅
+- [x] Task 1.3: Exercise selection flow analyzed ✅
+- [x] Task 1.4: Modal and navigation patterns analyzed ✅
+- [x] Task 1.5: Visual density and hierarchy analyzed ✅
+- **Phase 1 Complete!** → Moving to Phase 2...
