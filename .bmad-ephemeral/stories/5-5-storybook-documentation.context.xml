@@ -1,0 +1,198 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5</storyId>
+    <title>Storybook Documentation</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-5-storybook-documentation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>A developer building new components for FitForge</asA>
+    <iWant>To have an interactive Storybook environment that documents all primitive components with visual variants and controls</iWant>
+    <soThat>I can understand the component API, see all states, and test accessibility without building full application pages</soThat>
+    <tasks>
+      - Install and configure Storybook 7.x
+      - Create story files for Button, Card, Sheet, Input primitives
+      - Enable accessibility addon for WCAG testing
+      - Document all component variants with interactive controls
+      - Add usage examples and accessibility tests
+      - Verify Storybook builds and runs locally
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    - AC1: Storybook 7.x installed and configured with React Vite
+    - AC2: Stories created for Button, Card, Sheet, Input components
+    - AC3: All variants demonstrated with interactive controls (variant, size, disabled, etc.)
+    - AC4: Accessibility addon enabled and functioning (@storybook/addon-a11y)
+    - AC5: Documentation includes usage examples and accessibility tests
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/design-system.md</path>
+        <title>FitForge Design System - Complete Specification</title>
+        <section>Component Patterns, Button, Card, Input, Sheet specifications</section>
+        <snippet>The design system includes complete specifications for Button (primary/secondary/ghost variants), Card (with glass morphism), Input (text, number, with labels), and Sheet (bottom-sheet modal). Each includes sizing, state management, and accessibility guidelines.</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system-index.md</path>
+        <title>Design System Documentation Index</title>
+        <section>Navigation hub with links to all design system resources</section>
+        <snippet>Comprehensive index of all design system documentation including quick reference, color palette, implementation roadmap, and component patterns.</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system-quick-reference.md</path>
+        <title>Design System Quick Reference</title>
+        <section>Component code snippets and copy-paste class names</section>
+        <snippet>Contains ready-to-use component implementations, Tailwind classes, and examples for Button, Card, Input, and Sheet components.</snippet>
+      </doc>
+      <doc>
+        <path>docs/component-testing-plan.md</path>
+        <title>Component Testing Plan</title>
+        <section>Testing standards and accessibility requirements</section>
+        <snippet>Outlines testing strategies including visual regression testing, accessibility compliance (WCAG AA), and interaction testing for all components.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>component</kind>
+        <symbol>Button</symbol>
+        <reason>Primary component to document in Storybook - demonstrates all variant patterns</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Button.stories.tsx</path>
+        <kind>story</kind>
+        <symbol>Button Story Collection</symbol>
+        <reason>Existing story file that demonstrates proper Storybook structure with variants, sizes, and accessibility tests</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>component</kind>
+        <symbol>Card</symbol>
+        <reason>Secondary component - demonstrates card/container patterns with glass morphism</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Card.stories.tsx</path>
+        <kind>story</kind>
+        <symbol>Card Story Collection</symbol>
+        <reason>Card documentation with variant examples</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Input.tsx</path>
+        <kind>component</kind>
+        <symbol>Input</symbol>
+        <reason>Form component with various input types and validation states</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Input.stories.tsx</path>
+        <kind>story</kind>
+        <symbol>Input Story Collection</symbol>
+        <reason>Input field variants and states documentation</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Sheet.tsx</path>
+        <kind>component</kind>
+        <symbol>Sheet</symbol>
+        <reason>Bottom-sheet modal component for drawer interactions</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Sheet.stories.tsx</path>
+        <kind>story</kind>
+        <symbol>Sheet Story Collection</symbol>
+        <reason>Sheet modal documentation with open/close states</reason>
+      </artifact>
+      <artifact>
+        <path>.storybook/main.ts</path>
+        <kind>config</kind>
+        <symbol>Storybook Configuration</symbol>
+        <reason>Main Storybook config - already includes a11y addon and story discovery patterns</reason>
+      </artifact>
+      <artifact>
+        <path>.storybook/preview.tsx</path>
+        <kind>config</kind>
+        <symbol>Storybook Preview Configuration</symbol>
+        <reason>Preview settings for global decorators, theme configuration, and backgrounds</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <npm>
+        <package name="storybook" version="^7.x">Core Storybook framework</package>
+        <package name="@storybook/react-vite" version="^7.x">React Vite integration</package>
+        <package name="@storybook/addon-a11y" version="^7.x">Accessibility testing addon</package>
+        <package name="@storybook/addon-docs" version="^7.x">Auto-generated documentation</package>
+        <package name="@storybook/addon-interactions" version="^7.x">Interactive testing</package>
+        <package name="@storybook/addon-vitest" version="^7.x">Unit test integration</package>
+        <package name="@chromatic-com/storybook" version="latest">Visual testing (optional)</package>
+      </npm>
+      <frameworks>
+        <framework name="React" version="18.x+">Component library framework</framework>
+        <framework name="TypeScript" version="5.x+">Type-safe story definitions</framework>
+        <framework name="Tailwind CSS" version="3.x+">Styling primitives</framework>
+        <framework name="Vite" version="4.x+">Build tool and dev server</framework>
+      </frameworks>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Stories must use TypeScript for type safety (*.stories.tsx)</constraint>
+    <constraint>All components must have argTypes defined for interactive controls in Storybook</constraint>
+    <constraint>Each component must have at least one Accessibility (a11y) test story with addon-a11y configuration</constraint>
+    <constraint>Story files must follow naming convention: ComponentName.stories.tsx in same directory as component</constraint>
+    <constraint>Stories must be discoverable by .storybook/main.ts pattern: ../src/**/*.stories.@(ts|tsx)</constraint>
+    <constraint>All stories must document variants matching component props (variant, size, disabled, etc.)</constraint>
+    <constraint>Documentation must follow Cinzel (headers) + Lato (body) typography from design system</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Meta&lt;ButtonComponent&gt;</name>
+      <kind>Storybook Meta Type</kind>
+      <signature>{ title: string; component: Component; argTypes: Record&lt;string, ArgType&gt;; parameters?: Parameters; }</signature>
+      <path>src/design-system/components/primitives/Button.stories.tsx</path>
+    </interface>
+    <interface>
+      <name>StoryObj&lt;Meta&gt;</name>
+      <kind>Storybook Story Type</kind>
+      <signature>{ args?: Args; render?: (args: Args) =&gt; ReactNode; parameters?: Parameters; }</signature>
+      <path>@storybook/react</path>
+    </interface>
+    <interface>
+      <name>Accessibility Addon API</name>
+      <kind>Storybook Addon</kind>
+      <signature>parameters: { a11y: { config: { rules: Array&lt;{ id: string; enabled: boolean }&gt; } } }</signature>
+      <path>.storybook/main.ts (addon: @storybook/addon-a11y)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Follow Storybook best practices for story organization and interactivity.
+      Each component variant must have a dedicated story demonstrating its props and states.
+      Accessibility stories must test WCAG color contrast and interactive element labeling.
+      Test that all stories render without console errors.
+      Verify interactive controls update component state correctly.
+      Ensure stories are self-documenting with clear titles and descriptions.
+    </standards>
+    <locations>
+      src/design-system/components/primitives/*.stories.tsx - Story files (co-located with components)
+      src/design-system/components/primitives/__tests__/*.test.tsx - Unit tests for components
+      .storybook/ - Storybook configuration and setup
+    </locations>
+    <ideas>
+      AC1 Verification: Run `npm run storybook` and verify it launches on http://localhost:6006
+      AC2 Verification: Check that all 4 components (Button, Card, Sheet, Input) appear in Storybook sidebar
+      AC3 Verification: Test interactive controls for variant, size, disabled props in each component story
+      AC4 Verification: Open Accessibility tab in Storybook for any story and verify addon detects issues (color contrast, ARIA labels)
+      AC5 Verification: Review auto-generated documentation for completeness and usage examples
+      Integration test: Build Storybook with `npm run build-storybook` and verify output
+      Accessibility test: Run axe checks on all story variants using addon-a11y
+      Performance test: Verify Storybook dev server HMR works for story edits
+    </ideas>
+  </tests>
+</story-context>

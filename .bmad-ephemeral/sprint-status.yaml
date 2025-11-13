@@ -76,8 +76,8 @@ development_status:
   5-1-tailwind-cdn-to-postcss-migration: done
   5-2-design-tokens-and-tailwind-config: done
   5-3-primitive-components-library: done
-  5-4-font-integration-cinzel-lato: in-progress
-  5-5-storybook-documentation: drafted
+  5-4-font-integration-cinzel-lato: done
+  5-5-storybook-documentation: review
   epic-5-retrospective: optional
 
   # Epic 6: Core Interaction Redesign (NEW - UI Redesign Phase 2)
