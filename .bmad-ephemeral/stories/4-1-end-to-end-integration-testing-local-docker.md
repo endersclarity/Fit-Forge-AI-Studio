@@ -1,6 +1,6 @@
 # Story 4.1: End-to-End Integration Testing (Local Docker)
 
-Status: review
+Status: done
 
 ## Story
 

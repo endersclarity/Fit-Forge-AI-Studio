@@ -1,0 +1,270 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>1</storyId>
+    <title>Tailwind CDN to PostCSS Migration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-1-tailwind-cdn-to-postcss-migration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>FitForge development team</asA>
+    <iWant>to migrate from Tailwind CDN to PostCSS-based Tailwind</iWant>
+    <soThat>we can enable custom design tokens, tree-shaking, and better performance for the premium UI redesign</soThat>
+    <tasks>
+      - Install dependencies (tailwindcss, postcss, autoprefixer)
+      - Create tailwind.config.js with complete design tokens (colors, fonts, shadows)
+      - Create postcss.config.js with tailwindcss and autoprefixer plugins
+      - Create src/index.css with @tailwind directives
+      - Update index.html (remove CDN script)
+      - Update index.tsx (add CSS import)
+      - Test build process (docker-compose up -d --build)
+      - Test HMR (edit component → browser auto-refreshes)
+      - Visual regression test (all existing Tailwind classes still function)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    - AC1: Remove CDN script from index.html, install tailwindcss npm package
+    - AC2: Create tailwind.config.js with complete design tokens (colors, fonts, shadows)
+    - AC3: Create postcss.config.js with tailwindcss and autoprefixer plugins
+    - AC4: Create src/index.css with @tailwind directives
+    - AC5: Update index.tsx to import src/index.css
+    - AC6: Build process passes without errors (docker-compose up -d --build)
+    - AC7: HMR (Hot Module Reload) still works (edit component → browser auto-refreshes)
+    - AC8: All existing Tailwind classes still function (visual regression test)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/prd-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Product Requirements Document</title>
+        <section>Section 7 - Technical Requirements</section>
+        <snippet>Transform FitForge from a functional MVP with basic UI into a premium fitness experience. Implement sophisticated blue palette, Cinzel/Lato typography, glass morphism patterns. Requires Tailwind CDN → PostCSS migration to enable compile-time design tokens.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Section 2.2 - Tailwind Migration Architecture</section>
+        <snippet>Key architectural decision: Tailwind CDN → PostCSS enables design tokens with compile-time control. Current stack uses CDN which is too limited for custom tokens. Requires build process update but enables all design system capabilities.</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system.md</path>
+        <title>FitForge Design System</title>
+        <section>Section 1 - Color System</section>
+        <snippet>Primary blue palette (#758AC6, #344161, #566890, #8997B8, #A8B6D5), glass morphism surfaces, Cinzel/Lato typography, shadow definitions, heavenly gradient backgrounds. All values must be configured in tailwind.config.js.</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system-quick-reference.md</path>
+        <title>FitForge Design System Quick Reference</title>
+        <section>Tailwind Configuration</section>
+        <snippet>Quick reference for design tokens, color palette, typography scales, spacing, shadows, and border radius values to be used in tailwind.config.js.</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system-implementation-roadmap.md</path>
+        <title>Design System Implementation Roadmap</title>
+        <section>Epic 5 - Story 5.1</section>
+        <snippet>Foundation story that enables all subsequent design system work. Critical success factor: Zero visual regressions, HMR must work, backward compatibility maintained.</snippet>
+      </doc>
+      <doc>
+        <path>docs/implementation-readiness-ui-redesign-2025-11-12.md</path>
+        <title>Implementation Readiness - UI Redesign</title>
+        <section>Gate Check Gap #2</section>
+        <snippet>Gap #2 resolved: PostCSS Config Exact Values provided in story. Complete tailwind.config.js includes all color values, font families, custom font sizes, shadow definitions, background gradients, and border radius overrides.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>index.html</path>
+        <kind>html</kind>
+        <symbol>Tailwind CDN script</symbol>
+        <lines>13-27</lines>
+        <reason>Current CDN implementation that needs to be removed. Lines 13-27 contain the Tailwind CDN script and inline config that will be migrated to proper PostCSS setup.</reason>
+      </artifact>
+      <artifact>
+        <path>index.tsx</path>
+        <kind>entry-point</kind>
+        <symbol>main</symbol>
+        <lines>1-10</lines>
+        <reason>Entry point where CSS import will be added. Currently does not import any CSS - needs `import './src/index.css';` added at the top.</reason>
+      </artifact>
+      <artifact>
+        <path>package.json</path>
+        <kind>manifest</kind>
+        <symbol>devDependencies</symbol>
+        <lines>33-59</lines>
+        <reason>Package manifest where tailwindcss, postcss, and autoprefixer will be added to devDependencies. Currently missing these packages.</reason>
+      </artifact>
+      <artifact>
+        <path>vite.config.ts</path>
+        <kind>config</kind>
+        <symbol>defineConfig</symbol>
+        <lines>1-16</lines>
+        <reason>Vite configuration that will automatically pick up PostCSS config. No changes needed to this file, but important to understand HMR setup for testing.</reason>
+      </artifact>
+      <artifact>
+        <path>vitest.config.ts</path>
+        <kind>config</kind>
+        <symbol>defineConfig</symbol>
+        <lines>1-16</lines>
+        <reason>Test configuration showing css: true setting. Ensures tests will work with PostCSS-generated CSS. No changes needed.</reason>
+      </artifact>
+      <artifact>
+        <path>components/ui/Button.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Button Component tests</symbol>
+        <lines>1-141</lines>
+        <reason>Example test file showing testing patterns with Vitest, React Testing Library, and jest-axe. Demonstrates how to test Tailwind classes still work after migration.</reason>
+      </artifact>
+      <artifact>
+        <path>Dockerfile.dev</path>
+        <kind>dockerfile</kind>
+        <symbol>frontend dev container</symbol>
+        <lines>N/A</lines>
+        <reason>Development Dockerfile that will need rebuild with --build flag to pick up new npm packages. Uses Vite dev server with HMR.</reason>
+      </artifact>
+      <artifact>
+        <path>docker-compose.yml</path>
+        <kind>config</kind>
+        <symbol>frontend service</symbol>
+        <lines>N/A</lines>
+        <reason>Docker Compose configuration. Frontend runs on port 3000 (MANDATORY), uses volume mounts for HMR. Will need rebuild after npm install.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="npm">
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+        <package name="vite" version="^6.2.0" />
+        <package name="@vitejs/plugin-react" version="^5.0.0" />
+        <package name="typescript" version="~5.8.2" />
+        <package name="framer-motion" version="^12.23.24" note="Already installed for animations" />
+        <package name="vaul" version="^1.1.2" note="Already installed for bottom sheets" />
+        <package name="vitest" version="^4.0.3" note="Test framework" />
+        <package name="@testing-library/react" version="^16.3.0" note="Component testing" />
+        <package name="@testing-library/user-event" version="^14.6.1" note="User interaction testing" />
+        <package name="jest-axe" version="^10.0.0" note="Accessibility testing" />
+        <package name="TO_INSTALL: tailwindcss" version="latest" note="CRITICAL: Must install for PostCSS migration" />
+        <package name="TO_INSTALL: postcss" version="latest" note="CRITICAL: Required for Tailwind build process" />
+        <package name="TO_INSTALL: autoprefixer" version="latest" note="CRITICAL: Vendor prefix automation" />
+      </ecosystem>
+      <ecosystem name="docker">
+        <service name="frontend" port="3000" note="MANDATORY port - never change" />
+        <service name="backend" port="3001" note="MANDATORY port - never change" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - MUST maintain 100% backward compatibility - all existing `brand-cyan`, `brand-dark`, `brand-surface`, `brand-muted` classes must continue working
+    - MUST NOT change ports - frontend MUST stay on 3000, backend MUST stay on 3001
+    - MUST preserve HMR functionality - development workflow cannot be disrupted
+    - MUST use docker-compose up -d --build for testing (not just docker-compose up)
+    - MUST create config files at project root (tailwind.config.js, postcss.config.js at root, NOT in src/)
+    - MUST import CSS in index.tsx as first line after React imports
+    - MUST include all component paths in tailwind.config.js content array to prevent purging
+    - MUST use ESM export syntax (export default) for config files to match project's type: "module"
+    - ZERO visual regressions allowed - users should notice NO difference after migration
+    - Build process must pass without errors before story completion
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Tailwind Config Schema</name>
+      <kind>configuration</kind>
+      <signature>
+export default {
+  content: string[],
+  theme: {
+    extend: {
+      colors: Record&lt;string, string | Record&lt;string, string&gt;&gt;,
+      fontFamily: Record&lt;string, string[]&gt;,
+      fontSize: Record&lt;string, [string, object]&gt;,
+      boxShadow: Record&lt;string, string&gt;,
+      backgroundImage: Record&lt;string, string&gt;,
+      borderRadius: Record&lt;string, string&gt;
+    }
+  },
+  plugins: any[]
+}
+      </signature>
+      <path>tailwind.config.js (to be created)</path>
+    </interface>
+    <interface>
+      <name>PostCSS Config Schema</name>
+      <kind>configuration</kind>
+      <signature>
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {}
+  }
+}
+      </signature>
+      <path>postcss.config.js (to be created)</path>
+    </interface>
+    <interface>
+      <name>Tailwind Directives</name>
+      <kind>css</kind>
+      <signature>
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+      </signature>
+      <path>src/index.css (to be created)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      FitForge uses Vitest as the test framework with React Testing Library for component testing and jest-axe for accessibility testing. Tests follow a describe/it structure with clear sections for Rendering, Interaction, Accessibility, and Visual States. All tests use TypeScript and are colocated with components or in __tests__ directories. CSS support is enabled in vitest.config.ts with css: true.
+    </standards>
+    <locations>
+      - components/**/*.test.tsx (component tests)
+      - components/__tests__/**/*.test.tsx (grouped component tests)
+      - utils/**/*.test.ts (utility function tests)
+      - backend/__tests__/**/*.test.ts (backend integration tests)
+    </locations>
+    <ideas>
+      <idea ac="AC6">
+        Test: Build Process Integration Test
+        - Test that `npm run build` completes without errors
+        - Test that `npm run dev` starts Vite server successfully
+        - Test that PostCSS processes Tailwind directives
+        - Verify generated CSS includes custom color classes
+      </idea>
+      <idea ac="AC7">
+        Test: HMR Functionality Test (Manual)
+        - Start dev environment with docker-compose up -d
+        - Edit a component file (e.g., Dashboard.tsx)
+        - Verify browser auto-refreshes within 1-2 seconds
+        - Verify no console errors related to Tailwind/PostCSS
+      </idea>
+      <idea ac="AC8">
+        Test: Visual Regression Test (Manual)
+        - Take screenshots of Dashboard, Workout, Exercise Picker before migration
+        - Complete migration
+        - Take screenshots of same screens after migration
+        - Compare screenshots pixel-by-pixel for differences
+        - Test all interactive states (hover, focus, disabled)
+        - Verify all legacy color classes render correctly
+      </idea>
+      <idea ac="AC2">
+        Test: Tailwind Config Validation
+        - Test that all design system colors are defined
+        - Test that all font families are configured
+        - Test that content paths include all component directories
+        - Verify custom shadows and border radius values present
+      </idea>
+      <idea ac="AC1">
+        Test: CDN Removal Verification
+        - Grep index.html for "cdn.tailwindcss.com" - should return no results
+        - Verify tailwindcss package in node_modules exists
+        - Check package.json devDependencies includes tailwindcss, postcss, autoprefixer
+      </idea>
+    </ideas>
+  </tests>
+</story-context>

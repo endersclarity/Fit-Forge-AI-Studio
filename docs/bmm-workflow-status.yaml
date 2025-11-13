@@ -38,7 +38,7 @@ workflow_status:
   # Phase 1: Planning
   prd: "docs/PRD.md"  # ✅ Complete (2025-11-10 - Retroactive PRD)
   validate-prd: optional  # agent: pm
-  create-design: conditional  # agent: ux-designer
+  create-design: "docs/prd-ui-redesign-2025-11-12.md"  # ✅ Complete (2025-11-12 - UI Redesign PRD)
 
   # Phase 2: Solutioning
   create-architecture: "docs/architecture.md"  # ✅ Complete (2025-11-10)
