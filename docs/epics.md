@@ -2832,31 +2832,61 @@ Epic 7 (Intelligence Shortcuts) stories were drafted assuming the pre-6.5 archit
 - [ ] 45+ new tests passing (15 per primitive)
 - [ ] Storybook stories for all new primitives
 
-#### Story 6.5.2: Design System Patterns & Core Pages (18-22 hours)
-- **Part A: Create Missing Patterns** (4-6 hours)
-  - Create Toast/Notification pattern (success/error/info/loading)
-  - Create CollapsibleSection pattern (accordion-style)
-  - Confirm Modal → Sheet migration strategy (document when to use Sheet vs Modal)
-  - Add tests and Storybook documentation
-- **Part B: Migrate Core Pages** (14-16 hours)
-  - Dashboard.tsx (912 lines) - main dashboard with visualizations
-  - Workout.tsx (904 lines) - active workout tracking
-  - Profile.tsx (518 lines) - user profile management
-  - ExerciseRecommendations.tsx (500 lines) - recommendation engine UI
-  - screens/RecoveryDashboard.tsx (366 lines) - recovery tracking
-  - Analytics.tsx (230 lines) - charts and progression
-  - PersonalBests.tsx (91 lines) - personal records
-  - WorkoutTemplates.tsx (226 lines) - template management
+#### Story 6.5.2A: Design System Patterns (4-6 hours) ✅ COMPLETE
+- Create Toast/Notification pattern (success/error/info/loading) ✅
+- Create CollapsibleSection pattern (accordion-style) ✅
+- Document Modal → Sheet migration strategy ✅
+- Add tests and Storybook documentation ✅
+- Migrate PersonalBests.tsx as reference implementation ✅
 
 **Acceptance Criteria:**
-- [ ] Toast pattern created with 4 variants
-- [ ] CollapsibleSection pattern created (expand/collapse animation)
-- [ ] Modal vs Sheet usage documented
-- [ ] All 8 core pages import from design-system
-- [ ] All pages use design tokens for colors/spacing
-- [ ] Existing tests updated for new imports
-- [ ] No visual regressions (screenshots match)
-- [ ] Touch targets remain 60x60px minimum
+- [x] Toast pattern created with 4 variants (62 tests)
+- [x] CollapsibleSection pattern created (28 tests, 8 stories)
+- [x] Modal vs Sheet usage documented (comprehensive guide)
+- [x] PersonalBests.tsx migrated to design system
+- [x] All tests passing (90 new tests)
+- [x] Storybook documentation complete
+
+#### Story 6.5.2B: Small Page Migrations (4-6 hours)
+- WorkoutTemplates.tsx (226 lines) - template management
+- Analytics.tsx (230 lines) - charts and progression
+- Total: 456 lines
+
+**Acceptance Criteria:**
+- [ ] WorkoutTemplates.tsx uses Card, Button, Badge from design-system
+- [ ] Analytics.tsx uses Card, Button, Select from design-system
+- [ ] All pages use design tokens (no hardcoded colors)
+- [ ] Tests updated for new imports
+- [ ] Touch targets 60x60px minimum
+- [ ] No visual regressions
+
+#### Story 6.5.2C: Medium Page Migrations (6-8 hours)
+- RecoveryDashboard.tsx (366 lines) - recovery tracking
+- ExerciseRecommendations.tsx (500 lines) - recommendation engine UI
+- Total: 866 lines
+
+**Acceptance Criteria:**
+- [ ] RecoveryDashboard uses Card, Button, ProgressBar from design-system
+- [ ] ExerciseRecommendations uses Card, Button, Badge, CollapsibleSection
+- [ ] All pages use design tokens
+- [ ] Tests updated for new imports
+- [ ] Touch targets 60x60px minimum
+- [ ] No visual regressions
+
+#### Story 6.5.2D: Large Page Migrations (8-12 hours)
+- Profile.tsx (518 lines) - user profile management
+- Workout.tsx (904 lines) - active workout tracking
+- Dashboard.tsx (912 lines) - main dashboard with visualizations
+- Total: 2,334 lines
+
+**Acceptance Criteria:**
+- [ ] Profile uses Card, Button, Input, Select from design-system
+- [ ] Workout uses Card, Button, Input, FAB, Sheet from design-system
+- [ ] Dashboard uses Card, Button, Badge, ProgressBar from design-system
+- [ ] All pages use design tokens
+- [ ] Tests updated for new imports
+- [ ] Touch targets 60x60px minimum
+- [ ] No visual regressions
 
 #### Story 6.5.3: Modals & Major Features (12-16 hours)
 - **Modal Components** (6-8 hours):
