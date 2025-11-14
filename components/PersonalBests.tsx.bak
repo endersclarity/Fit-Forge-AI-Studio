@@ -1,10 +1,8 @@
+
 import React, { useState, useMemo } from 'react';
 import { PersonalBests, ExerciseCategory, Exercise, ExerciseMaxes } from '../types';
 import { EXERCISE_LIBRARY } from '../constants';
 import { ArrowLeftIcon, TrophyIcon } from './Icons';
-import { Button } from '@/src/design-system/components/primitives';
-import { Card } from '@/src/design-system/components/primitives';
-import { Badge } from '@/src/design-system/components/primitives';
 
 interface PersonalBestsProps {
     personalBests: PersonalBests;
@@ -34,15 +32,9 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
     return (
         <div className="p-4 md:p-6 min-h-screen bg-brand-dark flex flex-col">
             <header className="flex justify-between items-center mb-6">
-                <Button
-                    variant="ghost"
-                    size="lg"
-                    onClick={onBack}
-                    className="p-2 rounded-full hover:bg-brand-surface min-w-[60px] min-h-[60px]"
-                    aria-label="Go back"
-                >
+                <button onClick={onBack} className="p-2 rounded-full hover:bg-brand-surface">
                     <ArrowLeftIcon className="w-6 h-6"/>
-                </Button>
+                </button>
                 <h1 className="text-xl font-bold">Personal Records</h1>
                 <div className="w-10">
                     <TrophyIcon className="w-7 h-7 text-yellow-400" />
@@ -51,15 +43,13 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
 
             <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
                 {(['All', 'Push', 'Pull', 'Legs', 'Core'] as const).map(cat => (
-                    <Button
-                        key={cat}
-                        variant={filter === cat ? 'primary' : 'secondary'}
-                        size="md"
-                        onClick={() => setFilter(cat)}
-                        className="whitespace-nowrap min-w-[60px] min-h-[60px]"
+                    <button 
+                        key={cat} 
+                        onClick={() => setFilter(cat)} 
+                        className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${filter === cat ? 'bg-brand-cyan text-brand-dark' : 'bg-brand-surface'}`}
                     >
                         {cat}
-                    </Button>
+                    </button>
                 ))}
             </div>
 
@@ -72,12 +62,10 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
                     </div>
                 ) : (
                     filteredRecords.map(record => (
-                        <Card key={record.id} variant="glass" className="p-4">
+                        <div key={record.id} className="bg-brand-surface p-4 rounded-lg">
                             <div className="flex justify-between items-start">
                                 <h3 className="font-bold text-lg">{record.name}</h3>
-                                <Badge variant="info" size="sm">
-                                    {record.category}
-                                </Badge>
+                                <span className="text-xs bg-brand-muted px-2 py-1 rounded-full">{record.category}</span>
                             </div>
                             <div className="grid grid-cols-3 gap-2 mt-3 text-center">
                                 <div>
@@ -93,7 +81,7 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
                                     <p className="text-xs text-slate-400">Rolling Avg.</p>
                                 </div>
                             </div>
-                        </Card>
+                        </div>
                     ))
                 )}
             </main>

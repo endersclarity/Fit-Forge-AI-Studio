@@ -1,0 +1,604 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6.5</epicId>
+    <storyId>2</storyId>
+    <title>Design System Patterns & Core Pages</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-2-design-system-patterns-core-pages.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer maintaining the FitForge UI</asA>
+    <iWant>to create missing design system patterns (Toast, CollapsibleSection) and migrate all 8 core pages to use design system primitives</iWant>
+    <soThat>core user workflows are built on the unified design system and ready for Epic 7 intelligence shortcuts</soThat>
+    <tasks>
+### Task 1: Create Toast/Notification Pattern (AC: 1, 6)
+- [ ] 1.1: Design Toast component API
+- [ ] 1.2: Implement Toast component
+- [ ] 1.3: Create ToastContainer context provider
+- [ ] 1.4: Add comprehensive tests (15+ tests)
+- [ ] 1.5: Create Storybook documentation
+
+### Task 2: Create CollapsibleSection Pattern (AC: 2, 6)
+- [ ] 2.1: Design CollapsibleSection component API
+- [ ] 2.2: Implement CollapsibleSection component
+- [ ] 2.3: Add comprehensive tests (15+ tests)
+- [ ] 2.4: Create Storybook documentation
+
+### Task 3: Document Modal vs Sheet Strategy (AC: 3)
+- [ ] 3.1: Analyze existing Modal and Sheet usage patterns
+- [ ] 3.2: Create decision guide documentation
+
+### Task 4-11: Migrate Core Pages (AC: 4, 5, 6, 7, 8)
+- [ ] Task 4: Dashboard.tsx (912 lines)
+- [ ] Task 5: Workout.tsx (904 lines)
+- [ ] Task 6: Profile.tsx (518 lines)
+- [ ] Task 7: ExerciseRecommendations.tsx (500 lines)
+- [ ] Task 8: RecoveryDashboard.tsx (366 lines)
+- [ ] Task 9: Analytics.tsx (230 lines)
+- [ ] Task 10: PersonalBests.tsx (91 lines)
+- [ ] Task 11: WorkoutTemplates.tsx (226 lines)
+
+### Task 12: Integration & Validation (All ACs)
+- [ ] 12.1: Run complete test suite
+- [ ] 12.2: Visual validation in browser
+- [ ] 12.3: Accessibility validation
+- [ ] 12.4: Update documentation
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Toast pattern created with 4 variants (success, error, info, loading)
+2. CollapsibleSection pattern created (expand/collapse animation)
+3. Modal vs Sheet usage documented (decision guide for when to use each)
+4. All 8 core pages import from design-system (zero legacy inline JSX)
+5. All pages use design tokens for colors/spacing (no hardcoded values)
+6. Existing tests updated for new imports (all tests passing)
+7. No visual regressions (screenshots match pre-migration appearance)
+8. Touch targets remain 60x60px minimum (WCAG 2.1 compliance)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic Requirements -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6.5: Design System Rollout</title>
+        <section>Story 6.5.2: Design System Patterns & Core Pages</section>
+        <snippet>Epic 6.5 completes design system integration by migrating all 73 remaining components. Story 6.5.2 creates missing Toast and CollapsibleSection patterns, then migrates 8 core pages (~3,747 lines) to design system primitives.</snippet>
+      </doc>
+
+      <!-- Architecture Documentation -->
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Section 1.2 Current Component Structure</section>
+        <snippet>96 React components across 9 directories. Core pages (Dashboard, Workout, Profile, etc.) need glass morphism, design tokens, and bottom sheet migration. Design system foundation in src/design-system/.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>Design System Layer</title>
+        <section>Section 2.1 Design System Architecture</section>
+        <snippet>Design system organized as: primitives/ (Button, Card, Input, Badge, ProgressBar, Select, Sheet) and patterns/ (FAB, InlineNumberPicker, NumberPadSheet). Uses Framer Motion for animations, design tokens from tailwind.config.js.</snippet>
+      </doc>
+
+      <!-- Design Token Reference -->
+      <doc>
+        <path>tailwind.config.js</path>
+        <title>Tailwind Design Tokens</title>
+        <section>Theme Configuration</section>
+        <snippet>Semantic color system: primary (758AC6), badge (D9E1F8), glass morphism with backdrop-blur. Typography: Cinzel (display), Lato (body). Spacing: 4px base unit. Custom shadows: button-primary, drawer.</snippet>
+      </doc>
+
+      <!-- Previous Story Learnings -->
+      <doc>
+        <path>.bmad-ephemeral/stories/6-5-1-railway-deployment-missing-primitives.md</path>
+        <title>Story 6.5.1 Completion - Railway Deployment & Missing Primitives</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Created Badge (5 variants, 27 tests), ProgressBar (4 variants, 39 tests), Select (keyboard nav, 46 tests). Established patterns: 20+ tests minimum, Framer Motion animations (stiffness: 300, damping: 20), design token-only styling, zero accessibility violations.</snippet>
+      </doc>
+
+      <!-- UX Design Specifications -->
+      <doc>
+        <path>docs/ux-specification.md</path>
+        <title>FitForge UX Specification</title>
+        <section>Component Patterns</section>
+        <snippet>Toast notifications for feedback, collapsible sections for space efficiency, bottom sheets for mobile-first interactions. All touch targets 60x60px minimum (WCAG 2.1).</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Existing Design System Primitives -->
+      <artifact>
+        <path>src/design-system/components/primitives/Badge.tsx</path>
+        <kind>component</kind>
+        <symbol>Badge</symbol>
+        <lines>1-126</lines>
+        <reason>Reference implementation for new Toast pattern - shows design token usage, variant system, TypeScript interfaces, React.forwardRef pattern</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>component</kind>
+        <symbol>Button</symbol>
+        <lines>1-100</lines>
+        <reason>Core primitive used throughout all 8 pages - migration will replace legacy button usage with this component</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>component</kind>
+        <symbol>Card</symbol>
+        <lines>1-150</lines>
+        <reason>Glass morphism card primitive - all 8 pages use cards extensively, migration will standardize card styling</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Input.tsx</path>
+        <kind>component</kind>
+        <symbol>Input</symbol>
+        <lines>1-100</lines>
+        <reason>Form input primitive - used in Profile.tsx, Workout.tsx, WorkoutTemplates.tsx</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/ProgressBar.tsx</path>
+        <kind>component</kind>
+        <symbol>ProgressBar</symbol>
+        <lines>1-150</lines>
+        <reason>Animated progress indicator - used in Dashboard.tsx, RecoveryDashboard.tsx for muscle fatigue visualization</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Select.tsx</path>
+        <kind>component</kind>
+        <symbol>Select</symbol>
+        <lines>1-390</lines>
+        <reason>Dropdown component with keyboard navigation - used in Profile.tsx, Analytics.tsx for filters and settings</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Sheet.tsx</path>
+        <kind>component</kind>
+        <symbol>Sheet</symbol>
+        <lines>1-200</lines>
+        <reason>Bottom sheet pattern from Vaul - used in Workout.tsx, reference for Modal vs Sheet decision guide</reason>
+      </artifact>
+
+      <!-- Existing Design System Patterns -->
+      <artifact>
+        <path>src/design-system/components/patterns/FAB.tsx</path>
+        <kind>component</kind>
+        <symbol>FAB</symbol>
+        <lines>1-150</lines>
+        <reason>Floating action button pattern - used in Workout.tsx for primary actions</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/patterns/InlineNumberPicker.tsx</path>
+        <kind>component</kind>
+        <symbol>InlineNumberPicker</symbol>
+        <lines>1-200</lines>
+        <reason>Reference for Framer Motion animation patterns - shows spring physics configuration used in design system</reason>
+      </artifact>
+
+      <!-- Core Pages to Migrate -->
+      <artifact>
+        <path>components/Dashboard.tsx</path>
+        <kind>page</kind>
+        <symbol>Dashboard</symbol>
+        <lines>1-912</lines>
+        <reason>MIGRATION TARGET - Main landing page, uses Card, Button, Badge, ProgressBar, needs glass morphism and design tokens</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/Workout.tsx</path>
+        <kind>page</kind>
+        <symbol>Workout</symbol>
+        <lines>1-904</lines>
+        <reason>MIGRATION TARGET - Active workout tracking, uses Card, Button, Input, FAB, Sheet, complex state management</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/Profile.tsx</path>
+        <kind>page</kind>
+        <symbol>Profile</symbol>
+        <lines>1-518</lines>
+        <reason>MIGRATION TARGET - User settings, uses Card, Button, Input, Select, form-heavy with validation</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/ExerciseRecommendations.tsx</path>
+        <kind>page</kind>
+        <symbol>ExerciseRecommendations</symbol>
+        <lines>1-500</lines>
+        <reason>MIGRATION TARGET - AI suggestions, uses Card, Button, Badge, will use new CollapsibleSection pattern</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/screens/RecoveryDashboard.tsx</path>
+        <kind>page</kind>
+        <symbol>RecoveryDashboard</symbol>
+        <lines>1-366</lines>
+        <reason>MIGRATION TARGET - Recovery timeline, uses Card, Button, ProgressBar for muscle fatigue visualization</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/Analytics.tsx</path>
+        <kind>page</kind>
+        <symbol>Analytics</symbol>
+        <lines>1-230</lines>
+        <reason>MIGRATION TARGET - Charts and progression, uses Card, Button, Select for date filters</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/PersonalBests.tsx</path>
+        <kind>page</kind>
+        <symbol>PersonalBests</symbol>
+        <lines>1-91</lines>
+        <reason>MIGRATION TARGET - Personal records, uses Card, Button, Badge, smallest file (simplest migration)</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/WorkoutTemplates.tsx</path>
+        <kind>page</kind>
+        <symbol>WorkoutTemplates</symbol>
+        <lines>1-226</lines>
+        <reason>MIGRATION TARGET - Template management, uses Card, Button, Input, CRUD operations</reason>
+      </artifact>
+
+      <!-- Test Reference Files -->
+      <artifact>
+        <path>src/design-system/components/primitives/__tests__/Badge.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Badge tests</symbol>
+        <lines>1-300</lines>
+        <reason>Reference for testing patterns - shows 27 comprehensive tests including axe accessibility audits</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/__tests__/ProgressBar.test.tsx</path>
+        <kind>test</kind>
+        <symbol>ProgressBar tests</symbol>
+        <lines>1-400</lines>
+        <reason>Reference for Framer Motion testing - shows 39 tests with animation mocking patterns</reason>
+      </artifact>
+
+      <!-- Storybook Reference Files -->
+      <artifact>
+        <path>src/design-system/components/primitives/Badge.stories.tsx</path>
+        <kind>storybook</kind>
+        <symbol>Badge stories</symbol>
+        <lines>1-150</lines>
+        <reason>Reference for Storybook documentation - shows variant showcase, accessibility examples</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <react>19.2.0</react>
+        <react-dom>19.2.0</react-dom>
+        <typescript>5.8.2</typescript>
+        <vite>6.2.0</vite>
+        <tailwindcss>3.4.18</tailwindcss>
+        <framer-motion>12.23.24</framer-motion>
+        <vaul>1.1.2</vaul>
+        <lucide-react>0.553.0</lucide-react>
+        <react-router-dom>6.30.1</react-router-dom>
+        <recharts>3.3.0</recharts>
+      </node>
+      <testing>
+        <vitest>4.0.3</vitest>
+        <testing-library-react>16.3.0</testing-library-react>
+        <testing-library-user-event>14.6.1</testing-library-user-event>
+        <testing-library-jest-dom>6.9.1</testing-library-jest-dom>
+        <jest-axe>10.0.0</jest-axe>
+        <axe-core>4.11.0</axe-core>
+      </testing>
+      <storybook>
+        <storybook>9.1.15</storybook>
+        <storybook-addon-a11y>9.1.15</storybook-addon-a11y>
+        <storybook-addon-docs>9.1.15</storybook-addon-docs>
+      </storybook>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+**Design System Patterns (from Story 6.5.1):**
+- Component Location: src/design-system/ (NOT legacy components/ directories)
+- File Structure: [Component].tsx, [Component].stories.tsx, __tests__/[Component].test.tsx
+- TypeScript: Interfaces with JSDoc, React.forwardRef, displayName
+- Composability: Always support className prop for extension
+- Semantic HTML: Use proper elements (button not div, section with aria attributes)
+
+**Animation Standards:**
+- Library: Framer Motion v12.23.24 (already installed)
+- Spring Physics: stiffness: 300, damping: 20 (standard for design system)
+- Hover States: scale: 1.05 (standard hover transform)
+- Active States: scale: 0.95 (standard active/press transform)
+- GPU Acceleration: Use transform/opacity for performance
+
+**Testing Requirements:**
+- Minimum Tests: 20+ per component (Story 6.5.1 delivered 112 total)
+- Test Categories: Rendering, Interaction, Accessibility (axe audits), Props/Types, Edge Cases
+- Framer Motion Testing: Mock motion components to avoid animation complexity
+- User-Event Library: Use for realistic interaction testing (keyboard, mouse)
+
+**Accessibility Standards (WCAG 2.1):**
+- Touch targets: 60x60px minimum (CRITICAL)
+- ARIA attributes: role, aria-label, aria-expanded, aria-live for toasts
+- Keyboard navigation: All interactive elements must support Enter/Space/Escape/Arrow keys
+- Screen reader: Meaningful labels, live region announcements for toasts
+- Color contrast: All text must meet 4.5:1 ratio minimum
+
+**Design Token Rules:**
+- Zero hardcoded colors or spacing values
+- Use tailwind.config.js tokens: primary.DEFAULT, badge.bg, glass.main
+- Typography: font-display (Cinzel) for headings, font-body (Lato) for UI
+- Spacing: Tailwind scale only (4px base: 1, 2, 3, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 64)
+
+**Migration Strategy:**
+1. Analysis Phase: Identify all components in page, map to design system equivalents
+2. Component Replacement: Replace legacy imports with design system imports
+3. Token Conversion: Replace hardcoded styles with design tokens
+4. Test Updates: Update test imports, adjust selectors as needed
+5. Visual Validation: Screenshot comparison (before/after)
+6. Touch Target Audit: Ensure all interactive elements ≥60px
+
+**Port Configuration (MANDATORY - NEVER CHANGE):**
+- Frontend: Port 3000 (Vite dev server with HMR)
+- Backend: Port 3001 (nodemon auto-restart)
+- Storybook: Port 6006 (npm run storybook)
+
+**No New Dependencies:**
+- Reuse existing stack (React 19, Framer Motion 12, Vitest, RTL)
+- All required libraries already installed in package.json
+- No additional npm packages needed for this story
+  </constraints>
+
+  <interfaces>
+**Design System Component Interfaces (Established):**
+
+```typescript
+// Badge Interface (from src/design-system/components/primitives/Badge.tsx)
+interface BadgeProps {
+  variant?: 'success' | 'warning' | 'error' | 'info' | 'primary';
+  size?: 'sm' | 'md' | 'lg';
+  children: React.ReactNode;
+  className?: string;
+  'aria-label'?: string;
+}
+
+// Button Interface (from src/design-system/components/primitives/Button.tsx)
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  children: React.ReactNode;
+  ariaLabel?: string;
+  className?: string;
+  disabled?: boolean;
+}
+
+// Card Interface (from src/design-system/components/primitives/Card.tsx)
+interface CardProps {
+  variant?: 'default' | 'elevated' | 'outlined';
+  padding?: 'sm' | 'md' | 'lg';
+  children: React.ReactNode;
+  className?: string;
+}
+
+// ProgressBar Interface (from src/design-system/components/primitives/ProgressBar.tsx)
+interface ProgressBarProps {
+  value: number; // 0-100
+  variant?: 'primary' | 'success' | 'warning' | 'error';
+  size?: 'sm' | 'md' | 'lg';
+  showLabel?: boolean;
+  className?: string;
+}
+
+// Select Interface (from src/design-system/components/primitives/Select.tsx)
+interface SelectProps {
+  options: Array<{ label: string; value: string; disabled?: boolean }>;
+  value?: string;
+  onChange?: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+}
+
+// Sheet Interface (from src/design-system/components/primitives/Sheet.tsx)
+interface SheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+  snapPoints?: number[];
+}
+```
+
+**New Interfaces to Define (Toast & CollapsibleSection):**
+
+```typescript
+// Toast Interface (TO BE CREATED)
+interface ToastProps {
+  variant: 'success' | 'error' | 'info' | 'loading';
+  message: string;
+  duration?: number; // milliseconds, default 5000
+  onClose?: () => void;
+  position?: 'top-right' | 'bottom-center';
+  icon?: React.ReactNode;
+}
+
+// ToastContainer Interface (TO BE CREATED)
+interface ToastContainerProps {
+  position?: 'top-right' | 'bottom-center';
+  maxToasts?: number;
+}
+
+// useToast Hook Interface (TO BE CREATED)
+interface UseToastReturn {
+  showToast: (props: Omit<ToastProps, 'onClose'>) => void;
+  hideToast: (id: string) => void;
+  clearAll: () => void;
+}
+
+// CollapsibleSection Interface (TO BE CREATED)
+interface CollapsibleSectionProps {
+  title: string;
+  defaultOpen?: boolean;
+  onToggle?: (isOpen: boolean) => void;
+  children: React.ReactNode;
+  className?: string;
+}
+```
+
+**Import Pattern (Standard across all migrations):**
+
+```typescript
+// Design system imports (NEW)
+import Button from '@/design-system/components/primitives/Button';
+import Card from '@/design-system/components/primitives/Card';
+import Input from '@/design-system/components/primitives/Input';
+import Badge from '@/design-system/components/primitives/Badge';
+import ProgressBar from '@/design-system/components/primitives/ProgressBar';
+import Select from '@/design-system/components/primitives/Select';
+import Sheet from '@/design-system/components/primitives/Sheet';
+import FAB from '@/design-system/components/patterns/FAB';
+import Toast from '@/design-system/components/patterns/Toast';
+import CollapsibleSection from '@/design-system/components/patterns/CollapsibleSection';
+
+// Legacy imports to REMOVE during migration:
+// import Button from './ui/Button';
+// import Card from './ui/Card';
+```
+  </interfaces>
+
+  <tests>
+    <standards>
+**Testing Framework:** Vitest 4.0.3 with React Testing Library 16.3.0
+
+**Test Structure (Established in Story 6.5.1):**
+- Minimum 20+ tests per component (Story 6.5.1 achieved 112 tests for 3 components)
+- Test file location: src/design-system/components/[primitives|patterns]/__tests__/[Component].test.tsx
+- Test categories: Rendering (variants, sizes, states), Interaction (clicks, keyboard, forms), Accessibility (axe audits, ARIA, screen reader), Props/Types (TypeScript validation), Edge Cases (invalid values, boundary conditions)
+
+**Framer Motion Testing Pattern:**
+```typescript
+// Mock Framer Motion to avoid animation complexity
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: 'div',
+    span: 'span',
+    button: 'button'
+  },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+```
+
+**Accessibility Testing Pattern (axe-core):**
+```typescript
+import { axe, toHaveNoViolations } from 'jest-axe';
+expect.extend(toHaveNoViolations);
+
+it('should have no accessibility violations', async () => {
+  const { container } = render(<Component />);
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+});
+```
+
+**User Event Testing Pattern:**
+```typescript
+import { userEvent } from '@testing-library/user-event';
+
+it('should handle keyboard interaction', async () => {
+  const user = userEvent.setup();
+  render(<Component />);
+  await user.keyboard('{Enter}');
+  expect(mockCallback).toHaveBeenCalled();
+});
+```
+
+**Page Migration Testing Strategy:**
+- Run existing page tests with new imports (verify no regressions)
+- Update test selectors if component structure changed
+- Add visual regression tests (screenshot comparison)
+- Validate touch targets (all buttons/inputs ≥60px)
+- Run complete test suite: npm run test:run
+    </standards>
+
+    <locations>
+**Test Directories:**
+- Design system primitive tests: src/design-system/components/primitives/__tests__/
+- Design system pattern tests: src/design-system/components/patterns/__tests__/
+- Page component tests: components/__tests__/ (if existing, else create)
+- Integration tests: tests/ (for end-to-end flows)
+
+**Test Commands:**
+- Run all tests: npm run test:run
+- Run with UI: npm run test:ui
+- Run with coverage: npm run test:coverage
+- Watch mode: npm run test
+    </locations>
+
+    <ideas>
+**Toast Pattern Tests (Minimum 20+ tests):**
+1. Renders all 4 variants (success, error, info, loading)
+2. Auto-dismisses after duration (default 5000ms)
+3. Manual close button works
+4. Pause auto-dismiss on hover
+5. Resume auto-dismiss on mouse leave
+6. Toast queue handles multiple simultaneous toasts
+7. Position variants (top-right, bottom-center)
+8. Custom duration respected
+9. Loading variant shows spinner
+10. ARIA live region for screen readers (role="status" or role="alert")
+11. Keyboard accessible close button
+12. Custom icons render correctly
+13. Long messages wrap properly
+14. No accessibility violations (axe audit)
+15. Framer Motion animations (slide-in, fade-out)
+16. Z-index stacking works correctly
+17. onClick close callback fires
+18. Edge case: Empty message
+19. Edge case: Extremely long message
+20. Edge case: Rapid sequential toasts
+
+**CollapsibleSection Pattern Tests (Minimum 20+ tests):**
+1. Renders collapsed by default
+2. Renders expanded when defaultOpen=true
+3. Toggle expands/collapses on header click
+4. Chevron icon rotates on toggle
+5. Keyboard navigation (Enter/Space to toggle)
+6. Controlled mode (external state)
+7. Uncontrolled mode (internal state)
+8. onToggle callback fires with correct boolean
+9. Animated height transition (Framer Motion)
+10. ARIA expanded attribute updates
+11. Button role on header
+12. Touch target ≥60px for header
+13. Focus visible on keyboard navigation
+14. No accessibility violations (axe audit)
+15. Children render when expanded
+16. Children hidden when collapsed
+17. Multiple sections on same page (independent state)
+18. Edge case: No children
+19. Edge case: Very long title
+20. Edge case: Nested collapsible sections
+
+**Page Migration Tests (For each of 8 pages):**
+1. Page renders without errors with new imports
+2. All design system components render correctly
+3. Design tokens applied (no hardcoded colors/spacing)
+4. Existing functionality preserved (state management, API calls)
+5. Visual regression check (before/after screenshots match)
+6. Touch targets ≥60px (all buttons, inputs, interactive elements)
+7. Accessibility audit passes (axe DevTools)
+8. Keyboard navigation works (Tab, Enter, Escape)
+9. Responsive behavior maintained
+10. Glass morphism effects applied correctly
+    </ideas>
+  </tests>
+</story-context>
