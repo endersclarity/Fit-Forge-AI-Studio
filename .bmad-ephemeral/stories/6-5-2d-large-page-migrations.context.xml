@@ -1,0 +1,318 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6.5</epicId>
+    <storyId>6.5.2D</storyId>
+    <title>Large Page Migrations</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-2d-large-page-migrations.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>Profile, Workout, and Dashboard pages to use the unified design system</iWant>
+    <soThat>I experience consistent styling, improved touch targets, glass morphism effects, and maintainable component architecture across all major application pages</soThat>
+    <tasks>
+      - Task 1: Migrate Profile.tsx (518 lines) - Replace inline Card/Input/Button JSX with primitives, apply design tokens, glass morphism, 60x60px touch targets, create 20+ tests
+      - Task 2: Migrate Workout.tsx (904 lines) - Replace workout builder modal with Sheet primitive, migrate Card/Button/Input JSX, apply design tokens, glass morphism, 60x60px touch targets, create 20+ tests
+      - Task 3: Migrate Dashboard.tsx (912 lines) - Replace inline Card/Button/Badge JSX with primitives, apply design tokens, glass morphism, 60x60px touch targets, create 20+ tests
+      - Task 4: Verification and Testing - Run full test suite, verify functionality preservation, cross-browser testing, mobile responsive verification, ensure 60+ total tests passing
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Profile page uses Card primitive for all sections
+    2. Workout page uses Sheet primitive for workout builder modal
+    3. Dashboard uses Card primitive for quick stats sections
+    4. All forms use Input primitive with consistent styling
+    5. All buttons use Button primitive with proper variants
+    6. Design tokens used for all colors (no hardcoded hex/rgb)
+    7. WCAG AA compliance (60x60px touch targets)
+    8. Glass morphism applied consistently
+    9. Comprehensive tests (20+ tests per component, 60+ total)
+    10. Zero regressions in existing functionality
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic and Story Planning -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6.5: Design System Rollout</title>
+        <section>Story 6.5.2D: Large Page Migrations</section>
+        <snippet>Migrate Profile.tsx (518 lines), Workout.tsx (904 lines), and Dashboard.tsx (912 lines) to design system primitives. This is the largest migration story in Epic 6.5 at 2,334 total lines. All pages must use Card, Button, Input, Sheet primitives with design tokens, glass morphism, and 60x60px touch targets.</snippet>
+      </doc>
+
+      <!-- Architecture Documentation -->
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>UI Redesign Architecture</title>
+        <section>Section 1.2: Current Component Structure</section>
+        <snippet>Frontend-only UI redesign. All 20+ API endpoints remain unchanged. Components must maintain existing APIs to minimize breaking changes. Glass morphism pattern uses bg-white/50 with backdrop-blur-lg for depth. WCAG AA requires 60x60px minimum touch targets.</snippet>
+      </doc>
+
+      <!-- Design System Documentation -->
+      <doc>
+        <path>src/design-system/README.md</path>
+        <title>Design System Documentation</title>
+        <section>Primitives and Patterns</section>
+        <snippet>Design system provides Card, Button, Input, Sheet, Badge, ProgressBar, Select primitives with variants, glass morphism styling, and accessibility support. Import from @/src/design-system/components/primitives barrel export.</snippet>
+      </doc>
+
+      <!-- Previous Story Learnings -->
+      <doc>
+        <path>.bmad-ephemeral/stories/6-5-2c-medium-page-migrations.md</path>
+        <title>Story 6.5.2C: Medium Page Migrations (Completed)</title>
+        <section>Completion Notes and Senior Developer Review</section>
+        <snippet>Successfully migrated 866 lines (RecoveryDashboard, ExerciseRecommendations) to design system. Code review APPROVED on first pass. Key patterns: design token conversions (bg-brand-dark → bg-background), glass morphism (bg-white/50 backdrop-blur-lg), 60x60px touch targets (min-w-[60px] min-h-[60px]), axe-core testing with landmark-unique rule disabled. 48 tests created, 40 passing core tests.</snippet>
+      </doc>
+
+      <!-- Design Tokens -->
+      <doc>
+        <path>tailwind.config.js</path>
+        <title>Tailwind Configuration (Design Tokens)</title>
+        <section>Theme Extensions</section>
+        <snippet>Primary: #758AC6 (Cinzel Blue), Secondary: #566890 (Muted Blue), Accent: #C67575 (Rose), Background: #F5F7FA (Light Gray). Typography: Cinzel (font-display) for headings, Lato (font-body) for text. Use semantic tokens: bg-primary, text-primary, bg-background, text-foreground.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Target Components for Migration -->
+      <artifact>
+        <path>components/Profile.tsx</path>
+        <kind>component</kind>
+        <symbol>Profile</symbol>
+        <lines>1-518</lines>
+        <reason>Primary migration target. User profile management with forms, cards, buttons. Must migrate to Input, Card, Button primitives with design tokens.</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/Workout.tsx</path>
+        <kind>component</kind>
+        <symbol>Workout</symbol>
+        <lines>1-904</lines>
+        <reason>Primary migration target. Active workout tracking with workout builder modal. Must migrate modal to Sheet primitive, forms to Input primitive, cards to Card primitive.</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/Dashboard.tsx</path>
+        <kind>component</kind>
+        <symbol>Dashboard</symbol>
+        <lines>1-912</lines>
+        <reason>Primary migration target. Main dashboard with visualizations, quick stats, muscle states. Must migrate to Card, Button, Badge primitives with glass morphism.</reason>
+      </artifact>
+
+      <!-- Design System Primitives -->
+      <artifact>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Card</symbol>
+        <lines>1-100</lines>
+        <reason>Card primitive with glass morphism (bg-white/50 backdrop-blur-lg), variants (default, elevated, flat). Replace all inline card JSX.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Button</symbol>
+        <lines>1-150</lines>
+        <reason>Button primitive with variants (primary, secondary, tertiary, ghost, destructive), sizes (sm, md, lg), 60x60px touch targets. Replace all inline button elements.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Input.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Input</symbol>
+        <lines>1-120</lines>
+        <reason>Input primitive with variants (text, number, email, password), states (disabled, error, success). Replace all form input elements.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Sheet.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Sheet</symbol>
+        <lines>1-200</lines>
+        <reason>Sheet primitive (bottom drawer) with Framer Motion animations, backdrop overlay. Replace workout builder modal in Workout.tsx.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Badge.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Badge</symbol>
+        <lines>1-80</lines>
+        <reason>Badge primitive with variants (success, warning, error, info, primary), sizes (sm, md, lg). Use for status indicators in Dashboard.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/Select.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Select</symbol>
+        <lines>1-140</lines>
+        <reason>Select primitive with keyboard navigation, variants (default, error). Use for dropdowns in Profile.tsx.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/design-system/components/primitives/index.ts</path>
+        <kind>barrel-export</kind>
+        <symbol>primitives</symbol>
+        <lines>1-20</lines>
+        <reason>Barrel export for all design system primitives. Import all components from this single entry point: import { Card, Button, Input, Sheet, Badge, Select } from '@/src/design-system/components/primitives'</reason>
+      </artifact>
+
+      <!-- Testing Reference Components -->
+      <artifact>
+        <path>components/__tests__/RecoveryDashboard.test.tsx</path>
+        <kind>test</kind>
+        <symbol>RecoveryDashboard tests</symbol>
+        <lines>1-300</lines>
+        <reason>Reference test suite from Story 6.5.2C. 22 tests covering Card primitive integration, Button primitive integration, design token usage, touch target compliance, glass morphism, accessibility (axe-core).</reason>
+      </artifact>
+
+      <artifact>
+        <path>components/__tests__/WorkoutTemplates.test.tsx</path>
+        <kind>test</kind>
+        <symbol>WorkoutTemplates tests</symbol>
+        <lines>1-250</lines>
+        <reason>Reference test suite from Story 6.5.2B. 23 tests covering design system integration, user interactions, accessibility, touch targets.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <react version="^19.2.0">Core UI framework</react>
+        <react-dom version="^19.2.0">React DOM renderer</react-dom>
+        <framer-motion version="^12.23.24">Animation library (used in Sheet primitive)</framer-motion>
+        <react-router-dom version="^6.30.1">Routing library</react-router-dom>
+        <vitest version="^4.0.3">Test framework</vitest>
+        <@testing-library/react version="^16.3.0">React testing utilities</@testing-library/react>
+        <@testing-library/jest-dom version="^6.9.1">Jest DOM matchers</@testing-library/jest-dom>
+        <jest-axe version="^10.0.0">Accessibility testing</jest-axe>
+        <axe-core version="^4.11.0">Accessibility auditing</axe-core>
+        <tailwindcss version="^3.4.18">CSS framework (design tokens)</tailwindcss>
+        <@fontsource/cinzel version="^5.2.8">Display font (headings)</@fontsource/cinzel>
+        <@fontsource/lato version="^5.2.7">Body font (text)</@fontsource/lato>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Frontend-only changes: No backend API modifications (all 20+ endpoints remain unchanged)
+    - Component API consistency: Maintain existing component props interfaces (ProfileProps, WorkoutProps, DashboardProps) to minimize breaking changes
+    - Design token usage: Zero hardcoded colors (no hex/rgb values) - must use semantic tokens (bg-primary, text-primary, bg-background, text-foreground)
+    - Glass morphism pattern: All cards must use bg-white/50 with backdrop-blur-lg for depth and visual consistency
+    - Touch target compliance: WCAG AA requires minimum 60x60px touch targets (use min-w-[60px] min-h-[60px] classes)
+    - Barrel export pattern: Import all primitives from @/src/design-system/components/primitives (avoid direct imports)
+    - State management: Ensure component state is preserved during migration (no data loss or functionality changes)
+    - Testing requirement: Minimum 20 tests per component (60+ total) covering unit, integration, accessibility
+    - Accessibility: axe-core WCAG AA compliance (disable landmark-unique rule for Card primitives as documented)
+    - Typography: Use font-display (Cinzel) for headings, font-body (Lato) for text
+  </constraints>
+
+  <interfaces>
+    <!-- Component Props Interfaces -->
+    <interface>
+      <name>ProfileProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface ProfileProps { profile: UserProfile; setProfile: React.Dispatch&lt;React.SetStateAction&lt;UserProfile&gt;&gt;; muscleBaselines: MuscleBaselines; setMuscleBaselines: React.Dispatch&lt;React.SetStateAction&lt;MuscleBaselines&gt;&gt;; onBack: () => void; }</signature>
+      <path>components/Profile.tsx</path>
+    </interface>
+
+    <interface>
+      <name>WorkoutProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface WorkoutProps { onFinishWorkout: (session: WorkoutSession) => void; onCancel: () => void; allWorkouts: WorkoutSession[]; personalBests: PersonalBests; userProfile: UserProfile; muscleBaselines: MuscleBaselines; initialData?: RecommendedWorkoutData | null; plannedExercises?: PlannedExercise[] | null; }</signature>
+      <path>components/Workout.tsx</path>
+    </interface>
+
+    <interface>
+      <name>DashboardProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface DashboardProps { profile: UserProfile; workouts: WorkoutSession[]; muscleBaselines: MuscleBaselines; templates: WorkoutTemplate[]; onStartWorkout: () => void; onStartPlannedWorkout?: (plannedExercises: PlannedExercise[]) => void; onStartRecommendedWorkout: (data: RecommendedWorkoutData) => void; onSelectTemplate: (template: WorkoutTemplate) => void; onNavigateToProfile: () => void; onNavigateToBests: () => void; onNavigateToTemplates: () => void; onNavigateToAnalytics?: () => void; onNavigateToMuscleBaselines?: () => void; }</signature>
+      <path>components/Dashboard.tsx</path>
+    </interface>
+
+    <!-- Design System Primitive Interfaces -->
+    <interface>
+      <name>CardProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface CardProps { children: React.ReactNode; variant?: 'default' | 'elevated' | 'flat'; className?: string; onClick?: () => void; }</signature>
+      <path>src/design-system/components/primitives/Card.tsx</path>
+    </interface>
+
+    <interface>
+      <name>ButtonProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface ButtonProps { children: React.ReactNode; variant?: 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'destructive'; size?: 'sm' | 'md' | 'lg'; disabled?: boolean; loading?: boolean; onClick?: () => void; className?: string; }</signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+
+    <interface>
+      <name>InputProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface InputProps { type?: 'text' | 'number' | 'email' | 'password'; value: string | number; onChange: (e: React.ChangeEvent&lt;HTMLInputElement&gt;) => void; placeholder?: string; disabled?: boolean; error?: boolean; success?: boolean; className?: string; }</signature>
+      <path>src/design-system/components/primitives/Input.tsx</path>
+    </interface>
+
+    <interface>
+      <name>SheetProps</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface SheetProps { isOpen: boolean; onClose: () => void; children: React.ReactNode; className?: string; }</signature>
+      <path>src/design-system/components/primitives/Sheet.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest 4.0.3 with @testing-library/react 16.3.0. All tests must use React Testing Library patterns (render, screen, userEvent). Accessibility testing required with jest-axe and axe-core (WCAG AA compliance). Test file location: components/__tests__/{ComponentName}.test.tsx. Test structure: describe blocks for component sections, test() for individual cases. Mock setup: Mock child components and API calls to isolate component logic. Coverage requirements: Unit tests (rendering, design system integration), integration tests (user interactions, state management), accessibility tests (axe-core audits, keyboard navigation, touch targets). Known limitation: Card primitives cause landmark-unique violations - disable this rule in axe tests as documented in previous stories.
+    </standards>
+
+    <locations>
+      - components/__tests__/Profile.test.tsx (create - 20+ tests)
+      - components/__tests__/Workout.test.tsx (create - 20+ tests)
+      - components/__tests__/Dashboard.test.tsx (create - 20+ tests)
+      - Reference: components/__tests__/RecoveryDashboard.test.tsx (22 tests, all passing)
+      - Reference: components/__tests__/WorkoutTemplates.test.tsx (23 tests, all passing)
+      - Reference: components/__tests__/Analytics.test.tsx (23 tests, all passing)
+    </locations>
+
+    <ideas>
+      Profile.tsx Test Ideas (mapped to ACs):
+      - AC1: Render Profile with Card primitives for all sections (user info, weight tracking, equipment, muscle baselines)
+      - AC4: All form inputs use Input primitive (name, weight, equipment selectors)
+      - AC5: All buttons use Button primitive (save, cancel, add, delete)
+      - AC6: No hardcoded colors (grep verification for hex/rgb values)
+      - AC7: Touch targets minimum 60x60px (className assertions for min-w-[60px] min-h-[60px])
+      - AC8: Glass morphism applied (className assertions for bg-white/50 backdrop-blur-lg)
+      - AC9: Accessibility tests (axe-core WCAG AA with landmark-unique disabled)
+      - AC10: User interactions (edit profile, add weight entry, update baselines)
+      - AC10: State management (profile updates persist, form validation)
+      - AC10: Navigation (onBack callback triggered)
+
+      Workout.tsx Test Ideas (mapped to ACs):
+      - AC2: Sheet primitive used for workout builder modal (isOpen, onClose props)
+      - AC4: All form inputs use Input primitive (sets, reps, weight inputs)
+      - AC5: All buttons use Button primitive (add exercise, finish workout, cancel)
+      - AC6: No hardcoded colors (grep verification)
+      - AC7: Touch targets minimum 60x60px
+      - AC8: Glass morphism applied to cards
+      - AC9: Accessibility tests (axe-core, keyboard navigation, Sheet animations)
+      - AC10: Workout tracking functionality (add exercise, log sets, complete workout)
+      - AC10: Progressive overload suggestions (ProgressiveSuggestionButtons integration)
+      - AC10: Exercise selector integration (filter, search, selection)
+      - AC10: Sheet animations smooth (Framer Motion spring transitions)
+
+      Dashboard.tsx Test Ideas (mapped to ACs):
+      - AC3: Card primitives for quick stats sections (recent PRs, streak, weekly stats)
+      - AC5: All buttons use Button primitive (start workout, templates, profile nav)
+      - AC6: No hardcoded colors (grep verification)
+      - AC7: Touch targets minimum 60x60px
+      - AC8: Glass morphism applied consistently
+      - AC9: Accessibility tests (axe-core WCAG AA)
+      - AC10: Dashboard functionality (muscle states display, workout recommendations, navigation)
+      - AC10: FABMenu integration (quick actions)
+      - AC10: MuscleVisualization integration (muscle state rendering)
+      - AC10: CollapsibleCard integration (expandable sections)
+    </ideas>
+  </tests>
+</story-context>

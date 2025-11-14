@@ -1,0 +1,271 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6.5</epicId>
+    <storyId>2D-1</storyId>
+    <title>Profile Page Migration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-2d-1-profile-page-migration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>the Profile page to use the unified design system</iWant>
+    <soThat>I experience consistent styling, improved touch targets, glass morphism effects, and maintainable component architecture when managing my profile settings</soThat>
+    <tasks>
+      - Task 1: Migrate Profile.tsx (AC: 1, 2, 3, 4, 5, 6, 7, 10)
+        - Replace inline Card JSX with Card primitive from @/src/design-system/components/primitives
+        - Replace inline Button elements with Button primitive (variant-aware)
+        - Replace inline Input elements with Input primitive (variant-aware, size-aware)
+        - Replace inline Select elements with Select primitive (variant-aware)
+        - Update all color references to use design tokens (bg-primary, text-secondary, etc.)
+        - Apply glass morphism styling to cards (bg-white/50, backdrop-blur-lg)
+        - Ensure all touch targets are minimum 60x60px (WCAG AA compliance)
+        - Update imports to use design-system barrel exports
+        - Verify all form interactions work correctly
+        - Update/create tests for new component structure (20+ tests)
+        - Verify no visual regressions (functionality preservation - all tests passing)
+      - Task 2: Verification and Testing (AC: 8, 9, 10)
+        - Run full test suite - ensure zero regressions
+        - Test Profile functionality (profile editing, form validation, save/cancel actions)
+        - Verify touch target sizes using className assertions (min-w-[60px] min-h-[60px])
+        - Cross-browser testing (component rendering verified through tests)
+        - Mobile device testing (responsive layout verification)
+        - Ensure 20+ tests passing
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Profile uses Card primitive for settings sections
+    2. Profile uses Button primitive for all actions
+    3. Profile uses Input primitive for text fields
+    4. Profile uses Select primitive for dropdown selections
+    5. Design tokens used for all colors (no hardcoded hex/rgb)
+    6. WCAG AA compliance (60x60px touch targets)
+    7. Glass morphism applied consistently
+    8. Comprehensive tests (20+ tests)
+    9. Zero regressions in existing functionality
+    10. All interactive elements meet accessibility standards
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6.5: Design System Rollout - Story 6.5.2D-1</title>
+        <section>Story 6.5.2D-1: Profile Page Migration (4-5 hours)</section>
+        <snippet>Profile.tsx (518 lines) - user profile management. Acceptance Criteria: Profile uses Card, Button, Input, Select from design-system. All design tokens used (no hardcoded colors). Tests updated for new imports (20+ tests). Touch targets 60x60px minimum. No visual regressions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>UI Redesign Architecture</title>
+        <section>Section 1.2: Current Component Structure</section>
+        <snippet>UI redesign is frontend-only, all 20+ API endpoints remain unchanged. Glass Morphism Pattern: Cards use bg-white/50 with backdrop-blur-lg for depth. Touch Target Compliance: WCAG AA requires 60x60px minimum (currently 20x20px in some places).</snippet>
+      </doc>
+      <doc>
+        <path>docs/design-system-quick-reference.md</path>
+        <title>FitForge Design System - Quick Reference</title>
+        <section>Components and Design Tokens</section>
+        <snippet>Copy-paste cheat sheet for developers implementing the new design system. Includes design tokens (text-primary, bg-primary, bg-white/50), typography (font-cinzel for headings, font-lato for body), and component examples (Glass Card, Button, Input patterns).</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/6-5-2c-medium-page-migrations.md</path>
+        <title>Story 6.5.2C: Medium Page Migrations (Previous Story)</title>
+        <section>Learnings and Patterns</section>
+        <snippet>Successfully migrated RecoveryDashboard and ExerciseRecommendations (866 lines). Design Token Conversions: bg-brand-dark → bg-background, text-brand-cyan → text-primary, bg-brand-surface → Card primitive with glass morphism. Testing Strategy: Unit tests for rendering, integration tests for interactions, accessibility tests (axe-core, ARIA labels), touch target verification (min-w-[60px] min-h-[60px]).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/Profile.tsx</path>
+        <kind>component</kind>
+        <symbol>Profile</symbol>
+        <lines>1-518</lines>
+        <reason>Target file for migration. Currently uses inline JSX for cards, buttons, inputs, and selects. Contains hardcoded colors (bg-brand-surface, bg-brand-dark, text-slate-*) that need conversion to design tokens. Has form fields, equipment modal, and weight chart that need design system primitives.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Card</symbol>
+        <lines>1-150</lines>
+        <reason>Card primitive to replace inline card JSX. Supports variants (default, elevated, flat), glass morphism styling (bg-white/50, backdrop-blur-lg), and touch-friendly interactions.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Button</symbol>
+        <lines>1-200</lines>
+        <reason>Button primitive to replace inline button elements. Supports variants (primary, secondary, tertiary, ghost, destructive), sizes (sm, md, lg), states (disabled, loading), and 60x60px touch targets.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Input.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Input</symbol>
+        <lines>1-120</lines>
+        <reason>Input primitive to replace inline input elements. Supports variants (default, error, success), sizes (sm, md, lg), glass morphism background, and focus rings. Implements accessible input field with ARIA attributes.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Select.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Select</symbol>
+        <lines>1-300</lines>
+        <reason>Select primitive to replace inline select elements. Supports full keyboard navigation (Enter/Space to open, Arrow keys to navigate, Enter to select, Escape to close). Implements WCAG 2.1 keyboard accessibility with role="listbox" and role="option".</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/index.ts</path>
+        <kind>barrel-export</kind>
+        <symbol>primitives</symbol>
+        <lines>1-31</lines>
+        <reason>Barrel export for all design system primitives. Import pattern: import { Card, Button, Input, Select } from '@/src/design-system/components/primitives'</reason>
+      </artifact>
+      <artifact>
+        <path>components/__tests__/WorkoutTemplates.test.tsx</path>
+        <kind>test</kind>
+        <symbol>WorkoutTemplates Test Suite</symbol>
+        <lines>1-300</lines>
+        <reason>Reference test suite from Story 6.5.2B showing established testing patterns: design system primitive integration tests, design token verification, touch target size verification (min-w-[60px] min-h-[60px]), accessibility tests with axe-core and WCAG AA compliance.</reason>
+      </artifact>
+      <artifact>
+        <path>components/__tests__/RecoveryDashboard.test.tsx</path>
+        <kind>test</kind>
+        <symbol>RecoveryDashboard Test Suite</symbol>
+        <lines>1-400</lines>
+        <reason>Reference test suite from Story 6.5.2C showing 22 comprehensive tests: Card primitive integration, Button primitive integration, design token usage, touch target compliance, glass morphism styling, functionality preservation, accessibility (axe-core WCAG AA).</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <react>^19.2.0</react>
+        <react-dom>^19.2.0</react-dom>
+        <framer-motion>^12.23.24</framer-motion>
+        <lucide-react>^0.553.0</lucide-react>
+        <vitest>^4.0.3</vitest>
+        <@testing-library/react>^16.3.0</@testing-library/react>
+        <@testing-library/user-event>^14.6.1</@testing-library/user-event>
+        <axe-core>^4.11.0</axe-core>
+        <jest-axe>^10.0.0</jest-axe>
+        <tailwindcss>^3.4.18</tailwindcss>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Frontend-only changes: No backend API modifications, all 20+ endpoints remain unchanged
+    - Maintain existing component APIs: ProfileProps interface should remain unchanged to minimize breaking changes
+    - Progressive enhancement: Maintain all existing functionality during migration
+    - Glass morphism pattern: Cards must use bg-white/50 with backdrop-blur-lg for depth
+    - Touch target compliance: WCAG AA requires 60x60px minimum (use min-w-[60px] min-h-[60px] classes)
+    - Design token usage: No hardcoded colors allowed (bg-[#hex], style={{backgroundColor}})
+    - Barrel export pattern: Import from @/src/design-system/components/primitives, not direct paths
+    - Testing requirement: Minimum 20+ tests with axe-core accessibility compliance (WCAG AA)
+    - Known limitation: Card primitives use role="region" without unique accessible names, causing landmark-unique violations. Disable this rule in tests as documented in Story 6.5.2C.
+    - Zero regressions: Full test suite (719 tests) must remain passing after migration
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>InputProps</name>
+      <kind>component-interface</kind>
+      <signature>
+        export interface InputProps extends React.InputHTMLAttributes&lt;HTMLInputElement&gt; {
+          variant?: 'default' | 'error';
+          size?: 'sm' | 'md' | 'lg';
+          placeholder?: string;
+          value?: string;
+          onChange?: (event: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; void;
+          disabled?: boolean;
+          ariaLabel?: string;
+          className?: string;
+          type?: string;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Input.tsx</path>
+    </interface>
+    <interface>
+      <name>SelectProps</name>
+      <kind>component-interface</kind>
+      <signature>
+        export interface SelectProps {
+          options: SelectOption[];
+          value?: string;
+          onChange: (value: string) =&gt; void;
+          placeholder?: string;
+          disabled?: boolean;
+          searchable?: boolean;
+          className?: string;
+          'aria-label'?: string;
+        }
+        export interface SelectOption {
+          label: string;
+          value: string;
+          disabled?: boolean;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Select.tsx</path>
+    </interface>
+    <interface>
+      <name>ButtonProps</name>
+      <kind>component-interface</kind>
+      <signature>
+        export interface ButtonProps extends React.ButtonHTMLAttributes&lt;HTMLButtonElement&gt; {
+          variant?: 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'destructive';
+          size?: 'sm' | 'md' | 'lg';
+          isLoading?: boolean;
+          leftIcon?: React.ReactNode;
+          rightIcon?: React.ReactNode;
+          className?: string;
+          children: React.ReactNode;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+    <interface>
+      <name>CardProps</name>
+      <kind>component-interface</kind>
+      <signature>
+        export interface CardProps {
+          variant?: 'default' | 'elevated' | 'flat';
+          children: React.ReactNode;
+          className?: string;
+          onClick?: () =&gt; void;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Card.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest 4.0.3 with React Testing Library 16.3.0. All tests must use vitest/globals (describe, it, expect, vi, beforeEach). Accessibility testing with jest-axe and axe-core 4.11.0 (WCAG AA compliance required). Test organization: Unit tests for component rendering and design system integration, integration tests for user interactions (clicks, form edits, selections), accessibility tests (axe-core audits with landmark-unique rule disabled), touch target verification through className assertions (min-w-[60px] min-h-[60px]). Mock strategy: Use vi.mock() for API calls and external dependencies. Test location: components/__tests__/Profile.test.tsx (create new file). Coverage target: Minimum 20+ comprehensive tests covering all acceptance criteria.
+    </standards>
+    <locations>
+      - components/__tests__/Profile.test.tsx (to be created)
+      - components/__tests__/WorkoutTemplates.test.tsx (reference example - 23 tests)
+      - components/__tests__/RecoveryDashboard.test.tsx (reference example - 22 tests)
+      - components/__tests__/ExerciseRecommendations.test.tsx (reference example - 26 tests)
+    </locations>
+    <ideas>
+      - AC1-4: Test that Profile renders with Card, Button, Input, Select primitives (verify import from @/src/design-system/components/primitives)
+      - AC1: Test that settings sections use Card component with glass morphism (bg-white/50 backdrop-blur-lg)
+      - AC2: Test that all action buttons (save, cancel, edit, delete) use Button primitive with proper variants
+      - AC3: Test that text input fields (name, email, etc.) use Input primitive with default variant
+      - AC4: Test that dropdown selections (equipment type, etc.) use Select primitive with options array
+      - AC5: Test that no hardcoded colors exist (grep verification or className assertions)
+      - AC5: Test that design tokens are used (text-primary, bg-primary, font-display, font-body classes present)
+      - AC6: Test touch target compliance - buttons have min-w-[60px] min-h-[60px] classes
+      - AC7: Test glass morphism applied - Cards have bg-white/50 and backdrop-blur-lg classes
+      - AC8-9: Test form interactions work correctly (edit profile, add equipment, delete equipment, save changes, cancel)
+      - AC8-9: Test weight chart renders with data
+      - AC8-9: Test equipment modal opens/closes correctly
+      - AC8-9: Test profile data persistence (save button updates profile state)
+      - AC10: Accessibility test - run axe-core audit with WCAG AA compliance (disable landmark-unique rule)
+      - AC10: Accessibility test - verify ARIA labels on inputs and buttons
+      - AC10: Accessibility test - keyboard navigation (Tab, Enter, Escape for modal)
+      - AC9: Regression test - verify existing functionality preserved (profile editing, equipment management, weight tracking)
+      - AC9: Integration test - full profile update flow (edit → save → verify state change)
+      - AC9: Edge case test - empty weight history (chart shows "Not enough data" message)
+      - AC9: Edge case test - equipment modal validation (required fields, min/max ranges)
+    </ideas>
+  </tests>
+</story-context>
