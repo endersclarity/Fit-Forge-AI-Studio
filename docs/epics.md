@@ -2903,15 +2903,27 @@ Epic 7 (Intelligence Shortcuts) stories were drafted assuming the pre-6.5 archit
 - [ ] Touch targets 60x60px minimum
 - [ ] No visual regressions
 
-#### Story 6.5.3: Modals & Major Features (12-16 hours)
-- **Modal Components** (6-8 hours):
+#### Story 6.5.3A: Modal Components Migration (6-8 hours)
+- **Modal Components**:
   - WorkoutPlannerModal.tsx (545 lines)
   - MuscleDeepDiveModal.tsx (317 lines)
   - modals/MuscleDetailModal.tsx (221 lines)
   - WorkoutSummaryModal.tsx (208 lines)
   - SetEditModal.tsx (263 lines)
   - BaselineUpdateModal.tsx (77 lines)
-- **Complex Components** (6-8 hours):
+- **Total:** 1,631 lines
+
+**Acceptance Criteria:**
+- [ ] All 6 modals migrated to design system
+- [ ] Modals use Sheet component (bottom drawer pattern)
+- [ ] All cards use Card primitive with glass morphism
+- [ ] All buttons use Button primitive
+- [ ] All form inputs use Input primitive
+- [ ] Existing functionality preserved (no behavior changes)
+- [ ] Tests updated for new component structure (25+ tests)
+
+#### Story 6.5.3B: Complex Components & Onboarding (6-8 hours)
+- **Complex Components**:
   - MuscleVisualization.tsx (379 lines)
   - MuscleBaselinesPage.tsx (299 lines)
   - SetConfigurator.tsx (291 lines)
@@ -2919,18 +2931,18 @@ Epic 7 (Intelligence Shortcuts) stories were drafted assuming the pre-6.5 archit
   - RecommendationCard.tsx (215 lines)
   - TargetModePanel.tsx (215 lines)
   - ExerciseCard.tsx (209 lines)
-- **Onboarding Flow** (2 hours):
+- **Onboarding Flow**:
   - onboarding/EquipmentStep.tsx (223 lines)
   - onboarding/ProfileWizard.tsx (143 lines)
+- **Total:** 2,249 lines
 
 **Acceptance Criteria:**
-- [ ] All 15 components migrated to design system
-- [ ] Modals use Sheet component (bottom drawer pattern)
+- [ ] All 9 components migrated to design system
 - [ ] All cards use Card primitive with glass morphism
 - [ ] All buttons use Button primitive
 - [ ] All form inputs use Input primitive
 - [ ] Existing functionality preserved (no behavior changes)
-- [ ] Tests updated for new component structure
+- [ ] Tests updated for new component structure (30+ tests)
 
 #### Story 6.5.4: Utility Components & Subdirectories (16-20 hours)
 - **Charts & Analytics** (4-5 hours):

@@ -98,7 +98,8 @@ development_status:
   6-5-2d-1-profile-page-migration: done
   6-5-2d-2-workout-page-migration: done
   6-5-2d-3-dashboard-page-migration: done
-  6-5-3-modals-major-features: backlog
+  6-5-3a-modal-components-migration: backlog
+  6-5-3b-complex-components-onboarding: backlog
   6-5-4-utility-components-subdirectories: backlog
   6-5-5-legacy-cleanup-epic-7-preparation: backlog
   epic-6-5-retrospective: optional
