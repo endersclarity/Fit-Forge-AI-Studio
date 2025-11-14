@@ -2873,18 +2873,33 @@ Epic 7 (Intelligence Shortcuts) stories were drafted assuming the pre-6.5 archit
 - [ ] Touch targets 60x60px minimum
 - [ ] No visual regressions
 
-#### Story 6.5.2D: Large Page Migrations (8-12 hours)
+#### Story 6.5.2D-1: Profile Page Migration (4-5 hours)
 - Profile.tsx (518 lines) - user profile management
-- Workout.tsx (904 lines) - active workout tracking
-- Dashboard.tsx (912 lines) - main dashboard with visualizations
-- Total: 2,334 lines
 
 **Acceptance Criteria:**
 - [ ] Profile uses Card, Button, Input, Select from design-system
+- [ ] All design tokens used (no hardcoded colors)
+- [ ] Tests updated for new imports (20+ tests)
+- [ ] Touch targets 60x60px minimum
+- [ ] No visual regressions
+
+#### Story 6.5.2D-2: Workout Page Migration (6-7 hours)
+- Workout.tsx (904 lines) - active workout tracking
+
+**Acceptance Criteria:**
 - [ ] Workout uses Card, Button, Input, FAB, Sheet from design-system
+- [ ] All design tokens used (no hardcoded colors)
+- [ ] Tests updated for new imports (25+ tests)
+- [ ] Touch targets 60x60px minimum
+- [ ] No visual regressions
+
+#### Story 6.5.2D-3: Dashboard Page Migration (6-7 hours)
+- Dashboard.tsx (912 lines) - main dashboard with visualizations
+
+**Acceptance Criteria:**
 - [ ] Dashboard uses Card, Button, Badge, ProgressBar from design-system
-- [ ] All pages use design tokens
-- [ ] Tests updated for new imports
+- [ ] All design tokens used (no hardcoded colors)
+- [ ] Tests updated for new imports (25+ tests)
 - [ ] Touch targets 60x60px minimum
 - [ ] No visual regressions
 
