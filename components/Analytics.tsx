@@ -8,6 +8,7 @@ import MuscleCapacityChart from './MuscleCapacityChart';
 import VolumeTrendsChart from './VolumeTrendsChart';
 import ActivityCalendarHeatmap from './ActivityCalendarHeatmap';
 import { ArrowLeftIcon } from './Icons';
+import { Card, Button, Select, SelectOption } from '@/src/design-system/components/primitives';
 
 const Analytics: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +16,14 @@ const Analytics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<number>(90);
+
+  const timeRangeOptions: SelectOption[] = [
+    { label: 'Last 7 Days', value: '7' },
+    { label: 'Last 30 Days', value: '30' },
+    { label: 'Last 90 Days', value: '90' },
+    { label: 'Last Year', value: '365' },
+    { label: 'All Time', value: '3650' },
+  ];
 
   useEffect(() => {
     fetchAnalytics();
@@ -41,8 +50,8 @@ const Analytics: React.FC = () => {
     return (
       <div className="p-6 max-w-7xl mx-auto">
         <div className="flex flex-col items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-cyan mb-4"></div>
-          <p className="text-slate-400">Loading analytics...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mb-4"></div>
+          <p className="text-gray-600">Loading analytics...</p>
         </div>
       </div>
     );
@@ -51,16 +60,16 @@ const Analytics: React.FC = () => {
   if (error) {
     return (
       <div className="p-6 max-w-7xl mx-auto">
-        <div className="bg-red-900/20 border border-red-500 rounded-lg p-8 text-center">
-          <h3 className="text-xl font-bold text-red-400 mb-2">Error Loading Analytics</h3>
-          <p className="text-slate-300 mb-4">{error}</p>
-          <button
+        <Card className="bg-red-50 border-2 border-red-300 p-8 text-center">
+          <h3 className="text-xl font-display font-bold text-red-700 mb-2">Error Loading Analytics</h3>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <Button
             onClick={fetchAnalytics}
-            className="px-6 py-2 bg-brand-cyan text-brand-dark font-semibold rounded-lg hover:bg-cyan-400 transition"
+            variant="primary"
           >
             Retry
-          </button>
-        </div>
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -76,74 +85,76 @@ const Analytics: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <header className="flex justify-between items-center mb-8">
-        <button onClick={() => navigate('/')} className="p-2 rounded-full hover:bg-brand-surface">
+        <Button
+          onClick={() => navigate('/')}
+          variant="ghost"
+          size="sm"
+          className="min-w-[60px] min-h-[60px] rounded-full"
+          ariaLabel="Go back to home"
+        >
           <ArrowLeftIcon className="w-6 h-6"/>
-        </button>
-        <h1 className="text-3xl font-bold text-brand-cyan">Analytics Dashboard</h1>
+        </Button>
+        <h1 className="text-3xl font-display font-bold text-primary">Analytics Dashboard</h1>
 
         {/* Time Range Filter */}
         <div className="flex items-center gap-3">
-          <label className="text-slate-300 font-medium">Time Range:</label>
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(Number(e.target.value))}
-            className="bg-brand-surface border border-brand-muted rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-cyan"
-          >
-            <option value={7}>Last 7 Days</option>
-            <option value={30}>Last 30 Days</option>
-            <option value={90}>Last 90 Days</option>
-            <option value={365}>Last Year</option>
-            <option value={3650}>All Time</option>
-          </select>
+          <label className="text-gray-700 font-body font-medium">Time Range:</label>
+          <Select
+            options={timeRangeOptions}
+            value={timeRange.toString()}
+            onChange={(value) => setTimeRange(Number(value))}
+            aria-label="Select time range for analytics"
+            className="min-w-[200px]"
+          />
         </div>
       </header>
 
       {/* Empty State Message */}
       {hasNoData && (
-        <div className="bg-brand-surface border border-brand-cyan/30 rounded-lg p-8 text-center mb-8">
-          <h2 className="text-2xl font-bold text-brand-cyan mb-4">Start Training to See Your Progress!</h2>
-          <p className="text-slate-300 mb-2">Your analytics charts will populate as you log workouts.</p>
-          <p className="text-slate-400 text-sm">
+        <Card className="border-2 border-primary/30 p-8 text-center mb-8">
+          <h2 className="text-2xl font-display font-bold text-primary mb-4">Start Training to See Your Progress!</h2>
+          <p className="text-gray-700 mb-2">Your analytics charts will populate as you log workouts.</p>
+          <p className="text-gray-600 text-sm">
             Track your volume, PRs, consistency, and more - all your training data in one place.
           </p>
-        </div>
+        </Card>
       )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6 text-center">
-          <div className="text-slate-400 text-sm mb-2">Total Workouts</div>
-          <div className="text-3xl font-bold text-brand-cyan">{analytics.summary.totalWorkouts}</div>
-        </div>
+        <Card className="p-6 text-center min-h-[60px]">
+          <div className="text-gray-600 text-sm mb-2">Total Workouts</div>
+          <div className="text-3xl font-display font-bold text-primary">{analytics.summary.totalWorkouts}</div>
+        </Card>
 
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6 text-center">
-          <div className="text-slate-400 text-sm mb-2">Total Volume</div>
-          <div className="text-3xl font-bold text-brand-cyan">
+        <Card className="p-6 text-center min-h-[60px]">
+          <div className="text-gray-600 text-sm mb-2">Total Volume</div>
+          <div className="text-3xl font-display font-bold text-primary">
             {Math.round(analytics.summary.totalVolume / 1000)}k
           </div>
-          <div className="text-slate-500 text-xs mt-1">lbs</div>
-        </div>
+          <div className="text-gray-500 text-xs mt-1">lbs</div>
+        </Card>
 
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6 text-center">
-          <div className="text-slate-400 text-sm mb-2">PRs Hit</div>
-          <div className="text-3xl font-bold text-green-400">{analytics.summary.totalPRs}</div>
-        </div>
+        <Card className="p-6 text-center min-h-[60px]">
+          <div className="text-gray-600 text-sm mb-2">PRs Hit</div>
+          <div className="text-3xl font-display font-bold text-green-600">{analytics.summary.totalPRs}</div>
+        </Card>
 
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6 text-center">
-          <div className="text-slate-400 text-sm mb-2">Current Streak</div>
-          <div className="text-3xl font-bold text-orange-400">{analytics.summary.currentStreak}</div>
-          <div className="text-slate-500 text-xs mt-1">
+        <Card className="p-6 text-center min-h-[60px]">
+          <div className="text-gray-600 text-sm mb-2">Current Streak</div>
+          <div className="text-3xl font-display font-bold text-orange-600">{analytics.summary.currentStreak}</div>
+          <div className="text-gray-500 text-xs mt-1">
             {analytics.summary.currentStreak === 1 ? 'day' : 'days'}
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6 text-center">
-          <div className="text-slate-400 text-sm mb-2">Weekly Frequency</div>
-          <div className="text-3xl font-bold text-purple-400">
+        <Card className="p-6 text-center min-h-[60px]">
+          <div className="text-gray-600 text-sm mb-2">Weekly Frequency</div>
+          <div className="text-3xl font-display font-bold text-purple-600">
             {(analytics.summary.weeklyFrequency || 0).toFixed(1)}
           </div>
-          <div className="text-slate-500 text-xs mt-1">workouts/week</div>
-        </div>
+          <div className="text-gray-500 text-xs mt-1">workouts/week</div>
+        </Card>
       </div>
 
       {/* Charts and Data Section */}
@@ -158,28 +169,28 @@ const Analytics: React.FC = () => {
         <MuscleCapacityChart muscleCapacityTrends={analytics.muscleCapacityTrends} />
 
         {/* PR Timeline */}
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6">
-          <h2 className="text-xl font-bold text-slate-200 mb-4">Recent Personal Records</h2>
+        <Card className="p-6">
+          <h2 className="text-xl font-display font-bold text-primary-dark mb-4">Recent Personal Records</h2>
           <div className="space-y-2 max-h-[400px] overflow-y-auto">
             {analytics.prTimeline.slice(0, 10).map((pr, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-brand-dark/50 rounded hover:bg-brand-dark/70 transition">
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-100 rounded hover:bg-gray-200 transition">
                 <div className="flex-1">
-                  <div className="font-medium text-brand-cyan">{pr.exercise}</div>
-                  <div className="text-xs text-slate-500">{new Date(pr.date).toLocaleDateString()}</div>
+                  <div className="font-body font-medium text-primary">{pr.exercise}</div>
+                  <div className="text-xs text-gray-600">{new Date(pr.date).toLocaleDateString()}</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-slate-200">{(pr.newVolume || 0).toFixed(0)} lbs</div>
-                  <div className="text-xs text-green-400">
+                  <div className="font-body font-bold text-primary-dark">{(pr.newVolume || 0).toFixed(0)} lbs</div>
+                  <div className="text-xs text-green-600">
                     +{(pr.improvement || 0).toFixed(0)} lbs ({(pr.percentIncrease || 0).toFixed(1)}%)
                   </div>
                 </div>
               </div>
             ))}
             {analytics.prTimeline.length === 0 && (
-              <p className="text-center text-slate-400 py-8">No PRs recorded yet. Keep pushing!</p>
+              <p className="text-center text-gray-600 py-8">No PRs recorded yet. Keep pushing!</p>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Activity Calendar Heatmap - Full width */}
         <div className="lg:col-span-2">
@@ -190,38 +201,38 @@ const Analytics: React.FC = () => {
         </div>
 
         {/* Consistency Metrics */}
-        <div className="bg-brand-surface border border-brand-muted rounded-lg p-6 lg:col-span-2">
-          <h2 className="text-xl font-bold text-slate-200 mb-4">Training Consistency</h2>
+        <Card className="p-6 lg:col-span-2">
+          <h2 className="text-xl font-display font-bold text-primary-dark mb-4">Training Consistency</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="text-center p-4 bg-brand-dark/50 rounded">
-              <div className="text-slate-400 text-sm mb-1">Current Streak</div>
-              <div className="text-2xl font-bold text-orange-400">{analytics.consistencyMetrics.currentStreak}</div>
-              <div className="text-slate-500 text-xs">days</div>
+            <div className="text-center p-4 bg-gray-100 rounded min-h-[60px]">
+              <div className="text-gray-600 text-sm mb-1">Current Streak</div>
+              <div className="text-2xl font-display font-bold text-orange-600">{analytics.consistencyMetrics.currentStreak}</div>
+              <div className="text-gray-500 text-xs">days</div>
             </div>
-            <div className="text-center p-4 bg-brand-dark/50 rounded">
-              <div className="text-slate-400 text-sm mb-1">Longest Streak</div>
-              <div className="text-2xl font-bold text-orange-400">{analytics.consistencyMetrics.longestStreak}</div>
-              <div className="text-slate-500 text-xs">days</div>
+            <div className="text-center p-4 bg-gray-100 rounded min-h-[60px]">
+              <div className="text-gray-600 text-sm mb-1">Longest Streak</div>
+              <div className="text-2xl font-display font-bold text-orange-600">{analytics.consistencyMetrics.longestStreak}</div>
+              <div className="text-gray-500 text-xs">days</div>
             </div>
-            <div className="text-center p-4 bg-brand-dark/50 rounded">
-              <div className="text-slate-400 text-sm mb-1">This Week</div>
-              <div className="text-2xl font-bold text-brand-cyan">{analytics.consistencyMetrics.workoutsThisWeek}</div>
-              <div className="text-slate-500 text-xs">workouts</div>
+            <div className="text-center p-4 bg-gray-100 rounded min-h-[60px]">
+              <div className="text-gray-600 text-sm mb-1">This Week</div>
+              <div className="text-2xl font-display font-bold text-primary">{analytics.consistencyMetrics.workoutsThisWeek}</div>
+              <div className="text-gray-500 text-xs">workouts</div>
             </div>
-            <div className="text-center p-4 bg-brand-dark/50 rounded">
-              <div className="text-slate-400 text-sm mb-1">Last Week</div>
-              <div className="text-2xl font-bold text-brand-cyan">{analytics.consistencyMetrics.workoutsLastWeek}</div>
-              <div className="text-slate-500 text-xs">workouts</div>
+            <div className="text-center p-4 bg-gray-100 rounded min-h-[60px]">
+              <div className="text-gray-600 text-sm mb-1">Last Week</div>
+              <div className="text-2xl font-display font-bold text-primary">{analytics.consistencyMetrics.workoutsLastWeek}</div>
+              <div className="text-gray-500 text-xs">workouts</div>
             </div>
-            <div className="text-center p-4 bg-brand-dark/50 rounded">
-              <div className="text-slate-400 text-sm mb-1">Avg Frequency</div>
-              <div className="text-2xl font-bold text-purple-400">
+            <div className="text-center p-4 bg-gray-100 rounded min-h-[60px]">
+              <div className="text-gray-600 text-sm mb-1">Avg Frequency</div>
+              <div className="text-2xl font-display font-bold text-purple-600">
                 {(analytics.consistencyMetrics.avgWeeklyFrequency || 0).toFixed(1)}
               </div>
-              <div className="text-slate-500 text-xs">workouts/week</div>
+              <div className="text-gray-500 text-xs">workouts/week</div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

@@ -89,6 +89,18 @@ development_status:
   6-5-fab-patterns-and-modal-standardization: drafted
   epic-6-retrospective: optional
 
+  # Epic 6.5: Design System Rollout (NEW - UI Redesign Phase 2.5)
+  epic-6.5: backlog
+  6-5-1-railway-deployment-missing-primitives: backlog
+  6-5-2a-design-system-patterns: backlog
+  6-5-2b-small-page-migrations: drafted
+  6-5-2c-medium-page-migrations: backlog
+  6-5-2d-large-page-migrations: backlog
+  6-5-3-modals-major-features: backlog
+  6-5-4-utility-components-subdirectories: backlog
+  6-5-5-legacy-cleanup-epic-7-preparation: backlog
+  epic-6.5-retrospective: optional
+
   # Epic 7: Intelligence Shortcuts (NEW - UI Redesign Phase 3)
   epic-7: backlog
   7-1-auto-starting-rest-timer: drafted

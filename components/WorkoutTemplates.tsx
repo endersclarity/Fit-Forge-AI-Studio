@@ -3,6 +3,7 @@ import { WorkoutTemplate, Exercise, WorkoutResponse } from '../types';
 import { templatesAPI, workoutsAPI } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
 import { ChevronDownIcon } from './Icons';
+import { Card, Button, Badge } from '@/src/design-system/components/primitives';
 
 interface WorkoutTemplatesProps {
   onBack: () => void;
@@ -102,9 +103,9 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-dark p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="flex items-center justify-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-cyan"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </div>
     );
@@ -112,39 +113,43 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
 
   if (error) {
     return (
-      <div className="min-h-screen bg-brand-dark p-4">
-        <div className="bg-brand-surface p-6 rounded-lg">
-          <p className="text-red-400">{error}</p>
-          <button
+      <div className="min-h-screen bg-background p-4">
+        <Card className="p-6">
+          <p className="text-red-600">{error}</p>
+          <Button
             onClick={loadTemplates}
-            className="mt-4 bg-brand-cyan text-brand-dark px-4 py-2 rounded-lg font-semibold"
+            variant="primary"
+            className="mt-4"
           >
             Retry
-          </button>
-        </div>
+          </Button>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-brand-dark p-4 pb-24">
+    <div className="min-h-screen bg-background p-4 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <button
+        <Button
           onClick={onBack}
-          className="p-2 rounded-full hover:bg-brand-surface"
+          variant="ghost"
+          size="sm"
+          className="min-w-[60px] min-h-[60px] rounded-full"
+          ariaLabel="Go back"
         >
-          <ChevronDownIcon className="w-6 h-6 text-slate-300 rotate-90" />
-        </button>
-        <h1 className="text-2xl font-bold text-white">Workout Templates</h1>
-        <div className="w-10" /> {/* Spacer for alignment */}
+          <ChevronDownIcon className="w-6 h-6 rotate-90" />
+        </Button>
+        <h1 className="text-2xl font-display font-bold text-primary-dark">Workout Templates</h1>
+        <div className="w-[60px]" /> {/* Spacer for alignment */}
       </div>
 
       {/* Templates List */}
       <div className="space-y-6">
         {Object.entries(groupedTemplates).map(([category, categoryTemplates]: [string, WorkoutTemplate[]]) => (
           <div key={category}>
-            <h2 className="text-lg font-semibold text-brand-cyan mb-3">
+            <h2 className="text-lg font-display font-semibold text-primary mb-3">
               {category} Workouts
             </h2>
             <div className="space-y-3">
@@ -155,31 +160,34 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
                 const isRecommended = suggestion && template.variation === suggestion.suggestedVariation;
 
                 return (
-                  <button
+                  <Card
                     key={template.id}
                     onClick={() => onSelectTemplate(template)}
-                    className={`w-full p-4 rounded-lg transition-all text-left ${
+                    variant={isRecommended ? 'elevated' : 'default'}
+                    className={`w-full p-4 min-h-[60px] transition-all ${
                       isRecommended
-                        ? 'bg-brand-surface border-2 border-brand-cyan shadow-lg shadow-brand-cyan/20'
-                        : 'bg-brand-surface border-2 border-transparent opacity-70 hover:opacity-90'
+                        ? 'border-2 border-primary shadow-lg shadow-primary/20'
+                        : 'border-2 border-transparent opacity-70 hover:opacity-90'
                     }`}
+                    role="button"
+                    ariaLabel={`Select ${template.name} template`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-semibold text-white">
+                          <h3 className="text-lg font-body font-semibold text-primary-dark">
                             {template.name}
                           </h3>
                           {isRecommended && (
-                            <span className="px-2 py-0.5 bg-brand-cyan text-brand-dark text-xs font-bold rounded">
+                            <Badge variant="info" size="sm">
                               RECOMMENDED
-                            </span>
+                            </Badge>
                           )}
                           {template.isFavorite && (
-                            <span className="text-yellow-400">⭐</span>
+                            <span className="text-yellow-500">⭐</span>
                           )}
                         </div>
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-gray-600">
                           Variation {template.variation} • {template.exerciseIds?.length || 0} exercises
                           {template.timesUsed > 0 && ` • Used ${template.timesUsed}x`}
                         </p>
@@ -188,7 +196,7 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
 
                     {/* Exercise List */}
                     <div className="mb-3">
-                      <p className="text-sm text-slate-300">
+                      <p className="text-sm text-gray-700">
                         {exerciseNames.join(' • ')}
                       </p>
                     </div>
@@ -197,16 +205,17 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
                     {equipment.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {equipment.map(eq => (
-                          <span
+                          <Badge
                             key={eq}
-                            className="px-2 py-1 bg-brand-dark rounded text-xs text-slate-400"
+                            variant="primary"
+                            size="sm"
                           >
                             {eq}
-                          </span>
+                          </Badge>
                         ))}
                       </div>
                     )}
-                  </button>
+                  </Card>
                 );
               })}
             </div>
@@ -216,7 +225,7 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
 
       {templates.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-slate-400">No workout templates available</p>
+          <p className="text-gray-500">No workout templates available</p>
         </div>
       )}
     </div>

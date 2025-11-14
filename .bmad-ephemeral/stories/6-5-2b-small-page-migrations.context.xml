@@ -1,0 +1,368 @@
+<story-context id="{bmad_folder}/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6.5</epicId>
+    <storyId>2B</storyId>
+    <title>Small Page Migrations</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-2b-small-page-migrations.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>WorkoutTemplates and Analytics pages to use the unified design system</iWant>
+    <soThat>I experience consistent styling, improved touch targets, and maintainable component architecture across the application</soThat>
+    <tasks>
+- Task 1: Migrate WorkoutTemplates.tsx (AC: 1, 3, 4, 5, 6)
+  - Replace inline Card JSX with Card primitive from design-system
+  - Replace inline Button elements with Button primitive (variant-aware)
+  - Replace inline Badge elements with Badge primitive (variant: success/warning/error/info)
+  - Update all color references to use design tokens
+  - Ensure all touch targets are minimum 60x60px (WCAG AA compliance)
+  - Update imports to use design-system barrel exports
+  - Update/create tests for new component structure
+  - Verify no visual regressions
+
+- Task 2: Migrate Analytics.tsx (AC: 2, 3, 4, 5, 6)
+  - Replace inline Card JSX with Card primitive from design-system
+  - Replace inline Button elements with Button primitive
+  - Replace inline Select/Dropdown elements with Select primitive (with keyboard navigation)
+  - Update all color references to use design tokens
+  - Ensure all touch targets are minimum 60x60px
+  - Update imports to use design-system barrel exports
+  - Update/create tests for new component structure
+  - Verify no visual regressions
+
+- Task 3: Verification and Testing (AC: 4, 6)
+  - Run full test suite - ensure all existing tests pass
+  - Test WorkoutTemplates functionality (create, edit, delete templates)
+  - Test Analytics functionality (chart rendering, date filters, progression data)
+  - Verify touch target sizes using browser dev tools
+  - Cross-browser testing (Chrome, Safari, Firefox if applicable)
+  - Mobile device testing (responsive layout verification)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. WorkoutTemplates.tsx uses Card, Button, Badge from design-system
+2. Analytics.tsx uses Card, Button, Select from design-system
+3. All pages use design tokens (no hardcoded colors)
+4. Tests updated for new imports
+5. Touch targets 60x60px minimum
+6. No visual regressions
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown - Epic 6.5: Design System Rollout</title>
+        <section>Story 6.5.2B: Small Page Migrations</section>
+        <snippet>Migrate WorkoutTemplates.tsx (226 lines) and Analytics.tsx (230 lines) to use design system primitives. Total: 456 lines. Acceptance criteria include using Card, Button, Badge, Select from design-system, design tokens only, tests updated, 60x60px touch targets, no visual regressions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>1.2 Current Component Structure</section>
+        <snippet>96 React components across 9 directories. UI redesign is frontend-only, no backend changes required. All 20+ API endpoints unchanged. Progressive enhancement with feature flags for gradual rollout.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Architecture Patterns and Constraints</section>
+        <snippet>No Backend Changes: UI redesign is frontend-only. Glass Morphism Pattern: Cards use bg-white/50 with backdrop-blur-lg for depth. Touch Target Compliance: WCAG AA requires 60x60px minimum.</snippet>
+      </doc>
+      <doc>
+        <path>src/design-system/tokens/README.md</path>
+        <title>Design System Tokens</title>
+        <section>Quick Start</section>
+        <snippet>Comprehensive design token system with Tailwind classes and programmatic access. Use bg-primary, text-primary for colors. Font families: font-display (Cinzel) for headings, font-body (Lato) for text. WCAG AA compliant color combinations verified.</snippet>
+      </doc>
+      <doc>
+        <path>src/design-system/tokens/README.md</path>
+        <title>Design System Tokens</title>
+        <section>Color Tokens</section>
+        <snippet>Primary: #758AC6 (bg-primary, text-primary). Primary Dark: #344161 for body text and buttons. Badge colors: bg-badge-bg (#D9E1F8), border-badge-border (#BFCBEE), text-badge-text (#566890). Legacy brand-cyan deprecated.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/WorkoutTemplates.tsx</path>
+        <kind>component</kind>
+        <symbol>WorkoutTemplates</symbol>
+        <lines>1-226</lines>
+        <reason>Target file for migration - template management interface that needs Card, Button, Badge primitives and design token conversion</reason>
+      </artifact>
+      <artifact>
+        <path>components/Analytics.tsx</path>
+        <kind>component</kind>
+        <symbol>Analytics</symbol>
+        <lines>1-230</lines>
+        <reason>Target file for migration - charts and progression tracking that needs Card, Button, Select primitives and design token conversion</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Card</symbol>
+        <lines>1-40</lines>
+        <reason>Design system Card primitive with glass morphism (bg-white/50, backdrop-blur-lg). Variants: default, elevated. Used to replace inline card JSX.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Button</symbol>
+        <lines>1-40</lines>
+        <reason>Design system Button primitive with variants (primary, secondary, ghost) and sizes (sm, md, lg). Touch-friendly with 60x60px minimum target.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Badge.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Badge</symbol>
+        <lines>1-40</lines>
+        <reason>Design system Badge primitive with variants (success, warning, error, info, primary) and sizes (sm, md, lg). Used for status indicators.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Select.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Select</symbol>
+        <lines>1-40</lines>
+        <reason>Design system Select primitive with keyboard navigation support and WCAG accessibility. Used for filters and dropdowns in Analytics.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/index.ts</path>
+        <kind>barrel-export</kind>
+        <symbol>primitives exports</symbol>
+        <lines>1-28</lines>
+        <reason>Barrel export file for design system primitives. May need to add Badge and Select exports if missing.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/__tests__/Button.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Button tests</symbol>
+        <lines>all</lines>
+        <reason>Reference test patterns for Button primitive (62 tests). Use as template for component testing patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/__tests__/Card.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Card tests</symbol>
+        <lines>all</lines>
+        <reason>Reference test patterns for Card primitive. Use as template for component testing patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/__tests__/Badge.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Badge tests</symbol>
+        <lines>all</lines>
+        <reason>Existing Badge tests to verify primitive works correctly.</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/__tests__/Select.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Select tests</symbol>
+        <lines>all</lines>
+        <reason>Existing Select tests to verify keyboard navigation and accessibility.</reason>
+      </artifact>
+      <artifact>
+        <path>tailwind.config.js</path>
+        <kind>config</kind>
+        <symbol>tailwind config</symbol>
+        <lines>1-56</lines>
+        <reason>Tailwind configuration with design tokens: primary colors, badge colors, font families (Cinzel, Lato), custom shadows, border radius.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <react>19.2.0</react>
+        <react-dom>19.2.0</react-dom>
+        <react-router-dom>6.30.1</react-router-dom>
+        <axios>1.12.2</axios>
+        <framer-motion>12.23.24</framer-motion>
+        <vaul>1.1.2</vaul>
+        <lucide-react>0.553.0</lucide-react>
+      </node>
+      <testing>
+        <vitest>4.0.3</vitest>
+        <testing-library-react>16.3.0</testing-library-react>
+        <testing-library-jest-dom>6.9.1</testing-library-jest-dom>
+        <testing-library-user-event>14.6.1</testing-library-user-event>
+        <axe-core-react>4.11.0</axe-core-react>
+        <jest-axe>10.0.0</jest-axe>
+      </testing>
+      <build>
+        <vite>6.2.0</vite>
+        <typescript>5.8.2</typescript>
+        <tailwindcss>3.4.18</tailwindcss>
+        <postcss>8.5.6</postcss>
+        <autoprefixer>10.4.22</autoprefixer>
+      </build>
+      <storybook>
+        <storybook>9.1.15</storybook>
+        <storybook-react-vite>9.1.15</storybook-react-vite>
+        <storybook-addon-a11y>9.1.15</storybook-addon-a11y>
+      </storybook>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>architecture</type>
+      <rule>No Backend Changes - UI redesign is frontend-only, all 20+ API endpoints remain unchanged</rule>
+    </constraint>
+    <constraint>
+      <type>styling</type>
+      <rule>Glass Morphism Pattern - Cards must use bg-white/50 with backdrop-blur-lg for depth</rule>
+    </constraint>
+    <constraint>
+      <type>accessibility</type>
+      <rule>Touch Target Compliance - WCAG AA requires minimum 60x60px touch targets</rule>
+    </constraint>
+    <constraint>
+      <type>imports</type>
+      <rule>Use barrel exports - import { Card, Button, Badge, Select } from '@/src/design-system/components/primitives'</rule>
+    </constraint>
+    <constraint>
+      <type>design-tokens</type>
+      <rule>No hardcoded colors - Use design tokens exclusively (bg-primary, text-primary-dark, etc.)</rule>
+    </constraint>
+    <constraint>
+      <type>typography</type>
+      <rule>Font Families - Cinzel (font-display) for headings, Lato (font-body) for body text</rule>
+    </constraint>
+    <constraint>
+      <type>testing</type>
+      <rule>Vitest + React Testing Library - Follow existing test patterns from Button.test.tsx and Card.test.tsx</rule>
+    </constraint>
+    <constraint>
+      <type>behavior</type>
+      <rule>No Functional Changes - Migration must preserve all existing functionality and user interactions</rule>
+    </constraint>
+    <constraint>
+      <type>compatibility</type>
+      <rule>Maintain existing component APIs where possible to minimize breaking changes</rule>
+    </constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>CardProps</name>
+      <kind>React Component Props</kind>
+      <signature>interface CardProps { children: ReactNode; variant?: 'default' | 'elevated'; className?: string; onClick?: (event: MouseEvent) => void; role?: string; }</signature>
+      <path>src/design-system/components/primitives/Card.tsx</path>
+    </interface>
+    <interface>
+      <name>ButtonProps</name>
+      <kind>React Component Props</kind>
+      <signature>interface ButtonProps { variant?: 'primary' | 'secondary' | 'ghost'; size?: 'sm' | 'md' | 'lg'; children: ReactNode; ariaLabel?: string; }</signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+    <interface>
+      <name>BadgeProps</name>
+      <kind>React Component Props</kind>
+      <signature>interface BadgeProps { variant?: 'success' | 'warning' | 'error' | 'info' | 'primary'; size?: 'sm' | 'md' | 'lg'; children: ReactNode; className?: string; }</signature>
+      <path>src/design-system/components/primitives/Badge.tsx</path>
+    </interface>
+    <interface>
+      <name>SelectProps</name>
+      <kind>React Component Props</kind>
+      <signature>interface SelectProps { options: SelectOption[]; value?: string; onChange: (value: string) => void; placeholder?: string; disabled?: boolean; className?: string; ariaLabel?: string; }</signature>
+      <path>src/design-system/components/primitives/Select.tsx</path>
+    </interface>
+    <interface>
+      <name>SelectOption</name>
+      <kind>TypeScript Interface</kind>
+      <signature>interface SelectOption { label: string; value: string; disabled?: boolean; }</signature>
+      <path>src/design-system/components/primitives/Select.tsx</path>
+    </interface>
+    <interface>
+      <name>WorkoutTemplate</name>
+      <kind>TypeScript Type</kind>
+      <signature>From types file - represents workout template data structure</signature>
+      <path>types.ts</path>
+    </interface>
+    <interface>
+      <name>AnalyticsResponse</name>
+      <kind>TypeScript Type</kind>
+      <signature>From types file - represents analytics API response structure</signature>
+      <path>types.ts</path>
+    </interface>
+    <interface>
+      <name>templatesAPI</name>
+      <kind>API Service</kind>
+      <signature>templatesAPI.getAll() - fetches workout templates from backend</signature>
+      <path>api.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Testing framework: Vitest 4.0.3 with React Testing Library 16.3.0, jsdom environment. Accessibility testing using @axe-core/react 4.11.0 and jest-axe 10.0.0. Test patterns established in design system primitives (62 tests for Button, comprehensive coverage for Card). Tests should verify: component rendering, variant behavior, accessibility (ARIA labels, keyboard navigation), user interactions, and integration with parent components. Follow AAA pattern: Arrange, Act, Assert. Use data-testid for complex queries when semantic queries are insufficient.
+    </standards>
+    <locations>
+      <location>src/design-system/components/primitives/__tests__/</location>
+      <location>tests/components/ (for integration tests)</location>
+      <location>**/*.test.tsx (co-located with components)</location>
+    </locations>
+    <ideas>
+      <idea ac="AC1">
+        <description>WorkoutTemplates uses design system primitives correctly</description>
+        <tests>
+          - Verify Card component renders with glass morphism styling (bg-white/50, backdrop-blur)
+          - Verify Button variants render correctly (primary for actions, secondary for cancel)
+          - Verify Badge variants display template status (success, warning, info)
+          - Verify imports are from '@/src/design-system/components/primitives'
+          - Verify no inline card/button/badge JSX remains
+        </tests>
+      </idea>
+      <idea ac="AC2">
+        <description>Analytics uses design system primitives correctly</description>
+        <tests>
+          - Verify Card component wraps chart sections
+          - Verify Button components for navigation and actions
+          - Verify Select component for time range filter (90 days default)
+          - Verify Select keyboard navigation (up/down arrows, enter, escape)
+          - Verify imports are from '@/src/design-system/components/primitives'
+        </tests>
+      </idea>
+      <idea ac="AC3">
+        <description>Design tokens used exclusively, no hardcoded colors</description>
+        <tests>
+          - Search for hardcoded hex colors (#758AC6, #22d3ee, etc.) - should be zero
+          - Verify Tailwind classes use design tokens (bg-primary, text-primary-dark)
+          - Verify no inline style={{ backgroundColor: '#...' }}
+          - Verify legacy brand-cyan removed
+          - Verify Cinzel font (font-display) for headings, Lato (font-body) for text
+        </tests>
+      </idea>
+      <idea ac="AC4">
+        <description>Tests updated for new component structure</description>
+        <tests>
+          - Update WorkoutTemplates test imports to design system
+          - Update Analytics test imports to design system
+          - Verify existing functionality preserved (template CRUD, chart rendering)
+          - Add new tests for design system integration
+          - Verify test suite passes (no regressions)
+        </tests>
+      </idea>
+      <idea ac="AC5">
+        <description>Touch targets meet 60x60px WCAG AA minimum</description>
+        <tests>
+          - Measure button dimensions using getComputedStyle
+          - Verify min-w-[60px] min-h-[60px] classes on interactive elements
+          - Test with browser dev tools (inspect button sizes)
+          - Verify padding sufficient for touch-friendly targets
+        </tests>
+      </idea>
+      <idea ac="AC6">
+        <description>No visual regressions</description>
+        <tests>
+          - Manual testing: WorkoutTemplates CRUD operations (create, edit, delete)
+          - Manual testing: Analytics chart rendering, date filters, data display
+          - Screenshot comparison (before/after migration if tooling available)
+          - Verify glass morphism effect visible
+          - Cross-browser testing (Chrome, Safari, Firefox)
+          - Mobile responsive testing (layout, touch targets)
+        </tests>
+      </idea>
+    </ideas>
+  </tests>
+</story-context>
