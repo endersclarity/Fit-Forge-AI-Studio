@@ -4,6 +4,7 @@ import { EXERCISE_LIBRARY } from '../constants';
 import { WorkoutSession, PersonalBests, MuscleBaselines, Muscle, Exercise, ExerciseMaxes } from '../types';
 import { calculateVolume, formatDuration, findPreviousWorkout } from '../utils/helpers';
 import { TrophyIcon, TrendingUpIcon } from './Icons';
+import { Sheet, Card, Button } from '../src/design-system/components/primitives';
 
 interface WorkoutSummaryModalProps {
     isOpen: boolean;
@@ -106,103 +107,110 @@ const WorkoutSummaryModal: React.FC<WorkoutSummaryModalProps> = ({ isOpen, onClo
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-40 p-4 transition-opacity duration-300">
-            <div className="bg-brand-surface rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in">
-                <div className="text-center mb-6">
-                    <h2 className="text-2xl md:text-3xl font-bold text-brand-cyan">Workout Complete!</h2>
-                    <p className="text-slate-400">{session.name}</p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 text-center mb-8">
-                    <div>
-                        <p className="text-xl font-bold">{formatDuration(summaryData.duration)}</p>
-                        <p className="text-sm text-slate-400">Duration</p>
-                    </div>
-                    <div>
-                        <p className="text-xl font-bold">{summaryData.totalVolume.toLocaleString()}</p>
-                        <p className="text-sm text-slate-400">Total Volume (lbs)</p>
-                    </div>
-                    <div>
-                        <p className="text-xl font-bold">{summaryData.exercisesCompleted}</p>
-                        <p className="text-sm text-slate-400">Exercises</p>
-                    </div>
+        <Sheet
+            open={isOpen}
+            onOpenChange={(open) => { if (!open) onClose(); }}
+            height="lg"
+            title="Workout Complete!"
+            description={session.name}
+        >
+            <div className="space-y-6">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                    <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-3">
+                        <p className="text-xl font-bold font-display text-foreground">{formatDuration(summaryData.duration)}</p>
+                        <p className="text-sm text-gray-600 font-body">Duration</p>
+                    </Card>
+                    <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-3">
+                        <p className="text-xl font-bold font-display text-foreground">{summaryData.totalVolume.toLocaleString()}</p>
+                        <p className="text-sm text-gray-600 font-body">Total Volume (lbs)</p>
+                    </Card>
+                    <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-3">
+                        <p className="text-xl font-bold font-display text-foreground">{summaryData.exercisesCompleted}</p>
+                        <p className="text-sm text-gray-600 font-body">Exercises</p>
+                    </Card>
                 </div>
 
                 {summaryData.progressiveOverload && (
-                     <div className="mb-8">
-                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                            <TrendingUpIcon className="w-5 h-5 text-brand-cyan"/> Progressive Overload
+                    <div>
+                        <h3 className="text-lg font-semibold font-display text-foreground mb-3 flex items-center gap-2">
+                            <TrendingUpIcon className="w-5 h-5 text-primary"/> Progressive Overload
                         </h3>
-                        <div className="bg-brand-muted p-3 rounded-md">
+                        <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-4">
                             <div className="flex justify-between items-center">
-                                <span className="font-semibold">Volume vs. Last {session.type} ({session.variation})</span>
-                                <span className={`font-bold text-lg ${summaryData.progressiveOverload.percentageChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                <span className="font-semibold font-body text-foreground">Volume vs. Last {session.type} ({session.variation})</span>
+                                <span className={`font-bold text-lg font-display ${summaryData.progressiveOverload.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                     {summaryData.progressiveOverload.percentageChange >= 0 ? '+' : ''}
                                     {summaryData.progressiveOverload.percentageChange.toFixed(1)}%
                                 </span>
                             </div>
-                            <p className="text-xs text-slate-400 mt-2">
+                            <p className="text-xs text-gray-600 font-body mt-2">
                                 {getOverloadMessage(summaryData.progressiveOverload.percentageChange)}
                             </p>
-                        </div>
+                        </Card>
                     </div>
                 )}
 
                 {summaryData.musclesWorked.length > 0 && (
-                    <div className="mb-8">
-                        <h3 className="text-lg font-semibold mb-3">Muscles Worked Today</h3>
+                    <div>
+                        <h3 className="text-lg font-semibold font-display text-foreground mb-3">Muscles Worked Today</h3>
                         <div className="space-y-2">
                             {summaryData.musclesWorked.map(({ muscle, fatiguePercent, recoveryDays }) => (
-                                <div key={muscle} className="bg-brand-muted p-3 rounded-md text-sm">
-                                    <span className="font-semibold">{muscle}:</span> {fatiguePercent.toFixed(0)}% fatigued -
-                                    <span className="text-slate-300"> Ready in {recoveryDays.toFixed(1)} days</span>
-                                </div>
+                                <Card key={muscle} variant="elevated" className="bg-white/50 backdrop-blur-lg p-3">
+                                    <p className="text-sm font-body text-foreground">
+                                        <span className="font-semibold">{muscle}:</span> {fatiguePercent.toFixed(0)}% fatigued -
+                                        <span className="text-gray-700"> Ready in {recoveryDays.toFixed(1)} days</span>
+                                    </p>
+                                </Card>
                             ))}
                         </div>
                     </div>
                 )}
 
                 {summaryData.smartSuggestions.length > 0 && (
-                    <div className="mb-8">
-                        <h3 className="text-lg font-semibold mb-3">Smart Suggestions</h3>
-                        {summaryData.smartSuggestions.map(({ muscle, suggestedExercises }) => (
-                            <div key={muscle} className="bg-brand-muted p-3 rounded-md mb-2">
-                                <p className="text-sm font-semibold mb-1">Your <span className="text-yellow-400">{muscle}</span> still has capacity!</p>
-                                <p className="text-xs text-slate-400">Consider adding: {suggestedExercises.map(e => e.name).join(', ')}</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {summaryData.newRecords.length > 0 && (
-                     <div className="mb-8">
-                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><TrophyIcon className="w-5 h-5 text-yellow-400"/> New Personal Records!</h3>
-                         <div className="space-y-2">
-                            {summaryData.newRecords.map((record, index) => (
-                                <div key={index} className="bg-brand-muted p-3 rounded-md text-sm">
-                                    <p className="font-semibold">{record.exerciseName}</p>
-                                    {record.newBestSingleSet && <p className="text-xs text-slate-300">New Best Single Set PR</p>}
-                                    {record.newSessionVolume && <p className="text-xs text-slate-300">New Session Volume PR</p>}
-                                </div>
+                    <div>
+                        <h3 className="text-lg font-semibold font-display text-foreground mb-3">Smart Suggestions</h3>
+                        <div className="space-y-2">
+                            {summaryData.smartSuggestions.map(({ muscle, suggestedExercises }) => (
+                                <Card key={muscle} variant="elevated" className="bg-white/50 backdrop-blur-lg p-3">
+                                    <p className="text-sm font-semibold font-body text-foreground mb-1">
+                                        Your <span className="text-yellow-600">{muscle}</span> still has capacity!
+                                    </p>
+                                    <p className="text-xs text-gray-600 font-body">
+                                        Consider adding: {suggestedExercises.map(e => e.name).join(', ')}
+                                    </p>
+                                </Card>
                             ))}
                         </div>
                     </div>
                 )}
-                
-                <button onClick={onClose} className="w-full bg-brand-cyan text-brand-dark py-4 rounded-lg font-bold mt-4">
+
+                {summaryData.newRecords.length > 0 && (
+                    <div>
+                        <h3 className="text-lg font-semibold font-display text-foreground mb-3 flex items-center gap-2">
+                            <TrophyIcon className="w-5 h-5 text-yellow-600"/> New Personal Records!
+                        </h3>
+                        <div className="space-y-2">
+                            {summaryData.newRecords.map((record, index) => (
+                                <Card key={index} variant="elevated" className="bg-white/50 backdrop-blur-lg p-3">
+                                    <p className="font-semibold font-display text-foreground">{record.exerciseName}</p>
+                                    {record.newBestSingleSet && <p className="text-xs text-gray-700 font-body">New Best Single Set PR</p>}
+                                    {record.newSessionVolume && <p className="text-xs text-gray-700 font-body">New Session Volume PR</p>}
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <Button
+                    onClick={onClose}
+                    variant="primary"
+                    size="lg"
+                    className="w-full min-h-[60px] font-bold"
+                >
                     Done
-                </button>
+                </Button>
             </div>
-            <style>{`
-                .animate-fade-in {
-                    animation: fadeIn 0.3s ease-out forwards;
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: scale(0.95); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-            `}</style>
-        </div>
+        </Sheet>
     );
 };
 

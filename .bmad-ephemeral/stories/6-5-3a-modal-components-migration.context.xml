@@ -1,0 +1,338 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6.5</epicId>
+    <storyId>3A</storyId>
+    <title>Modal Components Migration</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-3a-modal-components-migration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>all modal components to use the unified design system</iWant>
+    <soThat>I experience consistent styling, improved touch targets, glass morphism effects, and the modern bottom drawer pattern across all modal interactions in the application</soThat>
+    <tasks>
+      - Migrate WorkoutPlannerModal.tsx (545 lines) - Replace Modal with Sheet, use Card/Button/Input primitives
+      - Migrate MuscleDeepDiveModal.tsx (317 lines) - Replace Modal with Sheet, use Card/Button/Input primitives
+      - Migrate modals/MuscleDetailModal.tsx (221 lines) - Replace Modal with Sheet, use Card/Button/Input primitives
+      - Migrate WorkoutSummaryModal.tsx (208 lines) - Replace Modal with Sheet, use Card/Button/Input primitives
+      - Migrate SetEditModal.tsx (263 lines) - Replace Modal with Sheet, use Card/Button/Input primitives
+      - Migrate BaselineUpdateModal.tsx (77 lines) - Replace Modal with Sheet, use Card/Button/Input primitives
+      - Create/update comprehensive tests (25+ tests total across all modals)
+      - Verify all modal functionality preserved and all tests passing
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. All 6 modals migrated to design system primitives
+    2. Modals use Sheet component (bottom drawer pattern) replacing old Modal
+    3. All cards within modals use Card primitive with glass morphism
+    4. All buttons within modals use Button primitive
+    5. All form inputs within modals use Input primitive
+    6. Existing functionality preserved (no behavior changes)
+    7. Tests updated for new component structure (25+ tests)
+    8. Design tokens used for all colors (no hardcoded hex/rgb)
+    9. WCAG AA compliance (60x60px touch targets)
+    10. Zero regressions in existing modal interactions
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6.5: Design System Rollout - Story 6.5.3A</title>
+        <section>Modal Components Migration</section>
+        <snippet>Story 6.5.3A migrates 6 modal components (1,631 total lines) to design system. All modals use Sheet component (bottom drawer pattern), Card primitive with glass morphism, Button primitive, and Input primitive. Acceptance criteria require 25+ tests, WCAG AA compliance, and zero regressions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Section 1.2: Current Component Structure</section>
+        <snippet>96 React components across 9 directories require design system migration. Modal components need bottom sheet migration (Vaul library), glass morphism, and new design tokens. No backend changes required - frontend-only scope.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-status.yaml</path>
+        <title>Sprint Status Tracking</title>
+        <section>Epic 6.5 Development Status</section>
+        <snippet>Stories 6.5.1, 6.5.2A, 6.5.2B, 6.5.2C, 6.5.2D-1, 6.5.2D-2, and 6.5.2D-3 completed. Story 6.5.3A is next for modal components migration. All design system primitives (Sheet, Card, Button, Input, Badge, ProgressBar, Select) are available and tested.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/6-5-2d-3-dashboard-page-migration.md</path>
+        <title>Previous Story: Dashboard Page Migration</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Dashboard migration (912 lines) achieved 100% AC coverage with 38/38 tests passing. Design token conversion patterns established: bg-brand-dark → bg-background, text-brand-cyan → text-primary, bg-brand-surface → Card with glass morphism. Touch targets verified with min-h-[60px]. landmark-unique axe rule disabled (Card primitive limitation).</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>components/WorkoutPlannerModal.tsx</path>
+        <kind>modal-component</kind>
+        <symbol>WorkoutPlannerModal</symbol>
+        <lines>1-545</lines>
+        <reason>Primary modal for workout planning - needs Modal→Sheet migration, Card/Button/Input primitives. Contains exercise selector, muscle visualization, forecast display.</reason>
+      </file>
+      <file>
+        <path>components/MuscleDeepDiveModal.tsx</path>
+        <kind>modal-component</kind>
+        <symbol>MuscleDeepDiveModal</symbol>
+        <lines>1-317</lines>
+        <reason>Muscle detail modal - needs Modal→Sheet migration, Card/Button primitives. Shows detailed muscle fatigue, recovery timeline, exercise recommendations.</reason>
+      </file>
+      <file>
+        <path>components/modals/MuscleDetailModal.tsx</path>
+        <kind>modal-component</kind>
+        <symbol>MuscleDetailModal</symbol>
+        <lines>1-221</lines>
+        <reason>Muscle detail overlay - needs Modal→Sheet migration, Card/Button primitives. Located in modals/ subdirectory.</reason>
+      </file>
+      <file>
+        <path>components/WorkoutSummaryModal.tsx</path>
+        <kind>modal-component</kind>
+        <symbol>WorkoutSummaryModal</symbol>
+        <lines>1-208</lines>
+        <reason>Post-workout summary - needs Modal→Sheet migration, Card/Button primitives. Displays completed workout stats and muscle impact.</reason>
+      </file>
+      <file>
+        <path>components/SetEditModal.tsx</path>
+        <kind>modal-component</kind>
+        <symbol>SetEditModal</symbol>
+        <lines>1-263</lines>
+        <reason>Set editing form modal - needs Modal→Sheet migration, Card/Button/Input primitives. Contains form inputs for weight, reps, rest timer. Critical for form primitive integration.</reason>
+      </file>
+      <file>
+        <path>components/BaselineUpdateModal.tsx</path>
+        <kind>modal-component</kind>
+        <symbol>BaselineUpdateModal</symbol>
+        <lines>1-77</lines>
+        <reason>Smallest modal - baseline update confirmation - needs Modal→Sheet migration, Card/Button primitives.</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/Sheet.tsx</path>
+        <kind>design-system-primitive</kind>
+        <symbol>Sheet</symbol>
+        <lines>1-182</lines>
+        <reason>Bottom drawer component using Vaul library. Props: open (boolean), onOpenChange (callback), children, height (sm/md/lg), title, description, className, showHandle. Replaces old Modal component.</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>design-system-primitive</kind>
+        <symbol>Card</symbol>
+        <lines>all</lines>
+        <reason>Card primitive with glass morphism (bg-white/50, backdrop-blur-lg). Variants: default, elevated, flat. Use for modal content containers.</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>design-system-primitive</kind>
+        <symbol>Button</symbol>
+        <lines>all</lines>
+        <reason>Button primitive with variants (primary, secondary, tertiary, ghost, destructive), sizes (sm, md, lg), and 60x60px touch targets.</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/Input.tsx</path>
+        <kind>design-system-primitive</kind>
+        <symbol>Input</symbol>
+        <lines>all</lines>
+        <reason>Input primitive with variants (default, error, success), sizes (sm, md, lg). Critical for SetEditModal form fields (weight, reps, rest timer).</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/index.ts</path>
+        <kind>barrel-export</kind>
+        <symbol>primitives</symbol>
+        <lines>all</lines>
+        <reason>Barrel export for all primitives. Import pattern: import { Sheet, Card, Button, Input } from '@/src/design-system/components/primitives'</reason>
+      </file>
+      <file>
+        <path>components/__tests__/Dashboard.test.tsx</path>
+        <kind>test-reference</kind>
+        <symbol>Dashboard tests</symbol>
+        <lines>all</lines>
+        <reason>Reference test file from Story 6.5.2D-3. Contains 38 tests covering design system integration, accessibility (axe-core), touch targets, design tokens. Follow same testing patterns for modals.</reason>
+      </file>
+      <file>
+        <path>components/__tests__/Profile.test.tsx</path>
+        <kind>test-reference</kind>
+        <symbol>Profile tests</symbol>
+        <lines>all</lines>
+        <reason>Reference test file with Input primitive testing patterns. Shows form field testing, error states, validation. Use for SetEditModal form testing.</reason>
+      </file>
+      <file>
+        <path>components/ui/Modal.tsx</path>
+        <kind>legacy-component</kind>
+        <symbol>Modal (old)</symbol>
+        <lines>all</lines>
+        <reason>OLD Modal component being replaced by Sheet. Props: isOpen, onClose. API CHANGE: Sheet uses open/onOpenChange instead.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <frontend>
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+        <package name="framer-motion" version="^12.23.24" />
+        <package name="vaul" version="^1.1.2" />
+        <package name="lucide-react" version="^0.553.0" />
+        <package name="tailwindcss" version="^3.4.18" />
+        <package name="@fontsource/cinzel" version="^5.2.8" />
+        <package name="@fontsource/lato" version="^5.2.7" />
+      </frontend>
+      <testing>
+        <package name="vitest" version="^4.0.3" />
+        <package name="@testing-library/react" version="^16.3.0" />
+        <package name="@testing-library/user-event" version="^14.6.1" />
+        <package name="@testing-library/jest-dom" version="^6.9.1" />
+        <package name="axe-core" version="^4.11.0" />
+        <package name="jest-axe" version="^10.0.0" />
+        <package name="jsdom" version="^27.0.1" />
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>No backend changes - UI redesign is frontend-only, all 20+ API endpoints remain unchanged</constraint>
+    <constraint>Sheet API differs from Modal: use open/onOpenChange props instead of isOpen/onClose</constraint>
+    <constraint>Glass morphism pattern: Cards use bg-white/50 with backdrop-blur-lg for depth</constraint>
+    <constraint>WCAG AA touch target compliance: All interactive elements minimum 60x60px (use min-h-[60px] classes)</constraint>
+    <constraint>Design token usage mandatory: No hardcoded colors (verify with grep test)</constraint>
+    <constraint>Component API preservation: Modal props may need mapping to Sheet props, but maintain existing parent component interfaces where possible</constraint>
+    <constraint>Testing requirement: Minimum 25+ tests total across all 6 modals (approximately 4-5 tests per modal)</constraint>
+    <constraint>Accessibility: landmark-unique axe rule should be disabled (known Card primitive limitation from previous stories)</constraint>
+    <constraint>Zero regressions: All existing modal functionality must be preserved and verified through tests</constraint>
+    <constraint>Barrel exports required: Use import { Sheet, Card, Button, Input } from '@/src/design-system/components/primitives'</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Sheet Component API</name>
+      <kind>React Component Props</kind>
+      <signature>
+interface SheetProps {
+  open: boolean;                    // Whether sheet is open
+  onOpenChange: (open: boolean) => void;  // Callback when open state changes
+  children: React.ReactNode;        // Sheet content
+  height?: 'sm' | 'md' | 'lg';      // Sheet height (40vh, 60vh, 90vh)
+  title?: string;                   // Sheet title for accessibility
+  description?: string;             // Sheet description for accessibility
+  className?: string;               // Additional CSS classes
+  showHandle?: boolean;             // Show draggable handle (default: true)
+}
+      </signature>
+      <path>src/design-system/components/primitives/Sheet.tsx</path>
+    </interface>
+    <interface>
+      <name>Old Modal API (being replaced)</name>
+      <kind>React Component Props (LEGACY)</kind>
+      <signature>
+interface ModalProps {
+  isOpen: boolean;                  // OLD: Replace with 'open'
+  onClose: () => void;              // OLD: Replace with 'onOpenChange'
+  children: React.ReactNode;
+}
+
+// MIGRATION PATTERN:
+// OLD: isOpen={isOpen} onClose={() => setIsOpen(false)}
+// NEW: open={isOpen} onOpenChange={setIsOpen}
+      </signature>
+      <path>components/ui/Modal.tsx</path>
+    </interface>
+    <interface>
+      <name>Card Primitive API</name>
+      <kind>React Component Props</kind>
+      <signature>
+interface CardProps {
+  variant?: 'default' | 'elevated' | 'flat';
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}
+
+// Glass morphism pattern:
+// &lt;Card variant="elevated" className="bg-white/50 backdrop-blur-lg"&gt;
+      </signature>
+      <path>src/design-system/components/primitives/Card.tsx</path>
+    </interface>
+    <interface>
+      <name>Button Primitive API</name>
+      <kind>React Component Props</kind>
+      <signature>
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'destructive';
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  loading?: boolean;
+  onClick?: () => void;
+  className?: string;
+  children: React.ReactNode;
+}
+
+// Touch target compliance:
+// &lt;Button variant="primary" size="md" className="min-h-[60px]"&gt;
+      </signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+    <interface>
+      <name>Input Primitive API</name>
+      <kind>React Component Props</kind>
+      <signature>
+interface InputProps {
+  variant?: 'default' | 'error' | 'success';
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  error?: boolean;
+  label?: string;
+  errorMessage?: string;
+  placeholder?: string;
+  value?: string | number;
+  onChange?: (e: React.ChangeEvent&lt;HTMLInputElement&gt;) => void;
+  type?: 'text' | 'number' | 'email' | 'password';
+  className?: string;
+}
+
+// Form field pattern (SetEditModal):
+// &lt;Input
+//   variant="default"
+//   size="md"
+//   type="number"
+//   label="Weight (lbs)"
+//   value={weight}
+//   onChange={(e) => setWeight(Number(e.target.value))}
+// /&gt;
+      </signature>
+      <path>src/design-system/components/primitives/Input.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest 4.0.3 with @testing-library/react 16.3.0. Use axe-core for accessibility testing (disable landmark-unique rule for Card primitives). Verify touch targets with className assertions (min-h-[60px]). Test design token usage with grep patterns (no hardcoded colors). Follow testing patterns from Dashboard.test.tsx (38 tests, 100% passing) and Profile.test.tsx (Input primitive patterns).
+    </standards>
+
+    <locations>
+      components/__tests__/WorkoutPlannerModal.test.tsx (create)
+      components/__tests__/MuscleDeepDiveModal.test.tsx (create)
+      components/modals/__tests__/MuscleDetailModal.test.tsx (create)
+      components/__tests__/WorkoutSummaryModal.test.tsx (create)
+      components/__tests__/SetEditModal.test.tsx (create)
+      components/__tests__/BaselineUpdateModal.test.tsx (create)
+    </locations>
+
+    <ideas>
+      <test ac="1,2" idea="Verify all 6 modals use Sheet component - check for import from design-system/primitives and Sheet element in render" />
+      <test ac="2" idea="Test Sheet open/close behavior - verify onOpenChange callback, test backdrop click, test swipe-to-dismiss gesture" />
+      <test ac="3" idea="Verify Card primitive usage - check for Card import, glass morphism classes (bg-white/50 backdrop-blur-lg)" />
+      <test ac="4" idea="Verify Button primitive usage - check for Button import, variant props, size props, 60px touch targets" />
+      <test ac="5" idea="Verify Input primitive usage (SetEditModal) - check for Input import, label props, error states, form submission" />
+      <test ac="6" idea="Functionality preservation - test exercise selection (WorkoutPlannerModal), muscle data display (MuscleDeepDiveModal), form submission (SetEditModal), workout stats (WorkoutSummaryModal)" />
+      <test ac="7" idea="Test count verification - ensure 25+ total tests across all modals (5 tests for WorkoutPlannerModal, 5 for MuscleDeepDiveModal, 4 each for others)" />
+      <test ac="8" idea="Design token validation - grep test for hardcoded colors (should find 0), verify bg-primary, text-primary, font-display, font-body usage" />
+      <test ac="9" idea="Touch target compliance - verify min-h-[60px] classes on all buttons, verify className assertions in tests" />
+      <test ac="10" idea="Zero regressions - test all modal-specific functionality (workout forecasting, muscle fatigue calculation, set editing, baseline updates)" />
+      <test ac="all" idea="Accessibility testing - run axe-core validation, verify ARIA labels, test keyboard navigation (Tab, Escape, Enter), disable landmark-unique rule" />
+      <test ac="2" idea="Sheet-specific tests - verify height prop (sm/md/lg), verify title/description accessibility, verify handle visibility" />
+      <test ac="6" idea="Modal stacking tests - verify modals can be opened/closed independently, test if modals can trigger other modals" />
+      <test ac="5" idea="Form validation tests (SetEditModal) - test weight input validation, test reps input validation, test rest timer input, test bodyweight toggle" />
+    </ideas>
+  </tests>
+</story-context>

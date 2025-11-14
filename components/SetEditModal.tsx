@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BuilderSet, Exercise } from '../types';
 import { EXERCISE_LIBRARY } from '../constants';
 import { isBodyweightExercise } from '../utils/helpers';
+import { Sheet, Card, Button, Input } from '../src/design-system/components/primitives';
 
 interface SetEditModalProps {
   set: BuilderSet | null;
@@ -38,17 +39,6 @@ const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSav
     }
   }, [set, currentBodyweight, isBodyweightEx]);
 
-  // Close modal on Escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
-
   const handleSave = () => {
     if (!set) return;
 
@@ -78,185 +68,201 @@ const SetEditModal: React.FC<SetEditModalProps> = ({ set, isOpen, onClose, onSav
     // Don't close the modal - allow user to continue adding sets or close manually
   };
 
-  if (!isOpen || !set) return null;
+  if (!set) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-      onClick={onClose}
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => { if (!open) onClose(); }}
+      height="md"
+      title="Edit Set"
+      description={set.exerciseName}
     >
-      <div
-        className="bg-brand-surface rounded-lg p-6 max-w-md w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Edit Set</h3>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-white text-2xl"
-          >
-            �
-          </button>
-        </header>
-
-        <div className="mb-4">
-          <div className="font-semibold mb-2">{set.exerciseName}</div>
-        </div>
+      <div className="space-y-6">
+        <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-4">
+          <div className="font-semibold font-display text-foreground">{set.exerciseName}</div>
+        </Card>
 
         <div className="space-y-4">
           {/* Weight Input */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm text-slate-400">Weight (lbs)</label>
+              <label className="block text-sm text-gray-600 font-body">Weight (lbs)</label>
               {currentBodyweight && (
-                <button
+                <Button
                   onClick={() => {
                     setWeight(currentBodyweight);
                     setUsingBodyweight(true);
                   }}
-                  className={`text-xs px-2 py-1 rounded font-semibold transition-colors ${
-                    usingBodyweight
-                      ? 'bg-brand-cyan text-brand-dark'
-                      : 'bg-brand-muted text-slate-300 hover:bg-brand-dark'
-                  }`}
+                  variant={usingBodyweight ? 'primary' : 'secondary'}
+                  size="sm"
+                  className="text-xs"
                 >
                   {usingBodyweight ? '✓ BW' : 'Use BW'}
-                </button>
+                </Button>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 onClick={() => {
                   setWeight(Math.max(0, weight - 5));
                   setUsingBodyweight(false);
                 }}
-                className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
+                variant="secondary"
+                size="sm"
+                className="min-h-[60px]"
               >
                 -5
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => {
                   setWeight(Math.max(0, weight - 2.5));
                   setUsingBodyweight(false);
                 }}
-                className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
+                variant="secondary"
+                size="sm"
+                className="min-h-[60px]"
               >
                 -2.5
-              </button>
+              </Button>
               <div className="flex-1 relative">
-                <input
+                <Input
                   type="number"
                   value={weight}
                   onChange={(e) => {
                     setWeight(Number(e.target.value));
                     setUsingBodyweight(false);
                   }}
-                  className="w-full bg-brand-muted text-white px-4 py-2 rounded text-center"
+                  variant="default"
+                  size="md"
+                  className="text-center"
                 />
                 {usingBodyweight && (
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-brand-cyan pointer-events-none">
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary pointer-events-none">
                     BW
                   </span>
                 )}
               </div>
-              <button
+              <Button
                 onClick={() => {
                   setWeight(weight + 2.5);
                   setUsingBodyweight(false);
                 }}
-                className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
+                variant="secondary"
+                size="sm"
+                className="min-h-[60px]"
               >
                 +2.5
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => {
                   setWeight(weight + 5);
                   setUsingBodyweight(false);
                 }}
-                className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
+                variant="secondary"
+                size="sm"
+                className="min-h-[60px]"
               >
                 +5
-              </button>
+              </Button>
             </div>
           </div>
 
           {/* Reps Input */}
           <div>
-            <label className="block text-sm text-slate-400 mb-2">Reps</label>
+            <label className="block text-sm text-gray-600 font-body mb-2">Reps</label>
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 onClick={() => setReps(Math.max(1, reps - 1))}
-                className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
+                variant="secondary"
+                size="sm"
+                className="min-h-[60px]"
               >
                 -1
-              </button>
-              <input
+              </Button>
+              <Input
                 type="number"
                 value={reps}
                 onChange={(e) => setReps(Math.max(1, Number(e.target.value)))}
-                className="flex-1 bg-brand-muted text-white px-4 py-2 rounded text-center"
+                variant="default"
+                size="md"
+                className="flex-1 text-center"
               />
-              <button
+              <Button
                 onClick={() => setReps(reps + 1)}
-                className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
+                variant="secondary"
+                size="sm"
+                className="min-h-[60px]"
               >
                 +1
-              </button>
+              </Button>
             </div>
           </div>
 
           {/* Rest Timer Input */}
           <div>
-            <label className="block text-sm text-slate-400 mb-2">Rest Time (seconds)</label>
+            <label className="block text-sm text-gray-600 font-body mb-2">Rest Time (seconds)</label>
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 onClick={() => setRestTimer(Math.max(15, restTimer - 15))}
-                className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
+                variant="secondary"
+                size="sm"
+                className="min-h-[60px]"
               >
                 -15
-              </button>
-              <input
+              </Button>
+              <Input
                 type="number"
                 value={restTimer}
                 onChange={(e) => setRestTimer(Math.max(15, Number(e.target.value)))}
-                className="flex-1 bg-brand-muted text-white px-4 py-2 rounded text-center"
+                variant="default"
+                size="md"
+                className="flex-1 text-center"
               />
-              <button
+              <Button
                 onClick={() => setRestTimer(restTimer + 15)}
-                className="bg-brand-muted px-3 py-2 rounded hover:bg-brand-dark"
+                variant="secondary"
+                size="sm"
+                className="min-h-[60px]"
               >
                 +15
-              </button>
+              </Button>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           {onAddSet && (
-            <button
+            <Button
               onClick={handleAddSet}
-              className="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors"
+              variant="primary"
+              size="md"
+              className="w-full min-h-[60px] bg-green-600 hover:bg-green-700"
             >
               + Add Another Set
-            </button>
+            </Button>
           )}
           <div className="flex gap-2">
-            <button
+            <Button
               onClick={onClose}
-              className="flex-1 bg-brand-muted text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-dark transition-colors"
+              variant="secondary"
+              size="md"
+              className="flex-1 min-h-[60px]"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleSave}
-              className="flex-1 bg-brand-cyan text-brand-dark font-bold py-3 px-4 rounded-lg hover:bg-cyan-400 transition-colors"
+              variant="primary"
+              size="md"
+              className="flex-1 min-h-[60px]"
             >
               Save Changes
-            </button>
+            </Button>
           </div>
         </div>
       </div>
-    </div>
+    </Sheet>
   );
 };
 

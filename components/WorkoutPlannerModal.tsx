@@ -15,6 +15,7 @@ import { calculateForecastedFatigue } from '../utils/workoutPlanner';
 import PlannedExerciseList from './PlannedExerciseList';
 import { MuscleVisualizationContainer } from './MuscleVisualization/MuscleVisualizationContainer';
 import { XIcon, PlusIcon } from './Icons';
+import { Sheet, Card, Button } from '../src/design-system/components/primitives';
 
 interface WorkoutPlannerModalProps {
   isOpen: boolean;
@@ -400,8 +401,6 @@ const WorkoutPlannerModal: React.FC<WorkoutPlannerModalProps> = ({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   if (isExerciseSelectorOpen) {
     return (
       <ExerciseSelector
@@ -413,26 +412,14 @@ const WorkoutPlannerModal: React.FC<WorkoutPlannerModalProps> = ({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm overflow-y-auto"
-      onClick={handleClose}
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => { if (!open) handleClose(); }}
+      height="lg"
+      title="Plan Workout"
+      description="Design your workout with AI-powered muscle forecasting"
     >
-      <div
-        className="min-h-screen p-4 flex items-start justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="w-full max-w-6xl bg-brand-dark rounded-lg shadow-2xl my-8">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-brand-muted/30">
-            <h1 className="text-2xl font-bold text-brand-text">Plan Workout</h1>
-            <button
-              onClick={handleClose}
-              className="p-2 text-brand-muted hover:text-brand-text hover:bg-brand-surface rounded-lg transition-colors"
-              aria-label="Close planner"
-            >
-              <XIcon className="w-6 h-6" />
-            </button>
-          </div>
+      <div className="space-y-6">
 
           {/* Content */}
           <div className="p-6">
@@ -443,19 +430,19 @@ const WorkoutPlannerModal: React.FC<WorkoutPlannerModalProps> = ({
                 {/* Two-column layout: Current | Forecasted */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                   {/* Current State */}
-                  <div className="bg-brand-surface rounded-lg border border-brand-muted p-4">
-                    <h2 className="text-lg font-semibold text-brand-text mb-3">Current State</h2>
+                  <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-4">
+                    <h2 className="text-lg font-semibold text-foreground font-display mb-3">Current State</h2>
                     {currentMuscleStates && (
                       <MuscleVisualizationContainer
                         muscleStates={currentMuscleStates}
                         showStats={false}
                       />
                     )}
-                  </div>
+                  </Card>
 
                   {/* Forecasted State */}
-                  <div className="bg-brand-surface rounded-lg border border-brand-muted p-4">
-                    <h2 className="text-lg font-semibold text-brand-text mb-3">
+                  <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-4">
+                    <h2 className="text-lg font-semibold text-foreground font-display mb-3">
                       Forecasted (After Workout)
                     </h2>
                     {forecastedMuscleStates && (
@@ -464,12 +451,12 @@ const WorkoutPlannerModal: React.FC<WorkoutPlannerModalProps> = ({
                         showStats={false}
                       />
                     )}
-                  </div>
+                  </Card>
                 </div>
 
                 {/* Planned Exercises Section */}
                 <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-brand-text mb-3">
+                  <h2 className="text-lg font-semibold text-foreground font-display mb-3">
                     Planned Exercises
                   </h2>
                   {muscleBaselines && (
@@ -483,62 +470,69 @@ const WorkoutPlannerModal: React.FC<WorkoutPlannerModalProps> = ({
                 </div>
 
                 {/* Add Exercise Button */}
-                <button
+                <Button
                   onClick={() => setIsExerciseSelectorOpen(true)}
-                  className="w-full p-4 bg-brand-surface border-2 border-dashed border-brand-muted rounded-lg hover:border-brand-accent hover:bg-brand-surface/80 transition-colors flex items-center justify-center gap-2 text-brand-text font-medium"
+                  variant="secondary"
+                  size="lg"
+                  className="w-full min-h-[60px] border-2 border-dashed flex items-center justify-center gap-2"
                 >
                   <PlusIcon className="w-5 h-5" />
                   Add Exercise
-                </button>
+                </Button>
               </>
             )}
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-6 border-t border-brand-muted/30">
-            <button
+          <div className="flex items-center justify-between gap-4">
+            <Button
               onClick={handleClose}
-              className="px-6 py-3 bg-brand-surface text-brand-text rounded-lg hover:bg-brand-surface/80 transition-colors font-medium"
+              variant="secondary"
+              size="lg"
+              className="flex-1 min-h-[60px]"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleStartWorkout}
               disabled={plannedExercises.length === 0}
-              className="px-6 py-3 bg-brand-accent text-brand-dark rounded-lg hover:bg-brand-accent/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="primary"
+              size="lg"
+              className="flex-1 min-h-[60px]"
             >
               Start This Workout
-            </button>
+            </Button>
           </div>
-        </div>
 
         {/* Draft Restore Dialog */}
         {showRestoreDialog && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-brand-surface p-6 rounded-lg max-w-md w-full mx-4">
-              <h3 className="text-xl font-bold mb-2">Resume Planning?</h3>
-              <p className="text-sm text-slate-300 mb-4">
-                You have unsaved work from earlier. Would you like to resume or start fresh?
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleRestoreDraft}
-                  className="flex-1 bg-brand-cyan text-brand-dark py-2 rounded-lg font-semibold hover:bg-cyan-400 transition-colors"
-                >
-                  Resume
-                </button>
-                <button
-                  onClick={handleStartFresh}
-                  className="flex-1 bg-brand-muted py-2 rounded-lg font-semibold hover:bg-brand-dark transition-colors"
-                >
-                  Start Fresh
-                </button>
-              </div>
+          <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-6 mt-4">
+            <h3 className="text-xl font-bold font-display mb-2 text-foreground">Resume Planning?</h3>
+            <p className="text-sm text-gray-600 font-body mb-4">
+              You have unsaved work from earlier. Would you like to resume or start fresh?
+            </p>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleRestoreDraft}
+                variant="primary"
+                size="md"
+                className="flex-1 min-h-[60px]"
+              >
+                Resume
+              </Button>
+              <Button
+                onClick={handleStartFresh}
+                variant="secondary"
+                size="md"
+                className="flex-1 min-h-[60px]"
+              >
+                Start Fresh
+              </Button>
             </div>
-          </div>
+          </Card>
         )}
       </div>
-    </div>
+    </Sheet>
   );
 };
 

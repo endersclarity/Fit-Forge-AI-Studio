@@ -4,6 +4,7 @@ import { XIcon } from './Icons';
 import { EXERCISE_LIBRARY } from '../constants';
 import { calculateEfficiencyScore, getEfficiencyBadge, findBottleneckMuscle } from '../utils/exerciseEfficiency';
 import { ExerciseCard } from './ExerciseCard';
+import { Sheet, Card, Button } from '../src/design-system/components/primitives';
 
 interface MuscleDeepDiveModalProps {
   isOpen: boolean;
@@ -31,8 +32,6 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
   const [compoundOnly, setCompoundOnly] = useState(false);
   const [highEfficiencyOnly, setHighEfficiencyOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'efficiency' | 'target' | 'alphabetical'>('efficiency');
-
-  if (!isOpen) return null;
 
   const muscleState = muscleStates[muscle];
   const fatiguePercent = muscleState?.currentFatiguePercent ?? 0;
@@ -127,79 +126,75 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
     .slice(0, 3);
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => { if (!open) onClose(); }}
+      height="lg"
+      title={muscle}
+      description={`${fatiguePercent}% fatigued`}
     >
-      <div
-        className="bg-brand-surface rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <header className="flex justify-between items-center p-6 border-b border-brand-muted">
-          <div>
-            <h2 className="text-2xl font-bold text-brand-text">{muscle}</h2>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="text-brand-muted">{fatiguePercent}% fatigued</span>
-              <div className="w-32 bg-slate-600 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full ${
-                    fatiguePercent < 33 ? 'bg-green-500' :
-                    fatiguePercent < 66 ? 'bg-yellow-500' : 'bg-red-500'
-                  }`}
-                  style={{ width: `${fatiguePercent}%` }}
-                />
-              </div>
+      <div className="space-y-6">
+        {/* Fatigue Progress Bar */}
+        <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-4">
+          <div className="flex items-center gap-3">
+            <span className="text-gray-600 font-body">{fatiguePercent}% fatigued</span>
+            <div className="flex-1 bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full ${
+                  fatiguePercent < 33 ? 'bg-green-600' :
+                  fatiguePercent < 66 ? 'bg-yellow-600' : 'bg-red-600'
+                }`}
+                style={{ width: `${fatiguePercent}%` }}
+              />
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-white text-2xl leading-none"
-            aria-label="Close"
-          >
-            <XIcon className="w-6 h-6" />
-          </button>
-        </header>
+        </Card>
 
         {/* Tabs */}
-        <div className="flex border-b border-brand-muted">
-          <button
+        <div className="flex border-b border-gray-200">
+          <Button
             onClick={() => setActiveTab('recommended')}
-            className={`px-6 py-3 font-medium transition-colors ${
+            variant="ghost"
+            size="md"
+            className={`px-6 py-3 rounded-none ${
               activeTab === 'recommended'
-                ? 'text-brand-accent border-b-2 border-brand-accent'
-                : 'text-brand-muted hover:text-brand-text'
+                ? 'text-accent border-b-2 border-accent'
+                : 'text-gray-600'
             }`}
           >
             Recommended
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setActiveTab('all')}
-            className={`px-6 py-3 font-medium transition-colors ${
+            variant="ghost"
+            size="md"
+            className={`px-6 py-3 rounded-none ${
               activeTab === 'all'
-                ? 'text-brand-accent border-b-2 border-brand-accent'
-                : 'text-brand-muted hover:text-brand-text'
+                ? 'text-accent border-b-2 border-accent'
+                : 'text-gray-600'
             }`}
           >
             All Exercises
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setActiveTab('history')}
-            className={`px-6 py-3 font-medium transition-colors ${
+            variant="ghost"
+            size="md"
+            className={`px-6 py-3 rounded-none ${
               activeTab === 'history'
-                ? 'text-brand-accent border-b-2 border-brand-accent'
-                : 'text-brand-muted hover:text-brand-text'
+                ? 'text-accent border-b-2 border-accent'
+                : 'text-gray-600'
             }`}
           >
             History
-          </button>
+          </Button>
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div>
           {activeTab === 'recommended' && (
             <div className="space-y-3">
-              <p className="text-sm text-brand-muted mb-4">
+              <p className="text-sm text-gray-600 font-body mb-4">
                 Top 5 exercises ranked by efficiency for {muscle}
               </p>
               {rankedExercises.map(({ exercise, efficiencyScore, efficiencyBadge, bottleneckMuscle }) => (
@@ -216,55 +211,50 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
               ))}
             </div>
           )}
+
           {activeTab === 'all' && (
             <div className="space-y-4">
               {/* Filters */}
               <div className="flex flex-wrap gap-2">
-                <button
+                <Button
                   onClick={() => setIsolationOnly(!isolationOnly)}
-                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    isolationOnly
-                      ? 'bg-brand-accent text-brand-dark'
-                      : 'bg-brand-muted text-brand-text hover:bg-brand-surface'
-                  }`}
+                  variant={isolationOnly ? 'primary' : 'secondary'}
+                  size="sm"
+                  className="min-h-[60px]"
                 >
                   Isolation Only
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setCompoundOnly(!compoundOnly)}
-                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    compoundOnly
-                      ? 'bg-brand-accent text-brand-dark'
-                      : 'bg-brand-muted text-brand-text hover:bg-brand-surface'
-                  }`}
+                  variant={compoundOnly ? 'primary' : 'secondary'}
+                  size="sm"
+                  className="min-h-[60px]"
                 >
                   Compound Only
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setHighEfficiencyOnly(!highEfficiencyOnly)}
-                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    highEfficiencyOnly
-                      ? 'bg-brand-accent text-brand-dark'
-                      : 'bg-brand-muted text-brand-text hover:bg-brand-surface'
-                  }`}
+                  variant={highEfficiencyOnly ? 'primary' : 'secondary'}
+                  size="sm"
+                  className="min-h-[60px]"
                 >
                   High Efficiency
-                </button>
+                </Button>
               </div>
 
               {/* Sort */}
-              <div>
-                <label className="text-xs text-brand-muted mr-2">Sort by:</label>
+              <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-4">
+                <label className="text-xs text-gray-600 font-body mr-2">Sort by:</label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="px-3 py-1 bg-brand-surface border border-brand-muted rounded text-sm text-brand-text"
+                  className="px-3 py-1 bg-white border border-gray-300 rounded text-sm text-foreground font-body"
                 >
                   <option value="efficiency">Efficiency</option>
                   <option value="target">Target %</option>
                   <option value="alphabetical">Alphabetical</option>
                 </select>
-              </div>
+              </Card>
 
               {/* Exercise List */}
               <div className="space-y-3">
@@ -283,28 +273,31 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
               </div>
             </div>
           )}
+
           {activeTab === 'history' && (
             <div className="space-y-3">
               {exerciseHistory.length === 0 ? (
-                <p className="text-center text-brand-muted py-8">
-                  No training history for {muscle} yet
-                </p>
+                <Card variant="elevated" className="bg-white/50 backdrop-blur-lg p-8">
+                  <p className="text-center text-gray-600 font-body">
+                    No training history for {muscle} yet
+                  </p>
+                </Card>
               ) : (
                 exerciseHistory.map((item, idx) => {
                   if (!item) return null;
                   const daysAgo = Math.floor((Date.now() - item.date) / (1000 * 60 * 60 * 24));
                   return (
-                    <div key={idx} className="bg-brand-muted rounded-lg p-4">
-                      <h3 className="font-medium text-brand-text">{item.exercise.name}</h3>
-                      <div className="flex items-center gap-3 mt-1 text-sm text-brand-muted">
+                    <Card key={idx} variant="elevated" className="bg-white/50 backdrop-blur-lg p-4">
+                      <h3 className="font-medium text-foreground font-display">{item.exercise.name}</h3>
+                      <div className="flex items-center gap-3 mt-1 text-sm text-gray-600 font-body">
                         <span>{daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : `${daysAgo} days ago`}</span>
                         <span>•</span>
                         <span>{item.totalVolume.toLocaleString()} lbs total</span>
                       </div>
-                      <button className="text-xs text-brand-accent hover:underline mt-2">
+                      <button className="text-xs text-accent hover:underline mt-2 font-body">
                         → View workout
                       </button>
-                    </div>
+                    </Card>
                   );
                 })
               )}
@@ -312,6 +305,8 @@ export const MuscleDeepDiveModal: React.FC<MuscleDeepDiveModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </Sheet>
   );
 };
+
+export default MuscleDeepDiveModal;
