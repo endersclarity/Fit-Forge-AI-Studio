@@ -19,6 +19,7 @@ import FABMenu from './FABMenu';
 import TemplateSelector from './TemplateSelector';
 import WorkoutBuilder from './WorkoutBuilder';
 import { DetailedMuscleCard } from './fitness/DetailedMuscleCard';
+import { Card, Button, Badge, ProgressBar } from '../src/design-system/components/primitives';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -121,43 +122,48 @@ const WorkoutRecommender: React.FC<{
 
     if (recommendation.type === 'rest') {
         return (
-            <div className="bg-brand-surface p-4 rounded-lg text-center">
-                <h3 className="text-lg font-semibold mb-2">Rest Day Recommended</h3>
-                <p className="text-slate-400 text-sm">Your muscles need more recovery time. Come back tomorrow!</p>
-            </div>
+            <Card variant="default" className="bg-white/50 backdrop-blur-lg text-center">
+                <h3 className="text-lg font-display font-semibold mb-2">Rest Day Recommended</h3>
+                <p className="text-gray-600 text-sm font-body">Your muscles need more recovery time. Come back tomorrow!</p>
+            </Card>
         );
     }
-    
+
     return (
-        <div className="bg-brand-surface p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-1">Workout Recommendation</h3>
-            <p className="text-2xl font-bold text-brand-cyan mb-2">Ready for: {recommendation.category} Day {recommendation.variation}</p>
-            <p className="text-xs text-slate-400 mb-4">
+        <Card variant="default" className="bg-white/50 backdrop-blur-lg">
+            <h3 className="text-lg font-display font-semibold mb-1">Workout Recommendation</h3>
+            <p className="text-2xl font-display font-bold text-primary mb-2">Ready for: {recommendation.category} Day {recommendation.variation}</p>
+            <p className="text-xs text-gray-600 font-body mb-4">
                 {recommendation.recoveredMuscles.map(m => `${m.muscle} (${m.recovery.toFixed(0)}%)`).join(', ')}
             </p>
 
             <div className="mb-4">
-                <h4 className="font-semibold text-sm mb-2">Suggested Exercises:</h4>
-                <ul className="grid grid-cols-2 gap-2 text-xs">
-                    {recommendation.suggestedExercises.map(ex => <li key={ex.id} className="bg-brand-muted px-2 py-1 rounded">{ex.name}</li>)}
+                <h4 className="font-display font-semibold text-sm mb-2">Suggested Exercises:</h4>
+                <ul className="grid grid-cols-2 gap-2 text-xs font-body">
+                    {recommendation.suggestedExercises.map(ex => (
+                      <li key={ex.id}>
+                        <Badge variant="info" size="sm" className="w-full">{ex.name}</Badge>
+                      </li>
+                    ))}
                 </ul>
             </div>
-            
+
             {recommendation.targetVolumes.length > 0 && (
                  <div className="mb-4">
-                    <h4 className="font-semibold text-sm mb-2">Target Volume:</h4>
-                    <p className="text-xs text-slate-400">
+                    <h4 className="font-display font-semibold text-sm mb-2">Target Volume:</h4>
+                    <p className="text-xs text-gray-600 font-body">
                         {recommendation.targetVolumes.map(v => `${v.muscle} ${v.low.toLocaleString()}-${v.high.toLocaleString()} lbs`).join(', ')}
                     </p>
                 </div>
             )}
-           
-            <button
+
+            <Button
                 onClick={() => onStart({ type: recommendation.category, variation: recommendation.variation, suggestedExercises: recommendation.suggestedExercises })}
                 disabled={isLoading}
-                className={`w-full bg-cyan-600 text-white font-semibold py-3 px-4 rounded-lg text-base transition-colors ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-cyan-500'
-                }`}
+                variant="primary"
+                size="lg"
+                className="w-full min-h-[60px]"
+                aria-label="Start workout"
             >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -165,8 +171,8 @@ const WorkoutRecommender: React.FC<{
                     Starting Workout...
                   </span>
                 ) : 'Start This Workout'}
-            </button>
-        </div>
+            </Button>
+        </Card>
     );
 };
 
@@ -292,7 +298,7 @@ const MuscleFatigueHeatMap: React.FC<{
           <div key={category}>
             {/* Category Header */}
             <div className="mb-2 mt-4 first:mt-0">
-              <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">
+              <h4 className="text-sm font-display font-semibold text-gray-600 uppercase tracking-wide">
                 {category} Muscles
               </h4>
             </div>
@@ -323,38 +329,40 @@ const MuscleFatigueHeatMap: React.FC<{
 
                 // Default simple view
                 return (
-                  <div key={muscle} className="bg-brand-muted rounded-md">
+                  <Card key={muscle} variant="default" className="bg-white/50 backdrop-blur-lg">
                     <button
                       onClick={() => handleMuscleClick(muscle)}
-                      className="w-full text-left p-3 focus:outline-none hover:bg-brand-surface transition-colors cursor-pointer"
+                      className="w-full text-left p-3 focus:outline-none hover:bg-gray-100/20 transition-colors cursor-pointer min-h-[60px]"
                       aria-label={`${muscle}: ${fatiguePercent}% fatigued${isReady ? ', ready now' : `, ready in ${daysUntilRecovered} days`}`}
                     >
-                      <div className="flex justify-between items-center mb-1 text-sm">
-                        <span className="font-medium">{muscle}</span>
-                        <span className="text-slate-400">
+                      <div className="flex justify-between items-center mb-2 text-sm">
+                        <span className="font-display font-medium">{muscle}</span>
+                        <Badge
+                          variant={fatiguePercent === 0 ? 'success' : fatiguePercent <= 33 ? 'success' : fatiguePercent <= 66 ? 'warning' : 'error'}
+                          size="sm"
+                        >
                           {fatiguePercent === 0 ? 'Fully Recovered' : `${fatiguePercent}% fatigued`}
-                        </span>
+                        </Badge>
                       </div>
-                      <div className="w-full bg-slate-600 rounded-full h-2.5 mb-2">
-                        <div
-                          className={`${getFatigueColor(fatiguePercent)} h-2.5 rounded-full transition-all duration-300`}
-                          style={{ width: `${fatiguePercent}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center text-xs text-slate-500">
+                      <ProgressBar
+                        value={fatiguePercent}
+                        variant={fatiguePercent <= 33 ? 'success' : fatiguePercent <= 66 ? 'warning' : 'error'}
+                        size="md"
+                        aria-label={`Fatigue level: ${fatiguePercent}%`}
+                        className="mb-2"
+                      />
+                      <div className="flex justify-between items-center text-xs text-gray-700 font-body">
                         <span>
                           {lastTrained ? `Last trained: ${daysSince !== null ? Math.floor(daysSince) : 0}d ago` : 'Never trained'}
                         </span>
-                        <span>
-                          {isReady ? (
-                            <span className="text-green-400 font-semibold">Ready now</span>
-                          ) : (
-                            `Ready in ${daysUntilRecovered}d`
-                          )}
-                        </span>
+                        {isReady ? (
+                          <Badge variant="success" size="sm">Ready now</Badge>
+                        ) : (
+                          <span>Ready in {daysUntilRecovered}d</span>
+                        )}
                       </div>
                     </button>
-                  </div>
+                  </Card>
                 );
               })}
             </div>
@@ -368,44 +376,50 @@ const MuscleFatigueHeatMap: React.FC<{
           className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
           onClick={handleModalClose}
         >
-          <div
-            className="bg-brand-surface rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+          <Card
+            variant="elevated"
+            className="bg-white/95 backdrop-blur-lg max-w-md w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <header className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Exercises for {selectedMuscle}</h3>
-              <button
+              <h3 className="text-lg font-display font-semibold">Exercises for {selectedMuscle}</h3>
+              <Button
                 onClick={handleModalClose}
-                className="text-slate-400 hover:text-white text-2xl leading-none"
+                variant="ghost"
+                size="sm"
+                className="min-w-[44px] min-h-[44px]"
                 aria-label="Close"
               >
                 ×
-              </button>
+              </Button>
             </header>
 
             <div className="space-y-2">
               {exercisesForMuscle.length === 0 ? (
-                <p className="text-slate-400 text-center py-4">
+                <p className="text-gray-600 font-body text-center py-4">
                   No exercises found for this muscle.
                 </p>
               ) : (
                 exercisesForMuscle.map((ex) => (
-                  <div
+                  <Card
                     key={ex.id}
-                    className="flex justify-between items-center p-3 bg-brand-muted rounded hover:bg-brand-dark transition-colors"
+                    variant="default"
+                    className="bg-white/50 backdrop-blur-lg hover:bg-white/70 transition-colors"
                   >
-                    <div>
-                      <p className="font-medium">{ex.name}</p>
-                      <p className="text-xs text-slate-400">{ex.category}</p>
+                    <div className="flex justify-between items-center p-3">
+                      <div>
+                        <p className="font-display font-medium">{ex.name}</p>
+                        <Badge variant="info" size="sm" className="mt-1">{ex.category}</Badge>
+                      </div>
+                      <Badge variant="primary" size="lg" className="text-lg">
+                        {ex.engagement}%
+                      </Badge>
                     </div>
-                    <span className="text-brand-cyan font-semibold text-lg">
-                      {ex.engagement}%
-                    </span>
-                  </div>
+                  </Card>
                 ))
               )}
             </div>
-          </div>
+          </Card>
         </div>
       )}
     </>
@@ -418,7 +432,7 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
     const getExerciseName = (id: string) => EXERCISE_LIBRARY.find(e => e.id === id)?.name || 'Unknown Exercise';
 
     if (workouts.length === 0) {
-        return <p className="text-slate-400 text-center py-4">No workouts logged yet. Let's get started!</p>;
+        return <p className="text-gray-600 font-body text-center py-4">No workouts logged yet. Let's get started!</p>;
     }
 
     return (
@@ -426,34 +440,41 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
             {workouts.slice().sort((a,b) => b.endTime - a.endTime).slice(0,5).map(workout => {
                 const isExpanded = expandedWorkoutId === workout.id;
                 return (
-                    <div key={workout.id} className="bg-brand-muted rounded-md">
-                        <button onClick={() => setExpandedWorkoutId(isExpanded ? null : workout.id)} className="w-full text-left p-3 focus:outline-none">
+                    <Card key={workout.id} variant="default" className="bg-white/50 backdrop-blur-lg">
+                        <button
+                          onClick={() => setExpandedWorkoutId(isExpanded ? null : workout.id)}
+                          className="w-full text-left p-3 focus:outline-none min-h-[60px]"
+                          aria-label={`${workout.name} workout details`}
+                          aria-expanded={isExpanded}
+                        >
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <p className="font-semibold">{workout.name}</p>
-                                    <div className="flex items-center gap-3 text-xs text-slate-300 mt-1">
-                                        <p>{workout.type} Day {workout.variation && `(${workout.variation})`}</p>
+                                    <p className="font-display font-semibold">{workout.name}</p>
+                                    <div className="flex items-center gap-3 text-xs text-gray-700 font-body mt-1">
+                                        <Badge variant="info" size="sm">
+                                          {workout.type} Day {workout.variation && `(${workout.variation})`}
+                                        </Badge>
                                         <span>&bull;</span>
                                         <p>{formatDuration(workout.endTime - workout.startTime)}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                     <p className="text-sm text-slate-400">{new Date(workout.endTime).toLocaleDateString()}</p>
+                                     <p className="text-sm text-gray-600 font-body">{new Date(workout.endTime).toLocaleDateString()}</p>
                                     {isExpanded ? <ChevronUpIcon className="w-5 h-5"/> : <ChevronDownIcon className="w-5 h-5"/>}
                                 </div>
                             </div>
                         </button>
                         <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
                             <div className="overflow-hidden">
-                                <div className="p-3 pt-2 border-t border-slate-600/50 text-xs">
+                                <div className="p-3 pt-2 border-t border-gray-200 text-xs font-body">
                                     {workout.loggedExercises.map((ex: LoggedExercise) => (
                                         <div key={ex.id} className="mb-2 last:mb-0">
-                                            <p className="font-semibold text-slate-300">{getExerciseName(ex.exerciseId)}</p>
-                                            <ul className="list-disc list-inside pl-2 text-slate-400">
+                                            <p className="font-display font-semibold text-gray-800">{getExerciseName(ex.exerciseId)}</p>
+                                            <ul className="list-disc list-inside pl-2 text-gray-600">
                                                 {ex.sets.map((set, i) => (
                                                     <li key={set.id}>
-                                                        Set {i + 1}: {set.bodyweightAtTime 
-                                                            ? `Bodyweight (${set.weight} lbs)` 
+                                                        Set {i + 1}: {set.bodyweightAtTime
+                                                            ? `Bodyweight (${set.weight} lbs)`
                                                             : `${set.weight} lbs`} x {set.reps} reps
                                                     </li>
                                                 ))}
@@ -463,7 +484,7 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </Card>
                 );
             })}
         </div>
@@ -605,60 +626,68 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   const recentPRs = useMemo(() => findRecentPRs(personalBests, workoutHistory), [personalBests, workoutHistory]);
 
   return (
-    <div className="p-4 md:p-6 min-h-screen bg-brand-dark space-y-6">
+    <div className="p-4 md:p-6 min-h-screen bg-background space-y-6">
       <header className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-            <DumbbellIcon className="w-8 h-8 text-brand-cyan" />
-            <h1 className="text-2xl font-bold tracking-tight">FitForge</h1>
+            <DumbbellIcon className="w-8 h-8 text-primary" />
+            <h1 className="text-2xl font-display font-bold tracking-tight">FitForge</h1>
         </div>
         <div className="flex items-center gap-2">
             {onNavigateToAnalytics && (
-              <button
+              <Button
                 onClick={onNavigateToAnalytics}
-                className="p-2 rounded-full hover:bg-brand-surface min-w-[44px] min-h-[44px] flex items-center justify-center"
+                variant="ghost"
+                size="md"
+                className="rounded-full min-w-[60px] min-h-[60px] flex items-center justify-center"
                 title="Analytics"
                 aria-label="Analytics"
               >
                 <BarChartIcon className="w-6 h-6 text-purple-400"/>
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               onClick={onNavigateToBests}
-              className="p-2 rounded-full hover:bg-brand-surface min-w-[44px] min-h-[44px] flex items-center justify-center"
+              variant="ghost"
+              size="md"
+              className="rounded-full min-w-[60px] min-h-[60px] flex items-center justify-center"
               title="Personal Bests"
               aria-label="Personal Bests"
             >
                 <TrophyIcon className="w-6 h-6 text-yellow-400"/>
-            </button>
+            </Button>
             {onNavigateToMuscleBaselines && (
-              <button
+              <Button
                 onClick={onNavigateToMuscleBaselines}
-                className="p-2 rounded-full hover:bg-brand-surface min-w-[44px] min-h-[44px] flex items-center justify-center"
+                variant="ghost"
+                size="md"
+                className="rounded-full min-w-[60px] min-h-[60px] flex items-center justify-center"
                 title="Muscle Baselines"
                 aria-label="Muscle Baselines"
               >
-                <ActivityIcon className="w-6 h-6 text-brand-cyan"/>
-              </button>
+                <ActivityIcon className="w-6 h-6 text-primary"/>
+              </Button>
             )}
-            <button
+            <Button
               onClick={onNavigateToProfile}
-              className="p-2 rounded-full hover:bg-brand-surface min-w-[44px] min-h-[44px] flex items-center justify-center"
+              variant="ghost"
+              size="md"
+              className="rounded-full min-w-[60px] min-h-[60px] flex items-center justify-center"
               title="Profile"
               aria-label="Profile"
             >
                 <UserIcon className="w-6 h-6"/>
-            </button>
+            </Button>
         </div>
       </header>
 
       <main className="space-y-8">
-        <section className="bg-brand-surface p-4 rounded-lg">
-          <h2 className="text-xl font-semibold">Welcome, Kaelen</h2>
-        </section>
+        <Card variant="default" className="bg-white/50 backdrop-blur-lg">
+          <h2 className="text-xl font-display font-semibold">Welcome, Kaelen</h2>
+        </Card>
 
         {/* Muscle Visualization Hero Section */}
         {!loading && !error && Object.keys(muscleStates).length > 0 && (
-          <section className="bg-brand-surface p-6 rounded-lg">
+          <Card variant="default" className="bg-white/50 backdrop-blur-lg">
             <MuscleVisualizationContainer
               muscleStates={muscleStates}
               loading={loading}
@@ -668,7 +697,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 await fetchDashboardData();
               }}
             />
-          </section>
+          </Card>
         )}
 
         <CollapsibleCard title="Workout Recommendations" icon="💪" defaultExpanded={false}>
@@ -682,24 +711,33 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         </CollapsibleCard>
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <button
+            <Button
                 onClick={() => setIsTemplateSelectorOpen(true)}
-                className="w-full bg-brand-muted text-white font-bold py-4 px-4 rounded-lg text-lg hover:bg-brand-dark transition-colors min-h-[44px]"
+                variant="secondary"
+                size="lg"
+                className="w-full min-h-[60px] text-lg font-display font-bold"
+                aria-label="Saved Workouts"
             >
                 📋 Saved Workouts
-            </button>
-            <button
+            </Button>
+            <Button
                 onClick={() => setIsPlannerOpen(true)}
-                className="w-full bg-brand-accent text-brand-dark font-bold py-4 px-4 rounded-lg text-lg hover:bg-brand-accent/90 transition-colors min-h-[44px]"
+                variant="secondary"
+                size="lg"
+                className="w-full min-h-[60px] text-lg font-display font-bold bg-accent hover:bg-accent/90"
+                aria-label="Plan Workout"
             >
                 📊 Plan Workout
-            </button>
-            <button
+            </Button>
+            <Button
                 onClick={onStartWorkout}
-                className="w-full bg-brand-cyan text-brand-dark font-bold py-4 px-4 rounded-lg text-lg hover:bg-cyan-400 transition-colors min-h-[44px]"
+                variant="primary"
+                size="lg"
+                className="w-full min-h-[60px] text-lg font-display font-bold"
+                aria-label="Start Custom Workout"
             >
                 ➕ Start Custom Workout
-            </button>
+            </Button>
         </section>
 
         {/* Quick Training Stats */}
@@ -727,25 +765,27 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         {!loading && !error && Object.keys(muscleStates).length > 0 && (
           <CollapsibleCard title="Muscle Heat Map" icon="🔥" defaultExpanded={false}>
             <div className="flex justify-between items-center mb-4">
-              <button
+              <Button
                 onClick={fetchDashboardData}
                 disabled={loading}
-                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                  loading
-                    ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
-                    : 'bg-brand-cyan text-brand-dark hover:bg-cyan-400'
-                }`}
+                variant={loading ? 'ghost' : 'primary'}
+                size="sm"
+                className="min-h-[60px]"
+                aria-label="Refresh muscle data"
               >
                 {loading ? 'Loading...' : '🔄 Refresh'}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={toggleMuscleDetailLevel}
-                className="px-3 py-1 text-sm bg-brand-muted hover:bg-brand-dark rounded-lg transition-colors"
+                variant="secondary"
+                size="sm"
+                className="min-h-[60px]"
+                aria-label={`Switch to ${muscleDetailLevel === 'simple' ? 'detailed' : 'simple'} view`}
               >
                 {muscleDetailLevel === 'simple'
                   ? 'Show Detailed (42 muscles)'
                   : 'Show Simple (13 muscles)'}
-              </button>
+              </Button>
             </div>
             <MuscleFatigueHeatMap
               muscleStates={muscleStates}
@@ -775,24 +815,28 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 }}
               />
             ) : (
-              <div className="text-center py-4">
-                <p className="text-slate-400 mb-2">Configure equipment in Profile to use Exercise Finder</p>
-                <button
+              <Card variant="default" className="bg-white/50 backdrop-blur-lg text-center">
+                <p className="text-gray-600 font-body mb-2">Configure equipment in Profile to use Exercise Finder</p>
+                <Button
                   onClick={onNavigateToProfile}
-                  className="text-brand-cyan hover:underline"
+                  variant="primary"
+                  size="md"
+                  className="min-h-[60px]"
+                  aria-label="Go to Profile"
                 >
                   Go to Profile
-                </button>
-              </div>
+                </Button>
+              </Card>
             )}
           </CollapsibleCard>
         )}
       </main>
 
       {/* Floating Action Button for Quick Actions */}
-      <button
+      <Button
         onClick={() => setIsFABMenuOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-brand-cyan text-brand-dark rounded-full shadow-lg hover:bg-cyan-400 transition-all hover:scale-110 flex items-center justify-center z-40"
+        variant="primary"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg hover:scale-110 flex items-center justify-center z-40 min-w-[60px] min-h-[60px]"
         aria-label="Quick Actions"
       >
         <svg
@@ -809,7 +853,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
             d="M12 4v16m8-8H4"
           />
         </svg>
-      </button>
+      </Button>
 
       {/* QuickAdd Modal */}
       <QuickAdd

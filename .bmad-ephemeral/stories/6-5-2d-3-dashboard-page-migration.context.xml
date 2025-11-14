@@ -1,0 +1,249 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6.5</epicId>
+    <storyId>2D-3</storyId>
+    <title>Dashboard Page Migration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-2d-3-dashboard-page-migration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>the Dashboard page to use the unified design system</iWant>
+    <soThat>I experience consistent styling, improved touch targets, glass morphism effects, and maintainable component architecture when viewing my fitness analytics and progress visualizations</soThat>
+    <tasks>
+      - **Task 1: Migrate Dashboard.tsx** (AC: 1, 2, 3, 4, 5, 6, 7, 10)
+        - Replace inline Card JSX with `&lt;Card&gt;` primitive from `@/src/design-system/components/primitives`
+        - Replace inline Button elements with `&lt;Button&gt;` primitive (variant-aware)
+        - Replace inline badge/chip elements with `&lt;Badge&gt;` primitive (variant-aware, size-aware)
+        - Replace inline progress bars with `&lt;ProgressBar&gt;` primitive (variant-aware, animated)
+        - Update all color references to use design tokens (`bg-primary`, `text-secondary`, etc.)
+        - Apply glass morphism styling to cards (`bg-white/50`, `backdrop-blur-lg`)
+        - Ensure all touch targets are minimum 60x60px (WCAG AA compliance)
+        - Update imports to use design-system barrel exports
+        - Verify all dashboard data visualizations render correctly
+        - Update/create tests for new component structure (25+ tests)
+        - Verify no visual regressions (functionality preservation - all tests passing)
+      - **Task 2: Verification and Testing** (AC: 8, 9, 10)
+        - Run full test suite - ensure zero regressions
+        - Test Dashboard functionality (data loading, stat calculations, chart rendering, progress tracking)
+        - Verify touch target sizes using className assertions (min-w-[60px] min-h-[60px])
+        - Cross-browser testing (component rendering verified through tests)
+        - Mobile device testing (responsive layout verification)
+        - Ensure 25+ tests passing
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Dashboard uses Card primitive for all visualization panels and stat displays
+    2. Dashboard uses Button primitive for all interactive elements
+    3. Dashboard uses Badge primitive for status indicators and counts
+    4. Dashboard uses ProgressBar primitive for progress visualizations
+    5. Design tokens used for all colors (no hardcoded hex/rgb)
+    6. WCAG AA compliance (60x60px touch targets)
+    7. Glass morphism applied consistently
+    8. Comprehensive tests (25+ tests)
+    9. Zero regressions in existing functionality
+    10. All interactive elements meet accessibility standards
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6.5: Design System Rollout</title>
+        <section>Story 6.5.2D-3: Dashboard Page Migration</section>
+        <snippet>Dashboard.tsx (912 lines) - main dashboard with visualizations. Acceptance Criteria: Dashboard uses Card, Button, Badge, ProgressBar from design-system; All design tokens used (no hardcoded colors); Tests updated for new imports (25+ tests); Touch targets 60x60px minimum; No visual regressions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>UI Redesign Architecture</title>
+        <section>Component Structure and Technical Debt</section>
+        <snippet>No Backend Changes: UI redesign is frontend-only, all 20+ API endpoints remain unchanged. Glass Morphism Pattern: Cards use bg-white/50 with backdrop-blur-lg for depth. Touch Target Compliance: WCAG AA requires 60x60px minimum (currently 20x20px in some places).</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/6-5-2d-2-workout-page-migration.md</path>
+        <title>Previous Story: Workout Page Migration</title>
+        <section>Learnings and Patterns</section>
+        <snippet>Successfully migrated Workout.tsx (904 lines) to design system primitives. 30 tests created (26 passing). Design token conversions: bg-brand-dark → bg-background, text-brand-cyan → text-primary, bg-brand-cyan → bg-primary, text-slate-* → text-gray-*. All Cards use bg-white/50 backdrop-blur-lg. Touch targets verified with min-h-[60px] classes. Disabled landmark-unique axe rule (known Card primitive limitation).</snippet>
+      </doc>
+      <doc>
+        <path>CHANGELOG.md</path>
+        <title>Project Changelog</title>
+        <section>Story 6.5.1, 6.5.2B, 6.5.2C, 6.5.2D-1, 6.5.2D-2</section>
+        <snippet>Badge and ProgressBar primitives created in 6.5.1. Design token conversion patterns established in 6.5.2B. RecoveryDashboard and ExerciseRecommendations migrations in 6.5.2C. Profile migration with Input and Select integration in 6.5.2D-1. Workout migration with 22 buttons, 3 inputs, comprehensive tests in 6.5.2D-2.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/Dashboard.tsx</path>
+        <kind>component</kind>
+        <symbol>Dashboard</symbol>
+        <lines>1-912</lines>
+        <reason>Target file for migration - main dashboard component with visualizations, stats, workout recommender, muscle states</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>component</kind>
+        <symbol>Card</symbol>
+        <lines>1-92</lines>
+        <reason>Primary primitive for dashboard panels - glass morphism styling, variants (default, elevated, flat)</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>component</kind>
+        <symbol>Button</symbol>
+        <lines>1-120</lines>
+        <reason>Primary primitive for interactive elements - variants (primary, secondary, tertiary, ghost, destructive), sizes (sm, md, lg), 60x60px touch targets</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Badge.tsx</path>
+        <kind>component</kind>
+        <symbol>Badge</symbol>
+        <lines>1-126</lines>
+        <reason>KEY PRIMITIVE FOR DASHBOARD - status indicators, workout counts, recovery status, muscle fatigue levels. Variants: success, warning, error, info, primary. Sizes: sm, md, lg</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/ProgressBar.tsx</path>
+        <kind>component</kind>
+        <symbol>ProgressBar</symbol>
+        <lines>1-160</lines>
+        <reason>KEY PRIMITIVE FOR DASHBOARD - progress visualizations, fatigue levels, recovery percentages, workout completion, goal tracking. Framer Motion spring animations. Variants: primary, success, warning, error. Sizes: sm, md, lg</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/index.ts</path>
+        <kind>barrel-export</kind>
+        <symbol>primitives</symbol>
+        <lines>1-31</lines>
+        <reason>Centralized import path - use barrel exports: import { Card, Button, Badge, ProgressBar } from '@/src/design-system/components/primitives'</reason>
+      </artifact>
+      <artifact>
+        <path>components/__tests__/Workout.test.tsx</path>
+        <kind>test</kind>
+        <symbol>WorkoutTests</symbol>
+        <lines>1-500+</lines>
+        <reason>Reference test patterns from Story 6.5.2D-2 - 30 tests (26 passing) covering design system integration, accessibility, touch targets, functionality</reason>
+      </artifact>
+      <artifact>
+        <path>components/__tests__/Profile.test.tsx</path>
+        <kind>test</kind>
+        <symbol>ProfileTests</symbol>
+        <lines>1-400+</lines>
+        <reason>Reference test patterns from Story 6.5.2D-1 - 23 tests (all passing) covering design system integration, accessibility, Input/Select usage</reason>
+      </artifact>
+      <artifact>
+        <path>components/__tests__/RecoveryDashboard.test.tsx</path>
+        <kind>test</kind>
+        <symbol>RecoveryDashboardTests</symbol>
+        <lines>1-300+</lines>
+        <reason>Reference test patterns from Story 6.5.2C - similar dashboard-style component with data visualizations and design system integration</reason>
+      </artifact>
+      <artifact>
+        <path>.storybook/vitest.setup.ts</path>
+        <kind>test-config</kind>
+        <symbol>vitestSetup</symbol>
+        <lines>1-18</lines>
+        <reason>Test configuration with localStorage mock - may need extension for dashboard preferences/state persistence</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+        <package name="framer-motion" version="^12.23.24" />
+        <package name="lucide-react" version="^0.553.0" />
+        <package name="recharts" version="^3.3.0" />
+        <package name="@testing-library/react" version="^16.3.0" />
+        <package name="@testing-library/jest-dom" version="^6.9.1" />
+        <package name="@testing-library/user-event" version="^14.6.1" />
+        <package name="vitest" version="^4.0.3" />
+        <package name="jsdom" version="^27.0.1" />
+        <package name="axe-core" version="^4.11.0" />
+        <package name="jest-axe" version="^10.0.0" />
+        <package name="tailwindcss" version="^3.4.18" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Frontend-only changes: No backend API modifications allowed
+    - Maintain existing component API: DashboardProps interface must remain unchanged
+    - Glass morphism pattern: All Cards must use bg-white/50 with backdrop-blur-lg
+    - Touch target compliance: All interactive elements must be minimum 60x60px (WCAG AA)
+    - Design token usage: Zero hardcoded colors (no hex/rgb values) - use bg-primary, text-primary, bg-background, text-gray-*, etc.
+    - Barrel exports: Import from @/src/design-system/components/primitives (not direct paths)
+    - Testing requirement: Minimum 25+ comprehensive tests covering all acceptance criteria
+    - Accessibility: axe-core compliance with landmark-unique rule disabled (known Card primitive limitation from previous stories)
+    - Functionality preservation: All dashboard features must work identically (zero regressions)
+    - Badge usage pattern: Status indicators (success/warning/error), workout counts, recovery status, muscle fatigue levels
+    - ProgressBar usage pattern: Fatigue progress, recovery percentages, workout completion, goal tracking with smooth spring animations
+    - Design token conversions (from previous stories): bg-brand-dark → bg-background, text-brand-cyan → text-primary, bg-brand-cyan → bg-primary, text-slate-* → text-gray-*, font-display (Cinzel) for headings, font-body (Lato) for text
+    - Test configuration: localStorage mock already available in vitest.setup.ts for state persistence
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Card</name>
+      <kind>React Component</kind>
+      <signature>Card({ variant?: 'default' | 'elevated' | 'flat', children, className?, onClick?, ...props })</signature>
+      <path>src/design-system/components/primitives/Card.tsx</path>
+    </interface>
+    <interface>
+      <name>Button</name>
+      <kind>React Component</kind>
+      <signature>Button({ variant?: 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'destructive', size?: 'sm' | 'md' | 'lg', disabled?, loading?, children, onClick?, ...props })</signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+    <interface>
+      <name>Badge</name>
+      <kind>React Component</kind>
+      <signature>Badge({ variant?: 'success' | 'warning' | 'error' | 'info' | 'primary', size?: 'sm' | 'md' | 'lg', children, className?, 'aria-label'? })</signature>
+      <path>src/design-system/components/primitives/Badge.tsx</path>
+    </interface>
+    <interface>
+      <name>ProgressBar</name>
+      <kind>React Component</kind>
+      <signature>ProgressBar({ value: number, variant?: 'primary' | 'success' | 'warning' | 'error', size?: 'sm' | 'md' | 'lg', showLabel?: boolean, className?, 'aria-label'? })</signature>
+      <path>src/design-system/components/primitives/ProgressBar.tsx</path>
+    </interface>
+    <interface>
+      <name>DashboardProps</name>
+      <kind>TypeScript Interface</kind>
+      <signature>interface DashboardProps { profile: UserProfile; workouts: WorkoutSession[]; muscleBaselines: MuscleBaselines; templates: WorkoutTemplate[]; onStartWorkout: () => void; onStartPlannedWorkout?: (plannedExercises: PlannedExercise[]) => void; onStartRecommendedWorkout: (data: RecommendedWorkoutData) => void; onSelectTemplate: (template: WorkoutTemplate) => void; onNavigateToProfile: () => void; onNavigateToBests: () => void; onNavigateToTemplates: () => void; onNavigateToAnalytics?: () => void; onNavigateToMuscleBaselines?: () => void; }</signature>
+      <path>components/Dashboard.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Test Framework: Vitest with React Testing Library, jsdom environment. Testing Library best practices: user-centric queries (screen.getByRole, getByLabelText), no implementation details. Accessibility testing: axe-core via jest-axe with toHaveNoViolations matcher, disable landmark-unique rule for Card primitives (known limitation from Stories 6.5.2D-1 and 6.5.2D-2). Touch target verification: className assertions for min-w-[60px] min-h-[60px]. Mock setup: localStorage mock already available in vitest.setup.ts. Test structure: Unit tests for rendering, integration tests for user interactions, accessibility tests with axe, visual regression prevention through functional testing.
+    </standards>
+    <locations>
+      components/__tests__/Dashboard.test.tsx - Create new test file with 25+ comprehensive tests
+    </locations>
+    <ideas>
+      - AC1: Test Card primitive usage for visualization panels (verify glass morphism bg-white/50 backdrop-blur-lg)
+      - AC2: Test Button primitive usage for all interactive elements (verify variants, sizes, touch targets)
+      - AC3: Test Badge primitive usage for status indicators and counts (verify variants: success/warning/error/info/primary)
+      - AC4: Test ProgressBar primitive usage for progress visualizations (verify smooth animations, value clamping 0-100, variants)
+      - AC5: Test design tokens (grep test for zero hardcoded colors, verify bg-primary, text-primary, bg-background, text-gray-*)
+      - AC6: Test WCAG AA touch targets (verify min-h-[60px] classes on all interactive elements)
+      - AC7: Test glass morphism consistency (verify all Cards have bg-white/50 backdrop-blur-lg)
+      - AC8: Create 25+ comprehensive tests (unit + integration + accessibility)
+      - AC9: Test zero regressions (verify data loading, stat calculations, chart rendering, progress tracking, workout recommender)
+      - AC10: Test accessibility standards (axe-core with landmark-unique disabled, ARIA labels, keyboard navigation, role attributes)
+      - Integration: Test WorkoutRecommender component with muscle states and recovery calculations
+      - Integration: Test QuickTrainingStats component with streak and weekly stats
+      - Integration: Test WorkoutHistorySummary component with workout data
+      - Integration: Test MuscleVisualizationContainer integration
+      - Integration: Test CollapsibleCard patterns with expand/collapse
+      - Accessibility: Test keyboard navigation through dashboard sections
+      - Accessibility: Test screen reader support (proper ARIA labels on charts, stats, progress bars)
+      - Visual: Test responsive layout (mobile/tablet/desktop breakpoints)
+      - Mock: Test with empty data states (no workouts, no baselines)
+      - Mock: Test with loading states (data fetching scenarios)
+    </ideas>
+  </tests>
+</story-context>
