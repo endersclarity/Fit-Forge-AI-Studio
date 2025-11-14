@@ -1,0 +1,318 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6.5</epicId>
+    <storyId>2D-2</storyId>
+    <title>Workout Page Migration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-2d-2-workout-page-migration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>the Workout page to use the unified design system</iWant>
+    <soThat>I experience consistent styling, improved touch targets, glass morphism effects, and maintainable component architecture when tracking my active workouts</soThat>
+    <tasks>
+      - Task 1: Migrate Workout.tsx (AC: 1, 2, 3, 4, 5, 6, 7, 8, 11)
+        - Replace inline Card JSX with Card primitive from @/src/design-system/components/primitives
+        - Replace inline Button elements with Button primitive (variant-aware)
+        - Replace inline Input elements with Input primitive (variant-aware, size-aware)
+        - Replace FAB button implementation with FAB primitive
+        - Replace modal implementations with Sheet primitive
+        - Update all color references to use design tokens (bg-primary, text-secondary, etc.)
+        - Apply glass morphism styling to cards (bg-white/50, backdrop-blur-lg)
+        - Ensure all touch targets are minimum 60x60px (WCAG AA compliance)
+        - Update imports to use design-system barrel exports
+        - Verify all workout tracking interactions work correctly
+        - Update/create tests for new component structure (25+ tests)
+        - Verify no visual regressions (functionality preservation - all tests passing)
+      - Task 2: Verification and Testing (AC: 9, 10, 11)
+        - Run full test suite - ensure zero regressions
+        - Test Workout functionality (exercise tracking, set recording, workout completion)
+        - Verify touch target sizes using className assertions (min-w-[60px] min-h-[60px])
+        - Cross-browser testing (component rendering verified through tests)
+        - Mobile device testing (responsive layout verification)
+        - Ensure 25+ tests passing
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Workout uses Card primitive for workout sections and exercise displays
+    2. Workout uses Button primitive for all actions
+    3. Workout uses Input primitive for set data entry
+    4. Workout uses FAB primitive for quick actions
+    5. Workout uses Sheet primitive for modals/drawers
+    6. Design tokens used for all colors (no hardcoded hex/rgb)
+    7. WCAG AA compliance (60x60px touch targets)
+    8. Glass morphism applied consistently
+    9. Comprehensive tests (25+ tests)
+    10. Zero regressions in existing functionality
+    11. All interactive elements meet accessibility standards
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6.5: Design System Rollout</title>
+        <section>Story 6.5.2D-2: Workout Page Migration</section>
+        <snippet>Migrate Workout.tsx (904 lines) to design system primitives. Use Card, Button, Input, FAB, Sheet from design-system. All design tokens used (no hardcoded colors). Tests updated for new imports (25+ tests). Touch targets 60x60px minimum. No visual regressions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>UI Redesign Architecture</title>
+        <section>Design System Migration Strategy</section>
+        <snippet>Frontend-only changes. No backend API modifications. Glass morphism pattern: Cards use bg-white/50 with backdrop-blur-lg. WCAG AA requires 60x60px minimum touch targets. Component API consistency maintained.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/6-5-2d-1-profile-page-migration.md</path>
+        <title>Previous Story (Profile Page Migration)</title>
+        <section>Learnings and Patterns</section>
+        <snippet>Successfully migrated Profile.tsx (668 lines) to design system. Design token conversions: bg-brand-dark → bg-background, text-brand-cyan → text-primary, bg-brand-cyan → bg-primary. All 23 tests passing. Code review APPROVED on first pass. Follow same testing patterns: unit tests for rendering, integration tests for interactions, accessibility tests (axe-core), touch target verification.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>components/Workout.tsx</path>
+        <kind>component</kind>
+        <symbol>Workout</symbol>
+        <lines>1-904</lines>
+        <reason>Target file for migration - contains inline cards, buttons, inputs, and modals that need to be replaced with design system primitives</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Card</symbol>
+        <lines>1-100</lines>
+        <reason>Card primitive with glass morphism styling (bg-white/50, backdrop-blur-lg) for workout sections and exercise displays</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Button</symbol>
+        <lines>1-150</lines>
+        <reason>Button primitive with variants (primary, secondary, tertiary, ghost, destructive) and touch-friendly sizing (minimum 60x60px)</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Input.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Input</symbol>
+        <lines>1-100</lines>
+        <reason>Input primitive with variants (default, error, success) for set data entry (reps, weight, RIR)</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Sheet.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Sheet</symbol>
+        <lines>1-150</lines>
+        <reason>Sheet primitive for bottom drawer/modal pattern (replaces WorkoutSummaryModal and ExerciseSelector modal)</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/patterns/FAB.tsx</path>
+        <kind>pattern</kind>
+        <symbol>FAB</symbol>
+        <lines>1-100</lines>
+        <reason>FAB pattern for floating action button (64x64px button positioned bottom-right with spring animation entrance)</reason>
+      </artifact>
+      <artifact>
+        <path>src/design-system/components/primitives/Badge.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Badge</symbol>
+        <lines>1-100</lines>
+        <reason>Badge primitive with variants (success, warning, error, info, primary) for status indicators (PR badges, set completion indicators)</reason>
+      </artifact>
+      <artifact>
+        <path>components/__tests__/Profile.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Profile tests</symbol>
+        <lines>1-300</lines>
+        <reason>Reference implementation for testing patterns (23 tests with axe-core accessibility, touch target verification, design token validation)</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+        <reason>React framework</reason>
+      </node>
+      <package>framer-motion</package>
+      <version>^12.23.24</version>
+      <reason>Animation library for Sheet transitions and FAB spring entrance</reason>
+      </node>
+      <node>
+        <package>@testing-library/react</package>
+        <version>^16.3.0</version>
+        <reason>Testing library for component rendering and interaction tests</reason>
+      </node>
+      <node>
+        <package>@testing-library/user-event</package>
+        <version>^14.6.1</version>
+        <reason>User interaction simulation for integration tests</reason>
+      </node>
+      <node>
+        <package>jest-axe</package>
+        <version>^10.0.0</version>
+        <reason>Accessibility testing with axe-core for WCAG AA compliance</reason>
+      </node>
+      <node>
+        <package>vitest</package>
+        <version>^4.0.3</version>
+        <reason>Testing framework</reason>
+      </node>
+      <node>
+        <package>tailwindcss</package>
+        <version>^3.4.18</version>
+        <reason>CSS framework with design tokens configured in tailwind.config.js</reason>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Frontend-only migration (no backend API changes to workoutsAPI or templatesAPI)
+    - Maintain existing component API (WorkoutProps interface unchanged)
+    - Preserve all functionality (exercise tracking, set recording, workout completion, progressive overload suggestions)
+    - Use barrel exports from @/src/design-system/components/primitives for primitives (Card, Button, Input, Sheet)
+    - Use barrel exports from @/src/design-system/components/patterns for FAB
+    - Apply design token conversions: bg-brand-dark → bg-background, text-brand-cyan → text-primary, bg-brand-cyan → bg-primary, text-slate-* → text-gray-*, bg-brand-surface → Card with glass morphism
+    - Glass morphism pattern: All Cards use bg-white/50 backdrop-blur-lg
+    - WCAG AA compliance: All interactive elements minimum 60x60px (min-w-[60px] min-h-[60px])
+    - Framer Motion animations: Sheet transitions, FAB spring entrance
+    - Zero hardcoded colors (verified via grep "#[0-9a-fA-F]")
+    - Disable landmark-unique axe rule in tests (known Card primitive limitation from Story 6.5.2D-1)
+    - localStorage mock may need extension for workout state (existing mock supports muscleDetailLevel from Profile story)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Card</name>
+      <kind>React Component</kind>
+      <signature>
+        interface CardProps {
+          children: React.ReactNode;
+          variant?: 'default' | 'elevated' | 'flat';
+          className?: string;
+          onClick?: () => void;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Card.tsx</path>
+    </interface>
+    <interface>
+      <name>Button</name>
+      <kind>React Component</kind>
+      <signature>
+        interface ButtonProps {
+          children: React.ReactNode;
+          variant?: 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'destructive';
+          size?: 'sm' | 'md' | 'lg';
+          disabled?: boolean;
+          loading?: boolean;
+          onClick?: () => void;
+          type?: 'button' | 'submit' | 'reset';
+          'aria-label'?: string;
+          className?: string;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+    <interface>
+      <name>Input</name>
+      <kind>React Component</kind>
+      <signature>
+        interface InputProps {
+          type?: 'text' | 'number' | 'email' | 'password';
+          placeholder?: string;
+          value?: string | number;
+          onChange?: (e: React.ChangeEvent&lt;HTMLInputElement&gt;) => void;
+          variant?: 'default' | 'error' | 'success';
+          size?: 'sm' | 'md' | 'lg';
+          disabled?: boolean;
+          label?: string;
+          error?: string;
+          className?: string;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Input.tsx</path>
+    </interface>
+    <interface>
+      <name>Sheet</name>
+      <kind>React Component</kind>
+      <signature>
+        interface SheetProps {
+          isOpen: boolean;
+          onClose: () => void;
+          children: React.ReactNode;
+          title?: string;
+          className?: string;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Sheet.tsx</path>
+    </interface>
+    <interface>
+      <name>FAB</name>
+      <kind>React Component</kind>
+      <signature>
+        interface FABProps {
+          icon: string;  // Material Symbol icon name
+          label: string;  // Accessibility label
+          onClick: () => void;
+          disabled?: boolean;
+          className?: string;
+        }
+      </signature>
+      <path>src/design-system/components/patterns/FAB.tsx</path>
+    </interface>
+    <interface>
+      <name>Badge</name>
+      <kind>React Component</kind>
+      <signature>
+        interface BadgeProps {
+          children: React.ReactNode;
+          variant?: 'success' | 'warning' | 'error' | 'info' | 'primary';
+          size?: 'sm' | 'md' | 'lg';
+          className?: string;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Badge.tsx</path>
+    </interface>
+    <interface>
+      <name>WorkoutProps</name>
+      <kind>TypeScript Interface</kind>
+      <signature>
+        interface WorkoutProps {
+          onFinishWorkout: (session: WorkoutSession) => void;
+          onCancel: () => void;
+          allWorkouts: WorkoutSession[];
+          personalBests: PersonalBests;
+          userProfile: UserProfile;
+          muscleBaselines: MuscleBaselines;
+          initialData?: RecommendedWorkoutData | null;
+          plannedExercises?: PlannedExercise[] | null;
+        }
+      </signature>
+      <path>components/Workout.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest 4.0.3 with React Testing Library 16.3.0. Test files located in components/__tests__/ directory with .test.tsx extension. Unit tests for component rendering and design system integration. Integration tests for user interactions (fireEvent for clicks, changes). Accessibility tests using jest-axe for WCAG AA compliance (axe-core audits). Touch target size verification using className assertions (min-w-[60px] min-h-[60px]). Visual regression prevention through functional testing. Proper mocking strategy (localStorage, API callbacks). Disable landmark-unique axe rule (known Card primitive limitation). Follow patterns from Profile.test.tsx (23 tests, 100% passing).
+    </standards>
+    <locations>
+      components/__tests__/Workout.test.tsx (create - 25+ comprehensive tests)
+    </locations>
+    <ideas>
+      - AC1: Card components rendering with glass morphism (should render with Card components, should apply glass morphism styling)
+      - AC2: Button primitive usage (should use Button primitive for action buttons, should call onClick handlers)
+      - AC3: Input primitive usage (should use Input primitive for set data entry, should allow editing reps/weight/RIR)
+      - AC4: FAB primitive usage (should render FAB for quick actions, should trigger add exercise)
+      - AC5: Sheet primitive usage (should use Sheet for modals, should open/close ExerciseSelector Sheet, should open/close WorkoutSummaryModal Sheet)
+      - AC6: Design tokens (should use design tokens for colors, should use font-body and font-display, should have zero hardcoded colors)
+      - AC7: Touch targets (should have 60x60px minimum touch targets for buttons, should have 60x60px minimum touch targets for inputs)
+      - AC8: Glass morphism (should apply bg-white/50 backdrop-blur-lg to all Cards)
+      - AC9: Comprehensive tests (25+ tests total covering all acceptance criteria)
+      - AC10: Zero regressions (should track exercises correctly, should record sets correctly, should complete workout successfully, should handle progressive overload suggestions, should render LastWorkoutSummary, should filter exercises by category/equipment/muscle, should toggle workout stages)
+      - AC11: Accessibility (should have no accessibility violations, should have proper ARIA labels on interactive elements, should support keyboard navigation)
+    </ideas>
+  </tests>
+</story-context>

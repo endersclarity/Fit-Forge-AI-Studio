@@ -11,6 +11,8 @@ import { workoutsAPI, templatesAPI } from '../api';
 import { WorkoutResponse } from '../backend/types';
 import { calculateProgressiveOverload, ProgressionMethod } from '../utils/progressiveOverload';
 import { ProgressiveSuggestionButtons } from './ProgressiveSuggestionButtons';
+import { Card, Button, Input, Sheet } from '@/src/design-system/components/primitives';
+import FAB from '@/src/design-system/components/patterns/FAB';
 
 type WorkoutStage = "setup" | "tracking" | "summary";
 
@@ -66,64 +68,94 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
     const muscleOptions: (Muscle | 'All')[] = ['All', ...ALL_MUSCLES];
 
     return (
-        <div className="fixed inset-0 bg-brand-dark z-20 p-4 flex flex-col">
+        <div className="fixed inset-0 bg-background z-20 p-4 flex flex-col">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Add Exercise</h2>
-                <button onClick={onDone} className="text-brand-cyan font-semibold min-w-[60px] min-h-[60px] flex items-center justify-center">Done</button>
+                <h2 className="text-xl font-display font-bold">Add Exercise</h2>
+                <Button
+                    onClick={onDone}
+                    variant="ghost"
+                    className="text-primary font-semibold min-w-[60px] min-h-[60px]"
+                    aria-label="Done selecting exercises"
+                >
+                    Done
+                </Button>
             </div>
 
             {/* Category Filter */}
             <div className="mb-3">
-                <label className="block text-xs font-semibold text-slate-400 mb-1">CATEGORY</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">CATEGORY</label>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                     {(['All', 'Push', 'Pull', 'Legs', 'Core'] as const).map(cat => (
-                        <button key={cat} onClick={() => setCategoryFilter(cat)} className={`px-4 py-2 h-12 rounded-full text-sm font-semibold whitespace-nowrap min-w-[60px] ${categoryFilter === cat ? 'bg-brand-cyan text-brand-dark' : 'bg-brand-surface'}`}>
+                        <Button
+                            key={cat}
+                            onClick={() => setCategoryFilter(cat)}
+                            variant={categoryFilter === cat ? 'primary' : 'secondary'}
+                            size="md"
+                            className={`px-4 rounded-full text-sm font-semibold whitespace-nowrap min-w-[60px] min-h-[48px]`}
+                        >
                             {cat}
-                        </button>
+                        </Button>
                     ))}
                 </div>
             </div>
 
             {/* Equipment Filter */}
             <div className="mb-3">
-                <label className="block text-xs font-semibold text-slate-400 mb-1">EQUIPMENT</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">EQUIPMENT</label>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                     {equipmentOptions.map(eq => (
-                        <button key={eq} onClick={() => setEquipmentFilter(eq)} className={`px-4 py-2 h-12 rounded-full text-sm font-semibold whitespace-nowrap min-w-[60px] ${equipmentFilter === eq ? 'bg-brand-cyan text-brand-dark' : 'bg-brand-surface'}`}>
+                        <Button
+                            key={eq}
+                            onClick={() => setEquipmentFilter(eq)}
+                            variant={equipmentFilter === eq ? 'primary' : 'secondary'}
+                            size="md"
+                            className="px-4 rounded-full text-sm font-semibold whitespace-nowrap min-w-[60px] min-h-[48px]"
+                        >
                             {eq}
-                        </button>
+                        </Button>
                     ))}
                 </div>
             </div>
 
             {/* Muscle Filter */}
             <div className="mb-3">
-                <label className="block text-xs font-semibold text-slate-400 mb-1">MUSCLE GROUP</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">MUSCLE GROUP</label>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                     {muscleOptions.map(muscle => (
-                        <button key={muscle} onClick={() => setMuscleFilter(muscle)} className={`px-4 py-2 h-12 rounded-full text-sm font-semibold whitespace-nowrap min-w-[60px] ${muscleFilter === muscle ? 'bg-brand-cyan text-brand-dark' : 'bg-brand-surface'}`}>
+                        <Button
+                            key={muscle}
+                            onClick={() => setMuscleFilter(muscle)}
+                            variant={muscleFilter === muscle ? 'primary' : 'secondary'}
+                            size="md"
+                            className="px-4 rounded-full text-sm font-semibold whitespace-nowrap min-w-[60px] min-h-[48px]"
+                        >
                             {muscle}
-                        </button>
+                        </Button>
                     ))}
                 </div>
             </div>
 
             <div className="flex-grow overflow-y-auto space-y-2">
                 {filteredExercises.length === 0 ? (
-                    <div className="text-center text-slate-400 py-8">
+                    <div className="text-center text-gray-400 py-8">
                         No exercises match your filters
                     </div>
                 ) : (
                     filteredExercises.map(ex => {
                         const equipmentDisplay = Array.isArray(ex.equipment) ? ex.equipment.join(' / ') : ex.equipment;
                         return (
-                            <button key={ex.id} onClick={() => onSelect(ex)} className="w-full text-left bg-brand-surface p-4 rounded-lg flex justify-between items-center min-h-[60px] gap-4">
+                            <Button
+                                key={ex.id}
+                                onClick={() => onSelect(ex)}
+                                variant="secondary"
+                                className="w-full text-left p-4 rounded-lg flex justify-between items-center min-h-[60px] gap-4"
+                            >
                                 <div className="flex-1">
                                     <p className="font-semibold">{ex.name}</p>
-                                    <p className="text-xs text-slate-400">{equipmentDisplay}</p>
+                                    <p className="text-xs text-gray-400">{equipmentDisplay}</p>
                                 </div>
-                                <PlusIcon className="w-6 h-6 text-brand-cyan shrink-0"/>
-                            </button>
+                                <PlusIcon className="w-6 h-6 text-primary shrink-0"/>
+                            </Button>
                         );
                     })
                 )}
@@ -143,20 +175,34 @@ const RestTimer: React.FC<{
     const timeString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 
     return (
-        <div className="fixed inset-x-0 bottom-0 bg-brand-surface p-4 z-30 shadow-lg rounded-t-2xl max-w-2xl mx-auto border-t border-brand-muted">
-             <div className="w-full bg-brand-muted rounded-full h-1.5 mb-3">
-                <div className="bg-brand-cyan h-1.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+        <Card className="fixed inset-x-0 bottom-0 p-4 z-30 shadow-lg rounded-t-2xl max-w-2xl mx-auto border-t border-gray-700 bg-white/50 backdrop-blur-lg">
+             <div className="w-full bg-gray-700 rounded-full h-1.5 mb-3">
+                <div className="bg-primary h-1.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
             </div>
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => onAdd(15)} className="text-sm font-semibold bg-brand-muted px-4 py-2 rounded-md min-w-[60px] min-h-[60px] flex items-center justify-center">+15s</button>
+                    <Button
+                        onClick={() => onAdd(15)}
+                        variant="secondary"
+                        size="md"
+                        className="text-sm font-semibold min-w-[60px] min-h-[60px]"
+                        aria-label="Add 15 seconds to rest timer"
+                    >
+                        +15s
+                    </Button>
                     <span className="text-3xl font-bold font-mono tracking-wider">{timeString}</span>
                 </div>
-                <button onClick={onClose} className="text-sm font-semibold text-slate-300 min-w-[60px] min-h-[60px] flex items-center justify-center">
+                <Button
+                    onClick={onClose}
+                    variant="ghost"
+                    size="md"
+                    className="text-sm font-semibold text-gray-300 min-w-[60px] min-h-[60px]"
+                    aria-label={timer.remaining > 0 ? 'Skip rest timer' : 'Close rest timer'}
+                >
                     {timer.remaining > 0 ? 'Skip' : 'Done'}
-                </button>
+                </Button>
             </div>
-        </div>
+        </Card>
     );
 };
 
@@ -165,24 +211,29 @@ const FailureTooltip: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
 
     return (
         <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-brand-surface rounded-lg p-6 max-w-sm animate-fade-in" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-bold mb-2">What is "To Failure"?</h3>
-                <p className="text-sm text-slate-300 mb-3">
+            <Card className="rounded-lg p-6 max-w-sm animate-fade-in bg-white/50 backdrop-blur-lg" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-display font-bold mb-2">What is "To Failure"?</h3>
+                <p className="text-sm text-gray-700 mb-3">
                     Mark a set if you <strong>couldn't do one more rep</strong> with good form.
                 </p>
-                <div className="bg-brand-muted p-3 rounded-md mb-4">
-                    <p className="text-xs text-slate-400 mb-1">Why it matters:</p>
-                    <p className="text-xs text-slate-300">
+                <Card className="bg-gray-100 p-3 rounded-md mb-4">
+                    <p className="text-xs text-gray-600 mb-1">Why it matters:</p>
+                    <p className="text-xs text-gray-700">
                         Helps FitForge learn your true muscle capacity for personalized recommendations.
                     </p>
-                </div>
-                <p className="text-xs text-brand-cyan mb-4">
+                </Card>
+                <p className="text-xs text-primary mb-4">
                     <strong>Default:</strong> Last set = failure
                 </p>
-                <button onClick={onClose} className="w-full bg-brand-cyan text-brand-dark py-2 rounded-lg font-semibold">
+                <Button
+                    onClick={onClose}
+                    variant="primary"
+                    className="w-full min-h-[48px]"
+                    aria-label="Close to-failure explanation"
+                >
                     Got it
-                </button>
-            </div>
+                </Button>
+            </Card>
         </div>
     );
 };
@@ -340,7 +391,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
     oscillator.stop(audioContext.currentTime + 1);
   };
-  
+
   useEffect(() => {
     if (activeTimer && activeTimer.remaining > 0) {
         timerIntervalRef.current = window.setInterval(() => {
@@ -486,7 +537,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     setExpandedExerciseId(newLoggedExercise.id);
     setExerciseSelectorOpen(false);
   };
-  
+
   const addSet = (exerciseId: string) => {
     setLoggedExercises(prev => prev.map(ex => {
       if (ex.id !== exerciseId) return ex;
@@ -507,7 +558,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       return { ...ex, sets: [...updatedSets, newSet] };
     }));
   };
-  
+
   const updateSet = (exerciseId: string, setId: string, field: 'reps' | 'weight', value: number) => {
     if (field === 'weight' && (value < 0 || value > 500)) return;
     if (field === 'reps' && (value < 1 || value > 50)) return;
@@ -541,34 +592,34 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const handleUseBodyweight = (exerciseId: string, setId: string) => {
     const latestWeightEntry = userProfile.bodyweightHistory?.sort((a,b) => b.date - a.date)[0];
     const bodyweight = latestWeightEntry?.weight || 150;
-    
+
     if (!latestWeightEntry) {
         setBodyweightWarning("Default used - set bodyweight in Profile");
         setTimeout(() => setBodyweightWarning(null), 3000);
     }
 
-    setLoggedExercises(prev => 
-        prev.map(ex => 
-            ex.id === exerciseId 
-            ? { ...ex, sets: ex.sets.map(s => s.id === setId ? { ...s, weight: bodyweight, bodyweightAtTime: bodyweight } : s) } 
+    setLoggedExercises(prev =>
+        prev.map(ex =>
+            ex.id === exerciseId
+            ? { ...ex, sets: ex.sets.map(s => s.id === setId ? { ...s, weight: bodyweight, bodyweightAtTime: bodyweight } : s) }
             : ex
         )
     );
   };
 
   const removeSet = (exerciseId: string, setId: string) => {
-     setLoggedExercises(prev => prev.map(ex => 
+     setLoggedExercises(prev => prev.map(ex =>
       ex.id === exerciseId ? {
         ...ex,
         sets: ex.sets.filter(s => s.id !== setId)
       } : ex
     ));
   };
-  
+
   const handleOpenSummary = () => {
     const end = Date.now();
     // Fix: Removed call to non-existent 'setEndTime' function.
-    
+
     const session: WorkoutSession = {
       id: `workout-${startTime}`,
       name: workoutName,
@@ -606,7 +657,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             workoutMuscleVolumes[engagement.muscle] += exerciseVolume * (engagement.percentage / 100);
         });
     });
-    
+
     const capacityInfo = Object.entries(workoutMuscleVolumes)
         .map(([muscleStr, volume]) => {
             const muscle = muscleStr as Muscle;
@@ -627,7 +678,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     if (capacityInfo.length === 0) {
         return { status: 'no_fatigue', data: [] };
     }
-    
+
     return { status: 'ok', data: capacityInfo };
   }, [loggedExercises, muscleBaselines]);
 
@@ -640,20 +691,20 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
   if (stage === "setup") {
     return (
-      <div className="p-4 bg-brand-dark min-h-screen flex flex-col">
+      <div className="p-4 bg-background min-h-screen flex flex-col">
         <div className="flex-grow">
-          <h2 className="text-2xl font-bold mb-6">New Workout</h2>
+          <h2 className="text-2xl font-display font-bold mb-6">New Workout</h2>
 
           {/* Workout Type Selection */}
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Workout Type</label>
+            <label className="block text-sm font-body font-medium mb-1">Workout Type</label>
             <select
               value={selectedCategory}
               onChange={e => {
                 setSelectedCategory(e.target.value as ExerciseCategory);
                 setWorkoutType(e.target.value as ExerciseCategory);
               }}
-              className="w-full bg-brand-surface border border-brand-muted rounded-md px-3 py-2"
+              className="w-full bg-white/50 backdrop-blur-lg border border-gray-700 rounded-md px-3 py-2 min-h-[60px]"
             >
               <option>Push</option>
               <option>Pull</option>
@@ -673,60 +724,78 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
           )}
 
           {loadingLastWorkout && (
-            <div className="bg-brand-surface p-6 rounded-lg mb-4 text-center">
-              <p className="text-slate-400">Loading last workout...</p>
-            </div>
+            <Card className="p-6 rounded-lg mb-4 text-center bg-white/50 backdrop-blur-lg">
+              <p className="text-gray-400">Loading last workout...</p>
+            </Card>
           )}
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Workout Name</label>
-              <input
+              <label className="block text-sm font-body font-medium mb-1">Workout Name</label>
+              <Input
                 type="text"
                 value={workoutName}
                 onChange={e => setWorkoutName(e.target.value)}
                 placeholder={generateWorkoutName(workoutType, workoutVariation)}
-                className="w-full bg-brand-surface border border-brand-muted rounded-md px-3 py-2"
+                variant="default"
+                size="md"
+                className="w-full min-h-[60px]"
               />
-              <p className="text-xs text-slate-400 mt-1">Leave blank to use timestamp</p>
+              <p className="text-xs text-gray-400 mt-1">Leave blank to use timestamp</p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Workout Variation</label>
+              <label className="block text-sm font-body font-medium mb-1">Workout Variation</label>
 
               {/* Variation Context */}
               {variationSuggestion && variationSuggestion.lastVariation && (
-                <div className="mb-2 p-3 bg-brand-surface rounded-md border border-brand-muted">
-                  <p className="text-sm text-gray-300">
-                    <span className="text-gray-400">Last time: </span>
+                <Card className="mb-2 p-3 rounded-md border border-gray-700 bg-white/50 backdrop-blur-lg">
+                  <p className="text-sm text-gray-700">
+                    <span className="text-gray-600">Last time: </span>
                     <span className="font-semibold">{selectedCategory} {variationSuggestion.lastVariation}</span>
                     <span className="text-gray-500 ml-1">({variationSuggestion.daysAgo} days ago)</span>
                   </p>
-                  <p className="text-xs text-brand-cyan mt-1">
+                  <p className="text-xs text-primary mt-1">
                     → Today: {selectedCategory} {variationSuggestion.suggested} (Recommended)
                   </p>
-                </div>
+                </Card>
               )}
 
-              <div className="flex bg-brand-surface rounded-md p-1">
-                <button
+              <div className="flex bg-white/50 backdrop-blur-lg rounded-md p-1">
+                <Button
                   onClick={() => setWorkoutVariation("A")}
-                  className={`w-1/2 rounded-md py-2 font-semibold transition-colors ${workoutVariation === 'A' ? 'bg-brand-cyan text-brand-dark' : 'text-slate-300'}`}
+                  variant={workoutVariation === 'A' ? 'primary' : 'ghost'}
+                  className="w-1/2 rounded-md min-h-[60px] font-semibold transition-colors"
                 >
                   Workout A
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setWorkoutVariation("B")}
-                  className={`w-1/2 rounded-md py-2 font-semibold transition-colors ${workoutVariation === 'B' ? 'bg-brand-cyan text-brand-dark' : 'text-slate-300'}`}
+                  variant={workoutVariation === 'B' ? 'primary' : 'ghost'}
+                  className="w-1/2 rounded-md min-h-[60px] font-semibold transition-colors"
                 >
                   Workout B
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         </div>
         <div className="flex gap-2">
-            <button onClick={onCancel} className="w-full bg-brand-surface py-3 rounded-lg font-semibold">Cancel</button>
-            <button onClick={startWorkout} className="w-full bg-brand-cyan text-brand-dark py-3 rounded-lg font-semibold">Start Workout</button>
+            <Button
+                onClick={onCancel}
+                variant="secondary"
+                className="w-full min-h-[60px] font-semibold"
+                aria-label="Cancel workout"
+            >
+                Cancel
+            </Button>
+            <Button
+                onClick={startWorkout}
+                variant="primary"
+                className="w-full min-h-[60px] font-semibold"
+                aria-label="Start workout"
+            >
+                Start Workout
+            </Button>
         </div>
       </div>
     );
@@ -734,29 +803,41 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
   if (stage === "tracking") {
     return (
-        <div className="p-4 bg-brand-dark min-h-screen flex flex-col relative">
-          {bodyweightWarning && 
+        <div className="p-4 bg-background min-h-screen flex flex-col relative">
+          {bodyweightWarning &&
             <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-yellow-500 text-black text-xs font-semibold px-3 py-1 rounded-full shadow-lg z-10">
                 {bodyweightWarning}
             </div>
           }
           <header className="flex justify-between items-center mb-4">
             <div>
-                <h2 className="text-xl font-bold">{workoutName}</h2>
-                <p className="text-sm text-slate-400">{workoutType} Day ({workoutVariation})</p>
+                <h2 className="text-xl font-display font-bold">{workoutName}</h2>
+                <p className="text-sm text-gray-400">{workoutType} Day ({workoutVariation})</p>
             </div>
-            <button onClick={handleOpenSummary} className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg">Finish</button>
+            <Button
+                onClick={handleOpenSummary}
+                variant="destructive"
+                className="min-h-[60px] min-w-[60px]"
+                aria-label="Finish workout"
+            >
+                Finish
+            </Button>
           </header>
           <div className="flex-grow space-y-3 overflow-y-auto pb-24">
             {loggedExercises.map(ex => {
               const pb = personalBests[ex.exerciseId];
               const isExpanded = expandedExerciseId === ex.id;
               return (
-              <div key={ex.id} className="bg-brand-surface rounded-lg">
-                <button onClick={() => setExpandedExerciseId(isExpanded ? null : ex.id)} className="w-full p-4 flex justify-between items-center">
+              <Card key={ex.id} className="rounded-lg bg-white/50 backdrop-blur-lg">
+                <Button
+                    onClick={() => setExpandedExerciseId(isExpanded ? null : ex.id)}
+                    variant="ghost"
+                    className="w-full p-4 flex justify-between items-center min-h-[60px]"
+                    aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${getExerciseName(ex.exerciseId)}`}
+                >
                   <h3 className="font-semibold text-lg">{getExerciseName(ex.exerciseId)}</h3>
                   {isExpanded ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6"/>}
-                </button>
+                </Button>
                 {isExpanded && <div className="p-4 pt-0">
                     {/* Progressive Suggestion Buttons - only show for first set */}
                     {ex.sets.length === 1 && ex.sets[0].weight === 0 && ex.sets[0].reps === 0 && (
@@ -771,11 +852,11 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                         />
                       </div>
                     )}
-                    <div className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 text-center text-xs text-slate-400 font-semibold mb-2">
+                    <div className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 text-center text-xs text-gray-400 font-semibold mb-2">
                         <span className="col-span-1 flex items-center justify-center">
                             <button
                                 onClick={() => setShowFailureTooltip(true)}
-                                className="text-slate-400 hover:text-brand-cyan p-1"
+                                className="text-gray-400 hover:text-primary p-1"
                                 aria-label="What does to-failure mean?"
                             >
                                 <InfoIcon className="w-4 h-4" />
@@ -804,63 +885,94 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                               aria-pressed={toFailure}
                               role="switch"
                             >
-                              <div className={`w-7 h-7 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-brand-cyan border-brand-cyan' : 'border-slate-400'}`}>
-                                {toFailure && <span className="text-brand-dark font-bold text-lg">✓</span>}
+                              <div className={`w-7 h-7 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-primary border-primary' : 'border-gray-400'}`}>
+                                {toFailure && <span className="text-white font-bold text-lg">✓</span>}
                               </div>
-                              <span className="text-xs font-semibold text-slate-300">To Failure</span>
+                              <span className="text-xs font-semibold text-gray-700">To Failure</span>
                             </button>
-                            <span className="text-center font-bold text-slate-300 text-sm">{i + 1}</span>
+                            <span className="text-center font-bold text-gray-700 text-sm">{i + 1}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <input type="number" step="0.25" value={s.weight}
+                            <Input
+                                type="number"
+                                value={s.weight}
                                 onChange={e => updateSet(ex.id, s.id, 'weight', parseFloat(e.target.value) || 0)}
                                 onBlur={e => handleWeightBlur(ex.id, s.id, parseFloat(e.target.value) || 0)}
-                                className="w-full text-center bg-brand-dark rounded-md p-2" />
-                            <button onClick={() => handleUseBodyweight(ex.id, s.id)} className="bg-brand-muted text-xs px-2 py-1 rounded-md whitespace-nowrap h-full">Use BW</button>
+                                variant="default"
+                                size="sm"
+                                className="w-full text-center min-h-[60px]"
+                            />
+                            <Button
+                                onClick={() => handleUseBodyweight(ex.id, s.id)}
+                                variant="secondary"
+                                size="sm"
+                                className="text-xs px-2 py-1 whitespace-nowrap h-full"
+                                aria-label="Use bodyweight for this set"
+                            >
+                                Use BW
+                            </Button>
                           </div>
                           <div>
-                            <input type="number" value={s.reps}
+                            <Input
+                                type="number"
+                                value={s.reps}
                                 onChange={e => updateSet(ex.id, s.id, 'reps', parseInt(e.target.value) || 0)}
-                                className="w-full text-center bg-brand-dark rounded-md p-2" />
+                                variant="default"
+                                size="sm"
+                                className="w-full text-center min-h-[60px]"
+                            />
                           </div>
                           <div className="flex justify-center items-center gap-1">
                             {isNewPR && <TrophyIcon className="w-5 h-5 text-yellow-400" />}
-                            <button onClick={() => startRestTimer(s.id)} className="text-slate-400 hover:text-brand-cyan p-1"><ClockIcon className="w-5 h-5"/></button>
-                            <button onClick={() => removeSet(ex.id, s.id)} className="text-slate-400 hover:text-red-500 p-1"><XIcon className="w-5 h-5"/></button>
+                            <button onClick={() => startRestTimer(s.id)} className="text-gray-400 hover:text-primary p-1"><ClockIcon className="w-5 h-5"/></button>
+                            <button onClick={() => removeSet(ex.id, s.id)} className="text-gray-400 hover:text-red-500 p-1"><XIcon className="w-5 h-5"/></button>
                           </div>
                       </div>
                     )})}
                     <div className="flex justify-between items-center mt-4">
-                        <div className="text-xs text-slate-400">
+                        <div className="text-xs text-gray-400">
                             {pb && <p>Best Set: {pb.bestSingleSet} lbs</p>}
                         </div>
-                        <button onClick={() => addSet(ex.id)} className="bg-brand-muted text-white font-semibold px-4 py-2 rounded-lg text-sm">Add Set</button>
+                        <Button
+                            onClick={() => addSet(ex.id)}
+                            variant="secondary"
+                            size="sm"
+                            className="min-h-[60px]"
+                            aria-label="Add another set"
+                        >
+                            Add Set
+                        </Button>
                     </div>
                 </div>}
-              </div>
+              </Card>
             )})}
 
-            <div className="bg-brand-surface rounded-lg">
-                <button onClick={() => setCapacityPanelOpen(!isCapacityPanelOpen)} className="w-full p-4 flex justify-between items-center">
+            <Card className="rounded-lg bg-white/50 backdrop-blur-lg">
+                <Button
+                    onClick={() => setCapacityPanelOpen(!isCapacityPanelOpen)}
+                    variant="ghost"
+                    className="w-full p-4 flex justify-between items-center min-h-[60px]"
+                    aria-label={`${isCapacityPanelOpen ? 'Collapse' : 'Expand'} muscle capacity panel`}
+                >
                     <h3 className="font-semibold text-lg">Muscle Capacity</h3>
                     {isCapacityPanelOpen ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6"/>}
-                </button>
+                </Button>
                 <div className={`grid transition-all duration-300 ease-in-out ${isCapacityPanelOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
                     <div className="overflow-hidden">
                         <div className="p-4 pt-0 space-y-3">
-                            {muscleCapacityData.status === 'no_baselines' && <p className="text-sm text-slate-400 text-center py-2">Set muscle baselines in Profile to track capacity.</p>}
-                            {muscleCapacityData.status === 'no_sets' && <p className="text-sm text-slate-400 text-center py-2">Start logging sets to see muscle fatigue.</p>}
-                            {muscleCapacityData.status === 'no_fatigue' && <p className="text-sm text-slate-400 text-center py-2">No significant muscle fatigue yet.</p>}
+                            {muscleCapacityData.status === 'no_baselines' && <p className="text-sm text-gray-400 text-center py-2">Set muscle baselines in Profile to track capacity.</p>}
+                            {muscleCapacityData.status === 'no_sets' && <p className="text-sm text-gray-400 text-center py-2">Start logging sets to see muscle fatigue.</p>}
+                            {muscleCapacityData.status === 'no_fatigue' && <p className="text-sm text-gray-400 text-center py-2">No significant muscle fatigue yet.</p>}
                             {muscleCapacityData.status === 'ok' && muscleCapacityData.data.map(item => (
                                 <div key={item.muscle}>
                                     <div className="flex justify-between items-center mb-1 text-sm">
                                         <span className="font-medium">{item.muscle}</span>
                                         <span className="font-bold">{item.fatiguePercent.toFixed(0)}%</span>
                                     </div>
-                                    <div className="w-full bg-brand-muted rounded-full h-2">
+                                    <div className="w-full bg-gray-700 rounded-full h-2">
                                         <div className={`${getFatigueColor(item.fatiguePercent)} h-2 rounded-full`} style={{ width: `${item.fatiguePercent}%` }}></div>
                                     </div>
-                                    <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
+                                    <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
                                         <span>{item.currentVolume.toFixed(0)} lbs</span>
                                         <span>{item.remainingCapacity.toFixed(0)} lbs remaining</span>
                                     </div>
@@ -869,11 +981,16 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                         </div>
                     </div>
                 </div>
-            </div>
+            </Card>
 
-            <button onClick={() => setExerciseSelectorOpen(true)} className="w-full border-2 border-dashed border-brand-muted text-brand-muted py-3 rounded-lg font-semibold flex items-center justify-center gap-2">
+            <Button
+                onClick={() => setExerciseSelectorOpen(true)}
+                variant="ghost"
+                className="w-full border-2 border-dashed border-gray-700 text-gray-700 min-h-[60px] font-semibold flex items-center justify-center gap-2"
+                aria-label="Add exercise"
+            >
               <PlusIcon className="w-5 h-5"/> Add Exercise
-            </button>
+            </Button>
           </div>
           {activeTimer && <RestTimer timer={activeTimer} onClose={stopRestTimer} onAdd={addRestTime} />}
           {isExerciseSelectorOpen && <ExerciseSelector onSelect={addExercise} onDone={() => setExerciseSelectorOpen(false)} workoutVariation={workoutVariation} />}
@@ -897,7 +1014,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       />
     );
   }
-  
+
   return null;
 };
 
