@@ -124,6 +124,55 @@ Three essential primitives added to design system foundation:
 
 ---
 
+#### Story 6.5.2B: Small Page Migrations ✅
+
+**Date**: 2025-11-13
+**Commit**: a6b2c44
+**Status**: COMPLETE (Code review approved on first pass)
+
+Migrated 2 small pages to design system (456 lines total):
+
+1. **WorkoutTemplates.tsx** (226 lines)
+   - Replaced inline JSX with Card primitive (glass morphism styling)
+   - Replaced button elements with Button primitive (ghost, primary variants)
+   - Replaced badge spans with Badge primitive (info, primary variants)
+   - Converted all hardcoded colors to design tokens (bg-primary, text-primary-dark, text-gray-*)
+   - Ensured 60x60px minimum touch targets (WCAG AA compliant)
+   - Updated imports to barrel exports (@/src/design-system/components/primitives)
+   - 23 comprehensive tests (unit, integration, accessibility)
+
+2. **Analytics.tsx** (230 lines)
+   - Replaced inline JSX with Card primitive for all sections
+   - Replaced button elements with Button primitive (back navigation, retry)
+   - Replaced native select with Select primitive (full keyboard navigation)
+   - Converted all hardcoded colors to design tokens
+   - Ensured 60x60px minimum touch targets
+   - Updated imports to barrel exports
+   - 23 comprehensive tests with axe-core accessibility validation
+
+**Design Token Conversions:**
+- bg-brand-dark → bg-background
+- text-brand-cyan → text-primary
+- bg-brand-cyan → bg-primary
+- text-slate-* → text-gray-*
+- font-bold → font-display (Cinzel) / font-body (Lato)
+
+**Testing Results:**
+- 46 total tests created (23 per component)
+- All tests passing with comprehensive coverage
+- Unit tests for design system integration
+- Integration tests for user interactions
+- Accessibility tests (axe-core compliance)
+- Touch target size verification
+- Keyboard navigation tests (Select component)
+
+**Files Modified**: 5 files
+**Code Review**: APPROVED (first pass, zero code changes required)
+
+**Next Story**: 6.5.2C - Medium Page Migrations
+
+---
+
 ### 🚨 CRITICAL DISCOVERY - Epic 6 Post-Completion Analysis
 
 **Date**: 2025-11-13
