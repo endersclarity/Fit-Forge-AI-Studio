@@ -11,6 +11,10 @@ import {
 } from '../types';
 import { getUserCalibrations, getExerciseCalibrations, API_BASE_URL } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
+
+// Design System Primitives
+import { Card, Button, Badge } from '@/src/design-system/components/primitives';
+
 import CategoryTabs from './CategoryTabs';
 import RecommendationCard from './RecommendationCard';
 import CollapsibleSection from './CollapsibleSection';
@@ -281,78 +285,80 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
   // Handle loading state
   if (isLoading) {
     return (
-      <div className="bg-brand-surface p-6 rounded-lg text-center">
+      <Card className="p-6 text-center bg-white/50 backdrop-blur-lg">
         <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin h-12 w-12 border-4 border-brand-cyan border-t-transparent rounded-full"></div>
-          <p className="text-lg font-semibold text-brand-cyan">Loading Recommendations...</p>
-          <p className="text-sm text-slate-400">Analyzing muscle fatigue and exercise options</p>
+          <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
+          <p className="text-lg font-display font-semibold text-primary">Loading Recommendations...</p>
+          <p className="text-sm text-gray-600 font-body">Analyzing muscle fatigue and exercise options</p>
         </div>
-      </div>
+      </Card>
     );
   }
 
   // Handle error state
   if (error) {
     return (
-      <div className="bg-brand-surface p-6 rounded-lg text-center">
-        <p className="text-lg font-semibold text-red-400 mb-2">⚠️ Error Loading Recommendations</p>
-        <p className="text-slate-400 mb-4">{error}</p>
-        <button
+      <Card className="p-6 text-center bg-white/50 backdrop-blur-lg">
+        <p className="text-lg font-display font-semibold text-red-600 mb-2">⚠️ Error Loading Recommendations</p>
+        <p className="text-gray-600 font-body mb-4">{error}</p>
+        <Button
           onClick={() => {
             // Retry by triggering useEffect
             setError(null);
             setIsLoading(true);
           }}
-          className="bg-brand-cyan text-brand-dark px-4 py-2 rounded-lg hover:bg-cyan-400 transition-colors"
+          variant="primary"
+          size="md"
+          className="min-w-[60px] min-h-[60px]"
         >
           Retry
-        </button>
-      </div>
+        </Button>
+      </Card>
     );
   }
 
   // Handle empty states
   if (!equipment || equipment.length === 0) {
     return (
-      <div className="bg-brand-surface p-6 rounded-lg text-center">
-        <p className="text-lg font-semibold text-yellow-400 mb-2">⚙️ No Equipment Configured</p>
-        <p className="text-slate-400">
+      <Card className="p-6 text-center bg-white/50 backdrop-blur-lg">
+        <p className="text-lg font-display font-semibold mb-2 text-foreground">⚙️ No Equipment Configured</p>
+        <p className="text-gray-600 font-body">
           Add equipment to your profile to see personalized exercise recommendations.
         </p>
-      </div>
+      </Card>
     );
   }
 
   if (selectedMuscles.length === 0) {
     return (
-      <div className="bg-brand-surface p-6 rounded-lg text-center">
-        <p className="text-lg font-semibold text-blue-400 mb-2">🎯 Select a Muscle to Get Started</p>
-        <p className="text-slate-400">
+      <Card className="p-6 text-center bg-white/50 backdrop-blur-lg">
+        <p className="text-lg font-display font-semibold mb-2 text-foreground">🎯 Select a Muscle to Get Started</p>
+        <p className="text-gray-600 font-body">
           Click on a muscle in the body map above to see personalized exercise recommendations.
         </p>
-      </div>
+      </Card>
     );
   }
 
   if (recommendations.length === 0 && !isLoading) {
     return (
-      <div className="bg-brand-surface p-6 rounded-lg text-center">
-        <p className="text-lg font-semibold text-blue-400 mb-2">🛌 No Exercises Available</p>
-        <p className="text-slate-400">
+      <Card className="p-6 text-center bg-white/50 backdrop-blur-lg">
+        <p className="text-lg font-display font-semibold mb-2 text-foreground">🛌 No Exercises Available</p>
+        <p className="text-gray-600 font-body">
           No exercises match your criteria. Try selecting a different muscle or adjusting your equipment.
         </p>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-brand-surface p-4 rounded-lg space-y-4">
+    <Card className="p-4 space-y-4 bg-white/50 backdrop-blur-lg">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold">
+        <h3 className="text-xl font-display font-semibold text-foreground">
           {selectedMuscles.length > 0 ? (
             <>
               Exercises for{' '}
-              <span className="text-brand-primary">
+              <span className="text-primary">
                 {selectedMuscles.join(', ')}
               </span>
             </>
@@ -361,9 +367,9 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
           )}
         </h3>
         {selectedMuscles.length > 0 && (
-          <span className="text-sm text-slate-400">
-            {recommendations.length} exercises found
-          </span>
+          <Badge variant="info" size="sm">
+            {recommendations.length} exercises
+          </Badge>
         )}
       </div>
 
@@ -377,7 +383,10 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
       {/* Excellent Opportunities */}
       {excellent.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-lg font-semibold text-emerald-400">⭐ Excellent Opportunities</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="text-lg font-display font-semibold text-foreground">⭐ Excellent Opportunities</h4>
+            <Badge variant="success" size="sm">{excellent.length}</Badge>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {excellent.slice(0, 6).map(rec => (
               <RecommendationCard
@@ -403,7 +412,10 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
       {/* Good Options */}
       {good.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-lg font-semibold text-blue-400">✅ Good Options</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="text-lg font-display font-semibold text-foreground">✅ Good Options</h4>
+            <Badge variant="info" size="sm">{good.length}</Badge>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {good.slice(0, 6).map(rec => (
               <RecommendationCard
@@ -493,7 +505,7 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
           onSave={handleCalibrationSaved}
         />
       )}
-    </div>
+    </Card>
   );
 };
 

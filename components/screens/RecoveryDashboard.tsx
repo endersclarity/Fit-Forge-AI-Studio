@@ -3,6 +3,9 @@ import { useMuscleStates } from '../../hooks/useMuscleStates';
 import { useExerciseRecommendations, MuscleCategory } from '../../hooks/useExerciseRecommendations';
 import { MuscleStatesResponse } from '../../types';
 
+// Design System Primitives
+import { Card, Button } from '@/src/design-system/components/primitives';
+
 // Layout components
 import { TopNav } from '../layout/TopNav';
 import { FAB } from '../layout/FAB';
@@ -228,23 +231,23 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
       <main className="px-6 py-6 pb-32" role="main">
         {/* Hero Section - Workout Recommendation */}
         <section className="mb-8" aria-labelledby="workout-recommendation-heading">
-          <h2 id="workout-recommendation-heading" className="text-2xl font-bold mb-3">
+          <h2 id="workout-recommendation-heading" className="text-2xl font-display font-bold mb-3 text-foreground">
             Today's Recommendation
           </h2>
-          <div className="p-4 rounded-lg bg-gradient-to-r from-primary/20 to-brand-cyan/20 border border-primary/30">
+          <Card variant="elevated" className="p-4 bg-white/50 backdrop-blur-lg border border-primary/30">
             <div className="flex items-center gap-3 mb-2">
               <span className="material-symbols-outlined text-primary text-3xl" aria-hidden="true">
                 auto_awesome
               </span>
-              <h3 className="text-lg font-bold text-white">Smart Workout Plan</h3>
+              <h3 className="text-lg font-display font-bold text-foreground">Smart Workout Plan</h3>
             </div>
-            <p className="text-gray-200">{getWorkoutRecommendation()}</p>
-          </div>
+            <p className="text-gray-600 font-body">{getWorkoutRecommendation()}</p>
+          </Card>
         </section>
 
         {/* Muscle Heat Map Section */}
         <section className="mb-8" aria-labelledby="muscle-recovery-heading">
-          <h2 id="muscle-recovery-heading" className="text-2xl font-bold mb-4">
+          <h2 id="muscle-recovery-heading" className="text-2xl font-display font-bold mb-4 text-foreground">
             Muscle Recovery Status
           </h2>
           {musclesLoading && muscles.length === 0 ? (
@@ -256,12 +259,12 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
           ) : muscles.length > 0 ? (
             <MuscleHeatMap muscles={muscles} onMuscleClick={handleMuscleClick} />
           ) : (
-            <div className="p-8 text-center text-gray-400">
-              <span className="material-symbols-outlined text-6xl mb-2" aria-hidden="true">
+            <Card className="p-8 text-center bg-white/50 backdrop-blur-lg">
+              <span className="material-symbols-outlined text-6xl mb-2 text-gray-400" aria-hidden="true">
                 fitness_center
               </span>
-              <p>No muscle data available. Start your first workout!</p>
-            </div>
+              <p className="text-gray-600 font-body">No muscle data available. Start your first workout!</p>
+            </Card>
           )}
         </section>
 
@@ -275,7 +278,7 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
 
         {/* Smart Recommendations Section */}
         <section aria-labelledby="exercise-recommendations-heading">
-          <h2 id="exercise-recommendations-heading" className="text-2xl font-bold mb-4">
+          <h2 id="exercise-recommendations-heading" className="text-2xl font-display font-bold mb-4 text-foreground">
             Smart Exercise Recommendations
           </h2>
 
@@ -286,20 +289,22 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
             aria-label="Exercise category filters"
           >
             {categories.map((category) => (
-              <button
+              <Button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                variant={selectedCategory === category ? 'primary' : 'ghost'}
+                size="md"
+                className={`min-w-[60px] min-h-[60px] rounded-full font-body font-medium whitespace-nowrap transition-all duration-300 ${
                   selectedCategory === category
-                    ? 'bg-primary text-white'
-                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                    ? ''
+                    : 'hover:bg-white/20'
                 }`}
                 role="tab"
                 aria-selected={selectedCategory === category}
                 aria-controls={`recommendations-${category}`}
               >
                 {category}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -332,12 +337,12 @@ export const RecoveryDashboard: React.FC<RecoveryDashboardProps> = ({ className 
                 ))}
               </div>
             ) : (
-              <div className="p-8 text-center text-gray-400">
-                <span className="material-symbols-outlined text-6xl mb-2" aria-hidden="true">
+              <Card className="p-8 text-center bg-white/50 backdrop-blur-lg">
+                <span className="material-symbols-outlined text-6xl mb-2 text-gray-400" aria-hidden="true">
                   search_off
                 </span>
-                <p>No recommendations available for {selectedCategory}</p>
-              </div>
+                <p className="text-gray-600 font-body">No recommendations available for {selectedCategory}</p>
+              </Card>
             )}
           </div>
         </section>

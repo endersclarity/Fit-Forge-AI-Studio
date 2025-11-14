@@ -1,0 +1,341 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6.5</epicId>
+    <storyId>2C</storyId>
+    <title>Medium Page Migrations</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-2c-medium-page-migrations.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>RecoveryDashboard and ExerciseRecommendations pages to use the unified design system</iWant>
+    <soThat>I experience consistent styling, improved touch targets, glass morphism effects, and maintainable component architecture across recovery tracking and exercise recommendation features</soThat>
+    <tasks>
+      - Task 1: Migrate RecoveryDashboard.tsx (366 lines) - Replace inline JSX with Card, Button, Badge, ProgressBar primitives; apply design tokens; ensure 60x60px touch targets; add 20+ tests
+      - Task 2: Migrate ExerciseRecommendations.tsx (500 lines) - Replace inline JSX with Card, Button, Badge primitives; apply design tokens; ensure 60x60px touch targets; add 20+ tests
+      - Task 3: Verification and Testing - Run full test suite (40+ total tests passing), test functionality preservation, verify WCAG compliance, test ProgressBar animations
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    - AC1: RecoveryDashboard uses Card primitive for muscle group sections
+    - AC2: ExerciseRecommendations uses Card primitive for exercise cards
+    - AC3: Both components use Badge primitive for status indicators
+    - AC4: ProgressBar primitive used for recovery progress indicators
+    - AC5: All buttons use Button primitive with proper variants
+    - AC6: Design tokens used for all colors (no hardcoded hex/rgb)
+    - AC7: WCAG AA compliance (60x60px touch targets)
+    - AC8: Glass morphism applied consistently (bg-white/50 backdrop-blur-lg)
+    - AC9: Comprehensive tests (20+ tests per component, 40+ total)
+    - AC10: Zero regressions in existing functionality
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6.5: Design System Rollout</title>
+        <section>Story 6.5.2C: Medium Page Migrations</section>
+        <snippet>Migrate RecoveryDashboard.tsx (394 lines) and ExerciseRecommendations.tsx (472 lines) to design system. Replace inline JSX with Card, Button, Badge, ProgressBar primitives. Apply glass morphism and design tokens. Total: 866 lines.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Section 1.2: Current Component Structure</section>
+        <snippet>96 React components across 9 directories. RecoveryDashboard and ExerciseRecommendations are major screens requiring glass morphism cards, Cinzel typography, and new badge colors. Frontend-only changes, no backend modifications required.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture-ui-redesign-2025-11-12.md</path>
+        <title>FitForge UI/UX Redesign - Integration Architecture</title>
+        <section>Key Architectural Decisions</section>
+        <snippet>Tailwind CDN to PostCSS migration complete. Design tokens need compile-time control. Glass morphism pattern uses bg-white/50 with backdrop-blur-lg. Touch target compliance requires 60x60px minimum (WCAG AA).</snippet>
+      </doc>
+      <doc>
+        <path>CHANGELOG.md</path>
+        <title>Changelog - Story 6.5.1</title>
+        <section>Badge, ProgressBar, Select Primitives Created</section>
+        <snippet>Badge component: 5 semantic variants (success, warning, error, info, primary), 3 sizes, 27 tests. ProgressBar component: Framer Motion spring animations, 4 color variants, value clamping (0-100), optional percentage label, 39 tests. All primitives use design tokens exclusively.</snippet>
+      </doc>
+      <doc>
+        <path>CHANGELOG.md</path>
+        <title>Changelog - Story 6.5.2B</title>
+        <section>Small Page Migrations - Design Token Conversions</section>
+        <snippet>bg-brand-dark → bg-background, text-brand-cyan → text-primary, bg-brand-cyan → bg-primary, text-slate-* → text-gray-*, font-bold → font-display (Cinzel) / font-body (Lato). WorkoutTemplates and Analytics migrated (456 lines), 46 tests passing, code review approved first pass.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/6-5-2b-small-page-migrations.md</path>
+        <title>Story 6.5.2B - Previous Story Learnings</title>
+        <section>Dev Agent Record - Completion Notes</section>
+        <snippet>Successfully migrated WorkoutTemplates and Analytics using Card, Button, Badge, Select primitives. Testing pattern: 23 tests per component (unit, integration, accessibility with jest-axe). Known limitation: Card primitives use role="region" without unique accessible names (landmark-unique axe rule disabled in tests).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>components/screens/RecoveryDashboard.tsx</path>
+        <kind>component</kind>
+        <symbol>RecoveryDashboard</symbol>
+        <lines>1-366</lines>
+        <reason>Target component for migration - muscle recovery tracking interface with muscle heat map, exercise recommendations, category filtering, and modal interactions. Uses legacy inline JSX that needs Card, Button, Badge, ProgressBar primitives.</reason>
+      </file>
+      <file>
+        <path>components/ExerciseRecommendations.tsx</path>
+        <kind>component</kind>
+        <symbol>ExerciseRecommendations</symbol>
+        <lines>1-500</lines>
+        <reason>Target component for migration - exercise recommendation engine UI with scoring, filtering, and calibration integration. Uses legacy inline JSX that needs Card, Button, Badge primitives.</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/Card.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Card</symbol>
+        <lines>all</lines>
+        <reason>Glass morphism card primitive with variants (default, elevated, flat). Use for all card-based layouts replacing inline JSX.</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/Button.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Button</symbol>
+        <lines>all</lines>
+        <reason>Button primitive with variants (primary, secondary, tertiary, ghost, destructive) and sizes (sm, md, lg). Touch-friendly 60x60px minimum. Replace all button elements.</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/Badge.tsx</path>
+        <kind>primitive</kind>
+        <symbol>Badge</symbol>
+        <lines>all</lines>
+        <reason>Badge primitive created in Story 6.5.1 with 5 semantic variants (success, warning, error, info, primary). Use for status indicators, muscle state labels, recommendation scores.</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/ProgressBar.tsx</path>
+        <kind>primitive</kind>
+        <symbol>ProgressBar</symbol>
+        <lines>all</lines>
+        <reason>ProgressBar primitive created in Story 6.5.1 with smooth Framer Motion spring animations, 4 color variants (primary, success, warning, error), value clamping (0-100). Use for recovery progress indicators in RecoveryDashboard.</reason>
+      </file>
+      <file>
+        <path>src/design-system/components/primitives/index.ts</path>
+        <kind>barrel-export</kind>
+        <symbol>index</symbol>
+        <lines>all</lines>
+        <reason>Barrel export file for design system primitives. Import pattern: import { Card, Button, Badge, ProgressBar } from '@/src/design-system/components/primitives'</reason>
+      </file>
+      <file>
+        <path>components/__tests__/WorkoutTemplates.test.tsx</path>
+        <kind>test</kind>
+        <symbol>WorkoutTemplates tests</symbol>
+        <lines>all</lines>
+        <reason>Reference test pattern from Story 6.5.2B - 23 comprehensive tests (unit, integration, accessibility with jest-axe, touch target verification). Follow same structure for RecoveryDashboard tests.</reason>
+      </file>
+      <file>
+        <path>components/__tests__/Analytics.test.tsx</path>
+        <kind>test</kind>
+        <symbol>Analytics tests</symbol>
+        <lines>all</lines>
+        <reason>Reference test pattern from Story 6.5.2B - 23 comprehensive tests including keyboard navigation for Select component. Follow same structure for ExerciseRecommendations tests.</reason>
+      </file>
+      <file>
+        <path>components/__tests__/RecoveryDashboard.integration.test.tsx</path>
+        <kind>test</kind>
+        <symbol>RecoveryDashboard integration tests</symbol>
+        <lines>all</lines>
+        <reason>Existing integration tests for RecoveryDashboard - update to verify design system primitive usage and maintain functionality parity after migration.</reason>
+      </file>
+      <file>
+        <path>components/__tests__/ExerciseRecommendations.integration.test.tsx</path>
+        <kind>test</kind>
+        <symbol>ExerciseRecommendations integration tests</symbol>
+        <lines>all</lines>
+        <reason>Existing integration tests for ExerciseRecommendations - update to verify design system primitive usage and maintain functionality parity after migration.</reason>
+      </file>
+      <file>
+        <path>tailwind.config.js</path>
+        <kind>config</kind>
+        <symbol>tailwind.config</symbol>
+        <lines>all</lines>
+        <reason>Design token definitions - primary (#758AC6), secondary (#566890), accent (#C67575), background (#F5F7FA), foreground (#344161). Typography: font-display (Cinzel), font-body (Lato).</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <react>19.2.0</react>
+        <react-dom>19.2.0</react-dom>
+        <framer-motion>12.23.24</framer-motion>
+        <axios>1.12.2</axios>
+        <lucide-react>0.553.0</lucide-react>
+        <recharts>3.3.0</recharts>
+        <vitest>4.0.3</vitest>
+        <testing-library-react>16.3.0</testing-library-react>
+        <testing-library-jest-dom>6.9.1</testing-library-jest-dom>
+        <testing-library-user-event>14.6.1</testing-library-user-event>
+        <jest-axe>10.0.0</jest-axe>
+        <axe-core>4.11.0</axe-core>
+        <tailwindcss>3.4.18</tailwindcss>
+        <typescript>5.8.2</typescript>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Frontend-only changes - no backend API modifications (all 20+ endpoints remain unchanged)</constraint>
+    <constraint>Maintain existing component APIs (RecoveryDashboardProps, ExerciseRecommendationsProps interfaces unchanged)</constraint>
+    <constraint>Use barrel exports for imports: import { Card, Button, Badge, ProgressBar } from '@/src/design-system/components/primitives'</constraint>
+    <constraint>Design tokens only - zero hardcoded hex colors allowed (verify with regex: #[0-9a-fA-F]{3,6})</constraint>
+    <constraint>Glass morphism pattern required: bg-white/50 backdrop-blur-lg on all Card components</constraint>
+    <constraint>Touch target compliance: 60x60px minimum (WCAG AA Level) - use min-w-[60px] min-h-[60px] classes</constraint>
+    <constraint>Typography tokens: font-display (Cinzel) for headings, font-body (Lato) for body text</constraint>
+    <constraint>Preserve all existing functionality - zero behavioral regressions allowed (verify with tests)</constraint>
+    <constraint>ProgressBar animation: Use primitive's built-in Framer Motion spring animations (do not create custom animations)</constraint>
+    <constraint>Accessibility: Disable landmark-unique axe rule in tests due to known Card primitive limitation (role="region" without unique names)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Card Primitive API</name>
+      <kind>React Component</kind>
+      <signature>
+        interface CardProps {
+          children: React.ReactNode;
+          variant?: 'default' | 'elevated' | 'flat';
+          className?: string;
+          onClick?: () => void;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Card.tsx</path>
+    </interface>
+    <interface>
+      <name>Button Primitive API</name>
+      <kind>React Component</kind>
+      <signature>
+        interface ButtonProps {
+          children: React.ReactNode;
+          variant?: 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'destructive';
+          size?: 'sm' | 'md' | 'lg';
+          disabled?: boolean;
+          loading?: boolean;
+          onClick?: () => void;
+          className?: string;
+          type?: 'button' | 'submit' | 'reset';
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Button.tsx</path>
+    </interface>
+    <interface>
+      <name>Badge Primitive API</name>
+      <kind>React Component</kind>
+      <signature>
+        interface BadgeProps {
+          children: React.ReactNode;
+          variant?: 'success' | 'warning' | 'error' | 'info' | 'primary';
+          size?: 'sm' | 'md' | 'lg';
+          className?: string;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/Badge.tsx</path>
+    </interface>
+    <interface>
+      <name>ProgressBar Primitive API</name>
+      <kind>React Component</kind>
+      <signature>
+        interface ProgressBarProps {
+          value: number; // 0-100 (clamped automatically)
+          variant?: 'primary' | 'success' | 'warning' | 'error';
+          size?: 'sm' | 'md' | 'lg';
+          showLabel?: boolean; // Display percentage label
+          className?: string;
+          'aria-label'?: string;
+        }
+      </signature>
+      <path>src/design-system/components/primitives/ProgressBar.tsx</path>
+    </interface>
+    <interface>
+      <name>Recovery Timeline API</name>
+      <kind>REST Endpoint</kind>
+      <signature>GET /api/recovery/timeline - Returns muscle recovery states with fatigue percentages</signature>
+      <path>backend/src/services/RecoveryService.ts</path>
+    </interface>
+    <interface>
+      <name>Exercise Recommendations API</name>
+      <kind>REST Endpoint</kind>
+      <signature>POST /api/exercise-recommendations - Returns scored exercise recommendations based on muscle states</signature>
+      <path>backend/src/services/RecommendationService.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest 4.0.3 with React Testing Library 16.3.0 for all tests. Follow AAA pattern (Arrange, Act, Assert). Test files in components/__tests__/ directory. Include unit tests (component rendering with design system primitives), integration tests (user interactions with mock API responses), and accessibility tests (jest-axe with axe-core for WCAG compliance). Disable landmark-unique rule due to Card primitive limitation. Verify touch target sizes (60x60px minimum), keyboard navigation, ARIA labels, and semantic HTML. Use waitFor for async assertions. Mock API responses with axios-mock-adapter or manual mocks. Each component should have 20+ comprehensive tests covering rendering, interaction, accessibility, edge cases, and visual regression prevention through functional testing.
+    </standards>
+    <locations>
+      components/__tests__/RecoveryDashboard.test.tsx (create - 20+ tests)
+      components/__tests__/ExerciseRecommendations.test.tsx (create - 20+ tests)
+      components/__tests__/RecoveryDashboard.integration.test.tsx (update - verify design system integration)
+      components/__tests__/ExerciseRecommendations.integration.test.tsx (update - verify design system integration)
+    </locations>
+    <ideas>
+      <!-- AC1: RecoveryDashboard uses Card primitive for muscle group sections -->
+      - Test RecoveryDashboard renders Card components for muscle group sections with glass morphism (bg-white/50 backdrop-blur-lg)
+      - Test Card variant prop is correctly applied (default, elevated)
+      - Test muscle group data renders inside Card primitives with correct structure
+
+      <!-- AC2: ExerciseRecommendations uses Card primitive for exercise cards -->
+      - Test ExerciseRecommendations renders Card components for each exercise recommendation
+      - Test exercise cards use Card primitive with glass morphism styling
+      - Test exercise data (name, score, engagement) renders inside Card primitives
+
+      <!-- AC3: Both components use Badge primitive for status indicators -->
+      - Test RecoveryDashboard uses Badge primitive for muscle state indicators (fresh/recovering/fatigued)
+      - Test ExerciseRecommendations uses Badge primitive for exercise categories and safety warnings
+      - Test Badge variant mapping (success for fresh, warning for recovering, error for fatigued)
+
+      <!-- AC4: ProgressBar primitive used for recovery progress indicators -->
+      - Test RecoveryDashboard uses ProgressBar primitive for muscle recovery percentages
+      - Test ProgressBar value clamping (0-100 range)
+      - Test ProgressBar variant selection based on recovery state (success/warning/error)
+      - Test ProgressBar animation (Framer Motion spring transitions)
+      - Test ProgressBar showLabel prop displays percentage correctly
+
+      <!-- AC5: All buttons use Button primitive with proper variants -->
+      - Test all button elements replaced with Button primitive in both components
+      - Test Button variant usage (primary for CTAs, secondary for alternatives, ghost for navigation)
+      - Test Button size prop applied correctly (sm, md, lg)
+      - Test disabled and loading states on Button primitive
+
+      <!-- AC6: Design tokens used for all colors -->
+      - Test no hardcoded hex colors in component code (regex verification: #[0-9a-fA-F]{3,6})
+      - Test design token classes applied (bg-primary, text-primary, bg-background, text-gray-*)
+      - Test typography tokens used (font-display for headings, font-body for text)
+
+      <!-- AC7: WCAG AA compliance (60x60px touch targets) -->
+      - Test all interactive elements have min-w-[60px] min-h-[60px] classes
+      - Test Button primitives meet 60x60px minimum (measure via getBoundingClientRect)
+      - Test Card onClick areas meet touch target requirements
+      - Test accessibility with jest-axe (disable landmark-unique rule)
+
+      <!-- AC8: Glass morphism applied consistently -->
+      - Test all Card components have bg-white/50 backdrop-blur-lg classes
+      - Test glass morphism not applied to non-Card elements
+      - Test opacity and blur effects render correctly
+
+      <!-- AC9: Comprehensive tests (20+ per component) -->
+      - RecoveryDashboard: 20+ tests covering unit, integration, accessibility
+      - ExerciseRecommendations: 20+ tests covering unit, integration, accessibility
+      - Total: 40+ tests minimum
+
+      <!-- AC10: Zero regressions in existing functionality -->
+      - Test RecoveryDashboard muscle heat map renders correctly
+      - Test RecoveryDashboard exercise recommendations display
+      - Test RecoveryDashboard category filtering works
+      - Test RecoveryDashboard modal interactions preserved
+      - Test ExerciseRecommendations scoring engine works
+      - Test ExerciseRecommendations filtering by category
+      - Test ExerciseRecommendations calibration editor integration
+      - Test ExerciseRecommendations add to workout functionality
+      - Test loading states in both components
+      - Test error states with retry buttons in both components
+      - Test API integration with mock responses
+    </ideas>
+  </tests>
+</story-context>
