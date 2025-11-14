@@ -94,7 +94,7 @@ development_status:
   6-5-1-railway-deployment-missing-primitives: done
   6-5-2a-design-system-patterns: done
   6-5-2b-small-page-migrations: done
-  6-5-2c-medium-page-migrations: review
+  6-5-2c-medium-page-migrations: done
   6-5-2d-large-page-migrations: backlog
   6-5-3-modals-major-features: backlog
   6-5-4-utility-components-subdirectories: backlog
