@@ -533,6 +533,15 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   // Toast state
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
+  const [showAdvancedAnalytics, setShowAdvancedAnalytics] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const stored = window.localStorage.getItem('fitforge.showAdvancedAnalytics');
+      return stored ? JSON.parse(stored) : false;
+    } catch {
+      return false;
+    }
+  });
 
   // Get location for refresh detection
   const location = useLocation();
@@ -619,6 +628,15 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   useEffect(() => {
     fetchDashboardData();
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem('fitforge.showAdvancedAnalytics', JSON.stringify(showAdvancedAnalytics));
+    } catch {
+      /* noop */
+    }
+  }, [showAdvancedAnalytics]);
 
   // Calculate stats using useMemo for performance
   const streak = useMemo(() => calculateStreak(workoutHistory), [workoutHistory]);
@@ -740,62 +758,87 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
             </Button>
         </section>
 
-        {/* Quick Training Stats */}
-        {!loading && !error && workoutHistory.length > 0 && (
-          <CollapsibleCard title="Quick Stats" icon="📈" defaultExpanded={false}>
-            <QuickTrainingStats
-              streak={streak}
-              weeklyStats={weeklyStats}
-              recentPRs={recentPRs}
-            />
-          </CollapsibleCard>
-        )}
 
-        {/* Workout History Summary */}
-        {!loading && !error && (
-          <CollapsibleCard title="Recent Workouts" icon="📋" defaultExpanded={false}>
-            <WorkoutHistorySummary
-              workouts={workoutHistory}
-              personalBests={personalBests}
-            />
-          </CollapsibleCard>
-        )}
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
+          <p className="text-xs text-slate-500">
+            {showAdvancedAnalytics
+              ? 'Advanced insights visible'
+              : 'Advanced analytics hidden for faster scanning'}
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="min-h-[40px]"
+            onClick={() => setShowAdvancedAnalytics(prev => !prev)}
+            aria-pressed={showAdvancedAnalytics}
+          >
+            {showAdvancedAnalytics ? 'Hide advanced analytics' : 'Show advanced analytics'}
+          </Button>
+        </div>
 
-        {/* Muscle Fatigue Heat Map */}
-        {!loading && !error && Object.keys(muscleStates).length > 0 && (
-          <CollapsibleCard title="Muscle Heat Map" icon="🔥" defaultExpanded={false}>
-            <div className="flex justify-between items-center mb-4">
-              <Button
-                onClick={fetchDashboardData}
-                disabled={loading}
-                variant={loading ? 'ghost' : 'primary'}
-                size="sm"
-                className="min-h-[60px]"
-                aria-label="Refresh muscle data"
-              >
-                {loading ? 'Loading...' : '🔄 Refresh'}
-              </Button>
-              <Button
-                onClick={toggleMuscleDetailLevel}
-                variant="secondary"
-                size="sm"
-                className="min-h-[60px]"
-                aria-label={`Switch to ${muscleDetailLevel === 'simple' ? 'detailed' : 'simple'} view`}
-              >
-                {muscleDetailLevel === 'simple'
-                  ? 'Show Detailed (42 muscles)'
-                  : 'Show Simple (13 muscles)'}
-              </Button>
-            </div>
-            <MuscleFatigueHeatMap
-              muscleStates={muscleStates}
-              detailedMuscleStates={detailedMuscleStates}
-              workouts={workouts}
-              muscleBaselines={muscleBaselines}
-              muscleDetailLevel={muscleDetailLevel}
-            />
-          </CollapsibleCard>
-        )}
+        <div
+          className={
+            'transition-all duration-500 ' +
+            (showAdvancedAnalytics
+              ? 'opacity-100 max-h-[5000px]'
+              : 'opacity-0 max-h-0 overflow-hidden pointer-events-none')
+          }
+          aria-hidden={!showAdvancedAnalytics}
+        >
+          {!loading && !error && workoutHistory.length > 0 && (
+            <CollapsibleCard title="Quick Stats" icon="📊" defaultExpanded={false}>
+              <QuickTrainingStats
+                streak={streak}
+                weeklyStats={weeklyStats}
+                recentPRs={recentPRs}
+              />
+            </CollapsibleCard>
+          )}
+
+          {!loading && !error && (
+            <CollapsibleCard title="Recent Workouts" icon="📋" defaultExpanded={false}>
+              <WorkoutHistorySummary
+                workouts={workoutHistory}
+                personalBests={personalBests}
+              />
+            </CollapsibleCard>
+          )}
+
+          {!loading && !error && Object.keys(muscleStates).length > 0 && (
+            <CollapsibleCard title="Muscle Heat Map" icon="🔥" defaultExpanded={false}>
+              <div className="flex justify-between items-center mb-4">
+                <Button
+                  onClick={fetchDashboardData}
+                  disabled={loading}
+                  variant={loading ? 'ghost' : 'primary'}
+                  size="sm"
+                  className="min-h-[60px]"
+                  aria-label="Refresh muscle data"
+                >
+                  {loading ? 'Loading...' : 'dY", Refresh'}
+                </Button>
+                <Button
+                  onClick={toggleMuscleDetailLevel}
+                  variant="secondary"
+                  size="sm"
+                  className="min-h-[60px]"
+                  aria-label={}
+                >
+                  {muscleDetailLevel === 'simple'
+                    ? 'Show Detailed (42 muscles)'
+                    : 'Show Simple (13 muscles)'}
+                </Button>
+              </div>
+              <MuscleFatigueHeatMap
+                muscleStates={muscleStates}
+                detailedMuscleStates={detailedMuscleStates}
+                workouts={workouts}
+                muscleBaselines={muscleBaselines}
+                muscleDetailLevel={muscleDetailLevel}
+              />
+            </CollapsibleCard>
+          )}
+        </div>
 
         {/* Exercise Recommendations Section */}
         {!loading && !error && Object.keys(muscleStates).length > 0 && (
