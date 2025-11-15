@@ -815,14 +815,14 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                   className="min-h-[60px]"
                   aria-label="Refresh muscle data"
                 >
-                  {loading ? 'Loading...' : 'dY", Refresh'}
+                  {loading ? 'Loading...' : 'Refresh muscle data'}
                 </Button>
                 <Button
                   onClick={toggleMuscleDetailLevel}
                   variant="secondary"
                   size="sm"
                   className="min-h-[60px]"
-                  aria-label={}
+                  aria-label="Toggle muscle detail level"
                 >
                   {muscleDetailLevel === 'simple'
                     ? 'Show Detailed (42 muscles)'
