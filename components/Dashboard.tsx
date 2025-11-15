@@ -864,6 +864,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
           fetchDashboardData();
         }}
         onToast={handleToast}
+        availableEquipment={profile.equipment || []}
       />
 
       {/* Workout Planner Modal */}

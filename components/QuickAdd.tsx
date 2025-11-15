@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Exercise } from '../types';
+import { Exercise, Equipment } from '../types';
 import { fetchSmartDefaults, SmartDefaults } from '../utils/smartDefaults';
 import { quickAddAPI } from '../api';
 import ExercisePicker from './ExercisePicker';
@@ -11,6 +11,7 @@ interface QuickAddProps {
   onClose: () => void;
   onSuccess: () => void;
   onToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  availableEquipment?: Equipment[];
 }
 
 // State machine types for multi-exercise, multi-set logging
@@ -42,7 +43,13 @@ interface QuickAddState {
   error: string | null;
 }
 
-const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess, onToast }) => {
+const QuickAdd: React.FC<QuickAddProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  onToast,
+  availableEquipment = [],
+}) => {
   const [state, setState] = useState<QuickAddState>({
     mode: 'exercise-picker',
     exercises: [],
@@ -299,7 +306,7 @@ const QuickAdd: React.FC<QuickAddProps> = ({ isOpen, onClose, onSuccess, onToast
               </p>
             </div>
           )}
-          <ExercisePicker onSelect={handleExerciseSelect} />
+        <ExercisePicker onSelect={handleExerciseSelect} availableEquipment={availableEquipment} />
         </>
       )}
 

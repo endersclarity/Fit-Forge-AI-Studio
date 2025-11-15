@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { EXERCISE_LIBRARY } from '../constants';
-import { Exercise, ExerciseCategory, CalibrationMap, ExerciseCalibrationData } from '../types';
+import { Exercise, ExerciseCategory, CalibrationMap, ExerciseCalibrationData, Equipment } from '../types';
 import { getUserCalibrations, getExerciseCalibrations } from '../api';
 import { EngagementViewer } from './EngagementViewer';
 import { CalibrationEditor } from './CalibrationEditor';
@@ -8,13 +8,45 @@ import { CalibrationBadge } from './CalibrationBadge';
 
 interface ExercisePickerProps {
   onSelect: (exercise: Exercise) => void;
+  availableEquipment?: Equipment[];
 }
 
 const CATEGORIES: ExerciseCategory[] = ['Push', 'Pull', 'Legs', 'Core'];
 
-const ExercisePicker: React.FC<ExercisePickerProps> = ({ onSelect }) => {
+const ExercisePicker: React.FC<ExercisePickerProps> = ({
+  onSelect,
+  availableEquipment = [],
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'All'>('All');
+  const [showAllEquipment, setShowAllEquipment] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const stored = window.localStorage.getItem('fitforge.showAllEquipment');
+      return stored ? JSON.parse(stored) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  const normalizedEquipment = useMemo(
+    () => availableEquipment.filter((item): item is Equipment => Boolean(item)),
+    [availableEquipment]
+  );
+
+  const toggleShowAllEquipment = () => {
+    setShowAllEquipment(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        try {
+          window.localStorage.setItem('fitforge.showAllEquipment', JSON.stringify(next));
+        } catch {
+          /* ignore */
+        }
+      }
+      return next;
+    });
+  };
 
   // Calibration state
   const [calibrations, setCalibrations] = useState<CalibrationMap>({});
@@ -68,8 +100,16 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({ onSelect }) => {
       );
     }
 
+    if (!showAllEquipment && normalizedEquipment.length > 0) {
+      exercises = exercises.filter(ex => {
+        const equipmentList = Array.isArray(ex.equipment) ? ex.equipment : [ex.equipment];
+        if (equipmentList.includes('Bodyweight')) return true;
+        return equipmentList.some(eq => normalizedEquipment.includes(eq as Equipment));
+      });
+    }
+
     return exercises;
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, showAllEquipment, normalizedEquipment]);
 
   // Group filtered exercises by category
   const groupedExercises = useMemo(() => {
@@ -207,6 +247,43 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({ onSelect }) => {
           </button>
         ))}
       </div>
+
+      {normalizedEquipment.length > 0 && (
+        <div className="rounded-lg border border-brand-muted/40 bg-brand-dark/30 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                Available equipment
+              </p>
+              {!showAllEquipment ? (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {normalizedEquipment.map(eq => (
+                    <span
+                      key={eq}
+                      className="rounded-full bg-brand-cyan/20 px-2 py-0.5 text-xs font-semibold text-brand-cyan"
+                    >
+                      {eq}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-slate-400">Showing all exercises</p>
+              )}
+            </div>
+            <button
+              onClick={toggleShowAllEquipment}
+              className="min-w-[96px] rounded-lg bg-brand-muted px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-200 hover:bg-brand-dark transition-colors"
+            >
+              {showAllEquipment ? 'Use filter' : 'Show all'}
+            </button>
+          </div>
+          {!showAllEquipment && (
+            <div className="mt-2 inline-flex items-center rounded-full bg-brand-cyan/15 px-3 py-1 text-xs font-semibold text-brand-cyan">
+              {normalizedEquipment.length} active
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Recent Exercises */}
       {!searchQuery && selectedCategory === 'All' && recentExercises.length > 0 && (
