@@ -126,6 +126,7 @@ export interface LoggedSet {
   weight: number;
   bodyweightAtTime?: number; // For bodyweight exercises
   to_failure?: boolean; // Whether the set was taken to muscular failure
+  completed?: boolean; // True when user has logged the set
 }
 
 export interface LoggedExercise {

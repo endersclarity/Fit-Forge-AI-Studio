@@ -20,3 +20,6 @@ export type { ToastContainerProps, ToastData } from './ToastContainer';
 
 export { default as CollapsibleSection } from './CollapsibleSection';
 export type { CollapsibleSectionProps } from './CollapsibleSection';
+
+export { default as RestTimerBanner } from './RestTimerBanner';
+export type { RestTimerBannerProps } from './RestTimerBanner';

@@ -1,55 +1,30 @@
 import React from 'react';
+import DesignSystemProgressBar, {
+  type ProgressBarProps as DesignSystemProgressBarProps,
+} from '@/src/design-system/components/primitives/ProgressBar';
 
-export interface ProgressBarProps {
-  value: number; // 0-100
-  variant: 'success' | 'warning' | 'error';
+export interface ProgressBarProps
+  extends Omit<DesignSystemProgressBarProps, 'size'> {
+  /**
+   * Legacy prop retained for compatibility; maps to design-system `size`.
+   */
   height?: 'sm' | 'md' | 'lg';
+  /**
+   * Legacy toggle (design-system ProgressBar is always animated).
+   */
   animated?: boolean;
-  className?: string;
-  ariaLabel?: string;
 }
 
-const variantClasses = {
-  success: 'bg-green-500',
-  warning: 'bg-amber-500',
-  error: 'bg-red-500',
-};
+export const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
+  ({ height = 'md', animated: _animated = true, ...props }, ref) => (
+    <DesignSystemProgressBar
+      ref={ref}
+      size={height}
+      {...props}
+    />
+  )
+);
 
-const heightClasses = {
-  sm: 'h-1',
-  md: 'h-2',
-  lg: 'h-3',
-};
-
-export const ProgressBar: React.FC<ProgressBarProps> = ({
-  value,
-  variant,
-  height = 'md',
-  animated = true,
-  className = '',
-  ariaLabel,
-}) => {
-  // Clamp value between 0 and 100
-  const clampedValue = Math.max(0, Math.min(100, value));
-
-  const trackClasses = `bg-gray-700 rounded-full ${heightClasses[height]} ${className}`;
-  const fillClasses = `${variantClasses[variant]} rounded-full h-full ${animated ? 'transition-all duration-500 ease-in-out' : ''}`;
-
-  return (
-    <div
-      className={trackClasses}
-      role="progressbar"
-      aria-valuenow={clampedValue}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-label={ariaLabel || `Progress: ${clampedValue}%`}
-    >
-      <div
-        className={fillClasses}
-        style={{ width: `${clampedValue}%` }}
-      />
-    </div>
-  );
-};
+ProgressBar.displayName = 'ProgressBar';
 
 export default ProgressBar;

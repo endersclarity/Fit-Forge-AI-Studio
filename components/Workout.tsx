@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { EXERCISE_LIBRARY, ALL_MUSCLES } from '../constants';
 import { Exercise, ExerciseCategory, LoggedExercise, LoggedSet, WorkoutSession, PersonalBests, UserProfile, MuscleBaselines, Muscle, Variation, Equipment, PlannedExercise } from '../types';
-import { calculateVolume, findPreviousWorkout, formatDuration } from '../utils/helpers';
+import { calculateVolume, findPreviousWorkout } from '../utils/helpers';
 import { PlusIcon, TrophyIcon, XIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon, InfoIcon } from './Icons';
 import WorkoutSummaryModal from './WorkoutSummaryModal';
 import { RecommendedWorkoutData } from '../App';
@@ -13,6 +13,10 @@ import { calculateProgressiveOverload, ProgressionMethod } from '../utils/progre
 import { ProgressiveSuggestionButtons } from './ProgressiveSuggestionButtons';
 import { Card, Button, Input, Sheet } from '@/src/design-system/components/primitives';
 import FAB from '@/src/design-system/components/patterns/FAB';
+import RestTimerBanner from '@/src/design-system/components/patterns/RestTimerBanner';
+import Toast from './Toast';
+import { useHaptic } from '@/src/design-system/hooks/useHaptic';
+import { detectLogAllSetsPattern, LogAllSetsPatternResult } from '@/src/utils/detectLogAllSetsPattern';
 
 type WorkoutStage = "setup" | "tracking" | "summary";
 
@@ -164,48 +168,6 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
     );
 };
 
-const RestTimer: React.FC<{
-    timer: { remaining: number; initialDuration: number };
-    onClose: () => void;
-    onAdd: (seconds: number) => void;
-}> = ({ timer, onClose, onAdd }) => {
-    const progress = timer.initialDuration > 0 ? (timer.remaining / timer.initialDuration) * 100 : 0;
-    const minutes = Math.floor(timer.remaining / 60);
-    const seconds = timer.remaining % 60;
-    const timeString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
-    return (
-        <Card className="fixed inset-x-0 bottom-0 p-4 z-30 shadow-lg rounded-t-2xl max-w-2xl mx-auto border-t border-gray-700 bg-white/50 backdrop-blur-lg">
-             <div className="w-full bg-gray-700 rounded-full h-1.5 mb-3">
-                <div className="bg-primary h-1.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
-            </div>
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                    <Button
-                        onClick={() => onAdd(15)}
-                        variant="secondary"
-                        size="md"
-                        className="text-sm font-semibold min-w-[60px] min-h-[60px]"
-                        aria-label="Add 15 seconds to rest timer"
-                    >
-                        +15s
-                    </Button>
-                    <span className="text-3xl font-bold font-mono tracking-wider">{timeString}</span>
-                </div>
-                <Button
-                    onClick={onClose}
-                    variant="ghost"
-                    size="md"
-                    className="text-sm font-semibold text-gray-300 min-w-[60px] min-h-[60px]"
-                    aria-label={timer.remaining > 0 ? 'Skip rest timer' : 'Close rest timer'}
-                >
-                    {timer.remaining > 0 ? 'Skip' : 'Done'}
-                </Button>
-            </div>
-        </Card>
-    );
-};
-
 const FailureTooltip: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
@@ -301,9 +263,9 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
         id: `${ex.id}-${Date.now()}`,
         exerciseId: ex.id,
         sets: [
-          { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: false },
-          { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: false },
-          { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: true }
+          { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: false, completed: false },
+          { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: false, completed: false },
+          { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(ex.id), to_failure: true, completed: false }
         ]
       }));
     }
@@ -317,7 +279,8 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
           id: `set-${i + 1}-${Date.now()}-${Math.random()}`,
           reps: planned.reps,
           weight: planned.weight,
-          to_failure: i === planned.sets - 1 // Last set defaults to failure
+          to_failure: i === planned.sets - 1, // Last set defaults to failure
+          completed: false,
         }))
       }));
     }
@@ -332,12 +295,11 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const [showFailureTooltip, setShowFailureTooltip] = useState(false);
 
   const [finalWorkoutSession, setFinalWorkoutSession] = useState<WorkoutSession | null>(null);
-
-  // Rest Timer State
-  const [activeTimer, setActiveTimer] = useState<{ setId: string; initialDuration: number; remaining: number } | null>(null);
-  // Fix: Initialize useRef with an argument to prevent "Expected 1 arguments, but got 0" error.
-  const timerIntervalRef = useRef<number | undefined>(undefined);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const [restTimerConfig, setRestTimerConfig] = useState<{ initialSeconds: number; key: number } | null>(null);
+  const { vibrate } = useHaptic();
+  const [logAllPrompt, setLogAllPrompt] = useState<{ exerciseId: string; pattern: LogAllSetsPatternResult } | null>(null);
+  const [logAllDismissed, setLogAllDismissed] = useState<Record<string, boolean>>({});
+  const [logAllToast, setLogAllToast] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData && loggedExercises.length > 0) {
@@ -376,55 +338,103 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     }
   }, [selectedCategory, stage]);
 
-  const playBeep = () => {
-    const audioContext = audioContextRef.current;
-    if (!audioContext) return;
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    oscillator.type = 'sine';
-    oscillator.frequency.value = 880;
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
-    oscillator.start(audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
-    oscillator.stop(audioContext.currentTime + 1);
-  };
-
   useEffect(() => {
-    if (activeTimer && activeTimer.remaining > 0) {
-        timerIntervalRef.current = window.setInterval(() => {
-            setActiveTimer(prev => prev ? { ...prev, remaining: prev.remaining - 1 } : null);
-        }, 1000);
-    } else if (activeTimer && activeTimer.remaining <= 0) {
-        if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-        playBeep();
+    if (stage !== "tracking") {
+      setLogAllPrompt(null);
     }
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    }
-  }, [activeTimer]);
+  }, [stage]);
 
-  const startRestTimer = (setId: string, duration: number = 90) => {
-    if (!audioContextRef.current) {
-        try {
-            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        } catch(e) {
-            console.error("Web Audio API is not supported in this browser", e);
-        }
-    }
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    setActiveTimer({ setId, initialDuration: duration, remaining: duration });
+  const startRestTimer = (duration: number = 90) => {
+    setRestTimerConfig({
+      initialSeconds: duration,
+      key: Date.now(),
+    });
   };
 
   const stopRestTimer = () => {
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    setActiveTimer(null);
+    setRestTimerConfig(null);
   };
 
-  const addRestTime = (seconds: number) => {
-    setActiveTimer(prev => prev ? { ...prev, remaining: Math.max(0, prev.remaining + seconds) } : null);
+  const clearLogAllSuppression = (exerciseId: string) => {
+    setLogAllDismissed((prev) => {
+      if (!prev[exerciseId]) return prev;
+      const next = { ...prev };
+      delete next[exerciseId];
+      return next;
+    });
+  };
+
+  const estimateInteractionReduction = (remainingSets: number, tapsPerSet: number = 8) => {
+    if (remainingSets <= 0) return 0;
+    const manual = Math.max(1, remainingSets * tapsPerSet);
+    const shortcut = 2; // tap confirm + toast dismiss/gesture
+    return Math.max(0, Math.round(((manual - shortcut) / manual) * 100));
+  };
+
+  const duplicatePreviousSet = (exerciseId: string, setId: string) => {
+    setLoggedExercises(prev =>
+      prev.map(ex => {
+        if (ex.id !== exerciseId) return ex;
+        const currentIndex = ex.sets.findIndex(s => s.id === setId);
+        if (currentIndex <= 0) return ex;
+        const previousSet = ex.sets[currentIndex - 1];
+        const updatedSets = ex.sets.map((set, idx) =>
+          idx === currentIndex
+            ? {
+                ...set,
+                weight: previousSet.weight,
+                reps: previousSet.reps,
+                completed: set.completed ?? false,
+              }
+            : set
+        );
+        return { ...ex, sets: updatedSets };
+      })
+    );
+    vibrate(10);
+  };
+
+  const evaluateLogAllPattern = (exerciseId: string, sets: LoggedSet[]) => {
+    if (logAllDismissed[exerciseId]) return;
+    const pattern = detectLogAllSetsPattern(sets);
+    if (pattern.shouldPrompt) {
+      setLogAllPrompt({ exerciseId, pattern });
+    }
+  };
+
+  const handleLogAllDismiss = () => {
+    if (logAllPrompt) {
+      setLogAllDismissed((prev) => ({ ...prev, [logAllPrompt.exerciseId]: true }));
+    }
+    setLogAllPrompt(null);
+  };
+
+  const handleLogAllConfirm = () => {
+    if (!logAllPrompt) return;
+    const { exerciseId, pattern } = logAllPrompt;
+    setLoggedExercises((prev) =>
+      prev.map((ex) => {
+        if (ex.id !== exerciseId) return ex;
+        const updatedSets = ex.sets.map((set) =>
+          set.completed
+            ? set
+            : {
+                ...set,
+                weight: pattern.matchedWeight,
+                reps: pattern.matchedReps,
+                to_failure: true,
+                completed: true,
+              }
+        );
+        return { ...ex, sets: updatedSets };
+      })
+    );
+    vibrate(100);
+    setLogAllToast(
+      `${pattern.remainingSets} set${pattern.remainingSets === 1 ? '' : 's'} logged!`
+    );
+    setLogAllDismissed((prev) => ({ ...prev, [exerciseId]: true }));
+    setLogAllPrompt(null);
   };
 
   const startWorkout = () => {
@@ -434,6 +444,8 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       setWorkoutName(generateWorkoutName(workoutType, workoutVariation));
     }
     setStage("tracking");
+    setLogAllDismissed({});
+    setLogAllPrompt(null);
     if (loggedExercises.length > 0) {
       setExpandedExerciseId(loggedExercises[0].id);
     }
@@ -463,9 +475,9 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
           // Create 3 sets with default values (can be adjusted by user)
           const sets: LoggedSet[] = [
-            { id: `set-1-${Date.now()}-${idx}`, reps: 8, weight: defaultWeight, to_failure: false },
-            { id: `set-2-${Date.now()}-${idx}`, reps: 8, weight: defaultWeight, to_failure: false },
-            { id: `set-3-${Date.now()}-${idx}`, reps: 8, weight: defaultWeight, to_failure: true }
+            { id: `set-1-${Date.now()}-${idx}`, reps: 8, weight: defaultWeight, to_failure: false, completed: false },
+            { id: `set-2-${Date.now()}-${idx}`, reps: 8, weight: defaultWeight, to_failure: false, completed: false },
+            { id: `set-3-${Date.now()}-${idx}`, reps: 8, weight: defaultWeight, to_failure: true, completed: false }
           ];
 
           return {
@@ -496,7 +508,8 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             id: `set-${setIdx + 1}-${Date.now()}-${idx}`,
             reps: suggestion.suggestedReps,
             weight: suggestion.suggestedWeight,
-            to_failure: setIdx === prevExercise.sets.length - 1
+            to_failure: setIdx === prevExercise.sets.length - 1,
+            completed: false,
           }));
 
           return {
@@ -528,9 +541,9 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       id: `${exercise.id}-${Date.now()}`,
       exerciseId: exercise.id,
       sets: [
-        { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id), to_failure: false },
-        { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id), to_failure: false },
-        { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id), to_failure: true }
+        { id: `set-1-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id), to_failure: false, completed: false },
+        { id: `set-2-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id), to_failure: false, completed: false },
+        { id: `set-3-${Date.now()}`, reps: 8, weight: getDefaultWeight(exercise.id), to_failure: true, completed: false }
       ],
     };
     setLoggedExercises(prev => [...prev, newLoggedExercise]);
@@ -552,11 +565,14 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
         id: `set-${Date.now()}`,
         reps: 8,
         weight: 100,
-        to_failure: true
+        to_failure: true,
+        completed: false,
       };
 
       return { ...ex, sets: [...updatedSets, newSet] };
     }));
+    clearLogAllSuppression(exerciseId);
+    startRestTimer();
   };
 
   const updateSet = (exerciseId: string, setId: string, field: 'reps' | 'weight', value: number) => {
@@ -574,12 +590,28 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   };
 
   const toggleSetFailure = (exerciseId: string, setId: string) => {
-    setLoggedExercises(prev => prev.map(ex =>
-      ex.id === exerciseId ? {
-        ...ex,
-        sets: ex.sets.map(s => s.id === setId ? { ...s, to_failure: !s.to_failure } : s)
-      } : ex
-    ));
+    const exercise = loggedExercises.find(ex => ex.id === exerciseId);
+    const targetSet = exercise?.sets.find(s => s.id === setId);
+    const isMarkingComplete = Boolean(targetSet && !targetSet?.completed);
+    let updatedSetsForExercise: LoggedSet[] | null = null;
+
+    setLoggedExercises(prev => prev.map(ex => {
+      if (ex.id !== exerciseId) return ex;
+
+      const updatedSets = ex.sets.map(s => {
+        if (s.id !== setId) return s;
+        const newValue = !s.to_failure;
+        return { ...s, to_failure: newValue, completed: newValue };
+      });
+
+      updatedSetsForExercise = updatedSets;
+      return { ...ex, sets: updatedSets };
+    }));
+
+    if (isMarkingComplete && updatedSetsForExercise) {
+      startRestTimer();
+      evaluateLogAllPattern(exerciseId, updatedSetsForExercise);
+    }
   };
 
   const handleWeightBlur = (exerciseId: string, setId: string, currentWeight: number) => {
@@ -633,6 +665,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     setFinalWorkoutSession(session);
     setStage("summary");
     stopRestTimer();
+    setLogAllPrompt(null);
   };
 
   const getExerciseName = (exerciseId: string) => EXERCISE_LIBRARY.find(e => e.id === exerciseId)?.name || 'Unknown Exercise';
@@ -802,8 +835,25 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   }
 
   if (stage === "tracking") {
+    const trackingContainerClasses = [
+      'p-4 bg-background min-h-screen flex flex-col relative',
+      restTimerConfig ? 'pt-20' : '',
+    ].join(' ').trim();
+    const logAllReduction = logAllPrompt
+      ? estimateInteractionReduction(logAllPrompt.pattern.remainingSets)
+      : 0;
+
     return (
-        <div className="p-4 bg-background min-h-screen flex flex-col relative">
+      <>
+        {restTimerConfig && (
+          <RestTimerBanner
+            key={restTimerConfig.key}
+            initialSeconds={restTimerConfig.initialSeconds}
+            onComplete={stopRestTimer}
+            onSkip={stopRestTimer}
+          />
+        )}
+        <div className={trackingContainerClasses}>
           {bodyweightWarning &&
             <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-yellow-500 text-black text-xs font-semibold px-3 py-1 rounded-full shadow-lg z-10">
                 {bodyweightWarning}
@@ -922,11 +972,27 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                                 className="w-full text-center min-h-[60px]"
                             />
                           </div>
-                          <div className="flex justify-center items-center gap-1">
-                            {isNewPR && <TrophyIcon className="w-5 h-5 text-yellow-400" />}
-                            <button onClick={() => startRestTimer(s.id)} className="text-gray-400 hover:text-primary p-1"><ClockIcon className="w-5 h-5"/></button>
-                            <button onClick={() => removeSet(ex.id, s.id)} className="text-gray-400 hover:text-red-500 p-1"><XIcon className="w-5 h-5"/></button>
-                          </div>
+                      <div className="flex justify-center items-center gap-1">
+                        {isNewPR && <TrophyIcon className="w-5 h-5 text-yellow-400" />}
+                        <button
+                          onClick={() => duplicatePreviousSet(ex.id, s.id)}
+                          className={`text-gray-400 hover:text-primary p-1 flex items-center gap-1 ${i === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          aria-label={i === 0 ? 'Duplicate unavailable for first set' : 'Duplicate previous set'}
+                          disabled={i === 0}
+                        >
+                          <span className="text-xs font-semibold text-gray-500">
+                            Copy
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => startRestTimer()}
+                          className="text-gray-400 hover:text-primary p-1"
+                          aria-label="Start rest timer for this set"
+                        >
+                          <ClockIcon className="w-5 h-5"/>
+                        </button>
+                        <button onClick={() => removeSet(ex.id, s.id)} className="text-gray-400 hover:text-red-500 p-1"><XIcon className="w-5 h-5"/></button>
+                      </div>
                       </div>
                     )})}
                     <div className="flex justify-between items-center mt-4">
@@ -992,10 +1058,57 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
               <PlusIcon className="w-5 h-5"/> Add Exercise
             </Button>
           </div>
-          {activeTimer && <RestTimer timer={activeTimer} onClose={stopRestTimer} onAdd={addRestTime} />}
-          {isExerciseSelectorOpen && <ExerciseSelector onSelect={addExercise} onDone={() => setExerciseSelectorOpen(false)} workoutVariation={workoutVariation} />}
+        {isExerciseSelectorOpen && <ExerciseSelector onSelect={addExercise} onDone={() => setExerciseSelectorOpen(false)} workoutVariation={workoutVariation} />}
           <FailureTooltip isOpen={showFailureTooltip} onClose={() => setShowFailureTooltip(false)} />
         </div>
+        {logAllPrompt && (
+          <Sheet
+            open={true}
+            onOpenChange={(open) => {
+              if (!open) {
+                handleLogAllDismiss();
+              }
+            }}
+            height="sm"
+            title="Log all sets?"
+            description={`Detected ${logAllPrompt.pattern.completedSets}/${logAllPrompt.pattern.totalSets} sets at ${logAllPrompt.pattern.matchedWeight} lbs × ${logAllPrompt.pattern.matchedReps} reps.`}
+            showFooterClose={false}
+          >
+            <div className="space-y-4">
+              <Card className="rounded-2xl bg-white/70 p-4 shadow-sm backdrop-blur">
+                <p className="text-sm text-gray-700">
+                  {`Log the remaining ${logAllPrompt.pattern.remainingSets} set${logAllPrompt.pattern.remainingSets === 1 ? '' : 's'} with ${logAllPrompt.pattern.matchedWeight} lbs x ${logAllPrompt.pattern.matchedReps} reps?`}
+                </p>
+                {logAllReduction > 0 && (
+                  <p className="mt-2 text-xs font-semibold text-primary">
+                    Saves roughly {logAllReduction}% of taps.
+                  </p>
+                )}
+              </Card>
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  className="min-h-[56px] flex-1"
+                  onClick={handleLogAllDismiss}
+                >
+                  Not now
+                </Button>
+                <Button
+                  variant="primary"
+                  className="min-h-[56px] flex-1"
+                  onClick={handleLogAllConfirm}
+                  aria-label="Confirm log all sets"
+                >
+                  {`Log ${logAllPrompt.pattern.remainingSets} set${logAllPrompt.pattern.remainingSets === 1 ? '' : 's'}`}
+                </Button>
+              </div>
+            </div>
+          </Sheet>
+        )}
+        {logAllToast && (
+          <Toast message={logAllToast} onClose={() => setLogAllToast(null)} />
+        )}
+      </>
     );
   }
 

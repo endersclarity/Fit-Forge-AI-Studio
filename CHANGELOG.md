@@ -7,7 +7,106 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
-## [Unreleased] - 2025-11-13
+## [Unreleased] - 2025-11-14
+
+### Design System Wrapper Strategy ✅
+
+**Date**: 2025-11-14
+**Status**: COMPLETE (Strategic pivot from full migration to wrapper-based approach)
+
+**Summary**: Implemented compatibility wrapper strategy to unblock Epic 7 work while maintaining design system adoption. Instead of migrating all 70+ components manually, created wrapper components at legacy import paths (`components/ui/*`, `components/layout/*`) that proxy to design system primitives. This allows existing code to continue using familiar imports while rendering new glass morphism UI with zero breaking changes.
+
+**Strategic Decision**:
+- **Problem**: Epic 6.5's full rewrite approach (migrating ~70 components + 400+ tests) created an "all-or-nothing" bottleneck
+- **Solution**: Wrapper-first approach - keep legacy import paths stable, proxy to design system under the hood
+- **Benefit**: Epic 7 can start immediately, migrations happen opportunistically during feature work
+
+**Files Created/Modified**:
+- `docs/design-system-wrapper-plan.md` - Complete strategy documentation (NEW)
+- `components/ui/Button.tsx` - Wrapper for DS Button primitive (MODIFIED)
+- `components/ui/Card.tsx` - Wrapper for DS Card primitive (MODIFIED)
+- `components/ui/Badge.tsx` - Wrapper for DS Badge primitive (MODIFIED)
+- `components/ui/ProgressBar.tsx` - Wrapper for DS ProgressBar primitive (MODIFIED)
+- `components/ui/Modal.tsx` - Wrapper for DS Sheet primitive (MODIFIED)
+- `components/layout/FAB.tsx` - Wrapper for DS FAB pattern (MODIFIED)
+- `components/layout/CollapsibleSection.tsx` - Wrapper for DS CollapsibleSection pattern (MODIFIED)
+- `components/ui/Button.test.tsx` - Wrapper integration tests (11 tests, all passing)
+- `components/ui/__tests__/Modal.test.tsx` - Modal→Sheet wrapper tests (all passing)
+
+**Technical Implementation**:
+- **Button wrapper**: Maps legacy `xl` size → DS `lg`, preserves all other props via `forwardRef`
+- **Card wrapper**: Maps `elevation` → DS `variant`, `padding` → Tailwind classes, `hover` → motion
+- **Badge wrapper**: Direct prop forwarding to DS Badge (variants already aligned)
+- **ProgressBar wrapper**: Maps `height` → DS `size`, ignores deprecated `animated` prop
+- **Modal wrapper**: Translates `isOpen/onClose` → Sheet's `open/onOpenChange` API
+- **FAB wrapper**: Direct re-export of DS FAB pattern (zero adaptation needed)
+- **CollapsibleSection wrapper**: Combines `title` + `count` props into single title string
+
+**Wrapper Benefits**:
+- Zero breaking changes - all existing imports work immediately
+- Glass morphism design rolls out automatically across entire app
+- Future codemod can mechanically replace imports when ready
+- High-impact pages can be migrated in-place during Epic 7 work
+
+**Implementation Philosophy**:
+1. **Wrappers first** - Keep legacy paths stable, add DS primitives as needed
+2. **High-impact only** - Migrate Dashboard, Workout, Recovery, modals touched by Epic 7
+3. **Codemod cleanup later** - Scripted import replacement after wrappers stabilize
+4. **Automation assistance** - Script to report remaining legacy Tailwind usage
+
+**Next Steps**:
+- Use wrappers for all Epic 7 work (no migration blockers)
+- Migrate pages in-place as they're touched by features
+- Plan codemod + cleanup story after key flows use new design language
+
+---
+
+### Epic 7.1: Rest Timer Auto-Start ✅
+
+**Date**: 2025-11-14
+**Status**: COMPLETE (Timer auto-starts on set completion)
+
+**Summary**: Implemented auto-starting 90-second rest timer that appears as a fixed banner at the top of the workout screen when user marks a set as complete. Timer includes +15s extension and Skip controls with haptic feedback. Replaces old bottom-card timer with modern, non-obstructive top banner design.
+
+**Files Changed**:
+- `src/design-system/components/patterns/RestTimerBanner.tsx` - New DS pattern component (NEW)
+- `src/design-system/components/patterns/index.ts` - Export RestTimerBanner (MODIFIED)
+- `components/Workout.tsx` - Integration + set completion trigger (MODIFIED, ~128 lines changed)
+
+**Technical Implementation**:
+- **RestTimerBanner component**: 64px fixed top banner, glass morphism styling, countdown timer with progress bar, +15s/Skip controls, haptic feedback on completion, role="progressbar" accessibility
+- **Workout.tsx integration**: `restTimerConfig` state with `{ initialSeconds, key }` structure, `startRestTimer()` / `stopRestTimer()` helpers, conditional rendering with remounting via key prop, dynamic `pt-20` padding when banner active
+- **Auto-start triggers**: Set completion via `toggleSetFailure()` (false → true transition only), "Add Set" button click, manual clock icon click (preserves existing feature)
+- **Timer lifecycle**: Starts at 90s default, counts down once per second, calls `onComplete` and vibrates (20ms) at 0:00, stops and hides automatically
+
+**Removed Legacy Code**:
+- Old `RestTimer` component (bottom card design)
+- `activeTimer` state, `timerIntervalRef`, `audioContextRef`
+- AudioContext beep logic and `playBeep()` function
+- Manual interval-based countdown implementation
+
+**Acceptance Criteria**: All criteria met ✅
+- Timer auto-starts with 90s default after set logged (via "To Failure" toggle)
+- Timer also auto-starts when adding new set (preserves existing behavior)
+- Compact banner design at top of screen (64px height)
+- Content not obstructed (pt-20 padding applied when active)
+- +15s and Skip controls working with haptic feedback
+- Zero regressions in workout functionality
+
+**Key Features**:
+- **Smart triggering**: Only starts on false→true transition (marking complete), not when unmarking
+- **Non-obstructive**: Fixed top banner, content flows below with proper padding
+- **Remounting logic**: Unique `key` prop forces fresh timer on each trigger
+- **Accessibility**: ARIA progressbar with proper value announcements
+- **Mobile-first**: Touch-optimized controls, haptic feedback, swipe-friendly
+
+**Testing Results**:
+- Core functionality: Timer appears on set completion, counts down correctly
+- Controls: +15s adds time, Skip dismisses immediately
+- Layout: Banner positioned correctly, content not obstructed
+- Edge cases: Rapid toggling works, only one timer active at a time
+
+---
 
 ### Epic 6.5: Design System Rollout - IN PROGRESS
 

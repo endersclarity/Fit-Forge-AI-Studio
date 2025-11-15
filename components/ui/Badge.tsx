@@ -1,39 +1,24 @@
 import React from 'react';
+import DesignSystemBadge, {
+  type BadgeProps as DesignSystemBadgeProps,
+} from '@/src/design-system/components/primitives/Badge';
 
-export interface BadgeProps {
-  variant: 'success' | 'warning' | 'error' | 'info';
-  size?: 'sm' | 'md' | 'lg';
+export interface BadgeProps
+  extends Omit<DesignSystemBadgeProps, 'variant' | 'children'> {
+  variant: Exclude<DesignSystemBadgeProps['variant'], undefined | 'primary'>;
   children: React.ReactNode;
-  className?: string;
 }
 
-const variantClasses = {
-  success: 'bg-green-500/20 text-green-500',
-  warning: 'bg-amber-500/20 text-amber-500',
-  error: 'bg-red-500/20 text-red-500',
-  info: 'bg-blue-500/20 text-blue-500',
-};
+export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
+  ({ variant, ...props }, ref) => (
+    <DesignSystemBadge
+      ref={ref}
+      variant={variant}
+      {...props}
+    />
+  )
+);
 
-const sizeClasses = {
-  sm: 'px-2 py-0.5 text-xs',
-  md: 'px-2.5 py-1 text-sm',
-  lg: 'px-3 py-1.5 text-base',
-};
-
-export const Badge: React.FC<BadgeProps> = ({
-  variant,
-  size = 'md',
-  children,
-  className = '',
-}) => {
-  const baseClasses = 'inline-flex items-center rounded-full font-medium';
-  const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
-
-  return (
-    <span className={classes}>
-      {children}
-    </span>
-  );
-};
+Badge.displayName = 'Badge';
 
 export default Badge;

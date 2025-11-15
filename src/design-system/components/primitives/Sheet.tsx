@@ -57,6 +57,18 @@ export interface SheetProps {
    * Whether to show the draggable handle
    */
   showHandle?: boolean;
+
+  /**
+   * Whether to show the default footer close button
+   * @default true
+   */
+  showFooterClose?: boolean;
+
+  /**
+   * Label for the default close button
+   * @default "Done"
+   */
+  closeLabel?: string;
 }
 
 /**
@@ -104,6 +116,8 @@ const Sheet: React.FC<SheetProps> = ({
   description,
   className,
   showHandle = true,
+  showFooterClose = true,
+  closeLabel = 'Done',
 }) => {
   const heightValue = heightMap[height];
 
@@ -161,15 +175,17 @@ const Sheet: React.FC<SheetProps> = ({
           </div>
 
           {/* Close affordance at bottom */}
-          <div className="flex-shrink-0 border-t border-gray-200/50 px-6 py-3">
-            <button
-              onClick={() => onOpenChange(false)}
-              className="w-full rounded-lg bg-gray-100/50 px-4 py-2 text-center text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
-              aria-label="Close sheet"
-            >
-              Done
-            </button>
-          </div>
+          {showFooterClose && (
+            <div className="flex-shrink-0 border-t border-gray-200/50 px-6 py-3">
+              <button
+                onClick={() => onOpenChange(false)}
+                className="w-full rounded-lg bg-gray-100/50 px-4 py-2 text-center text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                aria-label="Close sheet"
+              >
+                {closeLabel}
+              </button>
+            </div>
+          )}
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>
