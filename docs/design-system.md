@@ -1094,7 +1094,227 @@ When adding dark mode to existing components:
 
 ---
 
-## 18. Developer Resources
+## 18. Empty States & Skeleton Screens
+
+### Overview
+
+FitForge provides reusable components for loading states and empty content scenarios. These components respect user preferences for reduced motion and support dark mode out of the box.
+
+### EmptyState Component
+
+Location: `components/common/EmptyState.tsx`
+
+A versatile component for displaying helpful messaging when content is unavailable.
+
+```tsx
+import { EmptyState } from '@/components/common/EmptyState';
+
+<EmptyState
+  illustration={<BarChartIcon className="w-16 h-16" />}
+  title="No Workouts Yet"
+  body="Start your fitness journey by creating your first workout routine."
+  ctaText="Create Workout"
+  onCtaClick={() => navigate('/workout/new')}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `title` | `string` | Yes | Main heading text |
+| `body` | `string` | Yes | Supporting description |
+| `ctaText` | `string` | Yes | Button label |
+| `onCtaClick` | `() => void` | Yes | Button click handler |
+| `illustration` | `React.ReactNode` | No | Optional icon or image |
+| `className` | `string` | No | Additional CSS classes |
+
+**Accessibility:**
+- Uses `role="status"` and `aria-label` for screen reader context
+- CTA button has minimum 60x60px touch target (WCAG 2.5.5)
+- Supports keyboard navigation with focus ring indicators
+
+**Dark Mode:**
+- Title: `text-slate-900 dark:text-dark-text-primary`
+- Body: `text-slate-600 dark:text-dark-text-secondary`
+- Illustration: `text-slate-400 dark:text-dark-text-muted`
+- Button: `bg-brand-cyan dark:bg-dark-accent-primary`
+
+### SkeletonBlock Component
+
+Location: `components/common/SkeletonBlock.tsx`
+
+A loading placeholder with animated shimmer effect that respects motion preferences.
+
+```tsx
+import { SkeletonBlock } from '@/components/common/SkeletonBlock';
+
+// Card skeleton (h-48)
+<SkeletonBlock variant="card" />
+
+// List row skeleton (h-16)
+<SkeletonBlock variant="list-row" />
+
+// Chart skeleton (h-64)
+<SkeletonBlock variant="chart" />
+```
+
+**Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `variant` | `'card' \| 'list-row' \| 'chart'` | Yes | Skeleton layout type |
+| `className` | `string` | No | Additional CSS classes |
+
+**Variants:**
+
+1. **`card`** (192px height)
+   - Title bar placeholder
+   - Subtitle placeholder
+   - Content area placeholder
+   - Use for: Dashboard cards, workout summaries
+
+2. **`list-row`** (64px height)
+   - Circular avatar placeholder
+   - Two-line text placeholders
+   - Use for: Exercise lists, personal bests, history items
+
+3. **`chart`** (256px height)
+   - Title placeholder
+   - Bar chart representation with varying heights
+   - Use for: Analytics graphs, progress charts
+
+**Motion Preferences:**
+- Shimmer animation only runs when `prefers-reduced-motion` is not set
+- Uses `useMotion()` hook from MotionProvider
+- Graceful fallback to static placeholder when animations disabled
+
+**Accessibility:**
+- `aria-hidden="true"` - skeletons are decorative
+- `role="presentation"` - excluded from accessibility tree
+- No focusable elements inside skeleton blocks
+
+**Dark Mode:**
+- Base: `bg-slate-200 dark:bg-dark-bg-tertiary`
+- Inner elements: `bg-slate-300 dark:bg-dark-bg-secondary`
+- Shimmer overlay: `via-white/20 dark:via-white/10`
+
+### Copy Guidelines for Empty States
+
+Write empty state copy that is:
+
+1. **Empathetic** - Acknowledge the situation without blame
+   - Good: "No workouts recorded yet"
+   - Avoid: "You haven't done anything"
+
+2. **Actionable** - Guide users to the next step
+   - Good: "Create your first workout to start tracking progress"
+   - Avoid: "This area is empty"
+
+3. **Concise** - Keep titles under 8 words, body under 25 words
+   - Title: What's missing
+   - Body: Why it matters + what to do
+
+4. **Encouraging** - Frame actions positively
+   - Good: "Start Your Journey"
+   - Avoid: "Fix This"
+
+**Example Copy Patterns:**
+
+```tsx
+// Dashboard - No recent workouts
+title: "Ready to Get Started?"
+body: "Your workout history will appear here once you complete your first session."
+ctaText: "Start Workout"
+
+// Templates - No saved templates
+title: "No Templates Yet"
+body: "Save time by creating reusable workout templates for your routine."
+ctaText: "Create Template"
+
+// Personal Bests - No records
+title: "Track Your Progress"
+body: "Personal records will be calculated as you log your workouts."
+ctaText: "Log Workout"
+
+// Analytics - Insufficient data
+title: "More Data Needed"
+body: "Complete a few more workouts to unlock detailed analytics and insights."
+ctaText: "View Workouts"
+```
+
+### Integration Examples
+
+**Dashboard with Loading State:**
+
+```tsx
+function Dashboard() {
+  const { data, isLoading } = useWorkouts();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <SkeletonBlock variant="card" />
+        <SkeletonBlock variant="card" />
+        <SkeletonBlock variant="list-row" />
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <EmptyState
+        illustration={<DumbbellIcon className="w-16 h-16" />}
+        title="No Workouts Yet"
+        body="Start building your fitness routine by creating your first workout."
+        ctaText="Create Workout"
+        onCtaClick={() => navigate('/workout/new')}
+      />
+    );
+  }
+
+  return <WorkoutList data={data} />;
+}
+```
+
+**Analytics with Chart Skeleton:**
+
+```tsx
+function Analytics() {
+  const { chartData, isLoading } = useAnalytics();
+
+  return (
+    <div>
+      <h2>Progress Overview</h2>
+      {isLoading ? (
+        <SkeletonBlock variant="chart" />
+      ) : chartData ? (
+        <ProgressChart data={chartData} />
+      ) : (
+        <EmptyState
+          title="More Data Needed"
+          body="Complete a few workouts to see your progress trends."
+          ctaText="Start Workout"
+          onCtaClick={() => navigate('/workout')}
+        />
+      )}
+    </div>
+  );
+}
+```
+
+### Best Practices
+
+1. **Always show skeletons during data fetching** - Never leave users with blank screens
+2. **Match skeleton structure to actual content** - Use `card` for cards, `list-row` for lists
+3. **Provide clear next steps in empty states** - Every empty state should have an actionable CTA
+4. **Test with reduced motion enabled** - Verify skeletons look good without animation
+5. **Check dark mode rendering** - Ensure sufficient contrast in both themes
+6. **Use appropriate illustrations** - Icons should relate to the missing content type
+
+---
+
+## 19. Developer Resources
 
 ### Stitch HTML Reference
 - **Location:** `docs/ux-audit/stitch_expanded_set_view/exercise_picker_drawer/code.html`
@@ -1111,7 +1331,7 @@ When adding dark mode to existing components:
 
 ---
 
-## 19. Next Steps
+## 20. Next Steps
 
 1. **Review with team** - Ensure alignment on visual direction
 2. **Update Tailwind config** - Add all new tokens
