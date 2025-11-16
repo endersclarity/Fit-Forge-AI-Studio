@@ -1,7 +1,7 @@
 # Story 8.6: Performance Optimization & Bundle Hygiene
 
 ## Status
-Draft
+In Progress
 
 ## Story
 **As a** FitForge maintainer,\
