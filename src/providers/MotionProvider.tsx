@@ -7,6 +7,13 @@ import React, {
   useState,
 } from 'react';
 
+// Helper to read env var dynamically - allows test mocking at runtime
+// Exported for test mocking purposes
+export const getAnimationsEnabledFlag = (): boolean => {
+  const envValue = import.meta.env.VITE_ANIMATIONS_ENABLED;
+  return (envValue ?? 'true') !== 'false';
+};
+
 interface MotionContextValue {
   /**
    * True when animations are allowed (feature flag on + user has not requested reduced motion)
@@ -28,6 +35,15 @@ interface MotionContextValue {
 
 const MotionContext = createContext<MotionContextValue | null>(null);
 
+interface MotionProviderProps {
+  children: React.ReactNode;
+  /**
+   * Optional override for feature flag (primarily for testing).
+   * When undefined, reads from VITE_ANIMATIONS_ENABLED env var.
+   */
+  featureFlagOverride?: boolean;
+}
+
 /**
  * MotionProvider
  *
@@ -36,8 +52,9 @@ const MotionContext = createContext<MotionContextValue | null>(null);
  * context used throughout the UI to determine whether Framer Motion
  * variants should run.
  */
-export const MotionProvider: React.FC<{ children: React.ReactNode }> = ({
+export const MotionProvider: React.FC<MotionProviderProps> = ({
   children,
+  featureFlagOverride,
 }) => {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -61,8 +78,11 @@ export const MotionProvider: React.FC<{ children: React.ReactNode }> = ({
     setPrefersReducedMotion(value);
   }, []);
 
+  // Use override if provided (for testing), otherwise read from env var
   const featureFlagEnabled =
-    (import.meta.env.VITE_ANIMATIONS_ENABLED ?? 'true') !== 'false';
+    featureFlagOverride !== undefined
+      ? featureFlagOverride
+      : getAnimationsEnabledFlag();
 
   const value = useMemo<MotionContextValue>(
     () => ({

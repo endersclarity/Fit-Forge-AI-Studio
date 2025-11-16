@@ -1,44 +1,44 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, beforeAll, vi, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
+// Remove the global mock so we test the actual implementation
+vi.unmock('@/src/providers/MotionProvider');
+
 import { MotionProvider, useMotion } from './MotionProvider';
 
-const setupMatchMedia = () => {
-  const listeners: Array<(event: MediaQueryListEvent) => void> = [];
-  const matchMediaMock = vi.fn().mockImplementation(() => ({
-    matches: false,
-    addEventListener: (_: string, listener: (event: MediaQueryListEvent) => void) => {
-      listeners.push(listener);
-    },
-    removeEventListener: (_: string, listener: (event: MediaQueryListEvent) => void) => {
-      const index = listeners.indexOf(listener);
-      if (index >= 0) listeners.splice(index, 1);
-    },
-  }));
-
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: matchMediaMock,
-  });
-
-  return listeners;
-};
-
 describe('MotionProvider', () => {
-  const originalFlag = import.meta.env.VITE_ANIMATIONS_ENABLED;
   let listeners: Array<(event: MediaQueryListEvent) => void>;
 
-  beforeAll(() => {
-    listeners = setupMatchMedia();
+  beforeEach(() => {
+    // Reset listeners for each test
+    listeners = [];
+
+    const matchMediaMock = vi.fn().mockImplementation(() => ({
+      matches: false,
+      addEventListener: (_: string, listener: (event: MediaQueryListEvent) => void) => {
+        listeners.push(listener);
+      },
+      removeEventListener: (_: string, listener: (event: MediaQueryListEvent) => void) => {
+        const index = listeners.indexOf(listener);
+        if (index >= 0) listeners.splice(index, 1);
+      },
+    }));
+
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: matchMediaMock,
+    });
   });
 
-  afterAll(() => {
-    import.meta.env.VITE_ANIMATIONS_ENABLED = originalFlag;
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('disables motion when feature flag is false', () => {
-    import.meta.env.VITE_ANIMATIONS_ENABLED = 'false';
     const { result } = renderHook(() => useMotion(), {
-      wrapper: ({ children }) => <MotionProvider>{children}</MotionProvider>,
+      wrapper: ({ children }) => (
+        <MotionProvider featureFlagOverride={false}>{children}</MotionProvider>
+      ),
     });
 
     expect(result.current.featureFlagEnabled).toBe(false);
@@ -46,9 +46,10 @@ describe('MotionProvider', () => {
   });
 
   it('responds to reduced motion preference changes', () => {
-    import.meta.env.VITE_ANIMATIONS_ENABLED = 'true';
     const { result } = renderHook(() => useMotion(), {
-      wrapper: ({ children }) => <MotionProvider>{children}</MotionProvider>,
+      wrapper: ({ children }) => (
+        <MotionProvider featureFlagOverride={true}>{children}</MotionProvider>
+      ),
     });
 
     expect(result.current.isMotionEnabled).toBe(true);
