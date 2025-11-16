@@ -1,7 +1,7 @@
 # Story 8.3: WCAG 2.1 AA+ Audit & Remediation
 
 ## Status
-Draft
+In Progress
 
 ## Story
 **As an** accessibility specialist,\
