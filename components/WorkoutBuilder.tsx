@@ -936,7 +936,11 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
         <div className="bg-brand-surface rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <header className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-semibold">Workout in Progress</h3>
-            <button onClick={handleClose} className="text-slate-400 hover:text-white text-2xl">
+            <button
+              onClick={handleClose}
+              className="text-slate-400 hover:text-white text-2xl min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-cyan rounded"
+              aria-label="Close workout"
+            >
               ×
             </button>
           </header>

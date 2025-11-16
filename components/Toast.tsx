@@ -42,6 +42,9 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'success', duration = 300
     <AnimatePresence>
       {visible && (
         <motion.div
+          role={type === 'error' ? 'alert' : 'status'}
+          aria-live={type === 'error' ? 'assertive' : 'polite'}
+          aria-atomic="true"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
@@ -55,8 +58,8 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'success', duration = 300
                 setVisible(false);
                 setTimeout(onClose, 300);
               }}
-              className="ml-3 text-white hover:text-gray-200 font-bold"
-              aria-label="Close"
+              className="ml-3 text-white hover:text-gray-200 font-bold min-w-[44px] min-h-[44px]"
+              aria-label="Close notification"
             >
               ✕
             </button>

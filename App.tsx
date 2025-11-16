@@ -362,6 +362,14 @@ const App: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only sr-only-focusable bg-brand-cyan text-brand-dark font-bold z-50 fixed top-2 left-2 px-4 py-2 rounded"
+      >
+        Skip to main content
+      </a>
+
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
       {prNotifications.length > 0 && (
         <PRNotificationManager

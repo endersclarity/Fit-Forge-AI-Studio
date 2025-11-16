@@ -18,6 +18,41 @@
     font-family: 'Cinzel', serif;
     letter-spacing: 0.025em;
   }
+
+  /* WCAG 2.1 AA+ Focus Indicators */
+  :focus-visible {
+    outline: 3px solid #22d3ee; /* brand-cyan */
+    outline-offset: 2px;
+  }
+
+  /* Remove default focus outline since we use focus-visible */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Skip link for keyboard users */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .sr-only-focusable:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
 }
 
 @layer components {

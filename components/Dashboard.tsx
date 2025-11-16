@@ -347,7 +347,7 @@ const MuscleFatigueHeatMap: React.FC<{
                       <Card key={muscle} variant="default" className="bg-white/50 backdrop-blur-lg">
                         <button
                           onClick={() => handleMuscleClick(muscle)}
-                          className="w-full text-left p-3 focus:outline-none hover:bg-gray-100/20 transition-colors cursor-pointer min-h-[60px]"
+                          className="w-full text-left p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:bg-gray-100/20 transition-colors cursor-pointer min-h-[60px] rounded-lg"
                           aria-label={`${muscle}: ${fatiguePercent}% fatigued${isReady ? ', ready now' : `, ready in ${daysUntilRecovered} days`}`}
                         >
                           <div className="flex justify-between items-center mb-2 text-sm">
@@ -425,7 +425,7 @@ const MuscleFatigueHeatMap: React.FC<{
                   <Card key={muscle} variant="default" className="bg-white/50 backdrop-blur-lg">
                     <button
                       onClick={() => handleMuscleClick(muscle)}
-                      className="w-full text-left p-3 focus:outline-none hover:bg-gray-100/20 transition-colors cursor-pointer min-h-[60px]"
+                      className="w-full text-left p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:bg-gray-100/20 transition-colors cursor-pointer min-h-[60px] rounded-lg"
                       aria-label={`${muscle}: ${fatiguePercent}% fatigued${isReady ? ', ready now' : `, ready in ${daysUntilRecovered} days`}`}
                     >
                       <div className="flex justify-between items-center mb-2 text-sm">
@@ -469,6 +469,9 @@ const MuscleFatigueHeatMap: React.FC<{
         <div
           className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
           onClick={handleModalClose}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="muscle-exercises-title"
         >
           <Card
             variant="elevated"
@@ -476,13 +479,13 @@ const MuscleFatigueHeatMap: React.FC<{
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <header className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-display font-semibold">Exercises for {selectedMuscle}</h3>
+              <h3 id="muscle-exercises-title" className="text-lg font-display font-semibold">Exercises for {selectedMuscle}</h3>
               <Button
                 onClick={handleModalClose}
                 variant="ghost"
                 size="sm"
                 className="min-w-[44px] min-h-[44px]"
-                aria-label="Close"
+                aria-label="Close dialog"
               >
                 ×
               </Button>
@@ -740,9 +743,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
   return (
     <div className="p-4 md:p-6 min-h-screen bg-background space-y-6">
-      <header className="flex justify-between items-center">
+      <header className="flex justify-between items-center" role="banner">
         <div className="flex items-center gap-3">
-            <DumbbellIcon className="w-8 h-8 text-primary" />
+            <DumbbellIcon className="w-8 h-8 text-primary" aria-hidden="true" />
             <h1 className="text-2xl font-display font-bold tracking-tight">FitForge</h1>
         </div>
         <div className="flex items-center gap-2">
@@ -793,7 +796,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         </div>
       </header>
 
-      <main className="space-y-8">
+      <main id="main-content" className="space-y-8" role="main" tabIndex={-1}>
         <Card variant="default" className="bg-white/50 backdrop-blur-lg">
           <h2 className="text-xl font-display font-semibold">Welcome, Kaelen</h2>
         </Card>
@@ -814,13 +817,15 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         )}
 
         <CollapsibleCard title="Workout Recommendations" icon="💪" defaultExpanded={false}>
-          <WorkoutRecommender
-            muscleStates={muscleStates}
-            workouts={workouts}
-            muscleBaselines={muscleBaselines}
-            onStart={handleStartRecommendedWorkout}
-            isLoading={isStartingWorkout}
-          />
+          <div aria-live="polite" aria-atomic="false">
+            <WorkoutRecommender
+              muscleStates={muscleStates}
+              workouts={workouts}
+              muscleBaselines={muscleBaselines}
+              onStart={handleStartRecommendedWorkout}
+              isLoading={isStartingWorkout}
+            />
+          </div>
         </CollapsibleCard>
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-3">

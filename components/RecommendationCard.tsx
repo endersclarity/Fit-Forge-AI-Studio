@@ -203,15 +203,17 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
         {onViewEngagement && (
           <button
             onClick={() => onViewEngagement(exercise.id)}
-            className="flex-1 py-2 px-4 rounded-lg font-semibold transition-colors bg-brand-surface text-slate-300 hover:bg-brand-muted flex items-center justify-center gap-1"
+            className="flex-1 py-3 px-4 rounded-lg font-semibold transition-colors bg-brand-surface text-slate-300 hover:bg-brand-muted flex items-center justify-center gap-1 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2"
+            aria-label={`View muscle engagement for ${exercise.name}`}
           >
-            <span className="material-symbols-outlined text-sm">analytics</span>
+            <span className="material-symbols-outlined text-sm" aria-hidden="true">analytics</span>
             View Engagement
           </button>
         )}
         <button
           onClick={() => onAdd(exercise)}
-          className={`${onViewEngagement ? 'flex-1' : 'w-full'} py-2 px-4 rounded-lg font-semibold transition-colors ${config.buttonStyle}`}
+          className={`${onViewEngagement ? 'flex-1' : 'w-full'} py-3 px-4 rounded-lg font-semibold transition-colors ${config.buttonStyle} min-h-[60px] focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2`}
+          aria-label={`Add ${exercise.name} to workout`}
         >
           Add to Workout
         </button>
