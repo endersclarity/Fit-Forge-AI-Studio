@@ -1,7 +1,7 @@
 # Story 8.4: Dark Mode Support
 
 ## Status
-In Progress
+Verified
 
 ## Story
 **As a** FitForge athlete training in low light,\
