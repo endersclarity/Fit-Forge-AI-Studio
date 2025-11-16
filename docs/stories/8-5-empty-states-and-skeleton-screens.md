@@ -1,7 +1,7 @@
 # Story 8.5: Empty States & Skeleton Screens
 
 ## Status
-Draft
+In Progress
 
 ## Story
 **As a** new or returning FitForge user,\
