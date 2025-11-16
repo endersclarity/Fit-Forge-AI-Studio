@@ -16,6 +16,7 @@ import PlannedExerciseList from './PlannedExerciseList';
 import { MuscleVisualizationContainer } from './MuscleVisualization/MuscleVisualizationContainer';
 import { XIcon, PlusIcon } from './Icons';
 import { Sheet, Card, Button } from '../src/design-system/components/primitives';
+import { SkeletonBlock } from './common/SkeletonBlock';
 
 interface WorkoutPlannerModalProps {
   isOpen: boolean;
@@ -424,7 +425,19 @@ const WorkoutPlannerModal: React.FC<WorkoutPlannerModalProps> = ({
           {/* Content */}
           <div className="p-6">
             {isLoading ? (
-              <div className="text-center py-12 text-brand-muted">Loading muscle data...</div>
+              <div className="space-y-6">
+                <p className="text-center text-brand-muted dark:text-dark-text-muted text-sm">Loading muscle data...</p>
+                {/* Two-column layout skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <SkeletonBlock variant="card" className="h-64" />
+                  <SkeletonBlock variant="card" className="h-64" />
+                </div>
+                {/* Action buttons skeleton */}
+                <div className="flex justify-end gap-3">
+                  <div className="h-10 w-24 bg-slate-200 dark:bg-dark-bg-tertiary rounded animate-pulse" />
+                  <div className="h-10 w-32 bg-slate-200 dark:bg-dark-bg-tertiary rounded animate-pulse" />
+                </div>
+              </div>
             ) : (
               <>
                 {/* Two-column layout: Current | Forecasted */}

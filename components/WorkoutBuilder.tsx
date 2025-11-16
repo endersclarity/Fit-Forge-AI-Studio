@@ -17,6 +17,7 @@ import Sheet from '@/src/design-system/components/primitives/Sheet';
 import Button from '@/src/design-system/components/primitives/Button';
 import { useMotion } from '@/src/providers/MotionProvider';
 import { listContainerVariants, listItemVariants, SPRING_TRANSITION } from '@/src/providers/motion-presets';
+import { SkeletonBlock } from './common/SkeletonBlock';
 
 interface WorkoutBuilderProps {
   isOpen: boolean;
@@ -1012,7 +1013,19 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     >
       <div className="space-y-4">
         {loading ? (
-          <div className="text-center py-8 text-slate-400 dark:text-dark-text-muted">Loading...</div>
+          <div className="py-4 space-y-4">
+            {/* Mode toggle skeleton */}
+            <div className="flex justify-center gap-2">
+              <div className="h-9 w-36 bg-slate-200 dark:bg-dark-bg-tertiary rounded animate-pulse" />
+              <div className="h-9 w-32 bg-slate-200 dark:bg-dark-bg-tertiary rounded animate-pulse" />
+            </div>
+            {/* Content skeletons */}
+            <SkeletonBlock variant="card" className="h-32" />
+            <div className="space-y-3">
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+            </div>
+          </div>
         ) : (
           <>
             {/* Planning Mode Toggle */}

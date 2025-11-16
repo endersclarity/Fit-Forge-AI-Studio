@@ -23,6 +23,7 @@ import { useMotion } from './src/providers/MotionProvider';
 import { pageTransitionVariants, SPRING_TRANSITION } from './src/providers/motion-presets';
 import { detectProgressionMethod } from './utils/progressionMethodDetector';
 import { ThemeToggle } from './components/common/ThemeToggle';
+import { SkeletonBlock } from './components/common/SkeletonBlock';
 
 // Accessibility: Load axe-core in development only
 if (import.meta.env.DEV) {
@@ -324,10 +325,34 @@ const App: React.FC = () => {
   const isLoading = profileLoading || workoutsLoading || muscleBaselinesLoading;
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-brand-dark dark:bg-dark-bg-primary">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-cyan"></div>
-          <p className="mt-4 text-slate-400 dark:text-dark-text-muted">Loading your data...</p>
+      <div className="min-h-screen bg-brand-dark dark:bg-dark-bg-primary p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between">
+            <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
+            <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-24 animate-pulse" />
+          </div>
+
+          {/* Main content skeleton - simulating dashboard layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <SkeletonBlock variant="card" />
+            <SkeletonBlock variant="card" />
+            <SkeletonBlock variant="card" />
+          </div>
+
+          {/* Secondary content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <SkeletonBlock variant="chart" />
+            <div className="space-y-3">
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+            </div>
+          </div>
+
+          <p className="text-center text-slate-400 dark:text-dark-text-muted text-sm">
+            Loading your fitness data...
+          </p>
         </div>
       </div>
     );

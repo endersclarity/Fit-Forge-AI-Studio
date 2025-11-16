@@ -112,7 +112,21 @@ const VolumeSlider: React.FC<VolumeSliderProps> = ({
       </div>
 
       {/* Progressive overload comparison */}
-      {lastPerformance && progressComparison && (
+      {isLoading ? (
+        <div className="p-3 bg-brand-muted rounded">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-3 w-16 bg-slate-600 rounded animate-pulse" />
+              <div className="h-4 w-24 bg-slate-600 rounded animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 w-12 bg-slate-600 rounded animate-pulse" />
+              <div className="h-4 w-24 bg-slate-600 rounded animate-pulse" />
+            </div>
+            <div className="h-6 w-16 bg-slate-600 rounded animate-pulse" />
+          </div>
+        </div>
+      ) : lastPerformance && progressComparison ? (
         <div className="flex items-center justify-between p-3 bg-brand-muted rounded">
           <div className="text-sm">
             <div className="text-slate-400">Last time:</div>
@@ -134,7 +148,7 @@ const VolumeSlider: React.FC<VolumeSliderProps> = ({
             {progressComparison.description}
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* No history message */}
       {!lastPerformance && !isLoading && (

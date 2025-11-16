@@ -17,6 +17,7 @@ import { EXERCISE_LIBRARY } from '../constants';
 import { Card, Button, Badge } from '@/src/design-system/components/primitives';
 import { useMotion } from '@/src/providers/MotionProvider';
 import { listContainerVariants } from '@/src/providers/motion-presets';
+import { SkeletonBlock } from './common/SkeletonBlock';
 
 import CategoryTabs from './CategoryTabs';
 import RecommendationCard from './RecommendationCard';
@@ -288,11 +289,19 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
   // Handle loading state
   if (isLoading) {
     return (
-      <Card className="p-6 text-center bg-white/50 backdrop-blur-lg">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
-          <p className="text-lg font-display font-semibold text-primary">Loading Recommendations...</p>
-          <p className="text-sm text-gray-600 font-body">Analyzing muscle fatigue and exercise options</p>
+      <Card className="p-6 bg-white/50 dark:bg-dark-bg-secondary/50 backdrop-blur-lg">
+        <div className="space-y-4">
+          <div className="text-center mb-4">
+            <p className="text-lg font-display font-semibold text-primary dark:text-dark-text-primary">Loading Recommendations...</p>
+            <p className="text-sm text-gray-600 dark:text-dark-text-secondary font-body">Analyzing muscle fatigue and exercise options</p>
+          </div>
+          {/* Skeleton cards for recommendations */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SkeletonBlock variant="card" />
+            <SkeletonBlock variant="card" />
+            <SkeletonBlock variant="card" />
+            <SkeletonBlock variant="card" />
+          </div>
         </div>
       </Card>
     );
