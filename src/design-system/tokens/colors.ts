@@ -59,6 +59,38 @@ export const colors = {
       dark: 'rgba(255,255,255,0.18)',
     },
   },
+
+  /**
+   * Dark mode colors - Consistent slate palette for dark theme
+   * Uses Tailwind Slate colors for professional appearance
+   */
+  dark: {
+    bg: {
+      primary: '#0f172a',    // Slate 900 - main background
+      secondary: '#1e293b',  // Slate 800 - elevated surfaces
+      tertiary: '#334155',   // Slate 700 - cards/panels
+    },
+    text: {
+      primary: '#f8fafc',    // Slate 50 - primary text
+      secondary: '#cbd5e1',  // Slate 300 - secondary text
+      muted: '#94a3b8',      // Slate 400 - muted text
+    },
+    border: {
+      DEFAULT: '#334155',    // Slate 700
+      subtle: '#1e293b',     // Slate 800
+      emphasis: '#475569',   // Slate 600
+    },
+  },
+
+  /**
+   * Gradients - Background gradients for light and dark modes
+   */
+  gradients: {
+    heavenly: 'linear-gradient(180deg, rgba(235, 241, 255, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%)',
+    dark: 'linear-gradient(180deg, rgba(15,23,42,0.92) 0%, rgba(30,41,59,0.96) 100%)',
+    darkElevated: 'linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(51,65,85,0.98) 100%)',
+    darkRadial: 'radial-gradient(ellipse at top, rgba(30,41,59,0.9) 0%, rgba(15,23,42,0.98) 70%)',
+  },
 } as const;
 
 /**
@@ -70,6 +102,8 @@ export type PrimaryColor = keyof typeof colors.primary;
 export type BadgeColor = keyof typeof colors.badge;
 export type LegacyColor = keyof typeof colors.legacy;
 export type GlassColor = keyof typeof colors.glass;
+export type DarkColor = keyof typeof colors.dark;
+export type GradientColor = keyof typeof colors.gradients;
 
 /**
  * Helper function to get color value by path

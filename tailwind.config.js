@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./components/**/*.{js,ts,jsx,tsx}",
@@ -35,6 +36,24 @@ export default {
             dark: 'rgba(255,255,255,0.18)',
           },
         },
+        // Dark mode background colors
+        dark: {
+          bg: {
+            primary: '#0f172a',    // Slate 900 - main background
+            secondary: '#1e293b',  // Slate 800 - elevated surfaces
+            tertiary: '#334155',   // Slate 700 - cards/panels
+          },
+          text: {
+            primary: '#f8fafc',    // Slate 50 - primary text
+            secondary: '#cbd5e1',  // Slate 300 - secondary text
+            muted: '#94a3b8',      // Slate 400 - muted text
+          },
+          border: {
+            DEFAULT: '#334155',    // Slate 700
+            subtle: '#1e293b',     // Slate 800
+            emphasis: '#475569',   // Slate 600
+          },
+        },
         // Legacy colors (KEEP for backward compatibility)
         'brand-cyan': '#22d3ee',
         'brand-dark': '#0f172a',
@@ -60,6 +79,8 @@ export default {
       backgroundImage: {
         'heavenly-gradient': 'linear-gradient(180deg, rgba(235, 241, 255, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%)',
         'dark-gradient': 'linear-gradient(180deg, rgba(15,23,42,0.92) 0%, rgba(30,41,59,0.96) 100%)',
+        'dark-gradient-elevated': 'linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(51,65,85,0.98) 100%)',
+        'dark-radial': 'radial-gradient(ellipse at top, rgba(30,41,59,0.9) 0%, rgba(15,23,42,0.98) 70%)',
         'marble-texture': 'url("/data/marble-texture.png")',
         'photo-overlay': 'linear-gradient(120deg, rgba(0,0,0,0.35), rgba(0,0,0,0.1))',
       },
