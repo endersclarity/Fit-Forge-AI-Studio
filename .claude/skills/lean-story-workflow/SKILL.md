@@ -10,6 +10,58 @@ A lightweight, verification-focused workflow for implementing FitForge stories. 
 ## Core Principle
 **Trust but Verify** - BMAD structure, Superpowers discipline, Serena intelligence, minimal ceremony.
 
+## Orchestration Pattern (CRITICAL)
+
+**This window is the ORCHESTRATOR, not the worker.**
+
+To preserve context window space, delegate actual work to sub-agents via the Task tool:
+
+- **Orchestrator window (here):** High-level planning, status tracking, reviewing results, decision-making
+- **Sub-agents (Task tool):** Actual implementation, test running, code fixes, verification
+
+### When to use Task tool sub-agents:
+
+1. **Implementing story tasks** → Launch implementation agent with specific task instructions
+2. **Running verification gates** → Launch verification agent to run build/tests
+3. **Fixing test failures** → Launch debugging agent with failure context
+4. **Code exploration** → Launch exploration agent to understand codebase
+
+### Sub-agent prompt template:
+
+```
+Story: 8.X - [Title]
+Phase: [DRAFT/IN PROGRESS/IMPLEMENTED/VERIFIED]
+Current Task: [Specific task from story]
+
+Context:
+- [Relevant file paths]
+- [Key constraints or requirements]
+- [Previous decisions from Serena memories]
+
+Instructions:
+1. [Specific action to take]
+2. [Expected output/verification]
+3. Report back: [What to include in final report]
+
+IMPORTANT: Commit after completing each logical chunk.
+```
+
+### Orchestrator responsibilities:
+
+- Determine which story/task to work on
+- Craft clear sub-agent prompts
+- Review sub-agent results
+- Update story status based on verified results
+- Make strategic decisions
+- Manage TodoWrite at high level
+
+### Benefits:
+
+- Context window stays clean for strategic thinking
+- Sub-agents work with fresh context (no accumulated confusion)
+- Parallel work possible (multiple agents simultaneously)
+- Better separation of concerns
+
 ## When to Use This Skill
 
 - Starting work on a story
@@ -46,19 +98,22 @@ Draft → In Progress → Implemented → Verified → Done
 #### IN PROGRESS Phase
 **Status says:** In Progress
 
-**Actions:**
+**Orchestrator Actions:**
 1. Check TodoWrite for current task
-2. Implement ONE task at a time
-3. After each task:
+2. **Launch sub-agent** to implement ONE task at a time
+3. Review sub-agent results
+4. After each task verified:
    - Mark todo complete
-   - Small commit: `feat: Task N of Story X.Y - <description>`
-4. Repeat until all tasks done
-5. Update status to "Implemented"
+   - Confirm sub-agent committed: `feat: Task N of Story X.Y - <description>`
+5. Repeat until all tasks done
+6. Update status to "Implemented"
 
 #### IMPLEMENTED Phase
 **Status says:** Implemented (code done, not verified)
 
 **MANDATORY VERIFICATION GATE:**
+
+**Launch verification sub-agent** with instructions to:
 ```bash
 # 1. Run build
 npm run build
@@ -70,15 +125,19 @@ npm run test:run -- <related-files>
 
 # 3. Check for new warnings
 # Review console output
+
+# 4. Report back with evidence
 ```
+
+**Based on sub-agent report:**
 
 **If gates pass:**
 - Update status to "Verified"
 - Proceed to completion
 
 **If gates fail:**
-- Fix issues
-- Rerun verification
+- **Launch fix sub-agent** with failure context
+- Rerun verification via new sub-agent
 - Do NOT proceed until passing
 
 #### VERIFIED Phase
