@@ -655,11 +655,11 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   const location = useLocation();
   const { isMotionEnabled } = useMotion();
 
-  // Toast handler
-  const handleToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+  // Toast handler - memoized to prevent child re-renders
+  const handleToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToastMessage(message);
     setToastType(type);
-  };
+  }, []);
 
   // Wrapper function for starting recommended workout with loading state
   const handleStartRecommendedWorkout = useCallback(async (data: RecommendedWorkoutData) => {
@@ -673,28 +673,31 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
     setIsStartingWorkout(false);
   }, [onStartRecommendedWorkout]);
 
-  // Muscle detail level toggle handler
-  const toggleMuscleDetailLevel = () => {
-    const newLevel = muscleDetailLevel === 'simple' ? 'detailed' : 'simple';
-    setMuscleDetailLevel(newLevel);
-    localStorage.setItem('muscleDetailLevel', newLevel);
-  };
+  // Muscle detail level toggle handler - memoized for performance
+  const toggleMuscleDetailLevel = useCallback(() => {
+    setMuscleDetailLevel(prev => {
+      const newLevel = prev === 'simple' ? 'detailed' : 'simple';
+      localStorage.setItem('muscleDetailLevel', newLevel);
+      return newLevel;
+    });
+  }, []);
 
-  // Muscle deep dive modal handlers
-  const handleMuscleClickForDeepDive = (muscle: Muscle) => {
+  // Muscle deep dive modal handlers - memoized to prevent child re-renders
+  const handleMuscleClickForDeepDive = useCallback((muscle: Muscle) => {
     setSelectedMuscleForDeepDive(muscle);
     setDeepDiveModalOpen(true);
-  };
+  }, []);
 
-  const handleAddToWorkout = (planned: PlannedExercise) => {
+  const handleAddToWorkout = useCallback((planned: PlannedExercise) => {
     if (onStartPlannedWorkout) {
       onStartPlannedWorkout([planned]);
     }
     setDeepDiveModalOpen(false);
-  };
+  }, [onStartPlannedWorkout]);
 
   // Fetch muscle states, workouts, and personal bests from backend API
-  const fetchDashboardData = async () => {
+  // Memoized to prevent recreation but still fresh when called
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -731,7 +734,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Auto-refresh on component mount AND when navigating back to dashboard
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Exercise, Muscle, MuscleBaselinesResponse, PlannedExercise } from '../types';
 import { forecastMuscleFatigueForExercise, findOptimalVolume } from '../utils/volumeForecasting';
 import { calculateSetsRepsWeight, adjustSetConfiguration } from '../utils/setBuilder';
@@ -13,7 +13,7 @@ interface ExerciseCardProps {
   onAddToWorkout: (planned: PlannedExercise) => void;
 }
 
-export const ExerciseCard: React.FC<ExerciseCardProps> = ({
+const ExerciseCardComponent: React.FC<ExerciseCardProps> = ({
   exercise,
   targetMuscle,
   muscleStates,
@@ -27,37 +27,47 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   const [showSetBuilder, setShowSetBuilder] = useState(false);
   const [setConfig, setSetConfig] = useState(() => calculateSetsRepsWeight(volume));
 
-  const targetEngagement = exercise.muscleEngagements.find(e => e.muscle === targetMuscle);
-  const forecast = forecastMuscleFatigueForExercise(exercise.muscleEngagements, volume, muscleStates);
+  // Memoize expensive calculations
+  const targetEngagement = useMemo(
+    () => exercise.muscleEngagements.find(e => e.muscle === targetMuscle),
+    [exercise.muscleEngagements, targetMuscle]
+  );
 
-  const handleFindSweetSpot = () => {
+  const forecast = useMemo(
+    () => forecastMuscleFatigueForExercise(exercise.muscleEngagements, volume, muscleStates),
+    [exercise.muscleEngagements, volume, muscleStates]
+  );
+
+  // Memoize event handlers to prevent child re-renders
+  const handleFindSweetSpot = useCallback(() => {
     const optimal = findOptimalVolume(targetMuscle, exercise.muscleEngagements, muscleStates);
     setVolume(optimal);
-  };
+  }, [targetMuscle, exercise.muscleEngagements, muscleStates]);
 
-  const handleBuildSets = () => {
+  const handleBuildSets = useCallback(() => {
     setSetConfig(calculateSetsRepsWeight(volume));
     setShowSetBuilder(true);
-  };
+  }, [volume]);
 
-  const handleAddToWorkout = () => {
+  const handleAddToWorkout = useCallback(() => {
     onAddToWorkout({
       exercise,
       sets: setConfig.sets,
       reps: setConfig.reps,
       weight: setConfig.weight,
     });
-  };
+  }, [onAddToWorkout, exercise, setConfig]);
 
   useEffect(() => {
     setSetConfig(calculateSetsRepsWeight(volume));
   }, [volume]);
 
-  const badgeColor = {
+  // Memoize badge color computation
+  const badgeColor = useMemo(() => ({
     green: 'bg-green-500/20 text-green-400',
     yellow: 'bg-yellow-500/20 text-yellow-400',
     red: 'bg-red-500/20 text-red-400',
-  }[efficiencyBadge.color];
+  }[efficiencyBadge.color]), [efficiencyBadge.color]);
 
   return (
     <div className="bg-brand-muted rounded-lg p-4 hover:bg-brand-surface transition-colors">
@@ -207,3 +217,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     </div>
   );
 };
+
+// Wrap with React.memo to prevent unnecessary re-renders when props haven't changed
+// This is beneficial because ExerciseCard is rendered in lists and receives complex props
+export const ExerciseCard = React.memo(ExerciseCardComponent);

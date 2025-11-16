@@ -143,7 +143,7 @@ function convertToExerciseData(muscleStates: MuscleStatesResponse): { data: IExe
   return { data: exerciseData, colors };
 }
 
-export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
+const MuscleVisualizationComponent: React.FC<MuscleVisualizationProps> = ({
   muscleStates,
   type = 'anterior',
   selectedMuscles = new Set<Muscle>(),
@@ -354,10 +354,14 @@ export const MuscleVisualization: React.FC<MuscleVisualizationProps> = ({
   );
 };
 
+// Wrap with React.memo to prevent unnecessary re-renders
+// This is a complex visualization component with expensive SVG rendering
+export const MuscleVisualization = React.memo(MuscleVisualizationComponent);
+
 /**
  * Dual view component showing both front and back
  */
-export const MuscleVisualizationDual: React.FC<Omit<MuscleVisualizationProps, 'type'>> = (props) => {
+const MuscleVisualizationDualComponent: React.FC<Omit<MuscleVisualizationProps, 'type'>> = (props) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
@@ -377,3 +381,6 @@ export const MuscleVisualizationDual: React.FC<Omit<MuscleVisualizationProps, 't
     </div>
   );
 };
+
+// Wrap with React.memo to prevent unnecessary re-renders
+export const MuscleVisualizationDual = React.memo(MuscleVisualizationDualComponent);

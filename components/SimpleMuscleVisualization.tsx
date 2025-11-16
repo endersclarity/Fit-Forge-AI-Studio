@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Muscle, MuscleStatesResponse, MuscleBaselines } from '../types';
 
 interface SimpleMuscleVisualizationProps {
@@ -7,15 +7,25 @@ interface SimpleMuscleVisualizationProps {
   opacity?: number;
 }
 
-const SimpleMuscleVisualization: React.FC<SimpleMuscleVisualizationProps> = ({
+const SimpleMuscleVisualizationComponent: React.FC<SimpleMuscleVisualizationProps> = ({
   muscleStates,
   muscleBaselines,
   opacity = 1.0,
 }) => {
-  // Filter to only show muscles with fatigue > 0
-  const activeMuscles = Object.entries(muscleStates).filter(
-    ([_, state]) => (state.currentFatiguePercent || 0) > 0
-  );
+  // Memoize filtered and computed muscle data to avoid recalculation on each render
+  const { activeMuscles, highFatigueMuscles, mediumFatigueMuscles } = useMemo(() => {
+    const active = Object.entries(muscleStates).filter(
+      ([_, state]) => (state.currentFatiguePercent || 0) > 0
+    );
+
+    const high = active.filter(([_, state]) => (state.currentFatiguePercent || 0) > 80).length;
+    const medium = active.filter(([_, state]) => {
+      const fatigue = state.currentFatiguePercent || 0;
+      return fatigue > 50 && fatigue <= 80;
+    }).length;
+
+    return { activeMuscles: active, highFatigueMuscles: high, mediumFatigueMuscles: medium };
+  }, [muscleStates]);
 
   if (activeMuscles.length === 0) {
     return (
@@ -24,13 +34,6 @@ const SimpleMuscleVisualization: React.FC<SimpleMuscleVisualizationProps> = ({
       </div>
     );
   }
-
-  // Calculate summary stats
-  const highFatigueMuscles = activeMuscles.filter(([_, state]) => (state.currentFatiguePercent || 0) > 80).length;
-  const mediumFatigueMuscles = activeMuscles.filter(([_, state]) => {
-    const fatigue = state.currentFatiguePercent || 0;
-    return fatigue > 50 && fatigue <= 80;
-  }).length;
 
   return (
     <div className="bg-brand-muted p-4 rounded-lg" style={{ opacity }}>
@@ -80,4 +83,7 @@ const SimpleMuscleVisualization: React.FC<SimpleMuscleVisualizationProps> = ({
   );
 };
 
+// Wrap with React.memo since this component receives muscle state data
+// and should not re-render unless that data changes
+const SimpleMuscleVisualization = React.memo(SimpleMuscleVisualizationComponent);
 export default SimpleMuscleVisualization;

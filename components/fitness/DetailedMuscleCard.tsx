@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Muscle, DetailedMuscleStateData } from '../../types';
 import { ProgressBar } from '../ui/ProgressBar';
 import { ChevronDownIcon, ChevronUpIcon } from '../Icons';
@@ -41,7 +41,7 @@ function getRecoveryStatus(fatiguePercent: number): string {
   return 'needs rest';
 }
 
-export const DetailedMuscleCard: React.FC<DetailedMuscleCardProps> = ({
+const DetailedMuscleCardComponent: React.FC<DetailedMuscleCardProps> = ({
   muscleName,
   aggregateFatigue,
   detailedMuscles,
@@ -51,23 +51,27 @@ export const DetailedMuscleCard: React.FC<DetailedMuscleCardProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const variant = getVariant(aggregateFatigue);
-  const status = getRecoveryStatus(aggregateFatigue);
-  const relativeTime = formatRelativeTime(lastTrained);
+  // Memoize computed values to avoid recalculation
+  const variant = useMemo(() => getVariant(aggregateFatigue), [aggregateFatigue]);
+  const status = useMemo(() => getRecoveryStatus(aggregateFatigue), [aggregateFatigue]);
+  const relativeTime = useMemo(() => formatRelativeTime(lastTrained), [lastTrained]);
 
-  // Group muscles by role
-  const primaryMuscles = detailedMuscles.filter(m => m.role === 'primary');
-  const secondaryMuscles = detailedMuscles.filter(m => m.role === 'secondary');
-  const stabilizers = detailedMuscles.filter(m => m.role === 'stabilizer');
+  // Memoize muscle grouping to avoid re-filtering on each render
+  const { primaryMuscles, secondaryMuscles, stabilizers } = useMemo(() => ({
+    primaryMuscles: detailedMuscles.filter(m => m.role === 'primary'),
+    secondaryMuscles: detailedMuscles.filter(m => m.role === 'secondary'),
+    stabilizers: detailedMuscles.filter(m => m.role === 'stabilizer'),
+  }), [detailedMuscles]);
 
   const baseClasses = 'p-3 rounded-lg bg-card-background transition-colors duration-300';
   const hoverClasses = onClick ? 'hover:bg-white/5 cursor-pointer' : '';
   const minHeightClasses = 'min-h-[44px]';
 
-  const toggleExpanded = (e: React.MouseEvent) => {
+  // Memoize event handler
+  const toggleExpanded = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsExpanded(!isExpanded);
-  };
+    setIsExpanded(prev => !prev);
+  }, []);
 
   return (
     <div
@@ -183,4 +187,7 @@ export const DetailedMuscleCard: React.FC<DetailedMuscleCardProps> = ({
   );
 };
 
+// Wrap with React.memo as this component is rendered in lists and contains complex nested data
+// Prevents unnecessary re-renders when parent state changes but props remain the same
+export const DetailedMuscleCard = React.memo(DetailedMuscleCardComponent);
 export default DetailedMuscleCard;

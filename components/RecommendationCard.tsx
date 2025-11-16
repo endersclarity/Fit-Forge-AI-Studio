@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Exercise, MuscleReadiness } from '../types';
 import { CalibrationBadge } from './CalibrationBadge';
@@ -58,7 +58,7 @@ const STATUS_CONFIG = {
   }
 };
 
-const RecommendationCard: React.FC<RecommendationCardProps> = ({
+const RecommendationCardComponent: React.FC<RecommendationCardProps> = ({
   exercise,
   status,
   primaryMuscles,
@@ -73,8 +73,26 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
   warnings = []
 }) => {
   const config = STATUS_CONFIG[status];
-  const limitingMuscleNames = new Set(limitingFactors.map(lf => lf.muscle));
   const { isMotionEnabled } = useMotion();
+
+  // Memoize the set of limiting muscle names to avoid recreation on each render
+  const limitingMuscleNames = useMemo(
+    () => new Set(limitingFactors.map(lf => lf.muscle)),
+    [limitingFactors]
+  );
+
+  // Memoize sorted muscle engagements to avoid re-sorting on each render
+  const sortedMuscleEngagements = useMemo(
+    () => [...exercise.muscleEngagements].sort((a, b) => b.percentage - a.percentage),
+    [exercise.muscleEngagements]
+  );
+
+  // Memoize event handlers
+  const handleAdd = useCallback(() => onAdd(exercise), [onAdd, exercise]);
+  const handleViewEngagement = useCallback(
+    () => onViewEngagement?.(exercise.id),
+    [onViewEngagement, exercise.id]
+  );
 
   return (
     <motion.div
@@ -161,28 +179,26 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
       <div className="space-y-1">
         <p className="text-xs font-semibold text-slate-400 dark:text-dark-text-muted uppercase">Muscle Engagement</p>
         <div className="flex flex-wrap gap-2">
-          {exercise.muscleEngagements
-            .sort((a, b) => b.percentage - a.percentage)
-            .map(({ muscle, percentage }) => {
-              const isLimiting = limitingMuscleNames.has(muscle);
-              const isPrimary = percentage >= 50;
+          {sortedMuscleEngagements.map(({ muscle, percentage }) => {
+            const isLimiting = limitingMuscleNames.has(muscle);
+            const isPrimary = percentage >= 50;
 
-              return (
-                <span
-                  key={muscle}
-                  className={`text-xs px-2 py-1 rounded ${
-                    isLimiting
-                      ? 'bg-red-900/40 text-red-300 border border-red-500/50'
-                      : isPrimary
-                      ? 'bg-brand-cyan/20 text-brand-cyan border border-brand-cyan/50 font-semibold'
-                      : 'bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary'
-                  }`}
-                >
-                  {isLimiting && '⚠️ '}
-                  {muscle} {percentage}%
-                </span>
-              );
-            })}
+            return (
+              <span
+                key={muscle}
+                className={`text-xs px-2 py-1 rounded ${
+                  isLimiting
+                    ? 'bg-red-900/40 text-red-300 border border-red-500/50'
+                    : isPrimary
+                    ? 'bg-brand-cyan/20 text-brand-cyan border border-brand-cyan/50 font-semibold'
+                    : 'bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary'
+                }`}
+              >
+                {isLimiting && '⚠️ '}
+                {muscle} {percentage}%
+              </span>
+            );
+          })}
         </div>
       </div>
 
@@ -202,7 +218,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
       <div className="flex gap-2">
         {onViewEngagement && (
           <button
-            onClick={() => onViewEngagement(exercise.id)}
+            onClick={handleViewEngagement}
             className="flex-1 py-3 px-4 rounded-lg font-semibold transition-colors bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT flex items-center justify-center gap-1 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2"
             aria-label={`View muscle engagement for ${exercise.name}`}
           >
@@ -211,7 +227,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           </button>
         )}
         <button
-          onClick={() => onAdd(exercise)}
+          onClick={handleAdd}
           className={`${onViewEngagement ? 'flex-1' : 'w-full'} py-3 px-4 rounded-lg font-semibold transition-colors ${config.buttonStyle} min-h-[60px] focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2`}
           aria-label={`Add ${exercise.name} to workout`}
         >
@@ -222,4 +238,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
   );
 };
 
+// Wrap with React.memo to prevent unnecessary re-renders
+// RecommendationCard is rendered in lists and receives complex exercise objects
+const RecommendationCard = React.memo(RecommendationCardComponent);
 export default RecommendationCard;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { MuscleStatesResponse, Muscle } from '../../types';
 import { useMuscleVisualization } from './useMuscleVisualization';
 import { MuscleVisualizationDual } from '../MuscleVisualization';
@@ -16,7 +16,7 @@ export interface MuscleVisualizationContainerProps {
  * Top-level container for muscle visualization
  * Manages all visualization state and coordinates child components
  */
-export const MuscleVisualizationContainer: React.FC<MuscleVisualizationContainerProps> = ({
+const MuscleVisualizationContainerComponent: React.FC<MuscleVisualizationContainerProps> = ({
   muscleStates,
   onRefresh,
   onMuscleClick,
@@ -33,11 +33,12 @@ export const MuscleVisualizationContainer: React.FC<MuscleVisualizationContainer
     toggleCalibrationIndicators
   } = useMuscleVisualization();
 
-  const handleMuscleClick = (muscle: Muscle) => {
+  // Memoize event handler to prevent recreation on each render
+  const handleMuscleClick = useCallback((muscle: Muscle) => {
     if (onMuscleClick) {
       onMuscleClick(muscle);
     }
-  };
+  }, [onMuscleClick]);
 
   // Loading state
   if (loading) {
@@ -147,3 +148,6 @@ export const MuscleVisualizationContainer: React.FC<MuscleVisualizationContainer
     </div>
   );
 };
+
+// Wrap with React.memo to prevent unnecessary re-renders when parent state changes
+export const MuscleVisualizationContainer = React.memo(MuscleVisualizationContainerComponent);

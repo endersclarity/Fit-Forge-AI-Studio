@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StatusBadge, ExerciseStatus } from './StatusBadge';
 import { ProgressiveOverloadChip } from './ProgressiveOverloadChip';
 
@@ -37,7 +37,7 @@ function getMusclePillColor(fatigueLevel: number): string {
   return 'bg-red-500/30 text-red-200';
 }
 
-export const ExerciseRecommendationCard: React.FC<ExerciseRecommendationCardProps> = ({
+const ExerciseRecommendationCardComponent: React.FC<ExerciseRecommendationCardProps> = ({
   exerciseName,
   status,
   muscleEngagements,
@@ -51,18 +51,21 @@ export const ExerciseRecommendationCard: React.FC<ExerciseRecommendationCardProp
   const baseClasses = 'p-4 rounded-lg bg-card-background transition-colors duration-300';
   const hoverClasses = onClick ? 'hover:bg-white/5 cursor-pointer' : '';
 
+  // Memoize keyboard handler to prevent recreation on each render
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick();
+    }
+  }, [onClick]);
+
   return (
     <div
       className={`${baseClasses} ${hoverClasses} ${className}`}
       onClick={onClick}
       role={onClick ? 'button' : 'article'}
       tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      } : undefined}
+      onKeyDown={onClick ? handleKeyDown : undefined}
       aria-label={onClick ? `${exerciseName}, ${status} exercise` : undefined}
     >
       {/* Header: Exercise name + Status badge */}
@@ -117,4 +120,7 @@ export const ExerciseRecommendationCard: React.FC<ExerciseRecommendationCardProp
   );
 };
 
+// Wrap with React.memo to prevent unnecessary re-renders when rendered in lists
+// This component receives stable props and expensive rendering (badges, chips, etc.)
+export const ExerciseRecommendationCard = React.memo(ExerciseRecommendationCardComponent);
 export default ExerciseRecommendationCard;
