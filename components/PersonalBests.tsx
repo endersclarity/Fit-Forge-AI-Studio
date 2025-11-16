@@ -5,6 +5,7 @@ import { ArrowLeftIcon, TrophyIcon } from './Icons';
 import { Button } from '@/src/design-system/components/primitives';
 import { Card } from '@/src/design-system/components/primitives';
 import { Badge } from '@/src/design-system/components/primitives';
+import { EmptyState } from './common/EmptyState';
 
 interface PersonalBestsProps {
     personalBests: PersonalBests;
@@ -65,11 +66,16 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
 
             <main className="flex-grow overflow-y-auto space-y-3">
                 {filteredRecords.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center text-slate-400">
-                        <TrophyIcon className="w-16 h-16 mb-4 text-brand-muted" />
-                        <p className="font-semibold">No personal records yet.</p>
-                        <p className="text-sm">Complete some workouts to start tracking your PBs!</p>
-                    </div>
+                    <EmptyState
+                        illustration={
+                            <TrophyIcon className="w-16 h-16" />
+                        }
+                        title="No Personal Records Yet"
+                        body="Complete workouts to start tracking your personal bests. Every rep counts towards your next PR!"
+                        ctaText="Back to Dashboard"
+                        onCtaClick={onBack}
+                        className="h-full"
+                    />
                 ) : (
                     filteredRecords.map(record => (
                         <Card key={record.id} variant="glass" className="p-4">

@@ -4,6 +4,7 @@ import { templatesAPI, workoutsAPI } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
 import { ChevronDownIcon } from './Icons';
 import { Card, Button, Badge } from '@/src/design-system/components/primitives';
+import { EmptyState } from './common/EmptyState';
 
 interface WorkoutTemplatesProps {
   onBack: () => void;
@@ -224,9 +225,29 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
       </div>
 
       {templates.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">No workout templates available</p>
-        </div>
+        <EmptyState
+          illustration={
+            <svg
+              className="w-16 h-16"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          }
+          title="No Saved Templates"
+          body="Create workout templates to quickly start your favorite routines. Save time by reusing your go-to exercises."
+          ctaText="Create Your First Template"
+          onCtaClick={onBack}
+          className="py-12"
+        />
       )}
     </div>
   );

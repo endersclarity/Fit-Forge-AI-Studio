@@ -23,6 +23,7 @@ import { DetailedMuscleCard } from './fitness/DetailedMuscleCard';
 import { Card, Button, Badge, ProgressBar } from '../src/design-system/components/primitives';
 import { useMotion } from '@/src/providers/MotionProvider';
 import { listContainerVariants, listItemVariants, SPRING_TRANSITION } from '@/src/providers/motion-presets';
+import { EmptyState } from './common/EmptyState';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -523,13 +524,23 @@ const MuscleFatigueHeatMap: React.FC<{
   );
 };
 
-const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) => {
+const WorkoutHistory: React.FC<{ workouts: WorkoutSession[]; onStartWorkout?: () => void }> = ({ workouts, onStartWorkout }) => {
     const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
 
     const getExerciseName = (id: string) => EXERCISE_LIBRARY.find(e => e.id === id)?.name || 'Unknown Exercise';
 
     if (workouts.length === 0) {
-        return <p className="text-gray-600 dark:text-dark-text-secondary font-body text-center py-4">No workouts logged yet. Let's get started!</p>;
+        return (
+          <EmptyState
+            illustration={
+              <DumbbellIcon className="w-16 h-16" />
+            }
+            title="No Workouts Yet"
+            body="Start your fitness journey by logging your first workout. Track your progress and see your strength grow over time."
+            ctaText="Log Your First Workout"
+            onCtaClick={onStartWorkout || (() => {})}
+          />
+        );
     }
 
     return (

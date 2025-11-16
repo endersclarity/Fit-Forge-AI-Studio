@@ -7,8 +7,9 @@ import ExerciseProgressionChart from './ExerciseProgressionChart';
 import MuscleCapacityChart from './MuscleCapacityChart';
 import VolumeTrendsChart from './VolumeTrendsChart';
 import ActivityCalendarHeatmap from './ActivityCalendarHeatmap';
-import { ArrowLeftIcon } from './Icons';
+import { ArrowLeftIcon, BarChartIcon } from './Icons';
 import { Card, Button, Select, SelectOption } from '@/src/design-system/components/primitives';
+import { EmptyState } from './common/EmptyState';
 
 const Analytics: React.FC = () => {
   const navigate = useNavigate();
@@ -111,13 +112,16 @@ const Analytics: React.FC = () => {
 
       {/* Empty State Message */}
       {hasNoData && (
-        <Card className="border-2 border-primary/30 p-8 text-center mb-8">
-          <h2 className="text-2xl font-display font-bold text-primary mb-4">Start Training to See Your Progress!</h2>
-          <p className="text-gray-700 mb-2">Your analytics charts will populate as you log workouts.</p>
-          <p className="text-gray-600 text-sm">
-            Track your volume, PRs, consistency, and more - all your training data in one place.
-          </p>
-        </Card>
+        <EmptyState
+          illustration={
+            <BarChartIcon className="w-16 h-16" />
+          }
+          title="No Workout Data Yet"
+          body="Start logging workouts to unlock powerful analytics. Track your volume, PRs, consistency trends, and more - all your training insights in one place."
+          ctaText="Go to Dashboard"
+          onCtaClick={() => navigate('/')}
+          className="mb-8"
+        />
       )}
 
       {/* Summary Cards */}
