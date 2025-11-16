@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAPIState } from './hooks/useAPIState';
 import { profileAPI, workoutsAPI, muscleStatesAPI, personalBestsAPI, muscleBaselinesAPI, templatesAPI } from './api';
@@ -8,10 +8,6 @@ import { UserProfile, WorkoutSession, PersonalBests, Muscle, MuscleBaselines, Ex
 import Dashboard from './components/Dashboard';
 import WorkoutTracker from './components/Workout';
 import Profile from './components/Profile';
-import PersonalBestsComponent from './components/PersonalBests';
-import WorkoutTemplates from './components/WorkoutTemplates';
-import Analytics from './components/Analytics';
-import MuscleBaselinesPage from './components/MuscleBaselinesPage';
 import Toast from './components/Toast';
 import { PRNotificationManager } from './components/PRNotification';
 import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard';
@@ -24,6 +20,13 @@ import { pageTransitionVariants, SPRING_TRANSITION } from './src/providers/motio
 import { detectProgressionMethod } from './utils/progressionMethodDetector';
 import { ThemeToggle } from './components/common/ThemeToggle';
 import { SkeletonBlock } from './components/common/SkeletonBlock';
+
+// Lazy-loaded components for code splitting
+// These components are not needed on initial load and can be loaded on-demand
+const PersonalBestsComponent = lazy(() => import('./components/PersonalBests'));
+const WorkoutTemplates = lazy(() => import('./components/WorkoutTemplates'));
+const Analytics = lazy(() => import('./components/Analytics'));
+const MuscleBaselinesPage = lazy(() => import('./components/MuscleBaselinesPage'));
 
 // Accessibility: Load axe-core in development only
 if (import.meta.env.DEV) {
@@ -456,20 +459,77 @@ const App: React.FC = () => {
           />)} />
 
           <Route path="/bests" element={wrapPage(
-          <PersonalBestsComponent
-            personalBests={personalBests}
-            onBack={() => navigate('/')}
-          />)} />
+          <Suspense fallback={
+            <div className="p-4 md:p-6 min-h-screen bg-brand-dark dark:bg-dark-bg-primary flex flex-col space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
+                <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
+                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-10 animate-pulse" />
+              </div>
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+            </div>
+          }>
+            <PersonalBestsComponent
+              personalBests={personalBests}
+              onBack={() => navigate('/')}
+            />
+          </Suspense>)} />
 
           <Route path="/templates" element={wrapPage(
-          <WorkoutTemplates
-            onBack={() => navigate('/')}
-            onSelectTemplate={handleSelectTemplate}
-          />)} />
+          <Suspense fallback={
+            <div className="p-4 md:p-6 min-h-screen bg-brand-dark dark:bg-dark-bg-primary flex flex-col space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
+                <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
+                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-10 animate-pulse" />
+              </div>
+              <SkeletonBlock variant="card" />
+              <SkeletonBlock variant="card" />
+              <SkeletonBlock variant="card" />
+            </div>
+          }>
+            <WorkoutTemplates
+              onBack={() => navigate('/')}
+              onSelectTemplate={handleSelectTemplate}
+            />
+          </Suspense>)} />
 
-          <Route path="/analytics" element={wrapPage(<Analytics />)} />
+          <Route path="/analytics" element={wrapPage(
+          <Suspense fallback={
+            <div className="p-4 md:p-6 min-h-screen bg-brand-dark dark:bg-dark-bg-primary flex flex-col space-y-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
+                <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-32 animate-pulse" />
+                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-32 animate-pulse" />
+              </div>
+              <SkeletonBlock variant="chart" />
+              <SkeletonBlock variant="chart" />
+              <SkeletonBlock variant="card" />
+            </div>
+          }>
+            <Analytics />
+          </Suspense>)} />
 
-          <Route path="/muscle-baselines" element={wrapPage(<MuscleBaselinesPage />)} />
+          <Route path="/muscle-baselines" element={wrapPage(
+          <Suspense fallback={
+            <div className="p-4 md:p-6 min-h-screen bg-brand-dark dark:bg-dark-bg-primary flex flex-col space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
+                <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
+                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-10 animate-pulse" />
+              </div>
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+              <SkeletonBlock variant="list-row" />
+            </div>
+          }>
+            <MuscleBaselinesPage />
+          </Suspense>)} />
 
           <Route path="/ux-mockup" element={wrapPage(<UXMockup />)} />
         </Routes>
