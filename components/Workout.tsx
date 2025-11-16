@@ -72,9 +72,9 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
     const muscleOptions: (Muscle | 'All')[] = ['All', ...ALL_MUSCLES];
 
     return (
-        <div className="fixed inset-0 bg-background z-20 p-4 flex flex-col">
+        <div className="fixed inset-0 bg-background dark:bg-dark-bg-primary z-20 p-4 flex flex-col">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-display font-bold">Add Exercise</h2>
+                <h2 className="text-xl font-display font-bold dark:text-dark-text-primary">Add Exercise</h2>
                 <Button
                     onClick={onDone}
                     variant="ghost"
@@ -87,7 +87,7 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
 
             {/* Category Filter */}
             <div className="mb-3">
-                <label className="block text-xs font-semibold text-gray-400 mb-1">CATEGORY</label>
+                <label className="block text-xs font-semibold text-gray-400 dark:text-dark-text-muted mb-1">CATEGORY</label>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                     {(['All', 'Push', 'Pull', 'Legs', 'Core'] as const).map(cat => (
                         <Button
@@ -105,7 +105,7 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
 
             {/* Equipment Filter */}
             <div className="mb-3">
-                <label className="block text-xs font-semibold text-gray-400 mb-1">EQUIPMENT</label>
+                <label className="block text-xs font-semibold text-gray-400 dark:text-dark-text-muted mb-1">EQUIPMENT</label>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                     {equipmentOptions.map(eq => (
                         <Button
@@ -123,7 +123,7 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
 
             {/* Muscle Filter */}
             <div className="mb-3">
-                <label className="block text-xs font-semibold text-gray-400 mb-1">MUSCLE GROUP</label>
+                <label className="block text-xs font-semibold text-gray-400 dark:text-dark-text-muted mb-1">MUSCLE GROUP</label>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                     {muscleOptions.map(muscle => (
                         <Button
@@ -141,7 +141,7 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
 
             <div className="flex-grow overflow-y-auto space-y-2">
                 {filteredExercises.length === 0 ? (
-                    <div className="text-center text-gray-400 py-8">
+                    <div className="text-center text-gray-400 dark:text-dark-text-muted py-8">
                         No exercises match your filters
                     </div>
                 ) : (
@@ -155,8 +155,8 @@ const ExerciseSelector: React.FC<{ onSelect: (exercise: Exercise) => void, onDon
                                 className="w-full text-left p-4 rounded-lg flex justify-between items-center min-h-[60px] gap-4"
                             >
                                 <div className="flex-1">
-                                    <p className="font-semibold">{ex.name}</p>
-                                    <p className="text-xs text-gray-400">{equipmentDisplay}</p>
+                                    <p className="font-semibold dark:text-dark-text-primary">{ex.name}</p>
+                                    <p className="text-xs text-gray-400 dark:text-dark-text-muted">{equipmentDisplay}</p>
                                 </div>
                                 <PlusIcon className="w-6 h-6 text-primary shrink-0"/>
                             </Button>
@@ -173,14 +173,14 @@ const FailureTooltip: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
 
     return (
         <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={onClose}>
-            <Card className="rounded-lg p-6 max-w-sm animate-fade-in bg-white/50 backdrop-blur-lg" onClick={e => e.stopPropagation()}>
-                <h3 className="text-lg font-display font-bold mb-2">What is "To Failure"?</h3>
-                <p className="text-sm text-gray-700 mb-3">
+            <Card className="rounded-lg p-6 max-w-sm animate-fade-in bg-white/50 backdrop-blur-lg dark:bg-dark-bg-secondary" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-display font-bold mb-2 dark:text-dark-text-primary">What is "To Failure"?</h3>
+                <p className="text-sm text-gray-700 dark:text-dark-text-secondary mb-3">
                     Mark a set if you <strong>couldn't do one more rep</strong> with good form.
                 </p>
-                <Card className="bg-gray-100 p-3 rounded-md mb-4">
-                    <p className="text-xs text-gray-600 mb-1">Why it matters:</p>
-                    <p className="text-xs text-gray-700">
+                <Card className="bg-gray-100 dark:bg-dark-bg-tertiary p-3 rounded-md mb-4">
+                    <p className="text-xs text-gray-600 dark:text-dark-text-muted mb-1">Why it matters:</p>
+                    <p className="text-xs text-gray-700 dark:text-dark-text-secondary">
                         Helps FitForge learn your true muscle capacity for personalized recommendations.
                     </p>
                 </Card>
@@ -746,20 +746,20 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
 
   if (stage === "setup") {
     return (
-      <div className="p-4 bg-background min-h-screen flex flex-col">
+      <div className="p-4 bg-background dark:bg-dark-bg-primary min-h-screen flex flex-col">
         <div className="flex-grow">
-          <h2 className="text-2xl font-display font-bold mb-6">New Workout</h2>
+          <h2 className="text-2xl font-display font-bold mb-6 dark:text-dark-text-primary">New Workout</h2>
 
           {/* Workout Type Selection */}
           <div className="mb-4">
-            <label className="block text-sm font-body font-medium mb-1">Workout Type</label>
+            <label className="block text-sm font-body font-medium mb-1 dark:text-dark-text-secondary">Workout Type</label>
             <select
               value={selectedCategory}
               onChange={e => {
                 setSelectedCategory(e.target.value as ExerciseCategory);
                 setWorkoutType(e.target.value as ExerciseCategory);
               }}
-              className="w-full bg-white/50 backdrop-blur-lg border border-gray-700 rounded-md px-3 py-2 min-h-[60px]"
+              className="w-full bg-white/50 backdrop-blur-lg dark:bg-dark-bg-secondary border border-gray-700 dark:border-dark-border-DEFAULT rounded-md px-3 py-2 min-h-[60px] dark:text-dark-text-primary"
             >
               <option>Push</option>
               <option>Pull</option>
@@ -779,14 +779,14 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
           )}
 
           {loadingLastWorkout && (
-            <Card className="p-6 rounded-lg mb-4 text-center bg-white/50 backdrop-blur-lg">
-              <p className="text-gray-400">Loading last workout...</p>
+            <Card className="p-6 rounded-lg mb-4 text-center bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark">
+              <p className="text-gray-400 dark:text-dark-text-muted">Loading last workout...</p>
             </Card>
           )}
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-body font-medium mb-1">Workout Name</label>
+              <label className="block text-sm font-body font-medium mb-1 dark:text-dark-text-secondary">Workout Name</label>
               <Input
                 type="text"
                 value={workoutName}
@@ -796,18 +796,18 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                 size="md"
                 className="w-full min-h-[60px]"
               />
-              <p className="text-xs text-gray-400 mt-1">Leave blank to use timestamp</p>
+              <p className="text-xs text-gray-400 dark:text-dark-text-muted mt-1">Leave blank to use timestamp</p>
             </div>
             <div>
-              <label className="block text-sm font-body font-medium mb-1">Workout Variation</label>
+              <label className="block text-sm font-body font-medium mb-1 dark:text-dark-text-secondary">Workout Variation</label>
 
               {/* Variation Context */}
               {variationSuggestion && variationSuggestion.lastVariation && (
-                <Card className="mb-2 p-3 rounded-md border border-gray-700 bg-white/50 backdrop-blur-lg">
-                  <p className="text-sm text-gray-700">
-                    <span className="text-gray-600">Last time: </span>
-                    <span className="font-semibold">{selectedCategory} {variationSuggestion.lastVariation}</span>
-                    <span className="text-gray-500 ml-1">({variationSuggestion.daysAgo} days ago)</span>
+                <Card className="mb-2 p-3 rounded-md border border-gray-700 dark:border-dark-border-DEFAULT bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark">
+                  <p className="text-sm text-gray-700 dark:text-dark-text-secondary">
+                    <span className="text-gray-600 dark:text-dark-text-muted">Last time: </span>
+                    <span className="font-semibold dark:text-dark-text-primary">{selectedCategory} {variationSuggestion.lastVariation}</span>
+                    <span className="text-gray-500 dark:text-dark-text-muted ml-1">({variationSuggestion.daysAgo} days ago)</span>
                   </p>
                   <p className="text-xs text-primary mt-1">
                     → Today: {selectedCategory} {variationSuggestion.suggested} (Recommended)
@@ -815,7 +815,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                 </Card>
               )}
 
-              <div className="flex bg-white/50 backdrop-blur-lg rounded-md p-1">
+              <div className="flex bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark rounded-md p-1">
                 <Button
                   onClick={() => setWorkoutVariation("A")}
                   variant={workoutVariation === 'A' ? 'primary' : 'ghost'}
@@ -883,8 +883,8 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
           }
           <header className="flex justify-between items-center mb-4">
             <div>
-                <h2 className="text-xl font-display font-bold">{workoutName}</h2>
-                <p className="text-sm text-gray-400">{workoutType} Day ({workoutVariation})</p>
+                <h2 className="text-xl font-display font-bold dark:text-dark-text-primary">{workoutName}</h2>
+                <p className="text-sm text-gray-400 dark:text-dark-text-muted">{workoutType} Day ({workoutVariation})</p>
             </div>
             <Button
                 onClick={handleOpenSummary}
@@ -896,7 +896,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             </Button>
       </header>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-dark-text-muted">
           {showAdvancedOptions ? 'Advanced controls visible' : 'Streamlined mode active'}
         </p>
         <Button
@@ -914,14 +914,14 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
               const pb = personalBests[ex.exerciseId];
               const isExpanded = expandedExerciseId === ex.id;
               return (
-              <Card key={ex.id} className="rounded-lg bg-white/50 backdrop-blur-lg">
+              <Card key={ex.id} className="rounded-lg bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark">
                 <Button
                     onClick={() => setExpandedExerciseId(isExpanded ? null : ex.id)}
                     variant="ghost"
                     className="w-full p-4 flex justify-between items-center min-h-[60px]"
                     aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${getExerciseName(ex.exerciseId)}`}
                 >
-                  <h3 className="font-semibold text-lg">{getExerciseName(ex.exerciseId)}</h3>
+                  <h3 className="font-semibold text-lg dark:text-dark-text-primary">{getExerciseName(ex.exerciseId)}</h3>
                   {isExpanded ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6"/>}
                 </Button>
                 {isExpanded && <div className="p-4 pt-0">
@@ -938,12 +938,12 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                         />
                       </div>
                     )}
-                    <div className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 text-center text-xs text-gray-400 font-semibold mb-2">
+                    <div className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 text-center text-xs text-gray-400 dark:text-dark-text-muted font-semibold mb-2">
                     <span className="col-span-1 flex items-center justify-center">
                         {showAdvancedOptions && (
                           <button
                               onClick={() => setShowFailureTooltip(true)}
-                              className="text-gray-400 hover:text-primary p-1 transition-opacity duration-300"
+                              className="text-gray-400 dark:text-dark-text-muted hover:text-primary p-1 transition-opacity duration-300"
                               aria-label="What does to-failure mean?"
                           >
                               <InfoIcon className="w-4 h-4" />
@@ -977,10 +977,10 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                                 <div className={`w-7 h-7 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-primary border-primary' : 'border-gray-400'}`}>
                                   {toFailure && <span className="text-white font-bold text-lg">✓</span>}
                                 </div>
-                                <span className="text-xs font-semibold text-gray-700">To Failure</span>
+                                <span className="text-xs font-semibold text-gray-700 dark:text-dark-text-secondary">To Failure</span>
                               </button>
                             </div>
-                            <span className="text-center font-bold text-gray-700 text-sm">{i + 1}</span>
+                            <span className="text-center font-bold text-gray-700 dark:text-dark-text-secondary text-sm">{i + 1}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Input
@@ -1022,7 +1022,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                           aria-label={i === 0 ? 'Duplicate unavailable for first set' : 'Duplicate previous set'}
                           disabled={i === 0}
                         >
-                          <span className="text-xs font-semibold text-gray-500">
+                          <span className="text-xs font-semibold text-gray-500 dark:text-dark-text-muted">
                             Copy
                           </span>
                         </button>
@@ -1040,7 +1040,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                       </div>
                     )})}
                     <div className="flex justify-between items-center mt-4">
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-400 dark:text-dark-text-muted">
                             {pb && <p>Best Set: {pb.bestSingleSet} lbs</p>}
                         </div>
                         <Button
@@ -1057,32 +1057,32 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
               </Card>
             )})}
 
-            <Card className="rounded-lg bg-white/50 backdrop-blur-lg">
+            <Card className="rounded-lg bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark">
                 <Button
                     onClick={() => setCapacityPanelOpen(!isCapacityPanelOpen)}
                     variant="ghost"
                     className="w-full p-4 flex justify-between items-center min-h-[60px]"
                     aria-label={`${isCapacityPanelOpen ? 'Collapse' : 'Expand'} muscle capacity panel`}
                 >
-                    <h3 className="font-semibold text-lg">Muscle Capacity</h3>
+                    <h3 className="font-semibold text-lg dark:text-dark-text-primary">Muscle Capacity</h3>
                     {isCapacityPanelOpen ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6"/>}
                 </Button>
                 <div className={`grid transition-all duration-300 ease-in-out ${isCapacityPanelOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
                     <div className="overflow-hidden">
                         <div className="p-4 pt-0 space-y-3">
-                            {muscleCapacityData.status === 'no_baselines' && <p className="text-sm text-gray-400 text-center py-2">Set muscle baselines in Profile to track capacity.</p>}
-                            {muscleCapacityData.status === 'no_sets' && <p className="text-sm text-gray-400 text-center py-2">Start logging sets to see muscle fatigue.</p>}
-                            {muscleCapacityData.status === 'no_fatigue' && <p className="text-sm text-gray-400 text-center py-2">No significant muscle fatigue yet.</p>}
+                            {muscleCapacityData.status === 'no_baselines' && <p className="text-sm text-gray-400 dark:text-dark-text-muted text-center py-2">Set muscle baselines in Profile to track capacity.</p>}
+                            {muscleCapacityData.status === 'no_sets' && <p className="text-sm text-gray-400 dark:text-dark-text-muted text-center py-2">Start logging sets to see muscle fatigue.</p>}
+                            {muscleCapacityData.status === 'no_fatigue' && <p className="text-sm text-gray-400 dark:text-dark-text-muted text-center py-2">No significant muscle fatigue yet.</p>}
                             {muscleCapacityData.status === 'ok' && muscleCapacityData.data.map(item => (
                                 <div key={item.muscle}>
                                     <div className="flex justify-between items-center mb-1 text-sm">
-                                        <span className="font-medium">{item.muscle}</span>
-                                        <span className="font-bold">{item.fatiguePercent.toFixed(0)}%</span>
+                                        <span className="font-medium dark:text-dark-text-primary">{item.muscle}</span>
+                                        <span className="font-bold dark:text-dark-text-primary">{item.fatiguePercent.toFixed(0)}%</span>
                                     </div>
-                                    <div className="w-full bg-gray-700 rounded-full h-2">
+                                    <div className="w-full bg-gray-700 dark:bg-dark-border-DEFAULT rounded-full h-2">
                                         <div className={`${getFatigueColor(item.fatiguePercent)} h-2 rounded-full`} style={{ width: `${item.fatiguePercent}%` }}></div>
                                     </div>
-                                    <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-dark-text-muted mt-1">
                                         <span>{item.currentVolume.toFixed(0)} lbs</span>
                                         <span>{item.remainingCapacity.toFixed(0)} lbs remaining</span>
                                     </div>
@@ -1096,7 +1096,7 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             <Button
                 onClick={() => setExerciseSelectorOpen(true)}
                 variant="ghost"
-                className="w-full border-2 border-dashed border-gray-700 text-gray-700 min-h-[60px] font-semibold flex items-center justify-center gap-2"
+                className="w-full border-2 border-dashed border-gray-700 dark:border-dark-border-emphasis text-gray-700 dark:text-dark-text-secondary min-h-[60px] font-semibold flex items-center justify-center gap-2"
                 aria-label="Add exercise"
             >
               <PlusIcon className="w-5 h-5"/> Add Exercise
@@ -1119,8 +1119,8 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             showFooterClose={false}
           >
             <div className="space-y-4">
-              <Card className="rounded-2xl bg-white/70 p-4 shadow-sm backdrop-blur">
-                <p className="text-sm text-gray-700">
+              <Card className="rounded-2xl bg-white/70 dark:bg-glass-surface-dark p-4 shadow-sm backdrop-blur">
+                <p className="text-sm text-gray-700 dark:text-dark-text-secondary">
                   {`Log the remaining ${logAllPrompt.pattern.remainingSets} set${logAllPrompt.pattern.remainingSets === 1 ? '' : 's'} with ${logAllPrompt.pattern.matchedWeight} lbs x ${logAllPrompt.pattern.matchedReps} reps?`}
                 </p>
                 {logAllReduction > 0 && (

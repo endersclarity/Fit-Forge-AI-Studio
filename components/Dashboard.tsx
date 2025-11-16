@@ -125,23 +125,23 @@ const WorkoutRecommender: React.FC<{
 
     if (recommendation.type === 'rest') {
         return (
-            <Card variant="default" className="bg-white/50 backdrop-blur-lg text-center">
-                <h3 className="text-lg font-display font-semibold mb-2">Rest Day Recommended</h3>
-                <p className="text-gray-600 text-sm font-body">Your muscles need more recovery time. Come back tomorrow!</p>
+            <Card variant="default" className="bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark text-center">
+                <h3 className="text-lg font-display font-semibold mb-2 dark:text-dark-text-primary">Rest Day Recommended</h3>
+                <p className="text-gray-600 dark:text-dark-text-secondary text-sm font-body">Your muscles need more recovery time. Come back tomorrow!</p>
             </Card>
         );
     }
 
     return (
-        <Card variant="default" className="bg-white/50 backdrop-blur-lg">
-            <h3 className="text-lg font-display font-semibold mb-1">Workout Recommendation</h3>
+        <Card variant="default" className="bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark">
+            <h3 className="text-lg font-display font-semibold mb-1 dark:text-dark-text-primary">Workout Recommendation</h3>
             <p className="text-2xl font-display font-bold text-primary mb-2">Ready for: {recommendation.category} Day {recommendation.variation}</p>
-            <p className="text-xs text-gray-600 font-body mb-4">
+            <p className="text-xs text-gray-600 dark:text-dark-text-secondary font-body mb-4">
                 {recommendation.recoveredMuscles.map(m => `${m.muscle} (${m.recovery.toFixed(0)}%)`).join(', ')}
             </p>
 
             <div className="mb-4">
-                <h4 className="font-display font-semibold text-sm mb-2">Suggested Exercises:</h4>
+                <h4 className="font-display font-semibold text-sm mb-2 dark:text-dark-text-primary">Suggested Exercises:</h4>
                 <ul className="grid grid-cols-2 gap-2 text-xs font-body">
                     {recommendation.suggestedExercises.map(ex => (
                       <li key={ex.id}>
@@ -153,8 +153,8 @@ const WorkoutRecommender: React.FC<{
 
             {recommendation.targetVolumes.length > 0 && (
                  <div className="mb-4">
-                    <h4 className="font-display font-semibold text-sm mb-2">Target Volume:</h4>
-                    <p className="text-xs text-gray-600 font-body">
+                    <h4 className="font-display font-semibold text-sm mb-2 dark:text-dark-text-primary">Target Volume:</h4>
+                    <p className="text-xs text-gray-600 dark:text-dark-text-secondary font-body">
                         {recommendation.targetVolumes.map(v => `${v.muscle} ${v.low.toLocaleString()}-${v.high.toLocaleString()} lbs`).join(', ')}
                     </p>
                 </div>
@@ -313,7 +313,7 @@ const MuscleFatigueHeatMap: React.FC<{
               >
                 {/* Category Header */}
                 <div className="mb-2 mt-4 first:mt-0">
-                  <h4 className="text-sm font-display font-semibold text-gray-600 uppercase tracking-wide">
+                  <h4 className="text-sm font-display font-semibold text-gray-600 dark:text-dark-text-muted uppercase tracking-wide">
                     {category} Muscles
                   </h4>
                 </div>
@@ -344,14 +344,14 @@ const MuscleFatigueHeatMap: React.FC<{
 
                     // Default simple view
                     return (
-                      <Card key={muscle} variant="default" className="bg-white/50 backdrop-blur-lg">
+                      <Card key={muscle} variant="default" className="bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark">
                         <button
                           onClick={() => handleMuscleClick(muscle)}
-                          className="w-full text-left p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:bg-gray-100/20 transition-colors cursor-pointer min-h-[60px] rounded-lg"
+                          className="w-full text-left p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:bg-gray-100/20 dark:hover:bg-white/10 transition-colors cursor-pointer min-h-[60px] rounded-lg"
                           aria-label={`${muscle}: ${fatiguePercent}% fatigued${isReady ? ', ready now' : `, ready in ${daysUntilRecovered} days`}`}
                         >
                           <div className="flex justify-between items-center mb-2 text-sm">
-                            <span className="font-display font-medium">{muscle}</span>
+                            <span className="font-display font-medium dark:text-dark-text-primary">{muscle}</span>
                             <Badge
                               variant={fatiguePercent === 0 ? 'success' : fatiguePercent <= 33 ? 'success' : fatiguePercent <= 66 ? 'warning' : 'error'}
                               size="sm"
@@ -366,7 +366,7 @@ const MuscleFatigueHeatMap: React.FC<{
                             aria-label={`Fatigue level: ${fatiguePercent}%`}
                             className="mb-2"
                           />
-                          <div className="flex justify-between items-center text-xs text-gray-700 font-body">
+                          <div className="flex justify-between items-center text-xs text-gray-700 dark:text-dark-text-secondary font-body">
                             <span>
                               {lastTrained ? `Last trained: ${daysSince !== null ? Math.floor(daysSince) : 0}d ago` : 'Never trained'}
                             </span>
@@ -475,11 +475,11 @@ const MuscleFatigueHeatMap: React.FC<{
         >
           <Card
             variant="elevated"
-            className="bg-white/95 backdrop-blur-lg max-w-md w-full max-h-[80vh] overflow-y-auto"
+            className="bg-white/95 backdrop-blur-lg dark:bg-dark-bg-secondary max-w-md w-full max-h-[80vh] overflow-y-auto"
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <header className="flex justify-between items-center mb-4">
-              <h3 id="muscle-exercises-title" className="text-lg font-display font-semibold">Exercises for {selectedMuscle}</h3>
+              <h3 id="muscle-exercises-title" className="text-lg font-display font-semibold dark:text-dark-text-primary">Exercises for {selectedMuscle}</h3>
               <Button
                 onClick={handleModalClose}
                 variant="ghost"
@@ -493,7 +493,7 @@ const MuscleFatigueHeatMap: React.FC<{
 
             <div className="space-y-2">
               {exercisesForMuscle.length === 0 ? (
-                <p className="text-gray-600 font-body text-center py-4">
+                <p className="text-gray-600 dark:text-dark-text-secondary font-body text-center py-4">
                   No exercises found for this muscle.
                 </p>
               ) : (
@@ -501,11 +501,11 @@ const MuscleFatigueHeatMap: React.FC<{
                   <Card
                     key={ex.id}
                     variant="default"
-                    className="bg-white/50 backdrop-blur-lg hover:bg-white/70 transition-colors"
+                    className="bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark hover:bg-white/70 dark:hover:bg-glass-surface-darkElevated transition-colors"
                   >
                     <div className="flex justify-between items-center p-3">
                       <div>
-                        <p className="font-display font-medium">{ex.name}</p>
+                        <p className="font-display font-medium dark:text-dark-text-primary">{ex.name}</p>
                         <Badge variant="info" size="sm" className="mt-1">{ex.category}</Badge>
                       </div>
                       <Badge variant="primary" size="lg" className="text-lg">
@@ -529,7 +529,7 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
     const getExerciseName = (id: string) => EXERCISE_LIBRARY.find(e => e.id === id)?.name || 'Unknown Exercise';
 
     if (workouts.length === 0) {
-        return <p className="text-gray-600 font-body text-center py-4">No workouts logged yet. Let's get started!</p>;
+        return <p className="text-gray-600 dark:text-dark-text-secondary font-body text-center py-4">No workouts logged yet. Let's get started!</p>;
     }
 
     return (
@@ -537,7 +537,7 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
             {workouts.slice().sort((a,b) => b.endTime - a.endTime).slice(0,5).map(workout => {
                 const isExpanded = expandedWorkoutId === workout.id;
                 return (
-                    <Card key={workout.id} variant="default" className="bg-white/50 backdrop-blur-lg">
+                    <Card key={workout.id} variant="default" className="bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark">
                         <button
                           onClick={() => setExpandedWorkoutId(isExpanded ? null : workout.id)}
                           className="w-full text-left p-3 focus:outline-none min-h-[60px]"
@@ -546,8 +546,8 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
                         >
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <p className="font-display font-semibold">{workout.name}</p>
-                                    <div className="flex items-center gap-3 text-xs text-gray-700 font-body mt-1">
+                                    <p className="font-display font-semibold dark:text-dark-text-primary">{workout.name}</p>
+                                    <div className="flex items-center gap-3 text-xs text-gray-700 dark:text-dark-text-secondary font-body mt-1">
                                         <Badge variant="info" size="sm">
                                           {workout.type} Day {workout.variation && `(${workout.variation})`}
                                         </Badge>
@@ -556,18 +556,18 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[] }> = ({ workouts }) 
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                     <p className="text-sm text-gray-600 font-body">{new Date(workout.endTime).toLocaleDateString()}</p>
+                                     <p className="text-sm text-gray-600 dark:text-dark-text-secondary font-body">{new Date(workout.endTime).toLocaleDateString()}</p>
                                     {isExpanded ? <ChevronUpIcon className="w-5 h-5"/> : <ChevronDownIcon className="w-5 h-5"/>}
                                 </div>
                             </div>
                         </button>
                         <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
                             <div className="overflow-hidden">
-                                <div className="p-3 pt-2 border-t border-gray-200 text-xs font-body">
+                                <div className="p-3 pt-2 border-t border-gray-200 dark:border-dark-border-DEFAULT text-xs font-body">
                                     {workout.loggedExercises.map((ex: LoggedExercise) => (
                                         <div key={ex.id} className="mb-2 last:mb-0">
-                                            <p className="font-display font-semibold text-gray-800">{getExerciseName(ex.exerciseId)}</p>
-                                            <ul className="list-disc list-inside pl-2 text-gray-600">
+                                            <p className="font-display font-semibold text-gray-800 dark:text-dark-text-primary">{getExerciseName(ex.exerciseId)}</p>
+                                            <ul className="list-disc list-inside pl-2 text-gray-600 dark:text-dark-text-secondary">
                                                 {ex.sets.map((set, i) => (
                                                     <li key={set.id}>
                                                         Set {i + 1}: {set.bodyweightAtTime
@@ -742,11 +742,11 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   const recentPRs = useMemo(() => findRecentPRs(personalBests, workoutHistory), [personalBests, workoutHistory]);
 
   return (
-    <div className="p-4 md:p-6 min-h-screen bg-background space-y-6">
+    <div className="p-4 md:p-6 min-h-screen bg-background dark:bg-dark-bg-primary space-y-6">
       <header className="flex justify-between items-center" role="banner">
         <div className="flex items-center gap-3">
             <DumbbellIcon className="w-8 h-8 text-primary" aria-hidden="true" />
-            <h1 className="text-2xl font-display font-bold tracking-tight">FitForge</h1>
+            <h1 className="text-2xl font-display font-bold tracking-tight dark:text-dark-text-primary">FitForge</h1>
         </div>
         <div className="flex items-center gap-2">
             {onNavigateToAnalytics && (
@@ -797,13 +797,13 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
       </header>
 
       <main id="main-content" className="space-y-8" role="main" tabIndex={-1}>
-        <Card variant="default" className="bg-white/50 backdrop-blur-lg">
-          <h2 className="text-xl font-display font-semibold">Welcome, Kaelen</h2>
+        <Card variant="default" className="bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark">
+          <h2 className="text-xl font-display font-semibold dark:text-dark-text-primary">Welcome, Kaelen</h2>
         </Card>
 
         {/* Muscle Visualization Hero Section */}
         {!loading && !error && Object.keys(muscleStates).length > 0 && (
-          <Card variant="default" className="bg-white/50 backdrop-blur-lg">
+          <Card variant="default" className="bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark">
             <MuscleVisualizationContainer
               muscleStates={muscleStates}
               loading={loading}
@@ -860,7 +860,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
 
         <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-dark-text-muted">
             {showAdvancedAnalytics
               ? 'Advanced insights visible'
               : 'Advanced analytics hidden for faster scanning'}
@@ -958,8 +958,8 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 }}
               />
             ) : (
-              <Card variant="default" className="bg-white/50 backdrop-blur-lg text-center">
-                <p className="text-gray-600 font-body mb-2">Configure equipment in Profile to use Exercise Finder</p>
+              <Card variant="default" className="bg-white/50 backdrop-blur-lg dark:bg-glass-surface-dark text-center">
+                <p className="text-gray-600 dark:text-dark-text-secondary font-body mb-2">Configure equipment in Profile to use Exercise Finder</p>
                 <Button
                   onClick={onNavigateToProfile}
                   variant="primary"

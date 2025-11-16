@@ -30,31 +30,31 @@ interface RecommendationCardProps {
 const STATUS_CONFIG = {
   excellent: {
     icon: '⭐',
-    bgColor: 'bg-emerald-900/30',
-    borderColor: 'border-emerald-500',
+    bgColor: 'bg-emerald-900/30 dark:bg-emerald-900/40',
+    borderColor: 'border-emerald-500 dark:border-emerald-400',
     textColor: 'text-emerald-400',
     buttonStyle: 'bg-brand-cyan text-brand-dark hover:bg-cyan-400'
   },
   good: {
     icon: '✅',
-    bgColor: 'bg-blue-900/30',
-    borderColor: 'border-blue-500',
+    bgColor: 'bg-blue-900/30 dark:bg-blue-900/40',
+    borderColor: 'border-blue-500 dark:border-blue-400',
     textColor: 'text-blue-400',
     buttonStyle: 'bg-brand-cyan text-brand-dark hover:bg-cyan-400'
   },
   suboptimal: {
     icon: '⚠️',
-    bgColor: 'bg-yellow-900/30',
-    borderColor: 'border-yellow-500',
+    bgColor: 'bg-yellow-900/30 dark:bg-yellow-900/40',
+    borderColor: 'border-yellow-500 dark:border-yellow-400',
     textColor: 'text-yellow-400',
-    buttonStyle: 'bg-brand-surface text-slate-300 hover:bg-brand-muted'
+    buttonStyle: 'bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT'
   },
   'not-recommended': {
     icon: '❌',
-    bgColor: 'bg-red-900/30',
-    borderColor: 'border-red-500',
+    bgColor: 'bg-red-900/30 dark:bg-red-900/40',
+    borderColor: 'border-red-500 dark:border-red-400',
     textColor: 'text-red-400',
-    buttonStyle: 'bg-brand-surface text-slate-300 hover:bg-brand-muted'
+    buttonStyle: 'bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT'
   }
 };
 
@@ -88,10 +88,10 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="text-lg font-bold">{exercise.name}</h4>
+            <h4 className="text-lg font-bold dark:text-dark-text-primary">{exercise.name}</h4>
             <CalibrationBadge show={isCalibrated} />
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-400 dark:text-dark-text-muted mt-0.5">
             {exercise.category} • {exercise.difficulty}
           </p>
         </div>
@@ -109,7 +109,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
                 {Math.round(score)}
               </span>
               {/* Tooltip on hover */}
-              <div className="absolute hidden group-hover:block bg-gray-900 text-white p-3 rounded-lg shadow-xl z-10 w-64 right-0 top-full mt-2">
+              <div className="absolute hidden group-hover:block bg-gray-900 dark:bg-dark-bg-tertiary text-white dark:text-dark-text-primary p-3 rounded-lg shadow-xl z-10 w-64 right-0 top-full mt-2">
                 <p className="text-xs font-semibold mb-2 text-brand-cyan">Score Breakdown</p>
                 <div className="text-xs space-y-1">
                   <div className="flex justify-between">
@@ -132,7 +132,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
                     <span>Primary/Secondary:</span>
                     <span className="font-semibold">{factors.primarySecondary}%</span>
                   </div>
-                  <div className="border-t border-gray-700 mt-2 pt-2 flex justify-between font-bold">
+                  <div className="border-t border-gray-700 dark:border-dark-border-DEFAULT mt-2 pt-2 flex justify-between font-bold">
                     <span>Total Score:</span>
                     <span className="text-brand-cyan">{Math.round(score)}</span>
                   </div>
@@ -159,7 +159,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
       {/* Muscle engagements */}
       <div className="space-y-1">
-        <p className="text-xs font-semibold text-slate-400 uppercase">Muscle Engagement</p>
+        <p className="text-xs font-semibold text-slate-400 dark:text-dark-text-muted uppercase">Muscle Engagement</p>
         <div className="flex flex-wrap gap-2">
           {exercise.muscleEngagements
             .sort((a, b) => b.percentage - a.percentage)
@@ -175,7 +175,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
                       ? 'bg-red-900/40 text-red-300 border border-red-500/50'
                       : isPrimary
                       ? 'bg-brand-cyan/20 text-brand-cyan border border-brand-cyan/50 font-semibold'
-                      : 'bg-brand-surface text-slate-300'
+                      : 'bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary'
                   }`}
                 >
                   {isLimiting && '⚠️ '}
@@ -188,7 +188,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
       {/* Equipment */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-slate-400">Equipment:</span>
+        <span className="text-slate-400 dark:text-dark-text-muted">Equipment:</span>
         <span className={equipmentAvailable ? 'text-emerald-400' : 'text-red-400'}>
           {equipmentAvailable ? '✅' : '❌'}{' '}
           {Array.isArray(exercise.equipment) ? exercise.equipment.join(', ') : exercise.equipment}
@@ -196,14 +196,14 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
       </div>
 
       {/* Explanation */}
-      <p className="text-sm italic text-slate-300">{explanation}</p>
+      <p className="text-sm italic text-slate-300 dark:text-dark-text-secondary">{explanation}</p>
 
       {/* Action buttons */}
       <div className="flex gap-2">
         {onViewEngagement && (
           <button
             onClick={() => onViewEngagement(exercise.id)}
-            className="flex-1 py-3 px-4 rounded-lg font-semibold transition-colors bg-brand-surface text-slate-300 hover:bg-brand-muted flex items-center justify-center gap-1 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2"
+            className="flex-1 py-3 px-4 rounded-lg font-semibold transition-colors bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT flex items-center justify-center gap-1 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2"
             aria-label={`View muscle engagement for ${exercise.name}`}
           >
             <span className="material-symbols-outlined text-sm" aria-hidden="true">analytics</span>

@@ -906,11 +906,11 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
           onClick={(e) => e.target === e.currentTarget && handleClose()}
         >
-          <div className="bg-brand-surface rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold mb-4 text-center">Workout Complete!</h3>
+          <div className="bg-brand-surface dark:bg-dark-bg-secondary rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-semibold mb-4 text-center dark:text-dark-text-primary">Workout Complete!</h3>
             <div className="text-center mb-6">
               <div className="text-4xl mb-2">🎉</div>
-              <p className="text-slate-300">
+              <p className="text-slate-300 dark:text-dark-text-secondary">
                 {completedSets.size} of {workout.sets.length} sets completed
               </p>
             </div>
@@ -933,12 +933,12 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
         className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
         onClick={(e) => e.target === e.currentTarget && handleClose()}
       >
-        <div className="bg-brand-surface rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-brand-surface dark:bg-dark-bg-secondary rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <header className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold">Workout in Progress</h3>
+            <h3 className="text-xl font-semibold dark:text-dark-text-primary">Workout in Progress</h3>
             <button
               onClick={handleClose}
-              className="text-slate-400 hover:text-white text-2xl min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-cyan rounded"
+              className="text-slate-400 hover:text-white dark:hover:text-dark-text-primary text-2xl min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-cyan rounded"
               aria-label="Close workout"
             >
               ×
@@ -956,11 +956,11 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
           {/* Muscle Fatigue Visualization */}
           <div className="mt-4">
-            <h4 className="font-semibold mb-2">Muscle Fatigue</h4>
+            <h4 className="font-semibold mb-2 dark:text-dark-text-primary">Muscle Fatigue</h4>
 
             {/* Current Progress */}
             <div className="mb-4">
-              <div className="text-sm text-slate-400 mb-2">Current Progress</div>
+              <div className="text-sm text-slate-400 dark:text-dark-text-muted mb-2">Current Progress</div>
               <SimpleMuscleVisualization
                 muscleStates={executionMuscleStates}
                 muscleBaselines={muscleBaselines}
@@ -969,7 +969,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
             {/* Forecasted End State */}
             <div>
-              <div className="text-sm text-slate-400 mb-2">Forecasted End State</div>
+              <div className="text-sm text-slate-400 dark:text-dark-text-muted mb-2">Forecasted End State</div>
               <SimpleMuscleVisualization
                 muscleStates={calculateForecastedMuscleStates()}
                 muscleBaselines={muscleBaselines}
@@ -978,7 +978,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             </div>
           </div>
 
-          <div className="mt-4 flex justify-between items-center text-sm text-slate-400">
+          <div className="mt-4 flex justify-between items-center text-sm text-slate-400 dark:text-dark-text-muted">
             <span>Completed: {completedSets.size} / {workout.sets.length}</span>
             <button
               onClick={() => setMode('planning')}
@@ -1012,7 +1012,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
     >
       <div className="space-y-4">
         {loading ? (
-          <div className="text-center py-8 text-slate-400">Loading...</div>
+          <div className="text-center py-8 text-slate-400 dark:text-dark-text-muted">Loading...</div>
         ) : (
           <>
             {/* Planning Mode Toggle */}
@@ -1046,9 +1046,9 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
                 {/* Recommendations Display */}
                 {recommendations.length > 0 && (
-                  <div className="mt-4 bg-brand-muted p-4 rounded-lg space-y-3">
+                  <div className="mt-4 bg-brand-muted dark:bg-dark-bg-tertiary p-4 rounded-lg space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-white">Recommendations</h4>
+                      <h4 className="font-semibold text-white dark:text-dark-text-primary">Recommendations</h4>
                       <button
                         onClick={handleRegenerateRecommendations}
                         className="text-sm text-brand-cyan hover:underline"
@@ -1059,17 +1059,17 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
                     <div className="space-y-2">
                       {recommendations.map((rec, idx) => (
-                        <div key={idx} className="bg-brand-dark p-3 rounded-lg">
+                        <div key={idx} className="bg-brand-dark dark:bg-dark-bg-primary p-3 rounded-lg">
                           <div className="flex items-center justify-between mb-2">
-                            <div className="font-medium text-white">
+                            <div className="font-medium text-white dark:text-dark-text-primary">
                               {rec.exercise.name}
                             </div>
-                            <div className="text-sm text-slate-400">
+                            <div className="text-sm text-slate-400 dark:text-dark-text-muted">
                               Score: {rec.efficiencyScore.toFixed(1)}
                             </div>
                           </div>
 
-                          <div className="text-sm text-slate-300 mb-2">
+                          <div className="text-sm text-slate-300 dark:text-dark-text-secondary mb-2">
                             Target Volume: {rec.targetVolume.toFixed(0)} lbs
                           </div>
 
@@ -1081,9 +1081,9 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
                               .map(([muscle, impact]) => (
                                 <div
                                   key={muscle}
-                                  className="text-xs px-2 py-1 bg-brand-muted rounded"
+                                  className="text-xs px-2 py-1 bg-brand-muted dark:bg-dark-bg-tertiary rounded"
                                 >
-                                  <span className="text-slate-400">{muscle}:</span>{' '}
+                                  <span className="text-slate-400 dark:text-dark-text-muted">{muscle}:</span>{' '}
                                   <span className="text-brand-cyan">
                                     +{impact.toFixed(1)}%
                                   </span>
@@ -1111,7 +1111,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
             {workout.sets.length > 0 ? (
               <>
                 <div className="mt-4 space-y-3">
-                  <h4 className="font-semibold mb-2">Planned Sets ({workout.sets.length})</h4>
+                  <h4 className="font-semibold mb-2 dark:text-dark-text-primary">Planned Sets ({workout.sets.length})</h4>
                   {isMotionEnabled ? (
                     <motion.div
                       className="space-y-3"
@@ -1157,15 +1157,15 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
                 {/* Story 3.4: Real-Time Workout Forecast Panel */}
                 {mode === 'planning' && (
-                  <div className="mt-4 bg-brand-muted p-4 rounded-lg">
-                    <h4 className="font-semibold mb-3">Workout Forecast</h4>
+                  <div className="mt-4 bg-brand-muted dark:bg-dark-bg-tertiary p-4 rounded-lg">
+                    <h4 className="font-semibold mb-3 dark:text-dark-text-primary">Workout Forecast</h4>
 
                     {isForecastLoading ? (
-                      <div className="text-slate-400">Calculating...</div>
+                      <div className="text-slate-400 dark:text-dark-text-muted">Calculating...</div>
                     ) : forecastError ? (
                       <div className="text-red-400">{forecastError}</div>
                     ) : !forecastData ? (
-                      <div className="text-slate-400">Add exercises to see forecast</div>
+                      <div className="text-slate-400 dark:text-dark-text-muted">Add exercises to see forecast</div>
                     ) : (
                       <>
                         {/* Forecast heat map grid */}
@@ -1198,7 +1198,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
                 {/* Forecasted Muscle Fatigue - Simplified Visualization */}
                 <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Forecasted Muscle Fatigue</h4>
+                  <h4 className="font-semibold mb-2 dark:text-dark-text-primary">Forecasted Muscle Fatigue</h4>
                   <SimpleMuscleVisualization
                     muscleStates={forecastData?.forecast
                       ? Object.entries(forecastData.forecast).reduce((acc, [muscle, fatigue]) => {
@@ -1215,7 +1215,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
                 </div>
               </>
             ) : (
-              <div className="mt-4 bg-brand-muted p-6 rounded-lg text-center text-slate-400">
+              <div className="mt-4 bg-brand-muted dark:bg-dark-bg-tertiary p-6 rounded-lg text-center text-slate-400 dark:text-dark-text-muted">
                 <p className="text-sm">No sets added yet. Select an exercise above to build your workout.</p>
               </div>
             )}
@@ -1270,9 +1270,9 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
         {/* Draft Restore Dialog */}
         {showRestoreDialog && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-brand-surface p-6 rounded-lg max-w-md w-full mx-4">
-              <h3 className="text-xl font-bold mb-2">Resume Planning?</h3>
-              <p className="text-sm text-slate-300 mb-4">
+            <div className="bg-brand-surface dark:bg-dark-bg-secondary p-6 rounded-lg max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold mb-2 dark:text-dark-text-primary">Resume Planning?</h3>
+              <p className="text-sm text-slate-300 dark:text-dark-text-secondary mb-4">
                 You have unsaved work from earlier. Would you like to resume or start fresh?
               </p>
               <div className="flex gap-2">
@@ -1300,26 +1300,26 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
         {/* Template Save Dialog */}
         {showSaveDialog && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-brand-surface p-6 rounded-lg max-w-md w-full mx-4">
-              <h3 className="text-xl font-bold mb-4">Save Template</h3>
+            <div className="bg-brand-surface dark:bg-dark-bg-secondary p-6 rounded-lg max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold mb-4 dark:text-dark-text-primary">Save Template</h3>
 
               <label className="block mb-4">
-                <span className="block text-sm mb-2">Template Name</span>
+                <span className="block text-sm mb-2 dark:text-dark-text-secondary">Template Name</span>
                 <input
                   type="text"
                   value={templateName}
                   onChange={(e) => setTemplateName(e.target.value)}
                   placeholder="e.g., Upper Body Day 1"
-                  className="w-full p-2 rounded bg-brand-muted border border-brand-dark focus:border-brand-cyan focus:outline-none"
+                  className="w-full p-2 rounded bg-brand-muted dark:bg-dark-bg-tertiary border border-brand-dark dark:border-dark-border-DEFAULT focus:border-brand-cyan focus:outline-none dark:text-dark-text-primary"
                 />
               </label>
 
               <label className="block mb-4">
-                <span className="block text-sm mb-2">Workout Category</span>
+                <span className="block text-sm mb-2 dark:text-dark-text-secondary">Workout Category</span>
                 <select
                   value={templateCategory}
                   onChange={(e) => setTemplateCategory(e.target.value as ExerciseCategory)}
-                  className="w-full p-2 rounded bg-brand-muted border border-brand-dark focus:border-brand-cyan focus:outline-none"
+                  className="w-full p-2 rounded bg-brand-muted dark:bg-dark-bg-tertiary border border-brand-dark dark:border-dark-border-DEFAULT focus:border-brand-cyan focus:outline-none dark:text-dark-text-primary"
                 >
                   <option value="Push">Push</option>
                   <option value="Pull">Pull</option>
@@ -1329,11 +1329,11 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
               </label>
 
               <label className="block mb-6">
-                <span className="block text-sm mb-2">Variation</span>
+                <span className="block text-sm mb-2 dark:text-dark-text-secondary">Variation</span>
                 <select
                   value={templateVariation}
                   onChange={(e) => setTemplateVariation(e.target.value as Variation)}
-                  className="w-full p-2 rounded bg-brand-muted border border-brand-dark focus:border-brand-cyan focus:outline-none"
+                  className="w-full p-2 rounded bg-brand-muted dark:bg-dark-bg-tertiary border border-brand-dark dark:border-dark-border-DEFAULT focus:border-brand-cyan focus:outline-none dark:text-dark-text-primary"
                 >
                   <option value="A">A</option>
                   <option value="B">B</option>

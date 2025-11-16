@@ -323,10 +323,10 @@ const App: React.FC = () => {
   const isLoading = profileLoading || workoutsLoading || muscleBaselinesLoading;
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-brand-dark">
+      <div className="flex items-center justify-center min-h-screen bg-brand-dark dark:bg-dark-bg-primary">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-cyan"></div>
-          <p className="mt-4 text-slate-400">Loading your data...</p>
+          <p className="mt-4 text-slate-400 dark:text-dark-text-muted">Loading your data...</p>
         </div>
       </div>
     );
@@ -340,10 +340,10 @@ const App: React.FC = () => {
     const isProduction = !backendUrl.includes('localhost');
 
     return (
-      <div className="flex items-center justify-center min-h-screen bg-brand-dark p-4">
-        <div className="text-center bg-brand-surface p-6 rounded-lg max-w-md">
+      <div className="flex items-center justify-center min-h-screen bg-brand-dark dark:bg-dark-bg-primary p-4">
+        <div className="text-center bg-brand-surface dark:bg-dark-bg-secondary p-6 rounded-lg max-w-md">
           <p className="text-red-400 font-semibold mb-2">Failed to connect to backend</p>
-          <p className="text-slate-400 text-sm mb-4">
+          <p className="text-slate-400 dark:text-dark-text-secondary text-sm mb-4">
             {isProduction
               ? 'Unable to connect to the server. Please try again later.'
               : `Make sure the backend server is running at ${backendUrl}`
