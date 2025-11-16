@@ -22,6 +22,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useMotion } from './src/providers/MotionProvider';
 import { pageTransitionVariants, SPRING_TRANSITION } from './src/providers/motion-presets';
 import { detectProgressionMethod } from './utils/progressionMethodDetector';
+import { ThemeToggle } from './components/common/ThemeToggle';
 
 // Accessibility: Load axe-core in development only
 if (import.meta.env.DEV) {
@@ -369,6 +370,11 @@ const App: React.FC = () => {
       >
         Skip to main content
       </a>
+
+      {/* Theme Toggle - Fixed position in top right */}
+      <div className="fixed top-4 right-4 z-40">
+        <ThemeToggle />
+      </div>
 
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
       {prNotifications.length > 0 && (

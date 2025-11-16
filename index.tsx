@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import './src/index.css';
 import App from './App';
 import { MotionProvider } from './src/providers/MotionProvider';
+import { ThemeProvider } from './src/providers/ThemeProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -15,9 +16,11 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <MotionProvider>
-        <App />
-      </MotionProvider>
+      <ThemeProvider>
+        <MotionProvider>
+          <App />
+        </MotionProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
