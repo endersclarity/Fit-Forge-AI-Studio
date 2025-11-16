@@ -960,7 +960,141 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
 ---
 
-## 17. Developer Resources
+## 17. Dark Mode Support
+
+FitForge includes full dark mode support with automatic persistence and system preference detection.
+
+### Enabling Dark Mode
+
+Dark mode uses the `class` strategy in Tailwind. When the `dark` class is present on `<html>`, dark variants activate:
+
+```html
+<!-- Light mode (default) -->
+<html>
+
+<!-- Dark mode -->
+<html class="dark">
+```
+
+### ThemeProvider Setup
+
+Wrap your app root with `ThemeProvider` to enable theme management:
+
+```tsx
+import { ThemeProvider } from '@/src/providers/ThemeProvider';
+
+function App() {
+  return (
+    <ThemeProvider defaultTheme="system">
+      {/* Your app */}
+    </ThemeProvider>
+  );
+}
+```
+
+**Options:**
+- `"light"` – Force light mode
+- `"dark"` – Force dark mode
+- `"system"` – Follow OS preference (default)
+
+### ThemeToggle Component
+
+Use the built-in toggle for user control:
+
+```tsx
+import { ThemeToggle } from '@/src/providers/ThemeProvider';
+
+// In your settings or header
+<ThemeToggle />
+```
+
+The toggle cycles through: Light → Dark → System.
+
+### Dark Mode Tokens
+
+All semantic color tokens have dark variants defined in `src/design-system/tokens/colors.ts`:
+
+| Token | Light Value | Dark Value |
+|-------|------------|------------|
+| `dark.bg.primary` | – | `#0f172a` (slate-900) |
+| `dark.bg.secondary` | – | `#1e293b` (slate-800) |
+| `dark.bg.tertiary` | – | `#334155` (slate-700) |
+| `dark.text.primary` | – | `#f1f5f9` (slate-100) |
+| `dark.text.secondary` | – | `#cbd5e1` (slate-300) |
+| `dark.text.muted` | – | `#94a3b8` (slate-400) |
+| `dark.border.default` | – | `#334155` (slate-700) |
+| `dark.border.subtle` | – | `#475569` (slate-600) |
+
+### Using Dark Mode in Components
+
+Apply dark variants with Tailwind's `dark:` prefix:
+
+```tsx
+// Background colors
+<div className="bg-white dark:bg-dark-bg-primary">
+
+// Text colors
+<p className="text-primary-dark dark:text-dark-text-primary">
+
+// Borders
+<div className="border-gray-300 dark:border-dark-border-default">
+
+// Glass surfaces automatically adapt
+<div className="glass-panel">  {/* Handles dark mode internally */}
+```
+
+### localStorage Persistence
+
+Theme preference persists in `localStorage` under the key `ff-theme`:
+
+```javascript
+// Stored values
+localStorage.getItem('ff-theme')
+// → "light" | "dark" | "system"
+
+// Provider reads on mount and applies immediately
+// No flash of wrong theme on page load
+```
+
+The `ThemeProvider` also listens to OS preference changes when set to `"system"`.
+
+### Testing Dark Mode
+
+**Manual Testing:**
+1. Open browser DevTools → Application → Local Storage
+2. Set `ff-theme` to `"dark"` and reload
+3. Or use the ThemeToggle component in your UI
+
+**Storybook:**
+- Each story can test both modes using the toolbar theme switcher
+- See `Button.stories.tsx` and `Card.tsx` for dark mode examples
+
+**Automated Testing:**
+```typescript
+// In tests, mock the theme
+beforeEach(() => {
+  document.documentElement.classList.add('dark');
+});
+
+afterEach(() => {
+  document.documentElement.classList.remove('dark');
+});
+```
+
+### Migration Checklist
+
+When adding dark mode to existing components:
+
+- [ ] Add `dark:bg-*` for background colors
+- [ ] Add `dark:text-*` for text colors
+- [ ] Add `dark:border-*` for borders
+- [ ] Test glass-panel utilities (they handle dark mode automatically)
+- [ ] Verify contrast ratios meet WCAG AA (4.5:1 for text)
+- [ ] Check shadows – they may need `dark:shadow-*` adjustments
+
+---
+
+## 18. Developer Resources
 
 ### Stitch HTML Reference
 - **Location:** `docs/ux-audit/stitch_expanded_set_view/exercise_picker_drawer/code.html`
@@ -977,7 +1111,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
 ---
 
-## 18. Next Steps
+## 19. Next Steps
 
 1. **Review with team** - Ensure alignment on visual direction
 2. **Update Tailwind config** - Add all new tokens
