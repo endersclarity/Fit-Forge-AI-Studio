@@ -108,6 +108,52 @@ Audience: AI-assisted debugging and developer reference.
 
 ---
 
+### Epic 7.2: "Log All Sets?" Smart Shortcut ✅
+
+**Summary**: Detected repeating weight/rep patterns and surfaced a one-tap Sheet to autofill remaining sets, delivering the promised 60% interaction reduction.
+
+**Files Changed**:
+- `components/Workout.tsx` – pattern detection wiring, Sheet modal, toast/haptic flow
+- `src/utils/detectLogAllSetsPattern.ts` – helper (NEW)
+- `types.ts` – `LoggedSet.completed`
+- `src/design-system/components/primitives/Sheet.tsx` – optional footer controls
+
+**Highlights**:
+- Pattern detection requires ≥2 completed sets and ≥66% completion to avoid false positives.
+- Confirmation Sheet uses DS wrappers and reports the tap reduction to the user.
+- Toast + 100 ms haptic pulse close the loop after autofill.
+
+---
+
+### Epic 7.3: One-Tap Set Duplication ✅
+
+**Summary**: Added a “Copy” button beside each set (except the first) so lifters can mirror weight/reps instantly with haptic confirmation.
+
+**Files Changed**:
+- `components/Workout.tsx` – duplicate handler, button UI, `useHaptic` integration
+
+---
+
+### Epic 7.4: Equipment Filtering ✅
+
+**Summary**: ExercisePicker now filters by available equipment, displays an active badge, and exposes a persisted “Show all” toggle. QuickAdd/Dashboard pass the equipment array through so the picker knows what to allow.
+
+**Files Changed**:
+- `components/ExercisePicker.tsx` – filter logic + badge/toggle UI
+- `components/QuickAdd.tsx`, `components/Dashboard.tsx` – plumb user equipment down to the picker
+
+---
+
+### Epic 7.5: Progressive Disclosure ✅
+
+**Summary**: Workout and Dashboard gained localStorage-backed “Show advanced options” toggles with smooth transitions, keeping the primary actions prominent while hiding advanced knobs behind a single tap.
+
+**Files Changed**:
+- `components/Workout.tsx` – advanced controls toggle for to-failure, rest timer buttons, bodyweight helpers
+- `components/Dashboard.tsx` – advanced analytics toggle wrapping Quick Stats / Recent Workouts / Muscle Heat Map
+
+---
+
 ### Epic 6.5: Design System Rollout - IN PROGRESS
 
 #### Story 6.5.3A: Modal Components Migration ✅

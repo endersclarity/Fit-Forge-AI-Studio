@@ -19,3 +19,37 @@
     letter-spacing: 0.025em;
   }
 }
+
+@layer components {
+  .glass-panel {
+    @apply bg-glass-surface-light border border-glass-border-light backdrop-blur-lg shadow-button-primary transition-all duration-200;
+  }
+
+  .glass-panel-elevated {
+    @apply glass-panel bg-glass-surface-lightElevated shadow-glass;
+  }
+
+  .dark .glass-panel {
+    @apply bg-glass-surface-dark border-glass-border-dark;
+  }
+
+  .dark .glass-panel-elevated {
+    @apply bg-glass-surface-darkElevated;
+  }
+}
+
+@layer utilities {
+  .glass-fallback {
+    background-color: rgba(255, 255, 255, 0.85);
+  }
+  .dark .glass-fallback {
+    background-color: rgba(15, 23, 42, 0.85);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-panel,
+    .glass-panel-elevated {
+      @apply glass-fallback backdrop-filter-none;
+    }
+  }
+}

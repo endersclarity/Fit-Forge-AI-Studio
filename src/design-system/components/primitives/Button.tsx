@@ -10,7 +10,10 @@
  */
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { colors } from '@/design-system/tokens';
+import { useMotion } from '@/src/providers/MotionProvider';
+import { SPRING_TRANSITION } from '@/src/providers/motion-presets';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /**
@@ -96,6 +99,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
+    const { isMotionEnabled } = useMotion();
     // Base styles common to all buttons
     const baseClasses =
       'rounded-full font-body font-bold tracking-wide transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
@@ -125,17 +129,32 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       .join(' ');
 
     return (
-      <button
+      <motion.button
         ref={ref}
         type={type}
         className={combinedClasses}
         disabled={disabled}
         aria-label={ariaLabel}
         onClick={onClick}
+        whileTap={
+          isMotionEnabled
+            ? {
+                scale: 0.95,
+              }
+            : undefined
+        }
+        whileHover={
+          isMotionEnabled
+            ? {
+                scale: 1.05,
+              }
+            : undefined
+        }
+        transition={SPRING_TRANSITION}
         {...props}
       >
         {children}
-      </button>
+      </motion.button>
     );
   }
 );

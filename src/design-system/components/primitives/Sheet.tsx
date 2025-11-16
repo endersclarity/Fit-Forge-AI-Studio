@@ -12,6 +12,9 @@
 
 import React, { useCallback } from 'react';
 import { Drawer } from 'vaul';
+import { motion } from 'framer-motion';
+import { useMotion } from '@/src/providers/MotionProvider';
+import { overlayVariants, sheetVariants, SPRING_TRANSITION } from '@/src/providers/motion-presets';
 
 export interface SheetProps {
   /**
@@ -120,6 +123,8 @@ const Sheet: React.FC<SheetProps> = ({
   closeLabel = 'Done',
 }) => {
   const heightValue = heightMap[height];
+  const { isMotionEnabled } = useMotion();
+  const animationState = open ? 'visible' : 'hidden';
 
   // Handle close with proper state management
   const handleOpenChange = useCallback(
@@ -133,11 +138,24 @@ const Sheet: React.FC<SheetProps> = ({
     <Drawer.Root open={open} onOpenChange={handleOpenChange}>
       <Drawer.Portal>
         <Drawer.Overlay
-          className="fixed inset-0 z-40 bg-black/40"
+          className="fixed inset-0 z-40"
           onClick={() => onOpenChange(false)}
-        />
+          asChild={isMotionEnabled}
+        >
+          {isMotionEnabled ? (
+            <motion.div
+              variants={overlayVariants}
+              initial="hidden"
+              animate={animationState}
+              transition={SPRING_TRANSITION}
+              className="h-full w-full bg-black/40"
+            />
+          ) : (
+            <div className="fixed inset-0 bg-black/40" />
+          )}
+        </Drawer.Overlay>
         <Drawer.Content
-          className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex flex-col bg-white/50 backdrop-blur-sm rounded-t-[24px] border-t border-gray-300/50"
+          className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex flex-col rounded-t-[24px]"
           style={{
             height: heightValue,
             maxHeight: heightValue,
@@ -145,7 +163,68 @@ const Sheet: React.FC<SheetProps> = ({
           }}
           aria-labelledby={title ? 'sheet-title' : undefined}
           aria-describedby={description ? 'sheet-description' : undefined}
+          asChild={isMotionEnabled}
         >
+          {isMotionEnabled ? (
+            <motion.div
+              variants={sheetVariants}
+              initial="hidden"
+              animate={animationState}
+              transition={SPRING_TRANSITION}
+              className="flex h-full flex-col glass-panel-elevated"
+            >
+              {renderSheetBody({
+                title,
+                description,
+                className,
+                children,
+                showHandle,
+                showFooterClose,
+                closeLabel,
+                onOpenChange,
+              })}
+            </motion.div>
+          ) : (
+            renderSheetBody({
+              title,
+              description,
+              className,
+              children,
+              showHandle,
+              showFooterClose,
+              closeLabel,
+              onOpenChange,
+            }, true)
+          )}
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
+  );
+};
+
+interface SheetBodyProps {
+  title?: string;
+  description?: string;
+  className?: string;
+  children: React.ReactNode;
+  showHandle: boolean;
+  showFooterClose: boolean;
+  closeLabel: string;
+  onOpenChange: (open: boolean) => void;
+}
+
+const renderSheetBody = ({
+  title,
+  description,
+  className,
+  children,
+  showHandle,
+  showFooterClose,
+  closeLabel,
+  onOpenChange,
+}: SheetBodyProps, wrapWithSurface = false) => {
+  const content = (
+    <>
           {/* Draggable Handle - AC#1: 48×6px pale blue (#A8B6D5) */}
           {showHandle && (
             <div className="flex justify-center pt-3 pb-2">
@@ -186,10 +265,14 @@ const Sheet: React.FC<SheetProps> = ({
               </button>
             </div>
           )}
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+        </>
   );
+
+  if (wrapWithSurface) {
+    return <div className="glass-panel-elevated flex h-full flex-col">{content}</div>;
+  }
+
+  return content;
 };
 
 Sheet.displayName = 'Sheet';

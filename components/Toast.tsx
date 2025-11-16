@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useMotion } from '@/src/providers/MotionProvider';
+import { SPRING_TRANSITION } from '@/src/providers/motion-presets';
 
 interface ToastProps {
   message: string;
@@ -9,6 +12,7 @@ interface ToastProps {
 
 const Toast: React.FC<ToastProps> = ({ message, type = 'success', duration = 3000, onClose }) => {
   const [visible, setVisible] = useState(false);
+  const { isMotionEnabled } = useMotion();
 
   useEffect(() => {
     if (message) {
@@ -35,25 +39,31 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'success', duration = 300
   };
 
   return (
-    <div
-      className={`fixed top-5 left-1/2 -translate-x-1/2 z-[60] px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
-      } ${bgColors[type]} text-white font-semibold max-w-md text-center`}
-    >
-      {message}
-      {duration === 0 && (
-        <button
-          onClick={() => {
-            setVisible(false);
-            setTimeout(onClose, 300);
-          }}
-          className="ml-3 text-white hover:text-gray-200 font-bold"
-          aria-label="Close"
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={isMotionEnabled ? SPRING_TRANSITION : { duration: 0 }}
+          className={`fixed top-5 left-1/2 -translate-x-1/2 z-[60] px-6 py-3 rounded-lg shadow-lg ${bgColors[type]} text-white font-semibold max-w-md text-center`}
         >
-          ✕
-        </button>
+          {message}
+          {duration === 0 && (
+            <button
+              onClick={() => {
+                setVisible(false);
+                setTimeout(onClose, 300);
+              }}
+              className="ml-3 text-white hover:text-gray-200 font-bold"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          )}
+        </motion.div>
       )}
-    </div>
+    </AnimatePresence>
   );
 };
 

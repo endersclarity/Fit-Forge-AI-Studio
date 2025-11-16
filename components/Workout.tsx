@@ -300,6 +300,15 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
   const [logAllPrompt, setLogAllPrompt] = useState<{ exerciseId: string; pattern: LogAllSetsPatternResult } | null>(null);
   const [logAllDismissed, setLogAllDismissed] = useState<Record<string, boolean>>({});
   const [logAllToast, setLogAllToast] = useState<string | null>(null);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const stored = window.localStorage.getItem('fitforge.showAdvancedSets');
+      return stored ? JSON.parse(stored) : false;
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     if (initialData && loggedExercises.length > 0) {
@@ -343,6 +352,15 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
       setLogAllPrompt(null);
     }
   }, [stage]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem('fitforge.showAdvancedSets', JSON.stringify(showAdvancedOptions));
+    } catch {
+      /* noop */
+    }
+  }, [showAdvancedOptions]);
 
   const startRestTimer = (duration: number = 90) => {
     setRestTimerConfig({
@@ -435,6 +453,10 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
     );
     setLogAllDismissed((prev) => ({ ...prev, [exerciseId]: true }));
     setLogAllPrompt(null);
+  };
+
+  const toggleAdvancedOptions = () => {
+    setShowAdvancedOptions(prev => !prev);
   };
 
   const startWorkout = () => {
@@ -872,7 +894,21 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
             >
                 Finish
             </Button>
-          </header>
+      </header>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <p className="text-xs text-gray-500">
+          {showAdvancedOptions ? 'Advanced controls visible' : 'Streamlined mode active'}
+        </p>
+        <Button
+          onClick={toggleAdvancedOptions}
+          variant="ghost"
+          size="sm"
+          className="min-h-[40px]"
+          aria-pressed={showAdvancedOptions}
+        >
+          {showAdvancedOptions ? 'Hide advanced options' : 'Show advanced options'}
+        </Button>
+      </div>
           <div className="flex-grow space-y-3 overflow-y-auto pb-24">
             {loggedExercises.map(ex => {
               const pb = personalBests[ex.exerciseId];
@@ -903,15 +939,17 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                       </div>
                     )}
                     <div className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 text-center text-xs text-gray-400 font-semibold mb-2">
-                        <span className="col-span-1 flex items-center justify-center">
-                            <button
-                                onClick={() => setShowFailureTooltip(true)}
-                                className="text-gray-400 hover:text-primary p-1"
-                                aria-label="What does to-failure mean?"
-                            >
-                                <InfoIcon className="w-4 h-4" />
-                            </button>
-                        </span>
+                    <span className="col-span-1 flex items-center justify-center">
+                        {showAdvancedOptions && (
+                          <button
+                              onClick={() => setShowFailureTooltip(true)}
+                              className="text-gray-400 hover:text-primary p-1 transition-opacity duration-300"
+                              aria-label="What does to-failure mean?"
+                          >
+                              <InfoIcon className="w-4 h-4" />
+                          </button>
+                        )}
+                    </span>
                         <span className="col-span-1">Set</span>
                         <span className="col-span-1">Weight (lbs)</span>
                         <span className="col-span-1">Reps</span>
@@ -927,19 +965,21 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                       return (
                       <div key={s.id} className="grid grid-cols-[auto_1fr_4fr_2fr_3fr] gap-2 items-center mb-2">
                           <div className="flex flex-col items-center gap-1">
-                            <button
-                              onClick={() => toggleSetFailure(ex.id, s.id)}
-                              className="min-w-[60px] min-h-[60px] p-2 rounded flex items-center justify-center transition-all active:scale-95 gap-2"
-                              title={toFailure ? "Taken to failure" : "Not to failure"}
-                              aria-label={toFailure ? "Set taken to failure. Click to mark as not to failure." : "Set not to failure. Click to mark as taken to failure."}
-                              aria-pressed={toFailure}
-                              role="switch"
-                            >
-                              <div className={`w-7 h-7 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-primary border-primary' : 'border-gray-400'}`}>
-                                {toFailure && <span className="text-white font-bold text-lg">✓</span>}
-                              </div>
-                              <span className="text-xs font-semibold text-gray-700">To Failure</span>
-                            </button>
+                            <div className={`transition-all duration-300 ${showAdvancedOptions ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0 pointer-events-none overflow-hidden'}`}>
+                              <button
+                                onClick={() => toggleSetFailure(ex.id, s.id)}
+                                className="min-w-[60px] min-h-[60px] p-2 rounded flex items-center justify-center transition-all active:scale-95 gap-2"
+                                title={toFailure ? "Taken to failure" : "Not to failure"}
+                                aria-label={toFailure ? "Set taken to failure. Click to mark as not to failure." : "Set not to failure. Click to mark as taken to failure."}
+                                aria-pressed={toFailure}
+                                role="switch"
+                              >
+                                <div className={`w-7 h-7 rounded border-2 flex items-center justify-center transition-colors ${toFailure ? 'bg-primary border-primary' : 'border-gray-400'}`}>
+                                  {toFailure && <span className="text-white font-bold text-lg">✓</span>}
+                                </div>
+                                <span className="text-xs font-semibold text-gray-700">To Failure</span>
+                              </button>
+                            </div>
                             <span className="text-center font-bold text-gray-700 text-sm">{i + 1}</span>
                           </div>
                           <div className="flex items-center gap-1">
@@ -952,15 +992,17 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                                 size="sm"
                                 className="w-full text-center min-h-[60px]"
                             />
-                            <Button
-                                onClick={() => handleUseBodyweight(ex.id, s.id)}
-                                variant="secondary"
-                                size="sm"
-                                className="text-xs px-2 py-1 whitespace-nowrap h-full"
-                                aria-label="Use bodyweight for this set"
-                            >
-                                Use BW
-                            </Button>
+                            {showAdvancedOptions && (
+                              <Button
+                                  onClick={() => handleUseBodyweight(ex.id, s.id)}
+                                  variant="secondary"
+                                  size="sm"
+                                  className="text-xs px-2 py-1 whitespace-nowrap h-full"
+                                  aria-label="Use bodyweight for this set"
+                              >
+                                  Use BW
+                              </Button>
+                            )}
                           </div>
                           <div>
                             <Input
@@ -984,13 +1026,15 @@ const WorkoutTracker: React.FC<WorkoutProps> = ({ onFinishWorkout, onCancel, all
                             Copy
                           </span>
                         </button>
-                        <button
-                          onClick={() => startRestTimer()}
-                          className="text-gray-400 hover:text-primary p-1"
-                          aria-label="Start rest timer for this set"
-                        >
-                          <ClockIcon className="w-5 h-5"/>
-                        </button>
+                        {showAdvancedOptions && (
+                          <button
+                            onClick={() => startRestTimer()}
+                            className="text-gray-400 hover:text-primary p-1"
+                            aria-label="Start rest timer for this set"
+                          >
+                            <ClockIcon className="w-5 h-5"/>
+                          </button>
+                        )}
                         <button onClick={() => removeSet(ex.id, s.id)} className="text-gray-400 hover:text-red-500 p-1"><XIcon className="w-5 h-5"/></button>
                       </div>
                       </div>

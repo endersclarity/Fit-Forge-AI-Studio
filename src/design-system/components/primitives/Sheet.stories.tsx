@@ -288,6 +288,30 @@ export const WithForm: Story = {
   },
 };
 
+export const SpringAnimation: Story = {
+  render: () => (
+    <SheetStoryWrapper title="Animated Sheet" description="Framer Motion spring variants now power the Vaul sheet.">
+      <div className="space-y-3">
+        <p className="text-gray-600">
+          This story highlights the shared spring settings used for sheets/modals. Toggle
+          the sheet repeatedly to inspect entry/exit motion and reduced-motion support.
+        </p>
+        <div className="rounded-lg bg-gray-100/80 p-4 text-sm text-gray-700">
+          Motion is controlled by <code>MotionProvider</code> and can be disabled via{' '}
+          <code>VITE_ANIMATIONS_ENABLED</code> or the OS reduced-motion setting.
+        </div>
+      </div>
+    </SheetStoryWrapper>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Demonstrates the shared spring + overlay fade variants applied to all sheets.',
+      },
+    },
+  },
+};
+
 // Scrollable Content
 export const WithScrollableContent: Story = {
   render: () => (

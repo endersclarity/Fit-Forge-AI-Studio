@@ -240,6 +240,29 @@ export const Interactive: Story = {
   ),
 };
 
+export const MotionStates: Story = {
+  render: () => (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-600">
+        Hover or tap the buttons below to preview the MotionProvider-powered feedback.
+      </p>
+      <div className="flex flex-wrap gap-4">
+        <Button variant="primary">Primary</Button>
+        <Button variant="secondary">Secondary</Button>
+        <Button variant="ghost">Ghost</Button>
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Buttons now use Framer Motion via MotionProvider for tap/hover feedback while respecting reduced-motion preferences.',
+      },
+    },
+  },
+};
+
 // Different Button Types
 export const SubmitButton: Story = {
   args: {

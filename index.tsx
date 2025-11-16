@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import './src/index.css';
 import App from './App';
+import { MotionProvider } from './src/providers/MotionProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -14,7 +15,9 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <MotionProvider>
+        <App />
+      </MotionProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

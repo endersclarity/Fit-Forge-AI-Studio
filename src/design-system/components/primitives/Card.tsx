@@ -85,14 +85,12 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     },
     ref
   ) => {
-    // Base glass morphism classes
-    const baseClasses =
-      'bg-white/50 backdrop-blur-sm border border-gray-300/50 rounded-xl transition-all duration-200';
+    const baseClasses = 'glass-panel rounded-xl';
 
     // Variant-specific classes
     const variantClasses = {
-      default: 'hover:bg-white/60 hover:border-gray-400/50',
-      elevated: 'shadow-lg hover:shadow-xl hover:bg-white/60',
+      default: '',
+      elevated: 'glass-panel-elevated',
     };
 
     // Interactive classes

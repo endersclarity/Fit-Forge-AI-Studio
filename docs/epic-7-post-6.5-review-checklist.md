@@ -10,38 +10,28 @@
 
 ## What Changed in Epic 6.5
 
-### Component Migrations (77 total)
-- **4 already integrated**: WorkoutBuilder, QuickAdd, CalibrationEditor, EngagementViewer
-- **73 newly migrated**: Dashboard, Workout, Profile, ExerciseRecommendations, Recovery Dashboard, Analytics, all modals, all forms, all utilities
+### Component Migrations (wrappers-first)
+- **Wrappers**: `components/ui/*` + `components/layout/*` now re-export design-system primitives/patterns so legacy imports keep working while we migrate usage incrementally.
+- **Targeted migrations**: High-touch screens (Workout, Dashboard, QuickAdd, planner modals) already render DS components through those wrappers.
+- **Cleanup**: Once Epic 7 lands, run a codemod to swap imports to `@/src/design-system/...` and delete the wrappers.
 
-### Import Path Changes
-**Before (Legacy):**
+### Import Path Guidance
+**Current (wrapper) usage:**
 ```typescript
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import { FAB } from '../components/layout/FAB';
+import { Button } from '../components/ui/Button'; // wrapper → DS Button
+import FAB from '../components/layout/FAB';        // wrapper → DS FAB
 ```
 
-**After (Design System):**
+**Future (direct) usage:**
 ```typescript
-import { Card, Button, Sheet } from '@/src/design-system/components/primitives';
-import { FAB } from '@/src/design-system/components/patterns';
+import { Button, Sheet } from '@/src/design-system/components/primitives';
+import FAB from '@/src/design-system/components/patterns/FAB';
 ```
 
-### Component API Changes
-- **Modal → Sheet**: Bottom drawer pattern, different props
-- **Card**: Now has variant prop (glass, solid, outline)
-- **Button**: Standardized size/variant props
-- **Forms**: All use Input primitive (consistent API)
-
-### Removed Components
-- `components/ui/Card.tsx` → DELETED
-- `components/ui/Button.tsx` → DELETED
-- `components/ui/Modal.tsx` → DELETED (use Sheet)
-- `components/layout/FAB.tsx` → DELETED (use design-system FAB)
-- `components/ui/Badge.tsx` → DELETED (use design-system Badge)
-- `components/ui/ProgressBar.tsx` → DELETED (use design-system ProgressBar)
+### Component API Notes
+- **Modal/Sheet**: `components/ui/Modal` is a thin bridge around the DS Sheet (`isOpen`, `onClose`), so Epic 7 can keep using the legacy props while still rendering the new bottom drawer.
+- **Card/Button/Badge/ProgressBar**: Wrappers map legacy props (`size`, `variant`, etc.) onto DS equivalents—callers migrate by simply importing the wrapper.
+- **Forms/Inputs**: Importing from the wrappers gives DS styling immediately; importing directly from DS is encouraged for new code.
 
 ---
 
@@ -51,136 +41,31 @@ For each of the 5 Epic 7 stories, verify:
 
 ### Story 7.1: Auto-Starting Rest Timer
 
-**Components Referenced:**
-- [ ] RestTimerBanner (NEW component - check import paths)
-- [ ] ProgressBar (migrated to design-system primitive)
-- [ ] Button (for skip/dismiss - use design-system Button)
-
-**Check:**
-- [ ] Import paths use `@/src/design-system/components/primitives`
-- [ ] ProgressBar uses design-system primitive (not old ui/ProgressBar)
-- [ ] Button uses design-system variant system (variant="secondary")
-- [ ] Touch targets meet 60x60px (WCAG AA - Epic 6.5 standard)
-- [ ] Uses design tokens for colors (bg-primary, text-secondary, etc.)
-
-**Potential Issues:**
-- Story might reference `components/ui/ProgressBar.tsx` (deleted in 6.5)
-- Positioning z-index needs to account for Sheet z-index hierarchy
-
-**Action Items:**
-- [ ] Update ProgressBar import to design-system
-- [ ] Verify z-index: RestTimerBanner (20) < FAB (30) < Sheet (40+)
+**Status:** ✅ Delivered. `RestTimerBanner` (`src/design-system/components/patterns/RestTimerBanner.tsx`) is wired into `components/Workout.tsx` with DS wrappers, ProgressBar, and haptics already in place.
 
 ---
 
 ### Story 7.2: "Log All Sets?" Smart Shortcut
 
-**Components Referenced:**
-- [ ] Sheet (for bottom drawer confirmation modal)
-- [ ] Button (for confirm/cancel actions)
-- [ ] WorkoutBuilder (context - already migrated in Epic 6)
-- [ ] SetConfigurator (context - migrated in Epic 6.5.3)
-
-**Check:**
-- [ ] Sheet import from `@/src/design-system/components/primitives`
-- [ ] Button uses variant system (confirm = primary, cancel = secondary)
-- [ ] WorkoutBuilder API stable (Epic 6 migration)
-- [ ] SetConfigurator API understood (Epic 6.5.3 migration changes)
-- [ ] Pattern detection logic doesn't depend on old component structure
-
-**Potential Issues:**
-- WorkoutBuilder internal state might have changed during migration
-- SetConfigurator props might be different post-migration
-
-**Action Items:**
-- [ ] Review WorkoutBuilder.tsx post-6.5 for state management changes
-- [ ] Review SetConfigurator.tsx post-6.5 for prop interface
-- [ ] Verify pattern detection works with new component structure
+**Status:** ✅ Delivered. Pattern detection lives in `src/utils/detectLogAllSetsPattern.ts`, and the DS Sheet-backed modal with toast/haptics is implemented inside `components/Workout.tsx`.
 
 ---
 
 ### Story 7.3: One-Tap Set Duplication
 
-**Components Referenced:**
-- [ ] Button (for "Copy Previous Set" action)
-- [ ] HorizontalSetInput (migrated in Epic 6.5.4)
-- [ ] SetConfigurator (migrated in Epic 6.5.3)
-- [ ] CurrentSetDisplay (migrated in Epic 6.5.4)
-
-**Check:**
-- [ ] Button import from design-system
-- [ ] HorizontalSetInput API understood (Epic 6.5.4 changes)
-- [ ] SetConfigurator state management compatible
-- [ ] CurrentSetDisplay data structure compatible
-- [ ] Haptic feedback hook available (useHaptic from Epic 6)
-
-**Potential Issues:**
-- Form components might have different state management post-migration
-- Set data structure might be accessed differently
-
-**Action Items:**
-- [ ] Review HorizontalSetInput.tsx post-6.5 for prop interface
-- [ ] Review SetConfigurator.tsx for state hooks
-- [ ] Verify CurrentSetDisplay data access patterns
-- [ ] Confirm useHaptic hook location (design-system or utils?)
+**Status:** ✅ Delivered. The “Copy” button inside `components/Workout.tsx` duplicates the previous set, uses the DS Button wrapper, and fires `useHaptic(10)` per AC3.
 
 ---
 
 ### Story 7.4: Equipment Filtering
 
-**Components Referenced:**
-- [ ] ExercisePicker (migrated in Epic 6.5.3)
-- [ ] Badge (for filter count - new design-system primitive)
-- [ ] QuickAdd (context - already migrated in Epic 6)
-- [ ] Select/Dropdown (new design-system primitive from 6.5.1)
-
-**Check:**
-- [ ] ExercisePicker import path correct
-- [ ] Badge import from `@/src/design-system/components/primitives`
-- [ ] Select import from `@/src/design-system/components/primitives`
-- [ ] QuickAdd integration points stable (Epic 6 migration)
-- [ ] localStorage integration pattern documented
-
-**Potential Issues:**
-- ExercisePicker might have different filter API post-migration
-- Badge primitive created in 6.5.1 (verify variant options)
-- Select primitive created in 6.5.1 (verify API)
-
-**Action Items:**
-- [ ] Review ExercisePicker.tsx post-6.5 for filter implementation
-- [ ] Review Badge primitive API (variants: success/warning/error/info)
-- [ ] Review Select primitive API (keyboard navigation, a11y)
-- [ ] Verify localStorage pattern matches 6.5 conventions
+**Status:** ✅ Delivered. `components/ExercisePicker.tsx` filters by the athlete’s `availableEquipment`, persists the “Show all” toggle, and QuickAdd/Dashboard now pass equipment arrays through.
 
 ---
 
 ### Story 7.5: Progressive Disclosure
 
-**Components Referenced:**
-- [ ] CollapsibleSection (new design-system pattern from 6.5.2)
-- [ ] Dashboard (migrated in Epic 6.5.2)
-- [ ] Workout (migrated in Epic 6.5.2)
-- [ ] QuickAdd (already migrated in Epic 6)
-- [ ] Button (for show/hide toggle)
-
-**Check:**
-- [ ] CollapsibleSection import from `@/src/design-system/components/patterns`
-- [ ] Dashboard integration points understood (Epic 6.5.2 changes)
-- [ ] Workout form structure understood (Epic 6.5.2 changes)
-- [ ] Button uses icon variant for toggle (if applicable)
-- [ ] Animation uses design-system motion tokens
-
-**Potential Issues:**
-- CollapsibleSection created in 6.5.2 (verify expand/collapse API)
-- Dashboard/Workout forms might have different layout post-migration
-- Advanced options might be structured differently
-
-**Action Items:**
-- [ ] Review CollapsibleSection pattern API (expand/collapse, animation)
-- [ ] Review Dashboard.tsx post-6.5 for form layout
-- [ ] Review Workout.tsx post-6.5 for form structure
-- [ ] Identify which options are "advanced" (rest time, notes, to-failure)
-- [ ] Verify localStorage key naming conventions from 6.5
+**Status:** ✅ Delivered. Workout and Dashboard each expose localStorage-backed “Show advanced” toggles with smooth transitions so primary fields stay visible by default.
 
 ---
 

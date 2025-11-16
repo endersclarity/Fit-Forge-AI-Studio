@@ -40,27 +40,29 @@ This design system is extracted from the AI-generated Stitch design (Exercise Pi
 
 #### Surface Colors (Glass Morphism)
 ```css
---color-surface-glass: rgba(255, 255, 255, 0.50);    /* Glass surfaces */
---color-surface-glass-light: rgba(255, 255, 255, 0.60); /* Lighter glass */
---color-surface-glass-subtle: rgba(255, 255, 255, 0.20); /* Very subtle glass */
+--color-surface-glass-light: rgba(255, 255, 255, 0.55);       /* Default glass */
+--color-surface-glass-light-elevated: rgba(255, 255, 255, 0.62); /* Raised cards */
+--color-surface-glass-dark: rgba(15, 23, 42, 0.72);           /* Dark mode */
+--color-surface-glass-dark-elevated: rgba(15, 23, 42, 0.82);  /* Dark mode raised */
 ```
 
 **Usage:**
-- `white/50` - Cards, search bars, main glass surfaces
-- `white/60` - Unselected pills, lighter glass elements
-- `white/20` - Background placeholders, very subtle overlays
+- `glass.surface.light` – Cards, search bars, Surface-level glass
+- `glass.surface.lightElevated` – Raised/elevated cards (e.g., modals, notifications)
+- `glass.surface.dark` – Dark-theme glass
+- `glass.surface.darkElevated` – Raised dark surfaces (sheets/modals)
 
 #### Border Colors
 ```css
---color-border-glass: rgba(209, 213, 219, 0.50);     /* Gray-300 at 50% */
---color-border-glass-strong: rgba(209, 213, 219, 0.70); /* Gray-300 at 70% */
---color-border-highlight: rgba(255, 255, 255, 0.50);  /* White border on drawer top */
+--color-border-glass-light: rgba(255, 255, 255, 0.35);
+--color-border-glass-subtle: rgba(255, 255, 255, 0.25);
+--color-border-glass-dark: rgba(255, 255, 255, 0.18);
 ```
 
 **Usage:**
-- `border-gray-300/50` - Default glass borders (cards, search)
-- `border-gray-300/70` - Stronger borders (unselected pills)
-- `border-white/50` - Top border of drawers for highlight effect
+- `glass.border.light` – Default borders (cards, search)
+- `glass.border.subtle` – Pills/subtle dividers
+- `glass.border.dark` – Dark theme border color
 
 #### Accent & Badge Colors
 ```css
@@ -78,6 +80,7 @@ This design system is extracted from the AI-generated Stitch design (Exercise Pi
 --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);                  /* Card shadow-sm */
 --shadow-drawer: 0 -10px 30px -15px rgba(0, 0, 0, 0.2);      /* Drawer shadow */
 --shadow-search-inner: inset 0 1px 2px rgba(0, 0, 0, 0.05);  /* Search bar inner shadow */
+--shadow-glass-elevated: 0 20px 45px -35px rgba(15, 23, 42, 0.75); /* Elevated glass depth */
 ```
 
 #### Background Gradients
@@ -444,26 +447,22 @@ box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);  /* shadow-inner */
 
 ### 6.6 Glass Morphism Pattern
 
-**Standard Glass Surface:**
-```css
-background-color: rgba(255, 255, 255, 0.5);
-backdrop-filter: blur(8px);
-border: 1px solid rgba(209, 213, 219, 0.5);
-border-radius: 24px;
+Use the shared Tailwind utilities introduced in Story 8.2:
+
+```html
+<div class="glass-panel rounded-2xl p-6">
+  ...
+</div>
+
+<div class="glass-panel-elevated rounded-[32px] p-8">
+  ...
+</div>
 ```
 
-**Lighter Glass (Pills):**
-```css
-background-color: rgba(255, 255, 255, 0.6);
-border: 1px solid rgba(209, 213, 219, 0.7);
-```
-
-**Subtle Glass (Background):**
-```css
-background-color: rgba(255, 255, 255, 0.2);
-backdrop-filter: blur(4px);
-border: 1px solid rgba(255, 255, 255, 0.3);
-```
+- `.glass-panel` → Light-mode glass, 55% opacity, blur-lg, border with white/35%
+- `.glass-panel-elevated` → Adds elevated opacity (62%), stronger shadow (`shadow-glass`)
+- `dark:...` variants are baked into the utility so no extra classes are required
+- Fallback: When `backdrop-filter` isn’t supported, utilities automatically apply solid backgrounds `rgba(255,255,255,0.85)` / `rgba(15,23,42,0.85)` so text remains legible. See CSS in `src/index.css`.
 
 ---
 
@@ -485,10 +484,11 @@ border: 1px solid rgba(255, 255, 255, 0.3);
 ## 8. Visual Design Principles
 
 ### Glass Morphism
-- **Transparency:** 50-60% white for main surfaces
-- **Backdrop blur:** Always use `backdrop-blur-sm` or equivalent
-- **Borders:** Semi-transparent borders (50-70% opacity) for depth
-- **Layering:** Darker overlays behind drawers (`black/20`)
+- **Utilities:** `.glass-panel` and `.glass-panel-elevated` ensure consistency
+- **Transparency:** 55–62% opacity on light surfaces, 72–82% on dark surfaces
+- **Backdrop blur:** `backdrop-blur-lg` (8px) with fallback solids for Safari/old Edge
+- **Borders:** Semi-transparent white borders (`glass.border.*`) for depth
+- **Layering:** Dark-mode overlay gradient + `glass-panel-elevated` for drawers and quick actions
 
 ### Heavenly Gradient
 - **Direction:** Top to bottom (180deg)
@@ -506,6 +506,13 @@ border: 1px solid rgba(255, 255, 255, 0.3);
 - **Button emphasis:** Use colored shadows matching button color
 - **Drawers:** Use upward shadows (`0 -10px...`)
 - **Inner shadows:** Use for inset elements (search bars)
+
+### Background Validation (Epic 8.2)
+- **Heavenly gradient:** No changes required – `glass-panel` keeps text AAA contrast.
+- **Dark gradient:** Switch to `.glass-panel-elevated` for analytics modals to avoid halos.
+- **Marble texture:** Added `bg-marble-texture` option; `glass-panel` keeps streaks muted.
+- **High-contrast photo overlay:** Use `glass-panel-elevated` + `bg-photo-overlay` to ensure readability.
+- See `docs/testing/accessibility/glass-validation.md` for screenshots + notes.
 
 ---
 
@@ -905,6 +912,16 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 - White on primary (#758AC6): **WCAG AA** (3.2:1)
 - Badge text (#566890) on badge bg (#D9E1F8): **WCAG AA** (4.1:1)
 
+### Glass Surface Contrast
+| Surface | Text | Ratio | Result |
+| --- | --- | --- | --- |
+| `glass.surface.light` + `text-primary-dark` | 9.7:1 | AAA |
+| `glass.surface.lightElevated` + `text-primary-medium` | 5.4:1 | AA |
+| `glass.surface.dark` + `text-white` | 7.8:1 | AAA |
+| `glass.surface.darkElevated` + `text-primary-light` | 4.5:1 | AA |
+
+- Measurements taken via WebAIM Contrast Checker as part of Epic 8.2 validation.
+
 ### Glass Morphism Considerations
 - Ensure sufficient opacity (50%+) for readability
 - Always pair with backdrop blur
@@ -918,7 +935,32 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
 ---
 
-## 16. Developer Resources
+## 16. Motion System
+
+### Infrastructure
+- **Provider:** `src/providers/MotionProvider.tsx` wraps the React tree and exposes `useMotion()` helpers.
+- **Feature Flag:** `VITE_ANIMATIONS_ENABLED` controls whether motion props run (see `.env.example`).
+- **Reduced Motion:** The provider listens to `prefers-reduced-motion` and automatically disables animations when requested.
+
+### Presets
+- All shared variants live in `src/providers/motion-presets.ts`:
+  - `SPRING_TRANSITION` (stiffness 300, damping 30, mass 0.8)
+  - `pageTransitionVariants` for route transitions
+  - `sheetVariants` + `overlayVariants` for Vaul sheets/modals
+  - `listContainerVariants` + `listItemVariants` for staggered dashboards/lists
+  - `shimmerVariants` for skeleton shimmer loops (1.5s cycle)
+
+### Usage Guidelines
+1. Wrap repeated UI (dashboard cards, recommendation grids, WorkoutBuilder rows) in a `motion.div` with `listContainerVariants`, then apply `listItemVariants` to the children.
+2. Use the provider-aware primitives:
+   - `Button` now applies tap/hover feedback via Framer Motion when enabled.
+   - `Sheet` animates bottom sheets/modals using shared spring presets.
+3. Always guard optional motion with `useMotionEnabled()` so feature flag + reduced-motion states are respected.
+4. Storybook stories (`Button.stories.tsx`, `Sheet.stories.tsx`, and `patterns/PageTransitions.stories.tsx`) demonstrate the new animation system for QA/reference.
+
+---
+
+## 17. Developer Resources
 
 ### Stitch HTML Reference
 - **Location:** `docs/ux-audit/stitch_expanded_set_view/exercise_picker_drawer/code.html`
@@ -935,7 +977,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
 ---
 
-## 17. Next Steps
+## 18. Next Steps
 
 1. **Review with team** - Ensure alignment on visual direction
 2. **Update Tailwind config** - Add all new tokens

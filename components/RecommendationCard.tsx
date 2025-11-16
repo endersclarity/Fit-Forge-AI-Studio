@@ -1,6 +1,9 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Exercise, MuscleReadiness } from '../types';
 import { CalibrationBadge } from './CalibrationBadge';
+import { useMotion } from '@/src/providers/MotionProvider';
+import { listItemVariants, SPRING_TRANSITION } from '@/src/providers/motion-presets';
 
 interface RecommendationCardProps {
   exercise: Exercise;
@@ -71,10 +74,15 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 }) => {
   const config = STATUS_CONFIG[status];
   const limitingMuscleNames = new Set(limitingFactors.map(lf => lf.muscle));
+  const { isMotionEnabled } = useMotion();
 
   return (
-    <div
+    <motion.div
       className={`rounded-lg border ${config.borderColor} ${config.bgColor} p-4 space-y-3`}
+      variants={isMotionEnabled ? listItemVariants : undefined}
+      initial={isMotionEnabled ? 'hidden' : undefined}
+      animate={isMotionEnabled ? 'show' : undefined}
+      transition={SPRING_TRANSITION}
     >
       {/* Header with exercise name and status badge */}
       <div className="flex items-start justify-between gap-3">
@@ -208,7 +216,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           Add to Workout
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

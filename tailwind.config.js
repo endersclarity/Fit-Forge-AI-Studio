@@ -22,6 +22,19 @@ export default {
           border: '#BFCBEE',
           text: '#566890',
         },
+        glass: {
+          surface: {
+            light: 'rgba(255,255,255,0.55)',
+            lightElevated: 'rgba(255,255,255,0.62)',
+            dark: 'rgba(15,23,42,0.72)',
+            darkElevated: 'rgba(15,23,42,0.82)',
+          },
+          border: {
+            light: 'rgba(255,255,255,0.35)',
+            subtle: 'rgba(255,255,255,0.25)',
+            dark: 'rgba(255,255,255,0.18)',
+          },
+        },
         // Legacy colors (KEEP for backward compatibility)
         'brand-cyan': '#22d3ee',
         'brand-dark': '#0f172a',
@@ -42,9 +55,13 @@ export default {
       boxShadow: {
         'button-primary': '0 2px 8px rgba(117, 138, 198, 0.4)',
         'drawer': '0 -10px 30px -15px rgba(0, 0, 0, 0.2)',
+        'glass': '0 20px 45px -35px rgba(15,23,42,0.75)',
       },
       backgroundImage: {
         'heavenly-gradient': 'linear-gradient(180deg, rgba(235, 241, 255, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%)',
+        'dark-gradient': 'linear-gradient(180deg, rgba(15,23,42,0.92) 0%, rgba(30,41,59,0.96) 100%)',
+        'marble-texture': 'url("/data/marble-texture.png")',
+        'photo-overlay': 'linear-gradient(120deg, rgba(0,0,0,0.35), rgba(0,0,0,0.1))',
       },
       borderRadius: {
         xl: '1.5rem',  // 24px - cards, search bars

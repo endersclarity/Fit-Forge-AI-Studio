@@ -42,6 +42,23 @@ export const colors = {
     surface: '#1e293b',  // Brand surface (legacy)
     muted: '#475569',    // Brand muted (legacy)
   },
+
+  /**
+   * Glass surfaces - canonical opacity/border sets
+   */
+  glass: {
+    surface: {
+      light: 'rgba(255,255,255,0.55)',
+      lightElevated: 'rgba(255,255,255,0.62)',
+      dark: 'rgba(15,23,42,0.72)',
+      darkElevated: 'rgba(15,23,42,0.82)',
+    },
+    border: {
+      light: 'rgba(255,255,255,0.35)',
+      subtle: 'rgba(255,255,255,0.25)',
+      dark: 'rgba(255,255,255,0.18)',
+    },
+  },
 } as const;
 
 /**
@@ -52,6 +69,7 @@ export type ColorTokens = typeof colors;
 export type PrimaryColor = keyof typeof colors.primary;
 export type BadgeColor = keyof typeof colors.badge;
 export type LegacyColor = keyof typeof colors.legacy;
+export type GlassColor = keyof typeof colors.glass;
 
 /**
  * Helper function to get color value by path

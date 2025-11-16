@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { BuilderSet, BuilderWorkout, Exercise, MuscleStatesResponse, MuscleBaselines, WorkoutTemplate, ExerciseCategory, Variation, Muscle } from '../types';
 import { muscleStatesAPI, muscleBaselinesAPI, builderAPI, templatesAPI, getExerciseHistory, completeWorkout, WorkoutCompletionResponse, WorkoutForecastRequest, WorkoutForecastResponse } from '../api';
@@ -14,6 +15,8 @@ import ExerciseGroup from './ExerciseGroup';
 import BaselineUpdateModal from './BaselineUpdateModal';
 import Sheet from '@/src/design-system/components/primitives/Sheet';
 import Button from '@/src/design-system/components/primitives/Button';
+import { useMotion } from '@/src/providers/MotionProvider';
+import { listContainerVariants, listItemVariants, SPRING_TRANSITION } from '@/src/providers/motion-presets';
 
 interface WorkoutBuilderProps {
   isOpen: boolean;
@@ -73,6 +76,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
   loadedTemplate = null,
   currentBodyweight,
 }) => {
+  const { isMotionEnabled } = useMotion();
   const navigate = useNavigate();
   const [mode, setMode] = useState<BuilderMode>('planning');
   const [planningMode, setPlanningMode] = useState<PlanningMode>('forward');
@@ -1104,19 +1108,47 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
               <>
                 <div className="mt-4 space-y-3">
                   <h4 className="font-semibold mb-2">Planned Sets ({workout.sets.length})</h4>
-                  {groupSetsByExercise(workout.sets).map((group) => (
-                    <ExerciseGroup
-                      key={group.exerciseId}
-                      exerciseName={group.exerciseName}
-                      sets={group.sets}
-                      startingSetNumber={group.startingSetNumber}
-                      onEdit={handleEditSet}
-                      onDelete={handleDeleteSet}
-                      onDuplicate={handleDuplicateSet}
-                      onWeightChange={handleSetWeightChange}
-                      onRepsChange={handleSetRepsChange}
-                    />
-                  ))}
+                  {isMotionEnabled ? (
+                    <motion.div
+                      className="space-y-3"
+                      variants={listContainerVariants}
+                      initial="hidden"
+                      animate="show"
+                    >
+                      {groupSetsByExercise(workout.sets).map((group) => (
+                        <motion.div
+                          key={group.exerciseId}
+                          variants={listItemVariants}
+                          transition={SPRING_TRANSITION}
+                        >
+                          <ExerciseGroup
+                            exerciseName={group.exerciseName}
+                            sets={group.sets}
+                            startingSetNumber={group.startingSetNumber}
+                            onEdit={handleEditSet}
+                            onDelete={handleDeleteSet}
+                            onDuplicate={handleDuplicateSet}
+                            onWeightChange={handleSetWeightChange}
+                            onRepsChange={handleSetRepsChange}
+                          />
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  ) : (
+                    groupSetsByExercise(workout.sets).map((group) => (
+                      <ExerciseGroup
+                        key={group.exerciseId}
+                        exerciseName={group.exerciseName}
+                        sets={group.sets}
+                        startingSetNumber={group.startingSetNumber}
+                        onEdit={handleEditSet}
+                        onDelete={handleDeleteSet}
+                        onDuplicate={handleDuplicateSet}
+                        onWeightChange={handleSetWeightChange}
+                        onRepsChange={handleSetRepsChange}
+                      />
+                    ))
+                  )}
                 </div>
 
                 {/* Story 3.4: Real-Time Workout Forecast Panel */}

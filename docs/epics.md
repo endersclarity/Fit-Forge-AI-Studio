@@ -2782,15 +2782,15 @@ Epic 5 established the design system foundation (Button, Card, Input, Sheet prim
 
 **Epic Goal**: Complete the design system integration started in Epic 6 by migrating all remaining components and establishing 100% design system adoption across the codebase.
 
-**Status**: READY TO START
-**Priority**: CRITICAL (Blocks Epic 7)
+**Status**: IN PROGRESS (wrappers-first rollout)
+**Priority**: CRITICAL (enables Epic 7+/cleanup)
 **Estimated Time**: 48-64 hours (5 stories)
 
 ### Background
 
-Epic 6 successfully integrated the design system into 4 core workflow components (WorkoutBuilder, QuickAdd, CalibrationEditor, EngagementViewer), proving the patterns work. However, **73 components (~13,431 lines of code) still use legacy inline JSX** instead of design system primitives. Production verification revealed that Railway deployment doesn't reflect Epic 6 changes, and the codebase has duplicate components (e.g., `components/ui/Card.tsx` vs `src/design-system/components/primitives/Card.tsx`).
+Epic 6 successfully integrated the design system into 4 core workflow components (WorkoutBuilder, QuickAdd, CalibrationEditor, EngagementViewer), proving the patterns work. Instead of rewriting 70+ remaining components up front, we shifted to a **wrappers-first adoption plan**: legacy entry points (`components/ui/*`, `components/layout/*`) now proxy the design-system primitives/patterns while we migrate high-impact screens opportunistically and schedule a codemod for final cleanup.
 
-Epic 7 (Intelligence Shortcuts) stories were drafted assuming the pre-6.5 architecture. Completing Epic 6.5 first ensures Epic 7 builds on a unified design system foundation.
+Epic 7 now builds directly on those wrappers, and Epic 6.5 tracks the verification + cleanup work required to delete the duplicates once codemodded.
 
 ### Problem Statement
 
@@ -3065,33 +3065,33 @@ Epics 1-4 delivered the muscle intelligence core (calculation services, APIs, fr
 
 ### Stories
 
-#### Story 7.1: Auto-Starting Rest Timer
+#### Story 7.1: Auto-Starting Rest Timer _(DONE – Nov 2025)_
 - Create `RestTimerBanner` component (fixed position at top)
 - Auto-start when user logs a set with haptic feedback
 - Show skip button and progress bar
 - Auto-dismiss when timer completes
 - **Benefit**: Users don't need to manually start rest timers
 
-#### Story 7.2: "Log All Sets?" Smart Shortcut
+#### Story 7.2: "Log All Sets?" Smart Shortcut _(DONE – Nov 2025)_
 - Detect pattern: 2-3 sets logged with matching weight/reps
 - Show bottom sheet modal: "Log all remaining sets at 135 lbs, 8 reps?"
 - One-tap confirmation to fill all remaining sets
 - **Benefit**: Reduces set logging from 4-6 clicks per set → 1 tap for all remaining
 
-#### Story 7.3: One-Tap Set Duplication
+#### Story 7.3: One-Tap Set Duplication _(DONE – Nov 2025)_
 - Add "Copy Previous Set" button next to weight/reps inputs
 - Copies weight, reps, and to-failure flag from prior set
 - Include haptic feedback
 - **Benefit**: Cuts logging time when doing multiple sets of same weight/reps
 
-#### Story 7.4: Equipment Filtering
+#### Story 7.4: Equipment Filtering _(DONE – Nov 2025)_
 - Update ExercisePicker to filter by user's available equipment
 - Add toggle for "Show All" (bypass filter)
 - Persist filter preference to localStorage
 - Display active filter count badge
 - **Benefit**: Eliminates suggestions for exercises user can't perform
 
-#### Story 7.5: Progressive Disclosure
+#### Story 7.5: Progressive Disclosure _(DONE – Nov 2025)_
 - Collapse advanced options (rest time, notes, to-failure) by default
 - Show/hide toggle on workout and dashboard forms
 - Keep primary inputs (weight, reps, log) always visible
@@ -3100,16 +3100,16 @@ Epics 1-4 delivered the muscle intelligence core (calculation services, APIs, fr
 
 ### Acceptance Criteria (Epic Level)
 
-- [ ] Auto rest timer starts correctly after set logged
-- [ ] "Log All Sets?" appears after 2-3 matching sets
-- [ ] Copy Previous Set button works on all set logging forms
-- [ ] Equipment filter persists between sessions
-- [ ] Progressive disclosure state persists
-- [ ] All new components maintain 60x60px touch targets (WCAG AA)
-- [ ] Haptic feedback on all shortcuts (where supported)
-- [ ] No regressions on existing features
-- [ ] All existing tests still passing (476+ tests)
-- [ ] New interaction tests added for all shortcuts
+- [x] Auto rest timer starts correctly after set logged (`RestTimerBanner`)
+- [x] "Log All Sets?" appears after 2-3 matching sets (pattern detection + sheet)
+- [x] Copy Previous Set button works on all set logging forms (duplication shortcut)
+- [x] Equipment filter persists between sessions (Quick Add + picker)
+- [x] Progressive disclosure state persists (Workout + Dashboard toggles)
+- [ ] All new components maintain 60x60px touch targets (spot-check during QA)
+- [x] Haptic feedback on all shortcuts (rest timer, log-all, duplication)
+- [ ] No regressions on existing features (manual verification pending)
+- [ ] All existing tests still passing (476+ tests – run before release)
+- [ ] New interaction tests added for all shortcuts (future work)
 
 ### Technical Notes
 

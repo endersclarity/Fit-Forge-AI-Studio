@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(lean-story-workflow)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
