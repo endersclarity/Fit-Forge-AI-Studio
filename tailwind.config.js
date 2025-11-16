@@ -88,6 +88,15 @@ export default {
         xl: '1.5rem',  // 24px - cards, search bars
         '2xl': '2rem', // 32px
       },
+      keyframes: {
+        'shimmer-slide': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+      animation: {
+        'shimmer-slide': 'shimmer-slide 1.5s infinite ease-in-out',
+      },
     },
   },
   plugins: [],
