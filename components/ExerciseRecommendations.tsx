@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   Exercise,
   ExerciseCategory,
@@ -14,6 +15,8 @@ import { EXERCISE_LIBRARY } from '../constants';
 
 // Design System Primitives
 import { Card, Button, Badge } from '@/src/design-system/components/primitives';
+import { useMotion } from '@/src/providers/MotionProvider';
+import { listContainerVariants } from '@/src/providers/motion-presets';
 
 import CategoryTabs from './CategoryTabs';
 import RecommendationCard from './RecommendationCard';
@@ -351,6 +354,21 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
     );
   }
 
+  const { isMotionEnabled } = useMotion();
+  const renderAnimatedGrid = (className: string, children: React.ReactNode) =>
+    isMotionEnabled ? (
+      <motion.div
+        className={className}
+        variants={listContainerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        {children}
+      </motion.div>
+    ) : (
+      <div className={className}>{children}</div>
+    );
+
   return (
     <Card className="p-4 space-y-4 bg-white/50 backdrop-blur-lg">
       <div className="flex items-center justify-between">
@@ -387,8 +405,8 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
             <h4 className="text-lg font-display font-semibold text-foreground">⭐ Excellent Opportunities</h4>
             <Badge variant="success" size="sm">{excellent.length}</Badge>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {excellent.slice(0, 6).map(rec => (
+          {renderAnimatedGrid('grid grid-cols-1 md:grid-cols-2 gap-3', (
+            excellent.slice(0, 6).map(rec => (
               <RecommendationCard
                 key={rec.exercise.id}
                 exercise={rec.exercise}
@@ -404,8 +422,8 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
                 factors={(rec as any)._apiFactors}
                 warnings={(rec as any)._apiWarnings}
               />
-            ))}
-          </div>
+            ))
+          ))}
         </div>
       )}
 
@@ -416,8 +434,8 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
             <h4 className="text-lg font-display font-semibold text-foreground">✅ Good Options</h4>
             <Badge variant="info" size="sm">{good.length}</Badge>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {good.slice(0, 6).map(rec => (
+          {renderAnimatedGrid('grid grid-cols-1 md:grid-cols-2 gap-3', (
+            good.slice(0, 6).map(rec => (
               <RecommendationCard
                 key={rec.exercise.id}
                 exercise={rec.exercise}
@@ -433,16 +451,16 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
                 factors={(rec as any)._apiFactors}
                 warnings={(rec as any)._apiWarnings}
               />
-            ))}
-          </div>
+            ))
+          ))}
         </div>
       )}
 
       {/* Suboptimal (Collapsed by default) */}
       {suboptimal.length > 0 && (
         <CollapsibleSection title={`⚠️ Suboptimal (${suboptimal.length} exercises - Limiting Factors Detected)`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {suboptimal.map(rec => (
+          {renderAnimatedGrid('grid grid-cols-1 md:grid-cols-2 gap-3', (
+            suboptimal.map(rec => (
               <RecommendationCard
                 key={rec.exercise.id}
                 exercise={rec.exercise}
@@ -458,16 +476,16 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
                 factors={(rec as any)._apiFactors}
                 warnings={(rec as any)._apiWarnings}
               />
-            ))}
-          </div>
+            ))
+          ))}
         </CollapsibleSection>
       )}
 
       {/* Not Recommended (Collapsed by default) */}
       {notRecommended.length > 0 && (
         <CollapsibleSection title={`❌ Not Recommended (${notRecommended.length} exercises - Needs Recovery)`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {notRecommended.map(rec => (
+          {renderAnimatedGrid('grid grid-cols-1 md:grid-cols-2 gap-3', (
+            notRecommended.map(rec => (
               <RecommendationCard
                 key={rec.exercise.id}
                 exercise={rec.exercise}
@@ -483,8 +501,8 @@ const ExerciseRecommendations: React.FC<ExerciseRecommendationsProps> = ({
                 factors={(rec as any)._apiFactors}
                 warnings={(rec as any)._apiWarnings}
               />
-            ))}
-          </div>
+            ))
+          ))}
         </CollapsibleSection>
       )}
 

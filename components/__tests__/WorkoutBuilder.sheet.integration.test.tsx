@@ -52,7 +52,7 @@ vi.mock('../../api', () => ({
 // Mock Framer Motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    div: ({ children, animate, initial, exit, transition, variants, whileHover, whileTap, whileInView, layout, layoutId, ...props }: any) => <div {...props}>{children}</div>,
   },
 }));
 

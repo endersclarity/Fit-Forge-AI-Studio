@@ -13,7 +13,7 @@ import FAB from '../FAB';
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
   motion: {
-    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+    button: ({ children, animate, initial, exit, transition, variants, whileHover, whileTap, whileInView, layout, layoutId, ...props }: any) => <button {...props}>{children}</button>,
   },
 }));
 

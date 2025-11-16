@@ -18,7 +18,7 @@ expect.extend(toHaveNoViolations);
 // Mock Framer Motion to avoid animation complexity in tests
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, className, ...props }: any) => (
+    div: ({ children, className, animate, initial, exit, transition, variants, whileHover, whileTap, whileInView, layout, layoutId, ...props }: any) => (
       <div className={className} {...props}>
         {children}
       </div>

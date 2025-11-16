@@ -6,8 +6,12 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     setupFiles: ['./.storybook/vitest.setup.ts'],
+    globalSetup: './vitest.global-setup.ts',
+    pool: 'threads',
+    minThreads: 1,
+    maxThreads: 1,
     css: true,
   },
   resolve: {

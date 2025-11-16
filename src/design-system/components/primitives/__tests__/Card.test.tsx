@@ -33,10 +33,7 @@ describe('Card Component', () => {
       const { container } = render(<Card>Content</Card>);
       const card = container.firstChild as HTMLElement;
 
-      expect(card).toHaveClass('bg-white/50');
-      expect(card).toHaveClass('backdrop-blur-sm');
-      expect(card).toHaveClass('border');
-      expect(card).toHaveClass('border-gray-300/50');
+      expect(card).toHaveClass('glass-panel');
     });
 
     it('should render with rounded corners', () => {
@@ -50,17 +47,16 @@ describe('Card Component', () => {
       const { container } = render(<Card variant="default">Content</Card>);
       const card = container.firstChild as HTMLElement;
 
-      expect(card).toHaveClass('hover:bg-white/60');
-      expect(card).toHaveClass('hover:border-gray-400/50');
+      expect(card).toHaveClass('glass-panel');
+      expect(card).not.toHaveClass('glass-panel-elevated');
     });
 
     it('should apply elevated variant styling', () => {
       const { container } = render(<Card variant="elevated">Content</Card>);
       const card = container.firstChild as HTMLElement;
 
-      expect(card).toHaveClass('shadow-lg');
-      expect(card).toHaveClass('hover:shadow-xl');
-      expect(card).toHaveClass('hover:bg-white/60');
+      expect(card).toHaveClass('glass-panel');
+      expect(card).toHaveClass('glass-panel-elevated');
     });
 
     it('should apply custom className', () => {
@@ -70,7 +66,7 @@ describe('Card Component', () => {
       const card = container.firstChild as HTMLElement;
 
       expect(card).toHaveClass('custom-class');
-      expect(card).toHaveClass('bg-white/50'); // Default still applied
+      expect(card).toHaveClass('glass-panel'); // Default still applied
     });
 
     it('should render as div element', () => {
@@ -259,20 +255,18 @@ describe('Card Component', () => {
       });
     });
 
-    it('default variant should not have shadow classes', () => {
+    it('default variant should not have elevated class', () => {
       const { container } = render(<Card variant="default">Content</Card>);
       const card = container.firstChild as HTMLElement;
 
-      expect(card).not.toHaveClass('shadow-lg');
-      expect(card).not.toHaveClass('hover:shadow-xl');
+      expect(card).not.toHaveClass('glass-panel-elevated');
     });
 
-    it('elevated variant should have shadow classes', () => {
+    it('elevated variant should have elevated class', () => {
       const { container } = render(<Card variant="elevated">Content</Card>);
       const card = container.firstChild as HTMLElement;
 
-      expect(card).toHaveClass('shadow-lg');
-      expect(card).toHaveClass('hover:shadow-xl');
+      expect(card).toHaveClass('glass-panel-elevated');
     });
   });
 
@@ -281,14 +275,9 @@ describe('Card Component', () => {
       const { container } = render(<Card>Content</Card>);
       const card = container.firstChild as HTMLElement;
 
-      // White/50 = semi-transparent white background
-      expect(card).toHaveClass('bg-white/50');
-
-      // Backdrop blur for glass effect
-      expect(card).toHaveClass('backdrop-blur-sm');
-
-      // Subtle border
-      expect(card).toHaveClass('border-gray-300/50');
+      // Glass panel utility class contains all glass morphism properties
+      // (backdrop-blur, border, shadow, and hover effects)
+      expect(card).toHaveClass('glass-panel');
     });
   });
 
@@ -322,9 +311,8 @@ describe('Card Component', () => {
       );
       const card = container.firstChild as HTMLElement;
 
-      // Default glass morphism classes
-      expect(card).toHaveClass('bg-white/50');
-      expect(card).toHaveClass('backdrop-blur-sm');
+      // Default glass morphism class
+      expect(card).toHaveClass('glass-panel');
 
       // Custom classes
       expect(card).toHaveClass('p-8');
@@ -337,8 +325,8 @@ describe('Card Component', () => {
       const { container } = render(<Card>Content</Card>);
       const card = container.firstChild as HTMLElement;
 
-      expect(card).toHaveClass('hover:bg-white/60');
-      expect(card).not.toHaveClass('shadow-lg');
+      expect(card).toHaveClass('glass-panel');
+      expect(card).not.toHaveClass('glass-panel-elevated');
     });
   });
 });

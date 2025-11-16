@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAPIState } from './hooks/useAPIState';
 import { profileAPI, workoutsAPI, muscleStatesAPI, personalBestsAPI, muscleBaselinesAPI, templatesAPI } from './api';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from './constants';
@@ -18,7 +18,19 @@ import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard
 import BaselineUpdateModal from './components/BaselineUpdateModal';
 import UXMockup from './components/ux-mockup';
 import { calculateVolume } from './utils/helpers';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useMotion } from './src/providers/MotionProvider';
+import { pageTransitionVariants, SPRING_TRANSITION } from './src/providers/motion-presets';
 import { detectProgressionMethod } from './utils/progressionMethodDetector';
+
+// Accessibility: Load axe-core in development only
+if (import.meta.env.DEV) {
+  import('@axe-core/react').then((axe) => {
+    import('react-dom').then((ReactDOM) => {
+      axe.default(React, ReactDOM, 1000);
+    });
+  });
+}
 
 export interface RecommendedWorkoutData {
     type: ExerciseCategory;
@@ -29,6 +41,26 @@ export interface RecommendedWorkoutData {
 
 const App: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isMotionEnabled } = useMotion();
+
+  const wrapPage = useCallback(
+    (node: React.ReactNode) =>
+      isMotionEnabled ? (
+        <motion.div
+          variants={pageTransitionVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={SPRING_TRANSITION}
+        >
+          {node}
+        </motion.div>
+      ) : (
+        <>{node}</>
+      ),
+    [isMotionEnabled]
+  );
   const [isFirstTimeUser, setIsFirstTimeUser] = useState<boolean>(false);
 
   // Initialize default values
@@ -344,8 +376,9 @@ const App: React.FC = () => {
         onDecline={handleBaselineUpdateDecline}
       />
 
-      <Routes>
-        <Route path="/" element={
+      <AnimatePresence mode="wait" initial={false}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={wrapPage(
           <Dashboard
             profile={profile}
             workouts={workouts}
@@ -360,10 +393,9 @@ const App: React.FC = () => {
             onNavigateToTemplates={() => navigate('/templates')}
             onNavigateToAnalytics={() => navigate('/analytics')}
             onNavigateToMuscleBaselines={() => navigate('/muscle-baselines')}
-          />
-        } />
+          />)} />
 
-        <Route path="/workout" element={
+          <Route path="/workout" element={wrapPage(
           <WorkoutTracker
             onFinishWorkout={handleFinishWorkout}
             onCancel={handleCancelWorkout}
@@ -373,39 +405,36 @@ const App: React.FC = () => {
             muscleBaselines={muscleBaselines}
             initialData={recommendedWorkout}
             plannedExercises={plannedExercises}
-          />
-        } />
+          />)} />
 
-        <Route path="/profile" element={
+          <Route path="/profile" element={wrapPage(
           <Profile
             profile={profile}
             setProfile={setProfile}
             muscleBaselines={muscleBaselines}
             setMuscleBaselines={setMuscleBaselines}
             onBack={() => navigate('/')}
-          />
-        } />
+          />)} />
 
-        <Route path="/bests" element={
+          <Route path="/bests" element={wrapPage(
           <PersonalBestsComponent
             personalBests={personalBests}
             onBack={() => navigate('/')}
-          />
-        } />
+          />)} />
 
-        <Route path="/templates" element={
+          <Route path="/templates" element={wrapPage(
           <WorkoutTemplates
             onBack={() => navigate('/')}
             onSelectTemplate={handleSelectTemplate}
-          />
-        } />
+          />)} />
 
-        <Route path="/analytics" element={<Analytics />} />
+          <Route path="/analytics" element={wrapPage(<Analytics />)} />
 
-        <Route path="/muscle-baselines" element={<MuscleBaselinesPage />} />
+          <Route path="/muscle-baselines" element={wrapPage(<MuscleBaselinesPage />)} />
 
-        <Route path="/ux-mockup" element={<UXMockup />} />
-      </Routes>
+          <Route path="/ux-mockup" element={wrapPage(<UXMockup />)} />
+        </Routes>
+      </AnimatePresence>
     </div>
   );
 };

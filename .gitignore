@@ -53,3 +53,7 @@ nul
 
 # Temporary directories
 temp-*
+# BMAD (local only)
+
+# Serena MCP memories
+.serena/

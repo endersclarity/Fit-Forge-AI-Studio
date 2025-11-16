@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
 import { Muscle, MuscleStatesResponse, DetailedMuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse, PlannedExercise } from '../types';
 import { formatDuration } from '../utils/helpers';
@@ -20,6 +21,8 @@ import TemplateSelector from './TemplateSelector';
 import WorkoutBuilder from './WorkoutBuilder';
 import { DetailedMuscleCard } from './fitness/DetailedMuscleCard';
 import { Card, Button, Badge, ProgressBar } from '../src/design-system/components/primitives';
+import { useMotion } from '@/src/providers/MotionProvider';
+import { listContainerVariants, listItemVariants, SPRING_TRANSITION } from '@/src/providers/motion-presets';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -293,7 +296,97 @@ const MuscleFatigueHeatMap: React.FC<{
 
   return (
     <>
-      <div className="space-y-4">
+      {(isMotionEnabled ? (
+        <motion.div
+          className="space-y-4"
+          variants={listContainerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {categorizedMuscleData.map(({ category, muscles }) => {
+            const Wrapper: any = motion.div;
+            return (
+              <Wrapper
+                key={category}
+                variants={listItemVariants}
+                transition={{ ...SPRING_TRANSITION, damping: 32 }}
+              >
+                {/* Category Header */}
+                <div className="mb-2 mt-4 first:mt-0">
+                  <h4 className="text-sm font-display font-semibold text-gray-600 uppercase tracking-wide">
+                    {category} Muscles
+                  </h4>
+                </div>
+
+                {/* Muscles in Category */}
+                <div className="space-y-2">
+                  {muscles.map(({ muscle, daysSince, fatiguePercent, daysUntilRecovered, lastTrained }) => {
+                    const isReady = fatiguePercent <= 33;
+
+                    // Get detailed muscle data for this visualization muscle
+                    const detailedMuscles = Object.values(detailedMuscleStates).filter(
+                      (dm) => dm.visualizationMuscleName === muscle
+                    );
+
+                    // Conditional rendering based on detail level
+                    if (muscleDetailLevel === 'detailed' && detailedMuscles.length > 0) {
+                      return (
+                        <DetailedMuscleCard
+                          key={muscle}
+                          muscleName={muscle}
+                          aggregateFatigue={fatiguePercent}
+                          detailedMuscles={detailedMuscles}
+                          lastTrained={lastTrained ? new Date(lastTrained) : null}
+                          onClick={() => handleMuscleClick(muscle)}
+                        />
+                      );
+                    }
+
+                    // Default simple view
+                    return (
+                      <Card key={muscle} variant="default" className="bg-white/50 backdrop-blur-lg">
+                        <button
+                          onClick={() => handleMuscleClick(muscle)}
+                          className="w-full text-left p-3 focus:outline-none hover:bg-gray-100/20 transition-colors cursor-pointer min-h-[60px]"
+                          aria-label={`${muscle}: ${fatiguePercent}% fatigued${isReady ? ', ready now' : `, ready in ${daysUntilRecovered} days`}`}
+                        >
+                          <div className="flex justify-between items-center mb-2 text-sm">
+                            <span className="font-display font-medium">{muscle}</span>
+                            <Badge
+                              variant={fatiguePercent === 0 ? 'success' : fatiguePercent <= 33 ? 'success' : fatiguePercent <= 66 ? 'warning' : 'error'}
+                              size="sm"
+                            >
+                              {fatiguePercent === 0 ? 'Fully Recovered' : `${fatiguePercent}% fatigued`}
+                            </Badge>
+                          </div>
+                          <ProgressBar
+                            value={fatiguePercent}
+                            variant={fatiguePercent <= 33 ? 'success' : fatiguePercent <= 66 ? 'warning' : 'error'}
+                            size="md"
+                            aria-label={`Fatigue level: ${fatiguePercent}%`}
+                            className="mb-2"
+                          />
+                          <div className="flex justify-between items-center text-xs text-gray-700 font-body">
+                            <span>
+                              {lastTrained ? `Last trained: ${daysSince !== null ? Math.floor(daysSince) : 0}d ago` : 'Never trained'}
+                            </span>
+                            {isReady ? (
+                              <Badge variant="success" size="sm">Ready now</Badge>
+                            ) : (
+                              <span>Ready in {daysUntilRecovered}d</span>
+                            )}
+                          </div>
+                        </button>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </Wrapper>
+            );
+          })}
+        </motion.div>
+      ) : (
+        <div className="space-y-4">
         {categorizedMuscleData.map(({ category, muscles }) => (
           <div key={category}>
             {/* Category Header */}
@@ -369,6 +462,7 @@ const MuscleFatigueHeatMap: React.FC<{
           </div>
         ))}
       </div>
+      ))}
 
       {/* Exercise Modal */}
       {isModalOpen && (
@@ -545,6 +639,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
   // Get location for refresh detection
   const location = useLocation();
+  const { isMotionEnabled } = useMotion();
 
   // Toast handler
   const handleToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
