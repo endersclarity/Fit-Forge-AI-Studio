@@ -172,6 +172,10 @@ export const workoutsAPI = {
       muscleFatigueHistory: {}
     }));
   },
+  getAllRaw: async (limit: number = 100): Promise<WorkoutResponse[]> => {
+    // Returns raw backend workout format for WorkoutHistoryPage
+    return await apiRequest<WorkoutResponse[]>(`/workouts?limit=${limit}`);
+  },
   getLastByCategory: async (category: string): Promise<WorkoutResponse | null> => {
     try {
       return await apiRequest<WorkoutResponse>(`/workouts/last?category=${encodeURIComponent(category)}`);
@@ -213,6 +217,11 @@ export const workoutsAPI = {
       id: String(saved.id),
       prs: saved.prs // Include PRs returned from the API
     };
+  },
+  delete: async (id: number): Promise<void> => {
+    await apiRequest(`/workouts/${id}`, {
+      method: 'DELETE',
+    });
   },
 };
 
