@@ -24,6 +24,8 @@ import { Card, Button, Badge, ProgressBar } from '../src/design-system/component
 import { useMotion } from '@/src/providers/MotionProvider';
 import { listContainerVariants, listItemVariants, SPRING_TRANSITION } from '@/src/providers/motion-presets';
 import { EmptyState } from './common/EmptyState';
+import { useSavedWorkouts } from '../hooks/useSavedWorkouts';
+import { useWorkoutSession } from '../contexts/WorkoutSessionContext';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -603,6 +605,10 @@ const WorkoutHistory: React.FC<{ workouts: WorkoutSession[]; onStartWorkout?: ()
 
 const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaselines, templates, onStartWorkout, onStartPlannedWorkout, onStartRecommendedWorkout, onSelectTemplate, onNavigateToProfile, onNavigateToBests, onNavigateToTemplates, onNavigateToAnalytics, onNavigateToMuscleBaselines }) => {
 
+  // Saved workouts and workout session hooks
+  const { savedWorkouts } = useSavedWorkouts();
+  const { startSession, selectExercise } = useWorkoutSession();
+
   // State management for fetching muscle states from API
   const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
   const [detailedMuscleStates, setDetailedMuscleStates] = useState<DetailedMuscleStatesResponse>({});
@@ -868,6 +874,49 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
             </Button>
         </section>
 
+        {/* Saved Workouts Section */}
+        {savedWorkouts.length > 0 && (
+          <div className="bg-white dark:bg-brand-surface rounded-xl p-6 shadow-sm border border-slate-200 dark:border-brand-muted">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">
+              Saved Workouts
+            </h2>
+            <div className="space-y-3">
+              {savedWorkouts.slice(0, 5).map(workout => (
+                <div
+                  key={workout.id}
+                  className="bg-slate-50 dark:bg-brand-dark rounded-lg p-4 border border-slate-200 dark:border-brand-muted"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                        {workout.name}
+                      </h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        {workout.exercises.length} exercises
+                      </p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                        {workout.exercises.slice(0, 3).map(e => e.exerciseName).join(', ')}
+                        {workout.exercises.length > 3 && '...'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        // Load workout and start
+                        startSession();
+                        const firstEx = workout.exercises[0];
+                        selectExercise(firstEx.exerciseId, firstEx.exerciseName);
+                        navigate('/workout/log');
+                      }}
+                      className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors"
+                    >
+                      Start
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
           <p className="text-xs text-slate-500 dark:text-dark-text-muted">
