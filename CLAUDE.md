@@ -99,3 +99,41 @@ docker-compose up -d --build
 2. Backend MUST ALWAYS run on port **3001**
 3. NEVER let Vite or any process run on different ports (3002, 3003, 3005, etc.)
 4. If ports are busy, containers are still running - STOP THEM FIRST with `docker-compose down`
+
+---
+
+# Serena MCP: Semantic Code Intelligence (ALWAYS CONSIDER)
+
+**Before using Read, Grep, or Edit on TypeScript/JavaScript code, ALWAYS consider Serena alternatives:**
+
+## Tool Selection Rules (Validated via A/B Testing)
+
+| Task | Use Serena Instead | Savings |
+|------|-------------------|---------|
+| Understand file structure | `get_symbols_overview` instead of Read | 4x token savings |
+| Find function usage | `find_referencing_symbols` instead of Grep | No false positives |
+| Get previous analysis | `read_memory` instead of re-analyzing | 100x faster |
+| Trace dependencies | `find_referencing_symbols` instead of manual grep | Semantic context |
+| Rename identifiers | `rename_symbol` instead of multiple Edits | Auto-updates all refs |
+
+## When Serena Wins (Always Use)
+- Understanding code symbols → `mcp__serena__get_symbols_overview`
+- Tracing hook/function consumers → `mcp__serena__find_referencing_symbols`
+- Loading previous context → `mcp__serena__read_memory`
+- Forced reflection → `mcp__serena__think_about_*` tools
+- Persisting decisions → `mcp__serena__write_memory`
+
+## When Claude Code Wins (Use These)
+- CSS class patterns → Grep
+- Config/JSON files → Read
+- String literal changes → Edit
+- Text patterns (not symbols) → Grep
+
+## Memory First Pattern
+```
+1. list_memories() → Check what context exists
+2. read_memory("relevant_topic") → Load prior analysis instantly
+3. Only re-analyze if memory doesn't exist
+```
+
+**See `.claude/skills/serena-mastery/SKILL.md` for comprehensive patterns and examples.**

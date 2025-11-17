@@ -1,9 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Skill(lean-story-workflow)"
+      "Skill(lean-story-workflow)",
+      "Skill(serena-mastery)"
     ],
     "deny": [],
     "ask": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/serena-reminder.sh"
+          }
+        ]
+      }
+    ]
   }
 }

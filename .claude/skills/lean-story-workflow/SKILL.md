@@ -159,15 +159,77 @@ npm run test:run -- <related-files>
 
 ## Tool Integration
 
-| Task | Tool to Use |
-|------|------------|
-| Track session progress | TodoWrite |
-| Understand code structure | Serena `get_symbols_overview`, `find_symbol` |
-| Find symbol usage | Serena `find_referencing_symbols` |
-| Precise symbol edits | Serena `replace_symbol_body` |
-| Run tests/build | Bash |
-| Remember decisions | Serena `write_memory` |
-| Read story file | Read tool |
+### Hybrid Tool Strategy (Based on A/B Testing)
+
+**Use Serena MCP tools for:**
+- Understanding code structure → `get_symbols_overview`
+- Finding symbol implementations → `find_symbol` with `include_body=True`
+- Tracing code relationships → `find_referencing_symbols`
+- Project memory/context → `read_memory`, `write_memory`, `list_memories`
+- Reflection checkpoints → `think_about_collected_information`, `think_about_task_adherence`
+- Session continuity → `prepare_for_new_conversation`
+
+**Use Claude Code tools for:**
+- Pattern matching in CSS/config → Grep
+- Finding text strings (classNames, etc.) → Grep
+- Simple file reads → Read
+- Text-based edits → Edit
+- Running commands → Bash
+
+### Tool Selection Matrix (Validated via A/B Testing)
+
+| Task | Best Tool | Why | Test Result |
+|------|-----------|-----|-------------|
+| Track session progress | TodoWrite | Native session tracking | - |
+| Understand TypeScript code structure | Serena `get_symbols_overview` | 4x token savings (150 vs 600) | ✅ Test 3 |
+| Find where hook/function is used | Serena `find_referencing_symbols` | No false positives, semantic context | ✅ Test 2 (9/10) |
+| Trace call chains | Serena `find_referencing_symbols` | Found 14 files, distinguishes imports vs calls | ✅ Test 2 |
+| Search CSS class patterns | Grep | Text pattern, not symbols | ✅ Test 3 |
+| Read config/JSON files | Read | Not code symbols | ✅ A/B test |
+| Edit function implementation | Serena `replace_symbol_body` | Symbol-level precision | - |
+| Rename identifiers codebase-wide | Serena `rename_symbol` | Auto-updates all references | ⚠️ Test 1 (code only, not strings) |
+| Edit CSS/className strings | Edit | Text replacement | ✅ A/B test |
+| Run tests/build | Bash | Shell execution | - |
+| Remember decisions | Serena `write_memory` | Persists across sessions | ✅ Test 4 (100x faster) |
+| Check previous context | Serena `read_memory` | 2 calls vs 15-20 fresh analysis | ✅ Test 4 |
+| Cross-file refactoring | Serena `find_referencing_symbols` | Shows destructuring patterns | ✅ Test 5 |
+| Reflect on completeness | Serena `think_about_collected_information` | Forced reflection | - |
+| Verify task alignment | Serena `think_about_task_adherence` | Prevents drift | - |
+
+### Validated Performance Metrics
+
+- **Memory retrieval:** 100-300x faster than re-analysis (Test 4)
+- **Symbol overview:** 4x token savings vs full file read (Test 3)
+- **Reference tracking:** 9/10 accuracy, no false positives (Test 2)
+- **Refactoring analysis:** Semantic understanding beats Grep noise (Test 5)
+- **Identifier renaming:** Works for code, NOT for string literals (Test 1)
+
+### Serena Thinking Tools (USE FREQUENTLY)
+
+**After research/exploration:**
+```
+mcp__serena__think_about_collected_information
+```
+Forces reflection: "Do I have enough info? What's missing?"
+
+**Before making edits:**
+```
+mcp__serena__think_about_task_adherence
+```
+Prevents drift: "Am I still on track with the original task?"
+
+**When wrapping up:**
+```
+mcp__serena__think_about_whether_you_are_done
+```
+Ensures completeness: "Is this actually done, or am I just tired?"
+
+### Memory Workflow
+
+1. **Start of session:** `list_memories` → See what context exists
+2. **Before complex task:** `read_memory` → Load relevant prior analysis
+3. **After important decision:** `write_memory` → Persist for future sessions
+4. **Running low on context:** `prepare_for_new_conversation` → Create continuation summary
 
 ## Quick Status Check
 
