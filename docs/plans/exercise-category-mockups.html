@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise Category Selection - UX Pattern Mockups</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f3f4f6;
+            padding: 2rem;
+            color: #1f2937;
+            line-height: 1.5;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .mockup-container {
+            max-width: 800px;
+            margin: 0 auto 4rem auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .mockup-header {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .mockup-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .mockup-header p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .mockup-content {
+            padding: 1.5rem;
+            min-height: 400px;
+        }
+
+        /* Option A: Accordion Style */
+        .accordion-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            background: #f9fafb;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .accordion-header:hover {
+            background: #f3f4f6;
+        }
+
+        .accordion-header.active {
+            background: #eff6ff;
+            color: #2563eb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .accordion-icon {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            transition: transform 0.2s;
+        }
+
+        .accordion-header.active .accordion-icon {
+            transform: rotate(180deg);
+            color: #2563eb;
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 1rem 1.25rem;
+            background: white;
+        }
+
+        .accordion-content.show {
+            display: block;
+        }
+
+        .exercise-item {
+            padding: 0.75rem 1rem;
+            background: #f9fafb;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exercise-item:hover {
+            background: #eff6ff;
+            transform: translateX(4px);
+        }
+
+        .exercise-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .exercise-name {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .add-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .add-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .load-more {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .load-more-btn {
+            background: transparent;
+            color: #2563eb;
+            border: 1px solid #2563eb;
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .load-more-btn:hover {
+            background: #eff6ff;
+        }
+
+        /* Option B: Tab + Dropdown */
+        .tabs-container {
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            gap: 0;
+        }
+
+        .tab {
+            padding: 0.875rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #374151;
+            background: #f9fafb;
+        }
+
+        .tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background: white;
+        }
+
+        .tab-content {
+            padding: 1.5rem 0;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .tab-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tab-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+
+        .scroll-indicator {
+            text-align: center;
+            padding: 0.75rem;
+            color: #9ca3af;
+            font-size: 0.75rem;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        /* Option C: Button Grid + Side Panel */
+        .grid-panel-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 1.5rem;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .category-btn {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: #374151;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .category-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+            transform: translateY(-2px);
+        }
+
+        .category-btn.active {
+            background: #eff6ff;
+            border-color: #2563eb;
+            color: #2563eb;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1);
+        }
+
+        .category-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .side-panel {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .side-panel-header {
+            font-weight: 600;
+            color: #374151;
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .side-panel-content {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .page-btn {
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .page-btn.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .page-info {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        @media (max-width: 640px) {
+            .grid-panel-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-title">
+        <h1>Exercise Category Selection - UX Pattern Mockups</h1>
+        <p>Three different approaches for browsing exercises by category with pagination (5 at a time)</p>
+    </div>
+
+    <!-- Option A: Accordion Style -->
+    <div class="mockup-container">
+        <div class="mockup-header">
+            <h2>Option A: Accordion Style</h2>
+            <p>All 4 category headers visible vertically. Click to expand and show exercises. Only one section open at a time. Clean, minimal look with vertical space efficiency.</p>
+        </div>
+        <div class="mockup-content">
+            <div class="accordion-item">
+                <div class="accordion-header active" onclick="toggleAccordion(this)">
+                    <span>Push Exercises</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content show">
+                    <div class="exercise-item">
+                        <span class="exercise-name">Bench Press</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Shoulder Press</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Incline Dumbbell Press</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Dips</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Tricep Pushdown</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="load-more">
+                        <button class="load-more-btn">Load More Exercises</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Pull Exercises</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="exercise-item">
+                        <span class="exercise-name">Pull-ups</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Barbell Rows</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Lat Pulldown</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Face Pulls</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Bicep Curls</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="load-more">
+                        <button class="load-more-btn">Load More Exercises</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Legs Exercises</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="exercise-item">
+                        <span class="exercise-name">Squats</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Romanian Deadlifts</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Leg Press</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Lunges</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Calf Raises</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="load-more">
+                        <button class="load-more-btn">Load More Exercises</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Core Exercises</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="exercise-item">
+                        <span class="exercise-name">Plank</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Russian Twists</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Hanging Leg Raises</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Cable Crunches</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="exercise-item">
+                        <span class="exercise-name">Dead Bug</span>
+                        <button class="add-btn">+ Add</button>
+                    </div>
+                    <div class="load-more">
+                        <button class="load-more-btn">Load More Exercises</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Option B: Tab + Dropdown -->
+    <div class="mockup-container">
+        <div class="mockup-header">
+            <h2>Option B: Tab + Dropdown Style</h2>
+            <p>Horizontal tabs across the top for each category. Active tab is highlighted. Below shows a scrollable list of exercises. Familiar pattern, easy to navigate quickly between categories.</p>
+        </div>
+        <div class="mockup-content">
+            <div class="tabs-container">
+                <div class="tab active" onclick="switchTab(this, 'push')">Push</div>
+                <div class="tab" onclick="switchTab(this, 'pull')">Pull</div>
+                <div class="tab" onclick="switchTab(this, 'legs')">Legs</div>
+                <div class="tab" onclick="switchTab(this, 'core')">Core</div>
+            </div>
+            <div class="tab-content" id="tab-content">
+                <div class="exercise-item">
+                    <span class="exercise-name">Bench Press</span>
+                    <button class="add-btn">+ Add</button>
+                </div>
+                <div class="exercise-item">
+                    <span class="exercise-name">Shoulder Press</span>
+                    <button class="add-btn">+ Add</button>
+                </div>
+                <div class="exercise-item">
+                    <span class="exercise-name">Incline Dumbbell Press</span>
+                    <button class="add-btn">+ Add</button>
+                </div>
+                <div class="exercise-item">
+                    <span class="exercise-name">Dips</span>
+                    <button class="add-btn">+ Add</button>
+                </div>
+                <div class="exercise-item">
+                    <span class="exercise-name">Tricep Pushdown</span>
+                    <button class="add-btn">+ Add</button>
+                </div>
+                <div class="exercise-item">
+                    <span class="exercise-name">Overhead Tricep Extension</span>
+                    <button class="add-btn">+ Add</button>
+                </div>
+                <div class="exercise-item">
+                    <span class="exercise-name">Chest Fly</span>
+                    <button class="add-btn">+ Add</button>
+                </div>
+            </div>
+            <div class="scroll-indicator">
+                Scroll for more exercises or use pagination below
+            </div>
+            <div class="pagination">
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <span class="page-info">Page 1 of 3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Option C: Button Grid + Side Panel -->
+    <div class="mockup-container">
+        <div class="mockup-header">
+            <h2>Option C: Button Grid + Side Panel Style</h2>
+            <p>2x2 grid of category buttons on the left. Click a button to highlight it and show exercises in the panel on the right. Visual and touch-friendly, good for mobile layouts.</p>
+        </div>
+        <div class="mockup-content">
+            <div class="grid-panel-layout">
+                <div class="category-grid">
+                    <button class="category-btn active" onclick="selectCategory(this, 'Push')">
+                        <span class="category-icon">💪</span>
+                        Push
+                    </button>
+                    <button class="category-btn" onclick="selectCategory(this, 'Pull')">
+                        <span class="category-icon">🔙</span>
+                        Pull
+                    </button>
+                    <button class="category-btn" onclick="selectCategory(this, 'Legs')">
+                        <span class="category-icon">🦵</span>
+                        Legs
+                    </button>
+                    <button class="category-btn" onclick="selectCategory(this, 'Core')">
+                        <span class="category-icon">🎯</span>
+                        Core
+                    </button>
+                </div>
+                <div class="side-panel">
+                    <div class="side-panel-header" id="panel-header">Push Exercises</div>
+                    <div class="side-panel-content">
+                        <div class="exercise-item">
+                            <span class="exercise-name">Bench Press</span>
+                            <button class="add-btn">+ Add</button>
+                        </div>
+                        <div class="exercise-item">
+                            <span class="exercise-name">Shoulder Press</span>
+                            <button class="add-btn">+ Add</button>
+                        </div>
+                        <div class="exercise-item">
+                            <span class="exercise-name">Incline Dumbbell Press</span>
+                            <button class="add-btn">+ Add</button>
+                        </div>
+                        <div class="exercise-item">
+                            <span class="exercise-name">Dips</span>
+                            <button class="add-btn">+ Add</button>
+                        </div>
+                        <div class="exercise-item">
+                            <span class="exercise-name">Tricep Pushdown</span>
+                            <button class="add-btn">+ Add</button>
+                        </div>
+                    </div>
+                    <div class="pagination">
+                        <button class="page-btn">←</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">→</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const wasActive = header.classList.contains('active');
+
+            // Close all accordions
+            document.querySelectorAll('.accordion-header').forEach(h => {
+                h.classList.remove('active');
+                h.nextElementSibling.classList.remove('show');
+            });
+
+            // Open clicked one if it wasn't already open
+            if (!wasActive) {
+                header.classList.add('active');
+                content.classList.add('show');
+            }
+        }
+
+        function switchTab(tab, category) {
+            // Remove active from all tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            // Add active to clicked tab
+            tab.classList.add('active');
+        }
+
+        function selectCategory(btn, category) {
+            // Remove active from all buttons
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            // Add active to clicked button
+            btn.classList.add('active');
+            // Update panel header
+            document.getElementById('panel-header').textContent = category + ' Exercises';
+        }
+    </script>
+</body>
+</html>

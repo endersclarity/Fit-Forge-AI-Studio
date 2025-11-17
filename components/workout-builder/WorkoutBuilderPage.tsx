@@ -5,7 +5,8 @@ import { PlannedExercise } from '../../types/savedWorkouts';
 import { useSavedWorkouts } from '../../hooks/useSavedWorkouts';
 import { useWorkoutSession } from '../../contexts/WorkoutSessionContext';
 
-type TabType = 'all' | 'byMuscle' | 'categories';
+type CategoryType = 'Push' | 'Pull' | 'Legs' | 'Core' | null;
+const EXERCISES_PER_PAGE = 5;
 
 const WorkoutBuilderPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,40 +14,56 @@ const WorkoutBuilderPage: React.FC = () => {
   const { startSession, selectExercise } = useWorkoutSession();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType>(null);
+  const [currentPage, setCurrentPage] = useState(0);
   const [selectedExercises, setSelectedExercises] = useState<PlannedExercise[]>([]);
   const [workoutName, setWorkoutName] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
 
-  // Filter exercises based on search and tab
-  const getFilteredExercises = () => {
-    let exercises = EXERCISE_LIBRARY.filter(ex =>
+  // Get exercises filtered by category and search
+  const getExercisesByCategory = (category: CategoryType) => {
+    if (!category) return [];
+
+    let exercises = EXERCISE_LIBRARY.filter(ex => ex.category === category);
+
+    // Apply search filter if search term exists
+    if (searchTerm.trim()) {
+      exercises = exercises.filter(ex =>
+        ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return exercises;
+  };
+
+  // Get paginated exercises for selected category
+  const getPaginatedExercises = () => {
+    const allExercises = getExercisesByCategory(selectedCategory);
+    const startIndex = currentPage * EXERCISES_PER_PAGE;
+    const endIndex = startIndex + EXERCISES_PER_PAGE;
+    return {
+      exercises: allExercises.slice(startIndex, endIndex),
+      totalCount: allExercises.length,
+      totalPages: Math.ceil(allExercises.length / EXERCISES_PER_PAGE),
+      hasMore: endIndex < allExercises.length,
+    };
+  };
+
+  // Global search across all categories
+  const getGlobalSearchResults = () => {
+    if (!searchTerm.trim()) return [];
+    return EXERCISE_LIBRARY.filter(ex =>
       ex.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+  };
 
-    if (activeTab === 'byMuscle') {
-      // Group by primary muscle
-      const grouped: Record<string, typeof exercises> = {};
-      exercises.forEach(ex => {
-        const primaryMuscle = ex.muscleEngagements[0]?.muscle || 'Other';
-        if (!grouped[primaryMuscle]) grouped[primaryMuscle] = [];
-        grouped[primaryMuscle].push(ex);
-      });
-      return { type: 'grouped' as const, data: grouped };
-    }
+  const handleCategorySelect = (category: CategoryType) => {
+    setSelectedCategory(category);
+    setCurrentPage(0); // Reset to first page when changing category
+  };
 
-    if (activeTab === 'categories') {
-      // Group by equipment/category
-      const grouped: Record<string, typeof exercises> = {};
-      exercises.forEach(ex => {
-        const category = ex.category;
-        if (!grouped[category]) grouped[category] = [];
-        grouped[category].push(ex);
-      });
-      return { type: 'grouped' as const, data: grouped };
-    }
-
-    return { type: 'flat' as const, data: exercises };
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
   };
 
   const handleAddExercise = (exerciseId: string, exerciseName: string) => {
@@ -113,15 +130,13 @@ const WorkoutBuilderPage: React.FC = () => {
     navigate('/workout/log');
   };
 
-  const filteredExercises = getFilteredExercises();
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-brand-dark flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-slate-200 dark:border-brand-muted">
         <button
           onClick={() => navigate('/')}
-          className="text-brand-primary dark:text-brand-accent font-medium"
+          className="text-brand-primary dark:text-brand-accent font-medium mb-4 hover:underline"
         >
           ← Back to Dashboard
         </button>
@@ -142,82 +157,105 @@ const WorkoutBuilderPage: React.FC = () => {
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(0); // Reset pagination on search
+              }}
               placeholder="Search exercises..."
               className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100"
             />
           </div>
 
-          {/* Tabs */}
-          <div className="px-4 pb-2 flex gap-2">
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
-                activeTab === 'all'
-                  ? 'bg-brand-primary text-white'
-                  : 'bg-slate-200 dark:bg-brand-muted text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setActiveTab('byMuscle')}
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
-                activeTab === 'byMuscle'
-                  ? 'bg-brand-primary text-white'
-                  : 'bg-slate-200 dark:bg-brand-muted text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              By Muscle
-            </button>
-            <button
-              onClick={() => setActiveTab('categories')}
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
-                activeTab === 'categories'
-                  ? 'bg-brand-primary text-white'
-                  : 'bg-slate-200 dark:bg-brand-muted text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              Categories
-            </button>
+          {/* Category Grid */}
+          <div className="px-4 pb-4">
+            <div className="grid grid-cols-2 gap-2">
+              {(['Push', 'Pull', 'Legs', 'Core'] as CategoryType[]).map(category => (
+                <button
+                  key={category}
+                  onClick={() => handleCategorySelect(category)}
+                  className={`p-3 rounded-lg text-sm font-semibold transition-all ${
+                    selectedCategory === category
+                      ? 'bg-brand-primary text-white shadow-md'
+                      : 'bg-slate-200 dark:bg-brand-muted text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-brand-muted/80'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Exercise List */}
           <div className="flex-1 overflow-y-auto px-4">
-            {filteredExercises.type === 'flat' ? (
-              <div className="space-y-1">
-                {filteredExercises.data.map(ex => (
-                  <button
-                    key={ex.id}
-                    onClick={() => handleAddExercise(ex.id, ex.name)}
-                    className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-brand-muted text-slate-900 dark:text-slate-100 flex items-center justify-between group"
-                  >
-                    <span>{ex.name}</span>
-                    <span className="text-brand-primary opacity-0 group-hover:opacity-100">+</span>
-                  </button>
-                ))}
+            {searchTerm.trim() ? (
+              // Global search results
+              <div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                  Search results ({getGlobalSearchResults().length})
+                </div>
+                <div className="space-y-1">
+                  {getGlobalSearchResults().slice(0, 20).map(ex => (
+                    <button
+                      key={ex.id}
+                      onClick={() => handleAddExercise(ex.id, ex.name)}
+                      className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-brand-muted text-slate-900 dark:text-slate-100 flex items-center justify-between group"
+                    >
+                      <div>
+                        <span>{ex.name}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">
+                          ({ex.category})
+                        </span>
+                      </div>
+                      <span className="text-brand-primary opacity-0 group-hover:opacity-100">+</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : selectedCategory ? (
+              // Category exercises with pagination
+              <div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                  {selectedCategory} exercises ({getPaginatedExercises().totalCount})
+                </div>
+                <div className="space-y-1">
+                  {getPaginatedExercises().exercises.map(ex => (
+                    <button
+                      key={ex.id}
+                      onClick={() => handleAddExercise(ex.id, ex.name)}
+                      className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-brand-muted text-slate-900 dark:text-slate-100 flex items-center justify-between group"
+                    >
+                      <span>{ex.name}</span>
+                      <span className="text-brand-primary opacity-0 group-hover:opacity-100">+</span>
+                    </button>
+                  ))}
+                </div>
+                {/* Pagination Controls */}
+                {getPaginatedExercises().totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-4 pb-4">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 0}
+                      className="px-3 py-1 rounded text-sm bg-slate-200 dark:bg-brand-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      ←
+                    </button>
+                    <span className="text-sm text-slate-600 dark:text-slate-400">
+                      Page {currentPage + 1} of {getPaginatedExercises().totalPages}
+                    </span>
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={!getPaginatedExercises().hasMore}
+                      className="px-3 py-1 rounded text-sm bg-slate-200 dark:bg-brand-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      →
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="space-y-4">
-                {Object.entries(filteredExercises.data).map(([group, exercises]) => (
-                  <div key={group}>
-                    <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                      {group}
-                    </h3>
-                    <div className="space-y-1">
-                      {exercises.map(ex => (
-                        <button
-                          key={ex.id}
-                          onClick={() => handleAddExercise(ex.id, ex.name)}
-                          className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-brand-muted text-slate-900 dark:text-slate-100 flex items-center justify-between group"
-                        >
-                          <span>{ex.name}</span>
-                          <span className="text-brand-primary opacity-0 group-hover:opacity-100">+</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+              // No category selected
+              <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                <p className="text-sm">Select a category to browse exercises</p>
               </div>
             )}
           </div>
