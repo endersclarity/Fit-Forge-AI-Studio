@@ -156,9 +156,9 @@ const MuscleBaselinesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-6 min-h-screen bg-slate-50 dark:bg-brand-dark">
         <div className="flex items-center justify-center py-12">
-          <div className="text-slate-400">Loading muscle baselines...</div>
+          <div className="text-slate-600 dark:text-slate-400">Loading muscle baselines...</div>
         </div>
       </div>
     );
@@ -166,10 +166,10 @@ const MuscleBaselinesPage: React.FC = () => {
 
   if (error || !baselines) {
     return (
-      <div className="p-6">
-        <div className="bg-red-900/30 border border-red-500 rounded-lg p-4">
-          <p className="text-red-400 font-semibold">Error Loading Baselines</p>
-          <p className="text-red-300 text-sm mt-2">{error || 'Unknown error'}</p>
+      <div className="p-6 min-h-screen bg-slate-50 dark:bg-brand-dark">
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-500 rounded-lg p-4">
+          <p className="text-red-700 dark:text-red-400 font-semibold">Error Loading Baselines</p>
+          <p className="text-red-600 dark:text-red-300 text-sm mt-2">{error || 'Unknown error'}</p>
           <button
             onClick={fetchBaselines}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
@@ -182,19 +182,19 @@ const MuscleBaselinesPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-brand-dark text-slate-100 p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-brand-dark text-slate-900 dark:text-slate-100 p-6">
       {/* Header */}
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Muscle Capacity Baselines</h1>
-            <p className="text-slate-400 mt-1">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Muscle Capacity Baselines</h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-1">
               View and manage your muscle capacity estimates
             </p>
           </div>
           <button
             onClick={() => window.history.back()}
-            className="px-4 py-2 bg-brand-surface border border-brand-muted text-slate-300 rounded hover:bg-brand-muted transition-colors"
+            className="px-4 py-2 bg-white dark:bg-brand-surface border border-slate-300 dark:border-brand-muted text-slate-700 dark:text-slate-300 rounded hover:bg-slate-100 dark:hover:bg-brand-muted transition-colors"
           >
             ← Back
           </button>
@@ -202,32 +202,32 @@ const MuscleBaselinesPage: React.FC = () => {
 
         {/* Info Banner */}
         {showInfoBanner && (
-          <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-4 space-y-3">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-500 rounded-lg p-4 space-y-3">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 space-y-2">
-                <p className="text-blue-400 font-semibold">ℹ️ How Muscle Baselines Work</p>
-                <p className="text-blue-300 text-sm">
+                <p className="text-blue-700 dark:text-blue-400 font-semibold">ℹ️ How Muscle Baselines Work</p>
+                <p className="text-blue-600 dark:text-blue-300 text-sm">
                   Your muscle capacity baselines are used to calculate fatigue and recovery recommendations.
                   The system automatically learns from your "to failure" sets to estimate each muscle's capacity.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                  <div className="bg-blue-900/20 border border-blue-500/30 rounded p-2">
-                    <p className="font-semibold text-blue-300">🤖 System Learned</p>
-                    <p className="text-blue-200 mt-1">Auto-updated from your performance data</p>
+                  <div className="bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30 rounded p-2">
+                    <p className="font-semibold text-blue-700 dark:text-blue-300">🤖 System Learned</p>
+                    <p className="text-blue-600 dark:text-blue-200 mt-1">Auto-updated from your performance data</p>
                   </div>
-                  <div className="bg-blue-900/20 border border-blue-500/30 rounded p-2">
-                    <p className="font-semibold text-blue-300">✏️ Your Override</p>
-                    <p className="text-blue-200 mt-1">Manual adjustment (optional)</p>
+                  <div className="bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30 rounded p-2">
+                    <p className="font-semibold text-blue-700 dark:text-blue-300">✏️ Your Override</p>
+                    <p className="text-blue-600 dark:text-blue-200 mt-1">Manual adjustment (optional)</p>
                   </div>
-                  <div className="bg-blue-900/20 border border-blue-500/30 rounded p-2">
-                    <p className="font-semibold text-blue-300">✅ Currently Using</p>
-                    <p className="text-blue-200 mt-1">Effective value for calculations</p>
+                  <div className="bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30 rounded p-2">
+                    <p className="font-semibold text-blue-700 dark:text-blue-300">✅ Currently Using</p>
+                    <p className="text-blue-600 dark:text-blue-200 mt-1">Effective value for calculations</p>
                   </div>
                 </div>
               </div>
               <button
                 onClick={dismissInfoBanner}
-                className="text-blue-400 hover:text-blue-300 text-xl leading-none"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-xl leading-none"
                 aria-label="Dismiss"
               >
                 ×
@@ -239,7 +239,7 @@ const MuscleBaselinesPage: React.FC = () => {
         {/* Muscle Groups */}
         {Object.entries(MUSCLE_GROUPS).map(([groupName, muscles]) => (
           <div key={groupName} className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-200 border-b border-brand-muted pb-2">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 border-b border-slate-300 dark:border-brand-muted pb-2">
               {groupName}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -261,15 +261,15 @@ const MuscleBaselinesPage: React.FC = () => {
         ))}
 
         {/* Reset All Button */}
-        <div className="border-t border-brand-muted pt-6">
+        <div className="border-t border-slate-300 dark:border-brand-muted pt-6">
           <button
             onClick={handleResetAll}
             disabled={saving}
-            className="w-full md:w-auto px-6 py-3 bg-red-900/30 text-red-400 border border-red-500/50 rounded hover:bg-red-900/50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full md:w-auto px-6 py-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-500/50 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ⚠️ Reset All Baselines to Defaults
           </button>
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="text-xs text-slate-600 dark:text-slate-500 mt-2">
             This will reset all system-learned values to 10,000 and clear all user overrides.
           </p>
         </div>
@@ -287,8 +287,8 @@ const MuscleBaselinesPage: React.FC = () => {
       {/* Loading Overlay */}
       {saving && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-brand-surface border border-brand-muted rounded-lg p-6 text-center">
-            <p className="text-slate-300">Saving changes...</p>
+          <div className="bg-white dark:bg-brand-surface border border-slate-300 dark:border-brand-muted rounded-lg p-6 text-center">
+            <p className="text-slate-700 dark:text-slate-300">Saving changes...</p>
           </div>
         </div>
       )}
