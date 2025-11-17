@@ -61,6 +61,18 @@ const WorkoutBuilderPage: React.FC = () => {
     ]);
   };
 
+  const handleUpdateExercise = (index: number, field: keyof PlannedExercise, value: number | undefined) => {
+    setSelectedExercises(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const handleRemoveExercise = (index: number) => {
+    setSelectedExercises(prev => prev.filter((_, i) => i !== index));
+  };
+
   const filteredExercises = getFilteredExercises();
 
   return (
@@ -182,7 +194,59 @@ const WorkoutBuilderPage: React.FC = () => {
                 No exercises selected. Add from the library.
               </p>
             ) : (
-              <p className="text-slate-500 dark:text-slate-400">Selected exercises placeholder</p>
+              <div className="space-y-3">
+                {selectedExercises.map((ex, index) => (
+                  <div
+                    key={`${ex.exerciseId}-${index}`}
+                    className="bg-white dark:bg-brand-surface border border-slate-200 dark:border-brand-muted rounded-lg p-3"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400 cursor-grab">≡</span>
+                        <span className="font-medium text-slate-900 dark:text-slate-100">
+                          {ex.exerciseName}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveExercise(index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <label className="text-xs text-slate-500 dark:text-slate-400">Sets</label>
+                        <input
+                          type="number"
+                          value={ex.targetSets || ''}
+                          onChange={(e) => handleUpdateExercise(index, 'targetSets', e.target.value ? parseInt(e.target.value) : undefined)}
+                          className="w-full px-2 py-1 text-sm rounded border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs text-slate-500 dark:text-slate-400">Reps</label>
+                        <input
+                          type="number"
+                          value={ex.targetReps || ''}
+                          onChange={(e) => handleUpdateExercise(index, 'targetReps', e.target.value ? parseInt(e.target.value) : undefined)}
+                          className="w-full px-2 py-1 text-sm rounded border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs text-slate-500 dark:text-slate-400">Weight</label>
+                        <input
+                          type="number"
+                          value={ex.targetWeight || ''}
+                          onChange={(e) => handleUpdateExercise(index, 'targetWeight', e.target.value ? parseInt(e.target.value) : undefined)}
+                          placeholder="lb"
+                          className="w-full px-2 py-1 text-sm rounded border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
