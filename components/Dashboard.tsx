@@ -849,7 +849,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 📋 Saved Workouts
             </Button>
             <Button
-                onClick={() => setIsPlannerOpen(true)}
+                onClick={() => navigate('/workout/builder')}
                 variant="secondary"
                 size="lg"
                 className="w-full min-h-[60px] text-lg font-display font-bold bg-accent hover:bg-accent/90"
