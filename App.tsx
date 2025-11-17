@@ -14,10 +14,12 @@ import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard
 import BaselineUpdateModal from './components/BaselineUpdateModal';
 import UXMockup from './components/ux-mockup';
 import WorkoutFlowMockups from './components/WorkoutFlowMockups';
+import WorkoutBuilderMockups from './components/WorkoutBuilderMockups';
 import { WorkoutSessionProvider } from './contexts/WorkoutSessionContext';
 import ExercisePickerPage from './components/workout-flow/ExercisePickerPage';
 import SetLoggerPage from './components/workout-flow/SetLoggerPage';
 import WorkoutSummaryPage from './components/workout-flow/WorkoutSummaryPage';
+import WorkoutBuilderPage from './components/workout-builder/WorkoutBuilderPage';
 import { calculateVolume } from './utils/helpers';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMotion } from './src/providers/MotionProvider';
@@ -539,10 +541,12 @@ const App: React.FC = () => {
 
           <Route path="/ux-mockup" element={wrapPage(<UXMockup />)} />
           <Route path="/workout-flow-mockups" element={wrapPage(<WorkoutFlowMockups />)} />
+          <Route path="/workout-builder-mockups" element={wrapPage(<WorkoutBuilderMockups />)} />
 
           {/* New workout flow routes */}
           <Route path="/workout/select" element={<ExercisePickerPage />} />
           <Route path="/workout/log" element={<SetLoggerPage />} />
+          <Route path="/workout/builder" element={<WorkoutBuilderPage />} />
           <Route path="/workout/summary" element={<WorkoutSummaryPage />} />
         </Routes>
       </AnimatePresence>
