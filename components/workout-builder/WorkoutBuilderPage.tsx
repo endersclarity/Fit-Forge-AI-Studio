@@ -39,7 +39,52 @@ const WorkoutBuilderPage: React.FC = () => {
           <div className="p-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
             Exercise Library
           </div>
-          {/* Search and tabs will go here */}
+          {/* Search */}
+          <div className="px-4 pb-2">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search exercises..."
+              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100"
+            />
+          </div>
+
+          {/* Tabs */}
+          <div className="px-4 pb-2 flex gap-2">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-3 py-1 rounded-md text-sm font-medium ${
+                activeTab === 'all'
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-slate-200 dark:bg-brand-muted text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setActiveTab('byMuscle')}
+              className={`px-3 py-1 rounded-md text-sm font-medium ${
+                activeTab === 'byMuscle'
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-slate-200 dark:bg-brand-muted text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              By Muscle
+            </button>
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`px-3 py-1 rounded-md text-sm font-medium ${
+                activeTab === 'categories'
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-slate-200 dark:bg-brand-muted text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              Categories
+            </button>
+          </div>
+
+          {/* Exercise list placeholder */}
           <div className="p-4">
             <p className="text-slate-500 dark:text-slate-400">Exercise list placeholder</p>
           </div>
