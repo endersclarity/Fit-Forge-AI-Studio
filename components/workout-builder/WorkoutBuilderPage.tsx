@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EXERCISE_LIBRARY } from '../../constants';
-import { PlannedExercise } from '../../types/savedWorkouts';
+import { PlannedExercise, PlannedSet } from '../../types/savedWorkouts';
 import { useSavedWorkouts } from '../../hooks/useSavedWorkouts';
 import { useWorkoutSession } from '../../contexts/WorkoutSessionContext';
 
 type CategoryType = 'Push' | 'Pull' | 'Legs' | 'Core' | null;
 const EXERCISES_PER_PAGE = 5;
+const WEIGHT_OPTIONS: (number | 'bodyweight')[] = [
+  'bodyweight',
+  0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+  55, 60, 65, 70, 75, 80, 85, 90, 95, 100,
+  110, 120, 130, 140, 150, 175, 200, 225, 250
+];
 
 const WorkoutBuilderPage: React.FC = () => {
   const navigate = useNavigate();
@@ -72,23 +78,72 @@ const WorkoutBuilderPage: React.FC = () => {
       {
         exerciseId,
         exerciseName,
-        targetSets: 3,
-        targetReps: 10,
-        targetWeight: undefined,
+        sets: [
+          {
+            weight: 'bodyweight',
+            reps: 10,
+            restSeconds: 90,
+          },
+        ],
       },
     ]);
   };
 
-  const handleUpdateExercise = (index: number, field: keyof PlannedExercise, value: number | undefined) => {
+  const handleRemoveExercise = (index: number) => {
+    setSelectedExercises(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddSet = (exerciseIndex: number) => {
     setSelectedExercises(prev => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
+      const exercise = updated[exerciseIndex];
+      const lastSet = exercise.sets[exercise.sets.length - 1];
+      exercise.sets.push({
+        weight: lastSet.weight,
+        reps: lastSet.reps,
+        restSeconds: lastSet.restSeconds,
+      });
       return updated;
     });
   };
 
-  const handleRemoveExercise = (index: number) => {
-    setSelectedExercises(prev => prev.filter((_, i) => i !== index));
+  const handleUpdateSet = (
+    exerciseIndex: number,
+    setIndex: number,
+    field: keyof PlannedSet,
+    value: number | 'bodyweight'
+  ) => {
+    setSelectedExercises(prev => {
+      const updated = [...prev];
+      const exercise = updated[exerciseIndex];
+      exercise.sets[setIndex] = {
+        ...exercise.sets[setIndex],
+        [field]: value,
+      };
+      return updated;
+    });
+  };
+
+  const handleDeleteSet = (exerciseIndex: number, setIndex: number) => {
+    setSelectedExercises(prev => {
+      const updated = [...prev];
+      const exercise = updated[exerciseIndex];
+      if (exercise.sets.length > 1) {
+        exercise.sets.splice(setIndex, 1);
+      }
+      return updated;
+    });
+  };
+
+  const handleRestChange = (exerciseIndex: number, setIndex: number, delta: number) => {
+    setSelectedExercises(prev => {
+      const updated = [...prev];
+      const exercise = updated[exerciseIndex];
+      const currentRest = exercise.sets[setIndex].restSeconds;
+      const newRest = Math.max(0, currentRest + delta);
+      exercise.sets[setIndex].restSeconds = newRest;
+      return updated;
+    });
   };
 
   const handleSaveTemplate = () => {
@@ -272,13 +327,14 @@ const WorkoutBuilderPage: React.FC = () => {
                 No exercises selected. Add from the library.
               </p>
             ) : (
-              <div className="space-y-3">
-                {selectedExercises.map((ex, index) => (
+              <div className="space-y-3 overflow-y-auto">
+                {selectedExercises.map((ex, exerciseIndex) => (
                   <div
-                    key={`${ex.exerciseId}-${index}`}
+                    key={`${ex.exerciseId}-${exerciseIndex}`}
                     className="bg-white dark:bg-brand-surface border border-slate-200 dark:border-brand-muted rounded-lg p-3"
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    {/* Exercise Header */}
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-400 cursor-grab">≡</span>
                         <span className="font-medium text-slate-900 dark:text-slate-100">
@@ -286,42 +342,101 @@ const WorkoutBuilderPage: React.FC = () => {
                         </span>
                       </div>
                       <button
-                        onClick={() => handleRemoveExercise(index)}
+                        onClick={() => handleRemoveExercise(exerciseIndex)}
                         className="text-red-500 hover:text-red-700"
                       >
                         ×
                       </button>
                     </div>
-                    <div className="flex gap-3">
-                      <div className="flex-1">
-                        <label className="text-xs text-slate-500 dark:text-slate-400">Sets</label>
-                        <input
-                          type="number"
-                          value={ex.targetSets || ''}
-                          onChange={(e) => handleUpdateExercise(index, 'targetSets', e.target.value ? parseInt(e.target.value) : undefined)}
-                          className="w-full px-2 py-1 text-sm rounded border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <label className="text-xs text-slate-500 dark:text-slate-400">Reps</label>
-                        <input
-                          type="number"
-                          value={ex.targetReps || ''}
-                          onChange={(e) => handleUpdateExercise(index, 'targetReps', e.target.value ? parseInt(e.target.value) : undefined)}
-                          className="w-full px-2 py-1 text-sm rounded border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <label className="text-xs text-slate-500 dark:text-slate-400">Weight</label>
-                        <input
-                          type="number"
-                          value={ex.targetWeight || ''}
-                          onChange={(e) => handleUpdateExercise(index, 'targetWeight', e.target.value ? parseInt(e.target.value) : undefined)}
-                          placeholder="lb"
-                          className="w-full px-2 py-1 text-sm rounded border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100"
-                        />
-                      </div>
+
+                    {/* Sets */}
+                    <div className="space-y-2">
+                      {ex.sets.map((set, setIndex) => (
+                        <div
+                          key={setIndex}
+                          className="flex items-center gap-2 text-sm bg-slate-50 dark:bg-brand-dark p-2 rounded"
+                        >
+                          <span className="text-slate-500 dark:text-slate-400 w-12">
+                            Set {setIndex + 1}
+                          </span>
+
+                          {/* Weight Dropdown */}
+                          <select
+                            value={set.weight}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              handleUpdateSet(
+                                exerciseIndex,
+                                setIndex,
+                                'weight',
+                                val === 'bodyweight' ? 'bodyweight' : parseInt(val)
+                              );
+                            }}
+                            className="px-2 py-1 rounded border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100 text-xs"
+                          >
+                            {WEIGHT_OPTIONS.map(w => (
+                              <option key={w} value={w}>
+                                {w === 'bodyweight' ? 'BW' : `${w} lbs`}
+                              </option>
+                            ))}
+                          </select>
+
+                          <span className="text-slate-500">×</span>
+
+                          {/* Reps Input */}
+                          <input
+                            type="number"
+                            value={set.reps}
+                            onChange={(e) =>
+                              handleUpdateSet(exerciseIndex, setIndex, 'reps', parseInt(e.target.value) || 0)
+                            }
+                            min={1}
+                            className="w-14 px-2 py-1 rounded border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100 text-xs text-center"
+                          />
+                          <span className="text-slate-500 text-xs">reps</span>
+
+                          {/* Rest Timer */}
+                          <div className="flex items-center gap-1 ml-2">
+                            <button
+                              onClick={() => handleRestChange(exerciseIndex, setIndex, -15)}
+                              className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                              title="-15s"
+                            >
+                              -
+                            </button>
+                            <span className="text-xs text-slate-600 dark:text-slate-400">
+                              🕐 {set.restSeconds}s
+                            </span>
+                            <button
+                              onClick={() => handleRestChange(exerciseIndex, setIndex, 15)}
+                              className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                              title="+15s"
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          {/* Delete Set Button */}
+                          {ex.sets.length > 1 && (
+                            <button
+                              onClick={() => handleDeleteSet(exerciseIndex, setIndex)}
+                              className="ml-auto text-red-400 hover:text-red-600 text-xs"
+                              title="Delete set"
+                            >
+                              🗑
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
+
+                    {/* Add Set Button */}
+                    <button
+                      onClick={() => handleAddSet(exerciseIndex)}
+                      className="mt-2 w-full py-1 text-sm text-brand-primary hover:text-brand-primary/80 border border-dashed border-brand-primary/50 rounded"
+                    >
+                      + Add Set
+                    </button>
                   </div>
                 ))}
               </div>

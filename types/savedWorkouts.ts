@@ -1,9 +1,13 @@
+export interface PlannedSet {
+  weight: number | 'bodyweight';
+  reps: number;
+  restSeconds: number;
+}
+
 export interface PlannedExercise {
   exerciseId: string;
   exerciseName: string;
-  targetSets?: number;
-  targetReps?: number;
-  targetWeight?: number;
+  sets: PlannedSet[];
 }
 
 export interface SavedWorkout {
