@@ -16,6 +16,7 @@ const WorkoutBuilderPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [selectedExercises, setSelectedExercises] = useState<PlannedExercise[]>([]);
   const [workoutName, setWorkoutName] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
 
   // Filter exercises based on search and tab
   const getFilteredExercises = () => {
@@ -71,6 +72,45 @@ const WorkoutBuilderPage: React.FC = () => {
 
   const handleRemoveExercise = (index: number) => {
     setSelectedExercises(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveTemplate = () => {
+    if (!workoutName.trim()) {
+      setSaveMessage('Please enter a workout name');
+      setTimeout(() => setSaveMessage(''), 3000);
+      return;
+    }
+    if (selectedExercises.length === 0) {
+      setSaveMessage('Please add at least one exercise');
+      setTimeout(() => setSaveMessage(''), 3000);
+      return;
+    }
+
+    saveWorkout({
+      name: workoutName.trim(),
+      exercises: selectedExercises,
+    });
+
+    setSaveMessage('Workout saved!');
+    setTimeout(() => setSaveMessage(''), 3000);
+  };
+
+  const handleStartWorkout = () => {
+    if (selectedExercises.length === 0) {
+      setSaveMessage('Please add at least one exercise');
+      setTimeout(() => setSaveMessage(''), 3000);
+      return;
+    }
+
+    // Start session and pre-populate with first exercise
+    startSession();
+
+    // Select the first exercise to start logging
+    const firstEx = selectedExercises[0];
+    selectExercise(firstEx.exerciseId, firstEx.exerciseName);
+
+    // Navigate to logger
+    navigate('/workout/log');
   };
 
   const filteredExercises = getFilteredExercises();
@@ -262,18 +302,25 @@ const WorkoutBuilderPage: React.FC = () => {
           className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-brand-muted bg-white dark:bg-brand-dark text-slate-900 dark:text-slate-100"
         />
         <button
-          onClick={() => {/* Save logic */}}
+          onClick={handleSaveTemplate}
           className="px-6 py-2 rounded-lg border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white transition-colors"
         >
           Save Template
         </button>
         <button
-          onClick={() => {/* Start logic */}}
+          onClick={handleStartWorkout}
           className="px-6 py-2 rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 transition-colors"
         >
           Start Workout
         </button>
       </div>
+
+      {/* Save Message Toast */}
+      {saveMessage && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-lg">
+          {saveMessage}
+        </div>
+      )}
     </div>
   );
 };
