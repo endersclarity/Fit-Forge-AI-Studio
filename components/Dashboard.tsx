@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ALL_MUSCLES, EXERCISE_LIBRARY } from '../constants';
 import { Muscle, MuscleStatesResponse, DetailedMuscleStatesResponse, UserProfile, WorkoutSession, MuscleBaselines, LoggedExercise, ExerciseCategory, Exercise, WorkoutTemplate, WorkoutResponse, PersonalBestsResponse, PlannedExercise } from '../types';
@@ -654,6 +654,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
   // Get location for refresh detection
   const location = useLocation();
+  const navigate = useNavigate();
   const { isMotionEnabled } = useMotion();
 
   // Toast handler - memoized to prevent child re-renders
@@ -857,7 +858,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 📊 Plan Workout
             </Button>
             <Button
-                onClick={onStartWorkout}
+                onClick={() => navigate('/workout/select')}
                 variant="primary"
                 size="lg"
                 className="w-full min-h-[60px] text-lg font-display font-bold"

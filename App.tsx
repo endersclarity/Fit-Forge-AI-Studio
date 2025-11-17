@@ -14,6 +14,10 @@ import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard
 import BaselineUpdateModal from './components/BaselineUpdateModal';
 import UXMockup from './components/ux-mockup';
 import WorkoutFlowMockups from './components/WorkoutFlowMockups';
+import { WorkoutSessionProvider } from './contexts/WorkoutSessionContext';
+import ExercisePickerPage from './components/workout-flow/ExercisePickerPage';
+import SetLoggerPage from './components/workout-flow/SetLoggerPage';
+import WorkoutSummaryPage from './components/workout-flow/WorkoutSummaryPage';
 import { calculateVolume } from './utils/helpers';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMotion } from './src/providers/MotionProvider';
@@ -391,36 +395,37 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Skip link for keyboard users */}
-      <a
-        href="#main-content"
-        className="sr-only sr-only-focusable bg-brand-cyan text-brand-dark font-bold z-50 fixed top-2 left-2 px-4 py-2 rounded"
-      >
-        Skip to main content
-      </a>
+    <WorkoutSessionProvider>
+      <div className="max-w-2xl mx-auto">
+        {/* Skip link for keyboard users */}
+        <a
+          href="#main-content"
+          className="sr-only sr-only-focusable bg-brand-cyan text-brand-dark font-bold z-50 fixed top-2 left-2 px-4 py-2 rounded"
+        >
+          Skip to main content
+        </a>
 
-      {/* Theme Toggle - Fixed position in top right */}
-      <div className="fixed top-4 right-4 z-40">
-        <ThemeToggle />
-      </div>
+        {/* Theme Toggle - Fixed position in top right */}
+        <div className="fixed top-4 right-4 z-40">
+          <ThemeToggle />
+        </div>
 
-      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
-      {prNotifications.length > 0 && (
-        <PRNotificationManager
-          prs={prNotifications}
-          onDismissAll={() => setPrNotifications([])}
+        {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
+        {prNotifications.length > 0 && (
+          <PRNotificationManager
+            prs={prNotifications}
+            onDismissAll={() => setPrNotifications([])}
+          />
+        )}
+        <BaselineUpdateModal
+          isOpen={showBaselineModal}
+          updates={baselineUpdates}
+          onConfirm={handleBaselineUpdateConfirm}
+          onDecline={handleBaselineUpdateDecline}
         />
-      )}
-      <BaselineUpdateModal
-        isOpen={showBaselineModal}
-        updates={baselineUpdates}
-        onConfirm={handleBaselineUpdateConfirm}
-        onDecline={handleBaselineUpdateDecline}
-      />
 
-      <AnimatePresence mode="wait" initial={false}>
-        <Routes location={location} key={location.pathname}>
+        <AnimatePresence mode="wait" initial={false}>
+          <Routes location={location} key={location.pathname}>
           <Route path="/" element={wrapPage(
           <Dashboard
             profile={profile}
@@ -534,9 +539,15 @@ const App: React.FC = () => {
 
           <Route path="/ux-mockup" element={wrapPage(<UXMockup />)} />
           <Route path="/workout-flow-mockups" element={wrapPage(<WorkoutFlowMockups />)} />
+
+          {/* New workout flow routes */}
+          <Route path="/workout/select" element={<ExercisePickerPage />} />
+          <Route path="/workout/log" element={<SetLoggerPage />} />
+          <Route path="/workout/summary" element={<WorkoutSummaryPage />} />
         </Routes>
       </AnimatePresence>
-    </div>
+      </div>
+    </WorkoutSessionProvider>
   );
 };
 
