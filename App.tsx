@@ -328,12 +328,12 @@ const App: React.FC = () => {
   const isLoading = profileLoading || workoutsLoading || muscleBaselinesLoading;
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-brand-dark dark:bg-dark-bg-primary p-4 sm:p-6">
+      <div className="min-h-screen bg-slate-50 dark:bg-dark-bg-primary p-4 sm:p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header skeleton */}
           <div className="flex items-center justify-between">
-            <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
-            <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-24 animate-pulse" />
+            <div className="h-8 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
+            <div className="h-10 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-24 animate-pulse" />
           </div>
 
           {/* Main content skeleton - simulating dashboard layout */}
@@ -353,7 +353,7 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <p className="text-center text-slate-400 dark:text-dark-text-muted text-sm">
+          <p className="text-center text-slate-600 dark:text-dark-text-muted text-sm">
             Loading your fitness data...
           </p>
         </div>
@@ -369,10 +369,10 @@ const App: React.FC = () => {
     const isProduction = !backendUrl.includes('localhost');
 
     return (
-      <div className="flex items-center justify-center min-h-screen bg-brand-dark dark:bg-dark-bg-primary p-4">
-        <div className="text-center bg-brand-surface dark:bg-dark-bg-secondary p-6 rounded-lg max-w-md">
-          <p className="text-red-400 font-semibold mb-2">Failed to connect to backend</p>
-          <p className="text-slate-400 dark:text-dark-text-secondary text-sm mb-4">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-dark-bg-primary p-4">
+        <div className="text-center bg-white dark:bg-dark-bg-secondary p-6 rounded-lg max-w-md">
+          <p className="text-red-600 dark:text-red-400 font-semibold mb-2">Failed to connect to backend</p>
+          <p className="text-slate-600 dark:text-dark-text-secondary text-sm mb-4">
             {isProduction
               ? 'Unable to connect to the server. Please try again later.'
               : `Make sure the backend server is running at ${backendUrl}`
@@ -460,11 +460,11 @@ const App: React.FC = () => {
 
           <Route path="/bests" element={wrapPage(
           <Suspense fallback={
-            <div className="p-4 md:p-6 min-h-screen bg-brand-dark dark:bg-dark-bg-primary flex flex-col space-y-4">
+            <div className="p-4 md:p-6 min-h-screen bg-slate-50 dark:bg-dark-bg-primary flex flex-col space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
-                <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
-                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-10 animate-pulse" />
+                <div className="h-10 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
+                <div className="h-8 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
+                <div className="h-10 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-10 animate-pulse" />
               </div>
               <SkeletonBlock variant="list-row" />
               <SkeletonBlock variant="list-row" />
@@ -480,11 +480,11 @@ const App: React.FC = () => {
 
           <Route path="/templates" element={wrapPage(
           <Suspense fallback={
-            <div className="p-4 md:p-6 min-h-screen bg-brand-dark dark:bg-dark-bg-primary flex flex-col space-y-4">
+            <div className="p-4 md:p-6 min-h-screen bg-slate-50 dark:bg-dark-bg-primary flex flex-col space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
-                <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
-                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-10 animate-pulse" />
+                <div className="h-10 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
+                <div className="h-8 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
+                <div className="h-10 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-10 animate-pulse" />
               </div>
               <SkeletonBlock variant="card" />
               <SkeletonBlock variant="card" />
@@ -499,11 +499,11 @@ const App: React.FC = () => {
 
           <Route path="/analytics" element={wrapPage(
           <Suspense fallback={
-            <div className="p-4 md:p-6 min-h-screen bg-brand-dark dark:bg-dark-bg-primary flex flex-col space-y-6">
+            <div className="p-4 md:p-6 min-h-screen bg-slate-50 dark:bg-dark-bg-primary flex flex-col space-y-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
-                <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-32 animate-pulse" />
-                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-32 animate-pulse" />
+                <div className="h-10 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
+                <div className="h-8 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-32 animate-pulse" />
+                <div className="h-10 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-32 animate-pulse" />
               </div>
               <SkeletonBlock variant="chart" />
               <SkeletonBlock variant="chart" />
@@ -515,11 +515,11 @@ const App: React.FC = () => {
 
           <Route path="/muscle-baselines" element={wrapPage(
           <Suspense fallback={
-            <div className="p-4 md:p-6 min-h-screen bg-brand-dark dark:bg-dark-bg-primary flex flex-col space-y-4">
+            <div className="p-4 md:p-6 min-h-screen bg-slate-50 dark:bg-dark-bg-primary flex flex-col space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
-                <div className="h-8 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
-                <div className="h-10 bg-slate-700 dark:bg-dark-bg-tertiary rounded w-10 animate-pulse" />
+                <div className="h-10 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-16 animate-pulse" />
+                <div className="h-8 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-48 animate-pulse" />
+                <div className="h-10 bg-slate-200 dark:bg-dark-bg-tertiary rounded w-10 animate-pulse" />
               </div>
               <SkeletonBlock variant="list-row" />
               <SkeletonBlock variant="list-row" />

@@ -17,7 +17,7 @@ const CollapsibleCard: React.FC<CollapsibleCardProps> = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className="bg-brand-surface dark:bg-dark-bg-secondary rounded-lg">
+    <div className="bg-white dark:bg-dark-bg-secondary rounded-lg">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full text-left p-4 focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-brand-dark dark:focus:ring-offset-dark-bg-primary rounded-lg hover:bg-brand-muted dark:hover:bg-dark-bg-tertiary transition-colors"

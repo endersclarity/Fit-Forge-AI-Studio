@@ -47,14 +47,14 @@ const STATUS_CONFIG = {
     bgColor: 'bg-yellow-900/30 dark:bg-yellow-900/40',
     borderColor: 'border-yellow-500 dark:border-yellow-400',
     textColor: 'text-yellow-400',
-    buttonStyle: 'bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT'
+    buttonStyle: 'bg-slate-100 dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT'
   },
   'not-recommended': {
     icon: '❌',
     bgColor: 'bg-red-900/30 dark:bg-red-900/40',
     borderColor: 'border-red-500 dark:border-red-400',
     textColor: 'text-red-400',
-    buttonStyle: 'bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT'
+    buttonStyle: 'bg-slate-100 dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT'
   }
 };
 
@@ -191,7 +191,7 @@ const RecommendationCardComponent: React.FC<RecommendationCardProps> = ({
                     ? 'bg-red-900/40 text-red-300 border border-red-500/50'
                     : isPrimary
                     ? 'bg-brand-cyan/20 text-brand-cyan border border-brand-cyan/50 font-semibold'
-                    : 'bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary'
+                    : 'bg-slate-100 dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary'
                 }`}
               >
                 {isLimiting && '⚠️ '}
@@ -219,7 +219,7 @@ const RecommendationCardComponent: React.FC<RecommendationCardProps> = ({
         {onViewEngagement && (
           <button
             onClick={handleViewEngagement}
-            className="flex-1 py-3 px-4 rounded-lg font-semibold transition-colors bg-brand-surface dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT flex items-center justify-center gap-1 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2"
+            className="flex-1 py-3 px-4 rounded-lg font-semibold transition-colors bg-slate-100 dark:bg-dark-bg-tertiary text-slate-300 dark:text-dark-text-secondary hover:bg-brand-muted dark:hover:bg-dark-border-DEFAULT flex items-center justify-center gap-1 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2"
             aria-label={`View muscle engagement for ${exercise.name}`}
           >
             <span className="material-symbols-outlined text-sm" aria-hidden="true">analytics</span>

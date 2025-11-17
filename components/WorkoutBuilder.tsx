@@ -907,7 +907,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
           className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
           onClick={(e) => e.target === e.currentTarget && handleClose()}
         >
-          <div className="bg-brand-surface dark:bg-dark-bg-secondary rounded-lg p-6 max-w-md w-full">
+          <div className="bg-white dark:bg-dark-bg-secondary rounded-lg p-6 max-w-md w-full">
             <h3 className="text-xl font-semibold mb-4 text-center dark:text-dark-text-primary">Workout Complete!</h3>
             <div className="text-center mb-6">
               <div className="text-4xl mb-2">🎉</div>
@@ -934,7 +934,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
         className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
         onClick={(e) => e.target === e.currentTarget && handleClose()}
       >
-        <div className="bg-brand-surface dark:bg-dark-bg-secondary rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-dark-bg-secondary rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <header className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-semibold dark:text-dark-text-primary">Workout in Progress</h3>
             <button
@@ -1072,7 +1072,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
 
                     <div className="space-y-2">
                       {recommendations.map((rec, idx) => (
-                        <div key={idx} className="bg-brand-dark dark:bg-dark-bg-primary p-3 rounded-lg">
+                        <div key={idx} className="bg-slate-50 dark:bg-dark-bg-primary p-3 rounded-lg">
                           <div className="flex items-center justify-between mb-2">
                             <div className="font-medium text-white dark:text-dark-text-primary">
                               {rec.exercise.name}
@@ -1283,7 +1283,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
         {/* Draft Restore Dialog */}
         {showRestoreDialog && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-brand-surface dark:bg-dark-bg-secondary p-6 rounded-lg max-w-md w-full mx-4">
+            <div className="bg-white dark:bg-dark-bg-secondary p-6 rounded-lg max-w-md w-full mx-4">
               <h3 className="text-xl font-bold mb-2 dark:text-dark-text-primary">Resume Planning?</h3>
               <p className="text-sm text-slate-300 dark:text-dark-text-secondary mb-4">
                 You have unsaved work from earlier. Would you like to resume or start fresh?
@@ -1313,7 +1313,7 @@ const WorkoutBuilder: React.FC<WorkoutBuilderProps> = ({
         {/* Template Save Dialog */}
         {showSaveDialog && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-brand-surface dark:bg-dark-bg-secondary p-6 rounded-lg max-w-md w-full mx-4">
+            <div className="bg-white dark:bg-dark-bg-secondary p-6 rounded-lg max-w-md w-full mx-4">
               <h3 className="text-xl font-bold mb-4 dark:text-dark-text-primary">Save Template</h3>
 
               <label className="block mb-4">
