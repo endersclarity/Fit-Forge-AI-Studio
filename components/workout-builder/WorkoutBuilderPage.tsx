@@ -17,6 +17,52 @@ const WorkoutBuilderPage: React.FC = () => {
   const [selectedExercises, setSelectedExercises] = useState<PlannedExercise[]>([]);
   const [workoutName, setWorkoutName] = useState('');
 
+  // Filter exercises based on search and tab
+  const getFilteredExercises = () => {
+    let exercises = EXERCISE_LIBRARY.filter(ex =>
+      ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (activeTab === 'byMuscle') {
+      // Group by primary muscle
+      const grouped: Record<string, typeof exercises> = {};
+      exercises.forEach(ex => {
+        const primaryMuscle = ex.muscleEngagements[0]?.muscle || 'Other';
+        if (!grouped[primaryMuscle]) grouped[primaryMuscle] = [];
+        grouped[primaryMuscle].push(ex);
+      });
+      return { type: 'grouped' as const, data: grouped };
+    }
+
+    if (activeTab === 'categories') {
+      // Group by equipment/category
+      const grouped: Record<string, typeof exercises> = {};
+      exercises.forEach(ex => {
+        const category = ex.category;
+        if (!grouped[category]) grouped[category] = [];
+        grouped[category].push(ex);
+      });
+      return { type: 'grouped' as const, data: grouped };
+    }
+
+    return { type: 'flat' as const, data: exercises };
+  };
+
+  const handleAddExercise = (exerciseId: string, exerciseName: string) => {
+    setSelectedExercises(prev => [
+      ...prev,
+      {
+        exerciseId,
+        exerciseName,
+        targetSets: 3,
+        targetReps: 10,
+        targetWeight: undefined,
+      },
+    ]);
+  };
+
+  const filteredExercises = getFilteredExercises();
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-brand-dark flex flex-col">
       {/* Header */}
@@ -84,9 +130,44 @@ const WorkoutBuilderPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Exercise list placeholder */}
-          <div className="p-4">
-            <p className="text-slate-500 dark:text-slate-400">Exercise list placeholder</p>
+          {/* Exercise List */}
+          <div className="flex-1 overflow-y-auto px-4">
+            {filteredExercises.type === 'flat' ? (
+              <div className="space-y-1">
+                {filteredExercises.data.map(ex => (
+                  <button
+                    key={ex.id}
+                    onClick={() => handleAddExercise(ex.id, ex.name)}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-brand-muted text-slate-900 dark:text-slate-100 flex items-center justify-between group"
+                  >
+                    <span>{ex.name}</span>
+                    <span className="text-brand-primary opacity-0 group-hover:opacity-100">+</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {Object.entries(filteredExercises.data).map(([group, exercises]) => (
+                  <div key={group}>
+                    <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">
+                      {group}
+                    </h3>
+                    <div className="space-y-1">
+                      {exercises.map(ex => (
+                        <button
+                          key={ex.id}
+                          onClick={() => handleAddExercise(ex.id, ex.name)}
+                          className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-brand-muted text-slate-900 dark:text-slate-100 flex items-center justify-between group"
+                        >
+                          <span>{ex.name}</span>
+                          <span className="text-brand-primary opacity-0 group-hover:opacity-100">+</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
