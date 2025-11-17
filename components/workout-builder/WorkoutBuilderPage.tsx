@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { EXERCISE_LIBRARY } from '../constants';
-import { PlannedExercise } from '../types/savedWorkouts';
-import { useSavedWorkouts } from '../hooks/useSavedWorkouts';
-import { useWorkoutSession } from '../contexts/WorkoutSessionContext';
+import { EXERCISE_LIBRARY } from '../../constants';
+import { PlannedExercise } from '../../types/savedWorkouts';
+import { useSavedWorkouts } from '../../hooks/useSavedWorkouts';
+import { useWorkoutSession } from '../../contexts/WorkoutSessionContext';
 
 type TabType = 'all' | 'byMuscle' | 'categories';
 
