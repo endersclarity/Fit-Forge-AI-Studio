@@ -13,6 +13,7 @@ import { PRNotificationManager } from './components/PRNotification';
 import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard';
 import BaselineUpdateModal from './components/BaselineUpdateModal';
 import UXMockup from './components/ux-mockup';
+import WorkoutFlowMockups from './components/WorkoutFlowMockups';
 import { calculateVolume } from './utils/helpers';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMotion } from './src/providers/MotionProvider';
@@ -532,6 +533,7 @@ const App: React.FC = () => {
           </Suspense>)} />
 
           <Route path="/ux-mockup" element={wrapPage(<UXMockup />)} />
+          <Route path="/workout-flow-mockups" element={wrapPage(<WorkoutFlowMockups />)} />
         </Routes>
       </AnimatePresence>
     </div>
