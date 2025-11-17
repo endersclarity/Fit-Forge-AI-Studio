@@ -154,9 +154,10 @@ export const profileAPI = {
  * Workouts API
  */
 export const workoutsAPI = {
-  getAll: async (): Promise<WorkoutSession[]> => {
+  getAll: async (limit: number = 30): Promise<WorkoutSession[]> => {
     // Backend returns workouts in a different format, need to transform
-    const backendWorkouts = await apiRequest<WorkoutResponse[]>('/workouts');
+    // Default limit of 30 covers Dashboard needs (streak calc, weekly stats, recent PRs)
+    const backendWorkouts = await apiRequest<WorkoutResponse[]>(`/workouts?limit=${limit}`);
     // Transform backend format to frontend WorkoutSession format
     // Backend has: { id, date, variation, duration_seconds, exercises: [{ exercise, sets }] }
     // Frontend expects: WorkoutSession with loggedExercises

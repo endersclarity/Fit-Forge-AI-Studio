@@ -284,14 +284,13 @@ function initializeDetailedMuscleStates(userId, baselineValue) {
     console.log(`Initialized detailed muscle states for user ${userId} (42 detailed muscles)`);
 }
 /**
- * Get all workouts
+ * Get all workouts (with optional limit for pagination)
  */
-function getWorkouts() {
-    const workouts = db.prepare(`
-    SELECT * FROM workouts
-    WHERE user_id = 1
-    ORDER BY date DESC
-  `).all();
+function getWorkouts(limit = null) {
+    const query = limit
+        ? `SELECT * FROM workouts WHERE user_id = 1 ORDER BY date DESC LIMIT ${parseInt(limit)}`
+        : `SELECT * FROM workouts WHERE user_id = 1 ORDER BY date DESC`;
+    const workouts = db.prepare(query).all();
     // For each workout, get its exercise sets
     const results = [];
     for (const workout of workouts) {

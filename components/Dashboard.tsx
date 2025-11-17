@@ -232,6 +232,7 @@ const MuscleFatigueHeatMap: React.FC<{
   muscleBaselines: MuscleBaselines;
   muscleDetailLevel: 'simple' | 'detailed';
 }> = ({ muscleStates, detailedMuscleStates, workouts, muscleBaselines, muscleDetailLevel }) => {
+  const { isMotionEnabled } = useMotion();
   const [selectedMuscle, setSelectedMuscle] = useState<Muscle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -704,37 +705,31 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
       // Use API_BASE_URL from env to hit backend correctly
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-      // Fetch all data in parallel
-      const [muscleStatesRes, detailedMuscleStatesRes, workoutsRes, personalBestsRes] = await Promise.all([
+      // Fetch only muscle state data (workouts and personalBests come from props)
+      const [muscleStatesRes, detailedMuscleStatesRes] = await Promise.all([
         fetch(`${API_BASE_URL}/muscle-states`),
-        fetch(`${API_BASE_URL}/muscle-states/detailed`),
-        fetch(`${API_BASE_URL}/workouts`),
-        fetch(`${API_BASE_URL}/personal-bests`)
+        fetch(`${API_BASE_URL}/muscle-states/detailed`)
       ]);
 
       if (!muscleStatesRes.ok) throw new Error('Failed to fetch muscle states');
       if (!detailedMuscleStatesRes.ok) throw new Error('Failed to fetch detailed muscle states');
-      if (!workoutsRes.ok) throw new Error('Failed to fetch workouts');
-      if (!personalBestsRes.ok) throw new Error('Failed to fetch personal bests');
 
-      const [muscleStatesData, detailedMuscleStatesData, workoutsData, personalBestsData] = await Promise.all([
+      const [muscleStatesData, detailedMuscleStatesData] = await Promise.all([
         muscleStatesRes.json(),
-        detailedMuscleStatesRes.json(),
-        workoutsRes.json(),
-        personalBestsRes.json()
+        detailedMuscleStatesRes.json()
       ]);
 
       setMuscleStates(muscleStatesData);
       setDetailedMuscleStates(detailedMuscleStatesData);
-      setWorkoutHistory(workoutsData);
-      setPersonalBests(personalBestsData);
+      // Use workouts from props instead of re-fetching
+      setWorkoutHistory(workouts);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       console.error('Error fetching dashboard data:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [workouts]);;
 
   // Auto-refresh on component mount AND when navigating back to dashboard
   useEffect(() => {

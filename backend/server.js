@@ -64,10 +64,11 @@ app.put('/api/profile', (req, res) => {
   }
 });
 
-// Get all workouts
+// Get all workouts (with optional pagination)
 app.get('/api/workouts', (req, res) => {
   try {
-    const workouts = db.getWorkouts();
+    const limit = req.query.limit ? Math.min(parseInt(req.query.limit), 100) : null;
+    const workouts = db.getWorkouts(limit);
     res.json(workouts);
   } catch (error) {
     console.error('Error getting workouts:', error);
