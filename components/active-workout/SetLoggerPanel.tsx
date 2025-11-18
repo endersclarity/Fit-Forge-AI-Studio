@@ -16,6 +16,7 @@ interface SetLoggerPanelProps {
   restTimeRemaining: number;
   onLogSet: (weight: number | 'bodyweight', reps: number, rest: number) => void;
   onSkipRest: () => void;
+  currentBodyweight: number;
 }
 
 const WEIGHT_OPTIONS: (number | 'bodyweight')[] = [
@@ -33,6 +34,7 @@ const SetLoggerPanel: React.FC<SetLoggerPanelProps> = ({
   restTimeRemaining,
   onLogSet,
   onSkipRest,
+  currentBodyweight,
 }) => {
   const [weight, setWeight] = useState<number | 'bodyweight'>(currentSetInfo.suggestedWeight);
   const [reps, setReps] = useState(currentSetInfo.suggestedReps);
@@ -46,7 +48,9 @@ const SetLoggerPanel: React.FC<SetLoggerPanelProps> = ({
   }, [currentSetInfo.suggestedWeight, currentSetInfo.suggestedReps, currentSetInfo.suggestedRest]);
 
   const handleLogSet = () => {
-    onLogSet(weight, reps, restSeconds);
+    // Convert 'bodyweight' string to actual numeric value
+    const finalWeight = weight === 'bodyweight' ? currentBodyweight : weight;
+    onLogSet(finalWeight, reps, restSeconds);
   };
 
   const formatTime = (seconds: number) => {

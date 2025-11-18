@@ -161,6 +161,7 @@ const ActiveWorkoutPage: React.FC = () => {
           restTimeRemaining={state.restTimeRemaining}
           onLogSet={logSet}
           onSkipRest={skipRestTimer}
+          currentBodyweight={currentBodyweight}
         />
       </div>
 
