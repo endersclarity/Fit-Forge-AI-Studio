@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PersonalBests, ExerciseCategory, Exercise, ExerciseMaxes } from '../types';
 import { EXERCISE_LIBRARY } from '../constants';
 import { ArrowLeftIcon, TrophyIcon } from './Icons';
@@ -13,6 +14,7 @@ interface PersonalBestsProps {
 }
 
 const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, onBack }) => {
+    const navigate = useNavigate();
     const [filter, setFilter] = useState<ExerciseCategory | 'All'>('All');
 
     const records = useMemo(() => {
@@ -34,6 +36,13 @@ const PersonalBestsComponent: React.FC<PersonalBestsProps> = ({ personalBests, o
 
     return (
         <div className="p-4 md:p-6 min-h-screen bg-brand-dark flex flex-col">
+            <button
+                onClick={() => navigate('/')}
+                className="text-brand-primary dark:text-brand-accent font-medium mb-4 hover:underline"
+            >
+                ← Back to Dashboard
+            </button>
+
             <header className="flex justify-between items-center mb-6">
                 <Button
                     variant="ghost"

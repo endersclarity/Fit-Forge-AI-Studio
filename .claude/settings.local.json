@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Skill(lean-story-workflow)",
-      "Skill(serena-mastery)"
+      "Skill(serena-mastery)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []

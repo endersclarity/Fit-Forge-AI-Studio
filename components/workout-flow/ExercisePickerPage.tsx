@@ -27,16 +27,17 @@ const ExercisePickerPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-brand-dark p-4">
       <div className="max-w-2xl mx-auto">
+        <button
+          onClick={() => navigate('/')}
+          className="text-brand-primary dark:text-brand-accent font-medium mb-4 hover:underline"
+        >
+          ← Back to Dashboard
+        </button>
+
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             Select Exercise
           </h1>
-          <button
-            onClick={() => navigate('/')}
-            className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-          >
-            Cancel
-          </button>
         </div>
 
         <input

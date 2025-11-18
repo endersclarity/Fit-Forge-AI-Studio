@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 // Fix: Import ALL_MUSCLES from constants instead of types
 import { UserProfile, WeightEntry, Equipment, EquipmentItem, EquipmentIncrement, MuscleBaselines, Muscle, Difficulty, MuscleDetailSettings } from '../types';
 import { ALL_MUSCLES } from '../constants';
@@ -214,6 +215,7 @@ const getMuscleBaselinePlaceholder = (muscle: Muscle): string => {
 
 
 const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines, setMuscleBaselines, onBack }) => {
+    const navigate = useNavigate();
     const [isBaselinesExpanded, setBaselinesExpanded] = useState(false);
     const [isEquipmentModalOpen, setEquipmentModalOpen] = useState(false);
     const [editingEquipment, setEditingEquipment] = useState<EquipmentItem | null>(null);
@@ -339,6 +341,13 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
 
     return (
         <div className="p-4 md:p-6 min-h-screen bg-background space-y-6">
+            <button
+                onClick={() => navigate('/')}
+                className="text-brand-primary dark:text-brand-accent font-medium mb-4 hover:underline"
+            >
+                ← Back to Dashboard
+            </button>
+
             <header className="flex justify-between items-center">
                 <Button
                     variant="ghost"

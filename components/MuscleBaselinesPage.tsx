@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MuscleBaselinesResponse, MuscleBaselineData, Muscle } from '../types';
 import { API_BASE_URL } from '../api';
 import MuscleBaselineCard from './MuscleBaselineCard';
@@ -27,6 +28,7 @@ const MUSCLE_GROUPS = {
 };
 
 const MuscleBaselinesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [baselines, setBaselines] = useState<MuscleBaselinesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -185,6 +187,13 @@ const MuscleBaselinesPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-brand-dark text-slate-900 dark:text-slate-100 p-6">
       {/* Header */}
       <div className="max-w-6xl mx-auto space-y-6">
+        <button
+          onClick={() => navigate('/')}
+          className="text-brand-primary dark:text-brand-accent font-medium mb-4 hover:underline"
+        >
+          ← Back to Dashboard
+        </button>
+
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Muscle Capacity Baselines</h1>

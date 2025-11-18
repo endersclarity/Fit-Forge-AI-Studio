@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EXERCISE_LIBRARY } from '../../constants';
 import { PlannedExercise, PlannedSet } from '../../types/savedWorkouts';
-import { useSavedWorkouts } from '../../hooks/useSavedWorkouts';
-import { useWorkoutSession } from '../../contexts/WorkoutSessionContext';
+import { templatesAPI } from '../../api';
 
 type CategoryType = 'Push' | 'Pull' | 'Legs' | 'Core' | null;
 const EXERCISES_PER_PAGE = 5;
@@ -16,8 +15,6 @@ const WEIGHT_OPTIONS: (number | 'bodyweight')[] = [
 
 const WorkoutBuilderPage: React.FC = () => {
   const navigate = useNavigate();
-  const { saveWorkout } = useSavedWorkouts();
-  const { startSession, selectExercise } = useWorkoutSession();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>(null);
@@ -96,13 +93,17 @@ const WorkoutBuilderPage: React.FC = () => {
   const handleAddSet = (exerciseIndex: number) => {
     setSelectedExercises(prev => {
       const updated = [...prev];
-      const exercise = updated[exerciseIndex];
+      const exercise = { ...updated[exerciseIndex] };
       const lastSet = exercise.sets[exercise.sets.length - 1];
-      exercise.sets.push({
-        weight: lastSet.weight,
-        reps: lastSet.reps,
-        restSeconds: lastSet.restSeconds,
-      });
+      exercise.sets = [
+        ...exercise.sets,
+        {
+          weight: lastSet.weight,
+          reps: lastSet.reps,
+          restSeconds: lastSet.restSeconds,
+        },
+      ];
+      updated[exerciseIndex] = exercise;
       return updated;
     });
   };
@@ -127,9 +128,10 @@ const WorkoutBuilderPage: React.FC = () => {
   const handleDeleteSet = (exerciseIndex: number, setIndex: number) => {
     setSelectedExercises(prev => {
       const updated = [...prev];
-      const exercise = updated[exerciseIndex];
+      const exercise = { ...updated[exerciseIndex] };
       if (exercise.sets.length > 1) {
-        exercise.sets.splice(setIndex, 1);
+        exercise.sets = exercise.sets.filter((_, i) => i !== setIndex);
+        updated[exerciseIndex] = exercise;
       }
       return updated;
     });
@@ -138,15 +140,18 @@ const WorkoutBuilderPage: React.FC = () => {
   const handleRestChange = (exerciseIndex: number, setIndex: number, delta: number) => {
     setSelectedExercises(prev => {
       const updated = [...prev];
-      const exercise = updated[exerciseIndex];
+      const exercise = { ...updated[exerciseIndex] };
       const currentRest = exercise.sets[setIndex].restSeconds;
       const newRest = Math.max(0, currentRest + delta);
-      exercise.sets[setIndex].restSeconds = newRest;
+      exercise.sets = exercise.sets.map((set, i) =>
+        i === setIndex ? { ...set, restSeconds: newRest } : set
+      );
+      updated[exerciseIndex] = exercise;
       return updated;
     });
   };
 
-  const handleSaveTemplate = () => {
+  const handleSaveTemplate = async () => {
     if (!workoutName.trim()) {
       setSaveMessage('Please enter a workout name');
       setTimeout(() => setSaveMessage(''), 3000);
@@ -158,13 +163,30 @@ const WorkoutBuilderPage: React.FC = () => {
       return;
     }
 
-    saveWorkout({
-      name: workoutName.trim(),
-      exercises: selectedExercises,
-    });
+    try {
+      // Extract category from first exercise
+      const firstExercise = EXERCISE_LIBRARY.find(ex => ex.id === selectedExercises[0].exerciseId);
+      const category = firstExercise?.category || 'Push';
 
-    setSaveMessage('Workout saved!');
-    setTimeout(() => setSaveMessage(''), 3000);
+      // Extract exercise IDs
+      const exerciseIds = selectedExercises.map(ex => ex.exerciseId);
+
+      // Create template
+      await templatesAPI.create({
+        name: workoutName.trim(),
+        category,
+        variation: 'A',
+        exerciseIds,
+        isFavorite: false,
+      });
+
+      setSaveMessage('Workout saved!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      console.error('Failed to save workout template:', error);
+      setSaveMessage('Failed to save workout');
+      setTimeout(() => setSaveMessage(''), 3000);
+    }
   };
 
   const handleStartWorkout = () => {
@@ -174,15 +196,8 @@ const WorkoutBuilderPage: React.FC = () => {
       return;
     }
 
-    // Start session and pre-populate with first exercise
-    startSession();
-
-    // Select the first exercise to start logging
-    const firstEx = selectedExercises[0];
-    selectExercise(firstEx.exerciseId, firstEx.exerciseName);
-
-    // Navigate to logger
-    navigate('/workout/log');
+    // Navigate to active workout page with planned exercises
+    navigate('/workout/active', { state: { exercises: selectedExercises } });
   };
 
   return (

@@ -59,6 +59,13 @@ const WorkoutSummaryPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-brand-dark p-4">
       <div className="max-w-2xl mx-auto">
+        <button
+          onClick={() => navigate('/')}
+          className="text-brand-primary dark:text-brand-accent font-medium mb-4 hover:underline"
+        >
+          ← Back to Dashboard
+        </button>
+
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
           Workout Summary
         </h1>

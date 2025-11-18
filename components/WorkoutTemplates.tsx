@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { WorkoutTemplate, Exercise, WorkoutResponse } from '../types';
 import { templatesAPI, workoutsAPI } from '../api';
 import { EXERCISE_LIBRARY } from '../constants';
@@ -17,6 +18,7 @@ interface VariationSuggestion {
 }
 
 const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTemplate }) => {
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -131,6 +133,13 @@ const WorkoutTemplates: React.FC<WorkoutTemplatesProps> = ({ onBack, onSelectTem
 
   return (
     <div className="min-h-screen bg-background p-4 pb-24">
+      <button
+        onClick={() => navigate('/')}
+        className="text-brand-primary dark:text-brand-accent font-medium mb-4 hover:underline"
+      >
+        ← Back to Dashboard
+      </button>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Button

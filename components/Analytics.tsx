@@ -84,6 +84,13 @@ const Analytics: React.FC = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      <button
+        onClick={() => navigate('/')}
+        className="text-brand-primary dark:text-brand-accent font-medium mb-4 hover:underline"
+      >
+        ← Back to Dashboard
+      </button>
+
       {/* Header */}
       <header className="flex justify-between items-center mb-8">
         <Button

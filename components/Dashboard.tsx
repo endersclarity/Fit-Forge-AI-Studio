@@ -17,7 +17,6 @@ import WorkoutPlannerModal from './WorkoutPlannerModal';
 import CollapsibleCard from './CollapsibleCard';
 import { MuscleDeepDiveModal } from './MuscleDeepDiveModal';
 import FABMenu from './FABMenu';
-import TemplateSelector from './TemplateSelector';
 import WorkoutBuilder from './WorkoutBuilder';
 import { DetailedMuscleCard } from './fitness/DetailedMuscleCard';
 import { Card, Button, Badge, ProgressBar } from '../src/design-system/components/primitives';
@@ -636,8 +635,6 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
   // FAB Menu and Builder state
   const [isFABMenuOpen, setIsFABMenuOpen] = useState(false);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
-  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
-  const [loadedTemplate, setLoadedTemplate] = useState<WorkoutTemplate | null>(null);
 
   // Muscle deep dive modal state
   const [deepDiveModalOpen, setDeepDiveModalOpen] = useState(false);
@@ -844,7 +841,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Button
-                onClick={() => setIsTemplateSelectorOpen(true)}
+                onClick={() => navigate('/workout/templates')}
                 variant="secondary"
                 size="lg"
                 className="w-full min-h-[60px] text-lg font-display font-bold"
@@ -1064,7 +1061,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         }}
         onLoadTemplate={() => {
           setIsFABMenuOpen(false);
-          setIsTemplateSelectorOpen(true);
+          navigate('/workout/templates');
         }}
       />
 
@@ -1074,29 +1071,14 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         isOpen={isBuilderOpen}
         onClose={() => {
           setIsBuilderOpen(false);
-          setLoadedTemplate(null);
         }}
         onSuccess={() => {
           fetchDashboardData();
-          setLoadedTemplate(null);
         }}
         onToast={handleToast}
-        loadedTemplate={loadedTemplate}
         currentBodyweight={profile.bodyweightHistory && profile.bodyweightHistory.length > 0
           ? profile.bodyweightHistory.sort((a, b) => b.date - a.date)[0].weight
           : undefined}
-      />
-
-      {/* Template Selector Modal */}
-      <TemplateSelector
-        isOpen={isTemplateSelectorOpen}
-        onClose={() => setIsTemplateSelectorOpen(false)}
-        onLoad={(template) => {
-          setLoadedTemplate(template);
-          setIsTemplateSelectorOpen(false);
-          setIsBuilderOpen(true);
-        }}
-        onToast={handleToast}
       />
 
       {/* Toast Notification */}

@@ -50,6 +50,9 @@ services:
       # Mount source code for hot reload
       - ./components:/app/components
       - ./utils:/app/utils
+      - ./hooks:/app/hooks
+      - ./types:/app/types
+      - ./contexts:/app/contexts
       - ./constants.ts:/app/constants.ts
       - ./types.ts:/app/types.ts
       - ./api.ts:/app/api.ts
