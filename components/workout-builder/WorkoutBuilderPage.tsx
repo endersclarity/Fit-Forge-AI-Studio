@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { EXERCISE_LIBRARY } from '../../constants';
 import { PlannedExercise, PlannedSet } from '../../types/savedWorkouts';
-import { WorkoutTemplate } from '../../types';
+import { WorkoutTemplate, UserProfile } from '../../types';
 import { templatesAPI } from '../../api';
 
 type CategoryType = 'Push' | 'Pull' | 'Legs' | 'Core' | null;
@@ -14,9 +14,13 @@ const WEIGHT_OPTIONS: (number | 'bodyweight')[] = [
   110, 120, 130, 140, 150, 175, 200, 225, 250
 ];
 
-const WorkoutBuilderPage: React.FC = () => {
+interface WorkoutBuilderPageProps {
+  profile: UserProfile;
+}
+
+const WorkoutBuilderPage: React.FC<WorkoutBuilderPageProps> = ({ profile }) => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); // DEBUG: Testing HMR
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>(null);
@@ -27,7 +31,9 @@ const WorkoutBuilderPage: React.FC = () => {
 
   // Pre-populate from template if navigated from Edit
   useEffect(() => {
+    console.log('WorkoutBuilder useEffect - location.state:', location.state);
     const template = location.state?.template as WorkoutTemplate | undefined;
+    console.log('WorkoutBuilder useEffect - template:', template);
     if (template) {
       // Pre-populate from template
       setWorkoutName(template.name);
@@ -226,8 +232,17 @@ const WorkoutBuilderPage: React.FC = () => {
       return;
     }
 
-    // Navigate to active workout page with planned exercises
-    navigate('/workout/active', { state: { exercises: selectedExercises } });
+    // Extract current bodyweight from profile
+    const currentBodyweight = profile?.bodyweightHistory
+      ?.sort((a, b) => b.date - a.date)[0]?.weight || 0;
+
+    // Navigate to active workout page with planned exercises and bodyweight
+    navigate('/workout/active', {
+      state: {
+        exercises: selectedExercises,
+        currentBodyweight: currentBodyweight
+      }
+    });
   };
 
   return (

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // Fix: Import ALL_MUSCLES from constants instead of types
-import { UserProfile, WeightEntry, Equipment, EquipmentItem, EquipmentIncrement, MuscleBaselines, Muscle, Difficulty, MuscleDetailSettings } from '../types';
+import { UserProfile, WeightEntry, Equipment, EquipmentItem, EquipmentIncrement, MuscleBaselines, Muscle } from '../types';
 import { ALL_MUSCLES } from '../constants';
 import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon, EditIcon, PlusIcon, SaveIcon, TrashIcon, XIcon } from './Icons';
 import { Card, Button, Input, Select, type SelectOption } from '@/src/design-system/components/primitives';
@@ -223,17 +223,6 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
     const [editingName, setEditingName] = useState(false);
     const [currentName, setCurrentName] = useState(profile.name);
 
-    // Muscle detail level setting (persisted to localStorage)
-    const [muscleDetailLevel, setMuscleDetailLevel] = useState<'simple' | 'detailed'>(() => {
-        const saved = localStorage.getItem('muscleDetailLevel');
-        return (saved === 'simple' || saved === 'detailed') ? saved : 'simple';
-    });
-
-    // Persist muscle detail level to localStorage
-    useEffect(() => {
-        localStorage.setItem('muscleDetailLevel', muscleDetailLevel);
-    }, [muscleDetailLevel]);
-
     // Pending baseline changes (not saved until user clicks Save button)
     const [pendingBaselineChanges, setPendingBaselineChanges] = useState<
         Partial<Record<Muscle, number | null>>
@@ -333,12 +322,6 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
         }
     };
 
-    const experienceOptions: SelectOption[] = [
-        { label: 'Beginner', value: 'Beginner' },
-        { label: 'Intermediate', value: 'Intermediate' },
-        { label: 'Advanced', value: 'Advanced' },
-    ];
-
     return (
         <div className="p-4 md:p-6 min-h-screen bg-background space-y-6">
             <button
@@ -396,62 +379,7 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
                                 </div>
                             )}
                         </div>
-                        <div>
-                            <label htmlFor="experience" className="block text-sm font-medium font-body text-gray-700 mb-1">Experience Level</label>
-                            <Select
-                                options={experienceOptions}
-                                value={profile.experience}
-                                onChange={(value) => handleProfileChange('experience', value as Difficulty)}
-                                aria-label="Experience level"
-                            />
-                        </div>
 
-                        {/* Muscle Detail Level Toggle */}
-                        <div>
-                            <label className="block text-sm font-medium font-body text-gray-700 mb-2">Muscle Detail Level</label>
-                            <div className="space-y-2">
-                                <Card variant="flat" className="bg-white/30 backdrop-blur-sm">
-                                    <label className="flex items-center p-3 cursor-pointer hover:bg-white/10 border border-gray-300/50">
-                                        <input
-                                            type="radio"
-                                            name="muscleDetailLevel"
-                                            value="simple"
-                                            checked={muscleDetailLevel === 'simple'}
-                                            onChange={(e) => setMuscleDetailLevel(e.target.value as 'simple' | 'detailed')}
-                                            className="mr-3 min-w-[20px] min-h-[20px]"
-                                        />
-                                        <div className="flex-1">
-                                            <div className="font-medium font-body">Simple (13 muscle groups)</div>
-                                            <div className="text-xs text-gray-500 mt-1">Clean dashboard view with major muscle groups</div>
-                                        </div>
-                                    </label>
-                                </Card>
-                                <Card variant="flat" className="bg-white/30 backdrop-blur-sm">
-                                    <label className="flex items-center p-3 cursor-pointer hover:bg-white/10 border border-gray-300/50">
-                                        <input
-                                            type="radio"
-                                            name="muscleDetailLevel"
-                                            value="detailed"
-                                            checked={muscleDetailLevel === 'detailed'}
-                                            onChange={(e) => setMuscleDetailLevel(e.target.value as 'simple' | 'detailed')}
-                                            className="mr-3 min-w-[20px] min-h-[20px]"
-                                        />
-                                        <div className="flex-1">
-                                            <div className="font-medium font-body">Detailed (43 specific muscles)</div>
-                                            <div className="text-xs text-gray-500 mt-1">Show muscle subdivisions, rotator cuff, and stabilizers</div>
-                                        </div>
-                                    </label>
-                                </Card>
-                            </div>
-                            <Card variant="flat" className="mt-3 bg-primary/10 backdrop-blur-sm border border-primary/20">
-                                <div className="p-3">
-                                    <p className="text-xs text-primary font-medium font-body mb-1">💡 View Dashboard to see changes</p>
-                                    <p className="text-xs text-gray-600">
-                                        This setting controls muscle detail on the Dashboard. Change it, then navigate to Dashboard to see the effect on your muscle fatigue heatmap.
-                                    </p>
-                                </div>
-                            </Card>
-                        </div>
                         <div>
                             <label className="block text-sm font-medium font-body text-gray-700">Current Bodyweight (lbs)</label>
                             {editingWeight ? (
@@ -509,41 +437,6 @@ const Profile: React.FC<ProfileProps> = ({ profile, setProfile, muscleBaselines,
                                     size="md"
                                     className="min-w-[60px] min-h-[60px]"
                                 />
-                            </div>
-                        </div>
-                    </div>
-                </Card>
-
-                {/* Recovery Settings */}
-                <Card variant="default" className="bg-white/50 backdrop-blur-lg p-4">
-                    <h2 className="text-lg font-semibold font-display mb-4">Recovery Settings</h2>
-                    <div className="space-y-4">
-                        <div>
-                            <label htmlFor="recoveryDays" className="block text-sm font-medium font-body text-gray-700 mb-2">
-                                Recovery Speed
-                            </label>
-                            <div className="flex items-center gap-4">
-                                <input
-                                    type="range"
-                                    id="recoveryDays"
-                                    min="3"
-                                    max="10"
-                                    step="1"
-                                    value={profile.recoveryDaysToFull || 5}
-                                    onChange={e => handleProfileChange('recoveryDaysToFull', parseInt(e.target.value))}
-                                    className="flex-grow h-2 bg-background rounded-lg appearance-none cursor-pointer accent-primary"
-                                />
-                                <span className="text-2xl font-bold font-display text-primary min-w-[3rem] text-right">
-                                    {profile.recoveryDaysToFull || 5}
-                                </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-2">
-                                Days to recover from 100% muscle fatigue to 0%. Faster recovery (3-5 days) suits experienced lifters with good recovery habits. Slower recovery (7-10 days) is more conservative.
-                            </p>
-                            <div className="flex justify-between text-xs text-gray-500 mt-2">
-                                <span>Faster (3 days)</span>
-                                <span>Default (5 days)</span>
-                                <span>Slower (10 days)</span>
                             </div>
                         </div>
                     </div>

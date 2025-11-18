@@ -19,6 +19,7 @@ import { MuscleDeepDiveModal } from './MuscleDeepDiveModal';
 import FABMenu from './FABMenu';
 import WorkoutBuilder from './WorkoutBuilder';
 import { DetailedMuscleCard } from './fitness/DetailedMuscleCard';
+import MuscleHeatMap from './fitness/MuscleHeatMap';
 import { Card, Button, Badge, ProgressBar } from '../src/design-system/components/primitives';
 import { useMotion } from '@/src/providers/MotionProvider';
 import { listContainerVariants, listItemVariants, SPRING_TRANSITION } from '@/src/providers/motion-presets';
@@ -200,6 +201,18 @@ const getRecoveryStatus = (fatiguePercent: number): 'ready' | 'recovering' | 'fa
   if (fatiguePercent <= 33) return 'ready';
   if (fatiguePercent <= 66) return 'recovering';
   return 'fatigued';
+};
+
+// Helper function to determine muscle category for heat map
+const determineMuscleCategory = (muscleName: string): 'PUSH' | 'PULL' | 'LEGS' | 'CORE' => {
+  const pushMuscles = ['Pectoralis', 'Triceps', 'Deltoids'];
+  const pullMuscles = ['Lats', 'Biceps', 'Rhomboids', 'Trapezius', 'Forearms'];
+  const legMuscles = ['Quadriceps', 'Hamstrings', 'Glutes', 'Calves'];
+
+  if (pushMuscles.some(m => muscleName.includes(m))) return 'PUSH';
+  if (pullMuscles.some(m => muscleName.includes(m))) return 'PULL';
+  if (legMuscles.some(m => muscleName.includes(m))) return 'LEGS';
+  return 'CORE';
 };
 
 interface ExerciseForMuscle {
@@ -825,6 +838,33 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
               }}
             />
           </Card>
+        )}
+
+        {/* Muscle Recovery Status Heat Map */}
+        {!loading && !error && Object.keys(muscleStates).length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-2xl font-display font-bold text-brand-dark dark:text-slate-100 mb-4">
+              Muscle Recovery Status
+            </h2>
+            <div className="bg-white dark:bg-brand-surface rounded-xl border border-slate-200 dark:border-brand-muted p-6">
+              <MuscleHeatMap
+                muscles={Object.entries(muscleStates).map(([name, data]) => ({
+                  name,
+                  category: determineMuscleCategory(name),
+                  fatiguePercent: data.currentFatiguePercent,
+                  lastTrained: data.lastTrained ? new Date(data.lastTrained) : null,
+                  recoveredAt: data.daysUntilRecovered === 0
+                    ? new Date()
+                    : data.lastTrained
+                      ? new Date(new Date(data.lastTrained).getTime() + data.estimatedRecoveryDays * 24 * 60 * 60 * 1000)
+                      : null
+                }))}
+                onMuscleClick={(muscle) => {
+                  console.log('Clicked muscle:', muscle);
+                }}
+              />
+            </div>
+          </div>
         )}
 
         <CollapsibleCard title="Workout Recommendations" icon="💪" defaultExpanded={false}>

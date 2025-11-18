@@ -555,7 +555,7 @@ const App: React.FC = () => {
           {/* New workout flow routes */}
           <Route path="/workout/select" element={<ExercisePickerPage />} />
           <Route path="/workout/log" element={<SetLoggerPage />} />
-          <Route path="/workout/builder" element={<WorkoutBuilderPage />} />
+          <Route path="/workout/builder" element={<WorkoutBuilderPage profile={profile} />} />
           <Route path="/workout/active" element={<ActiveWorkoutPage />} />
           <Route path="/workout/summary" element={<WorkoutSummaryPage />} />
           <Route path="/workout/history" element={wrapPage(<WorkoutHistoryPage />)} />

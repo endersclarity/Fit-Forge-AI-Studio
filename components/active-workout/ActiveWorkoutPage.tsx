@@ -15,8 +15,11 @@ const ActiveWorkoutPage: React.FC = () => {
   const [modalMessage, setModalMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Get planned exercises from navigation state
-  const plannedExercises = (location.state?.exercises as PlannedExercise[]) || [];
+  // Get planned exercises and current bodyweight from navigation state
+  const { exercises: plannedExercises = [], currentBodyweight } = location.state as { 
+    exercises: PlannedExercise[], 
+    currentBodyweight: number 
+  } || { exercises: [], currentBodyweight: 0 };
 
   // Redirect if no exercises
   useEffect(() => {
@@ -35,7 +38,7 @@ const ActiveWorkoutPage: React.FC = () => {
     getElapsedTime,
     getWorkoutSessionData,
     getIncompleteExercises,
-  } = useActiveWorkout(plannedExercises);
+  } = useActiveWorkout(plannedExercises, currentBodyweight);
 
   // Update elapsed time every second
   useEffect(() => {

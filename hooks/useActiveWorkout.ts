@@ -3,7 +3,7 @@ import { PlannedExercise } from '../types/savedWorkouts';
 import { ActiveWorkoutState, CompletedSet } from '../types/activeWorkout';
 import { WorkoutSession, ExerciseLog } from '../types';
 
-export function useActiveWorkout(plannedExercises: PlannedExercise[]) {
+export function useActiveWorkout(plannedExercises: PlannedExercise[], currentBodyweight: number = 0) {
   const [state, setState] = useState<ActiveWorkoutState>({
     plannedExercises,
     currentExerciseIndex: 0,
@@ -175,7 +175,7 @@ export function useActiveWorkout(plannedExercises: PlannedExercise[]) {
       loggedExercises.push({
         exerciseId: exercise.exerciseId,
         sets: completedSets.map(set => ({
-          weight: set.weight === 'bodyweight' ? 0 : set.weight,
+          weight: set.weight === 'bodyweight' ? currentBodyweight : set.weight,
           reps: set.reps,
           to_failure: false,
         })),
@@ -192,7 +192,7 @@ export function useActiveWorkout(plannedExercises: PlannedExercise[]) {
       loggedExercises,
       muscleFatigueHistory: {},
     };
-  }, [state.plannedExercises, state.exerciseLogs, state.startTime]);
+  }, [state.plannedExercises, state.exerciseLogs, state.startTime, currentBodyweight]);
 
   const getIncompleteExercises = useCallback(() => {
     return state.plannedExercises.filter((_, index) => {
