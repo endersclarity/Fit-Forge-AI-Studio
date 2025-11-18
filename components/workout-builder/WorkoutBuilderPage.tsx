@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { EXERCISE_LIBRARY } from '../../constants';
 import { PlannedExercise, PlannedSet } from '../../types/savedWorkouts';
+import { WorkoutTemplate } from '../../types';
 import { templatesAPI } from '../../api';
 
 type CategoryType = 'Push' | 'Pull' | 'Legs' | 'Core' | null;
@@ -15,6 +16,7 @@ const WEIGHT_OPTIONS: (number | 'bodyweight')[] = [
 
 const WorkoutBuilderPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>(null);
@@ -22,6 +24,34 @@ const WorkoutBuilderPage: React.FC = () => {
   const [selectedExercises, setSelectedExercises] = useState<PlannedExercise[]>([]);
   const [workoutName, setWorkoutName] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
+
+  // Pre-populate from template if navigated from Edit
+  useEffect(() => {
+    const template = location.state?.template as WorkoutTemplate | undefined;
+    if (template) {
+      // Pre-populate from template
+      setWorkoutName(template.name);
+
+      const exercises: PlannedExercise[] = template.exerciseIds.map(id => {
+        const exercise = EXERCISE_LIBRARY.find(ex => ex.id === id);
+        if (!exercise) throw new Error(`Exercise ${id} not found`);
+
+        return {
+          exerciseId: exercise.id,
+          exerciseName: exercise.name,
+          sets: [
+            {
+              weight: 'bodyweight',
+              reps: 10,
+              restSeconds: 90,
+            },
+          ],
+        };
+      });
+
+      setSelectedExercises(exercises);
+    }
+  }, [location.state]);
 
   // Get exercises filtered by category and search
   const getExercisesByCategory = (category: CategoryType) => {
