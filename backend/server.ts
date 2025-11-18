@@ -276,6 +276,15 @@ app.post('/api/workouts', (req: Request<{}, WorkoutResponse | ApiErrorResponse, 
       exerciseCount: req.body.exercises.length
     });
 
+    // Calculate muscle fatigue and update muscle states
+    try {
+      calculateWorkoutMetrics(workout.id);
+      console.log('[DEBUG] Muscle states calculated for workout:', workout.id);
+    } catch (metricsError) {
+      console.error('[WARN] Failed to calculate muscle states:', metricsError);
+      // Don't fail the workout save if metrics calculation fails
+    }
+
     // Advance rotation if category and variation are provided
     if (workout.category && workout.variation) {
       db.advanceRotation(1, workout.category as any, workout.variation as 'A' | 'B', workout.date);

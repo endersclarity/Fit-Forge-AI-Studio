@@ -841,28 +841,39 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
         )}
 
         {/* Muscle Recovery Status Heat Map */}
-        {!loading && !error && Object.keys(muscleStates).length > 0 && (
+        {!loading && !error && (
           <div className="mb-6">
             <h2 className="text-2xl font-display font-bold text-brand-dark dark:text-slate-100 mb-4">
               Muscle Recovery Status
             </h2>
             <div className="bg-white dark:bg-brand-surface rounded-xl border border-slate-200 dark:border-brand-muted p-6">
-              <MuscleHeatMap
-                muscles={Object.entries(muscleStates).map(([name, data]) => ({
-                  name,
-                  category: determineMuscleCategory(name),
-                  fatiguePercent: data.currentFatiguePercent,
-                  lastTrained: data.lastTrained ? new Date(data.lastTrained) : null,
-                  recoveredAt: data.daysUntilRecovered === 0
-                    ? new Date()
-                    : data.lastTrained
-                      ? new Date(new Date(data.lastTrained).getTime() + data.estimatedRecoveryDays * 24 * 60 * 60 * 1000)
-                      : null
-                }))}
-                onMuscleClick={(muscle) => {
-                  console.log('Clicked muscle:', muscle);
-                }}
-              />
+              {Object.keys(muscleStates).length > 0 ? (
+                <MuscleHeatMap
+                  muscles={Object.entries(muscleStates).map(([name, data]) => ({
+                    name,
+                    category: determineMuscleCategory(name),
+                    fatiguePercent: data.currentFatiguePercent,
+                    lastTrained: data.lastTrained ? new Date(data.lastTrained) : null,
+                    recoveredAt: data.daysUntilRecovered === 0
+                      ? new Date()
+                      : data.lastTrained
+                        ? new Date(new Date(data.lastTrained).getTime() + data.estimatedRecoveryDays * 24 * 60 * 60 * 1000)
+                        : null
+                  }))}
+                  onMuscleClick={(muscle) => {
+                    console.log('Clicked muscle:', muscle);
+                  }}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-slate-600 dark:text-slate-400 text-lg mb-2">
+                    No muscle data available yet
+                  </p>
+                  <p className="text-slate-500 dark:text-slate-500 text-sm">
+                    Complete a workout to see your muscle recovery status
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
