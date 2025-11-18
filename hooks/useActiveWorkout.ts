@@ -115,6 +115,18 @@ export function useActiveWorkout(plannedExercises: PlannedExercise[]) {
     const exerciseIndex = state.currentExerciseIndex;
     const logs = state.exerciseLogs[exerciseIndex] || [];
     const planned = state.plannedExercises[exerciseIndex];
+
+    // Defensive check: if no planned exercise or sets, return safe defaults
+    if (!planned || !planned.sets || planned.sets.length === 0) {
+      return {
+        setNumber: 1,
+        totalSets: 0,
+        suggestedWeight: 0 as number | 'bodyweight',
+        suggestedReps: 10,
+        suggestedRest: 90,
+      };
+    }
+
     const currentSetIndex = logs.length;
 
     if (currentSetIndex >= planned.sets.length) {
