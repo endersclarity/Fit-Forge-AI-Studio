@@ -7,7 +7,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import * as db from './database/database';
 import { getAnalytics, AnalyticsResponse, calculateWorkoutMetrics, CalculatedMetricsResponse } from './database/analytics';
-import { getExerciseByName } from './constants';
+import { getExerciseByName } from '../shared/exercise-library';
 import { performanceMiddleware } from './middleware/performance';
 // Epic 1 Services (Story 1.1, 1.2, 1.3, 1.4)
 // @ts-ignore - JS module without type definitions

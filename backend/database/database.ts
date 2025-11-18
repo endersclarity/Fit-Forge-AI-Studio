@@ -23,7 +23,8 @@ import {
   ExerciseCategory,
   Muscle
 } from '../types';
-import { EXERCISE_LIBRARY, ROTATION_SEQUENCE } from '../constants';
+import { EXERCISE_LIBRARY } from '../../shared/exercise-library';
+import { ROTATION_SEQUENCE } from '../constants';
 import { getDetailedMuscles, determineDefaultRole } from './mappings';
 
 // Database file location (persisted in data/ folder)

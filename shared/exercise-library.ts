@@ -525,3 +525,12 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     variation: "Both",
   },
 ];
+
+// Helper functions
+export function getExerciseByName(name: string): Exercise | undefined {
+  return EXERCISE_LIBRARY.find(ex => ex.name === name);
+}
+
+export function getExerciseById(id: string): Exercise | undefined {
+  return EXERCISE_LIBRARY.find(ex => ex.id === id);
+}
