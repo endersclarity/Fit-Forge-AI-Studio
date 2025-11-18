@@ -257,7 +257,7 @@ const WorkoutTemplatesPage: React.FC = () => {
                             e.stopPropagation();
                             handleBeginWorkout(template);
                           }}
-                          className="w-full px-4 py-2 bg-accent hover:bg-accent-dark text-white font-medium rounded-lg transition-colors"
+                          className="w-full px-4 py-2 bg-accent hover:bg-accent-dark text-brand-dark dark:text-white font-medium rounded-lg transition-colors"
                         >
                           Begin Workout
                         </button>
