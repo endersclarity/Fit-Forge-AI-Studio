@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templatesAPI } from '../api';
-import { WorkoutTemplate, PlannedExercise } from '../types';
+import { WorkoutTemplate } from '../types';
+import { PlannedExercise } from '../types/savedWorkouts';
 import { EXERCISE_LIBRARY } from '../constants';
 
 const WorkoutTemplatesPage: React.FC = () => {
@@ -89,10 +90,13 @@ const WorkoutTemplatesPage: React.FC = () => {
       if (!exercise) throw new Error(`Exercise ${id} not found`);
 
       return {
-        exercise,
-        sets: 3,
-        reps: 10,
-        weight: 0,
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        sets: [
+          { weight: 0, reps: 10, restSeconds: 90 },
+          { weight: 0, reps: 10, restSeconds: 90 },
+          { weight: 0, reps: 10, restSeconds: 90 },
+        ],
       };
     });
 
