@@ -835,7 +835,10 @@ app.post('/api/templates', (req: Request<{}, WorkoutTemplate | ApiErrorResponse,
     res.status(201).json(template);
   } catch (error) {
     console.error('Error creating workout template:', error);
-    res.status(500).json({ error: 'Failed to create workout template' });
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create workout template';
+    // Return 400 for duplicate name errors, 500 for other errors
+    const statusCode = errorMessage.includes('already exists') ? 400 : 500;
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -849,7 +852,10 @@ app.put('/api/templates/:id', (req: Request<{ id: string }, WorkoutTemplate | Ap
     return res.json(template);
   } catch (error) {
     console.error('Error updating workout template:', error);
-    return res.status(500).json({ error: 'Failed to update workout template' });
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update workout template';
+    // Return 400 for duplicate name errors, 500 for other errors
+    const statusCode = errorMessage.includes('already exists') ? 400 : 500;
+    return res.status(statusCode).json({ error: errorMessage });
   }
 });
 

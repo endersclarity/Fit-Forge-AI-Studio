@@ -1938,6 +1938,16 @@ function getWorkoutTemplateById(id: string | number): WorkoutTemplate | null {
  * Create a new workout template
  */
 function createWorkoutTemplate(template: Omit<WorkoutTemplate, 'id' | 'timesUsed' | 'createdAt' | 'updatedAt'>): WorkoutTemplate {
+  // Check if a template with this name already exists
+  const existingTemplate = db.prepare(`
+    SELECT id FROM workout_templates
+    WHERE user_id = 1 AND name = ?
+  `).get(template.name);
+
+  if (existingTemplate) {
+    throw new Error(`A workout template with the name "${template.name}" already exists. Please choose a different name.`);
+  }
+
   const insert = db.prepare(`
     INSERT INTO workout_templates (user_id, name, category, variation, exercise_ids, is_favorite, created_at, updated_at)
     VALUES (1, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
@@ -1963,6 +1973,18 @@ function createWorkoutTemplate(template: Omit<WorkoutTemplate, 'id' | 'timesUsed
  * Update a workout template
  */
 function updateWorkoutTemplate(id: string | number, template: Partial<WorkoutTemplate>): WorkoutTemplate | null {
+  // If updating the name, check if another template with this name already exists
+  if (template.name) {
+    const existingTemplate = db.prepare(`
+      SELECT id FROM workout_templates
+      WHERE user_id = 1 AND name = ? AND id != ?
+    `).get(template.name, id);
+
+    if (existingTemplate) {
+      throw new Error(`A workout template with the name "${template.name}" already exists. Please choose a different name.`);
+    }
+  }
+
   const update = db.prepare(`
     UPDATE workout_templates
     SET name = ?, category = ?, variation = ?, exercise_ids = ?, is_favorite = ?, times_used = ?, updated_at = CURRENT_TIMESTAMP
