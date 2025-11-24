@@ -230,10 +230,12 @@ const WorkoutBuilderPage: React.FC<WorkoutBuilderPageProps> = ({ profile }) => {
 
       setSaveMessage('Workout saved!');
       setTimeout(() => setSaveMessage(''), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save workout template:', error);
-      setSaveMessage('Failed to save workout');
-      setTimeout(() => setSaveMessage(''), 3000);
+      // Show the actual error message from backend if available
+      const errorMessage = error?.message || error?.error || 'Failed to save workout';
+      setSaveMessage(errorMessage);
+      setTimeout(() => setSaveMessage(''), 5000); // Show longer for errors
     }
   };
 
@@ -528,13 +530,13 @@ const WorkoutBuilderPage: React.FC<WorkoutBuilderPageProps> = ({ profile }) => {
         />
         <button
           onClick={handleSaveTemplate}
-          className="px-6 py-2 rounded-lg border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white transition-colors"
+          className="flex-shrink-0 px-6 py-2 rounded-lg border border-primary text-primary hover:bg-primary hover:text-white transition-colors whitespace-nowrap"
         >
           Save Template
         </button>
         <button
           onClick={handleStartWorkout}
-          className="px-6 py-2 rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 transition-colors"
+          className="flex-shrink-0 px-6 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors whitespace-nowrap"
         >
           Start Workout
         </button>
