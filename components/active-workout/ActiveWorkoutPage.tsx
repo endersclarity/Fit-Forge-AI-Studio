@@ -16,10 +16,13 @@ const ActiveWorkoutPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   // Get planned exercises and current bodyweight from navigation state
-  const { exercises: plannedExercises = [], currentBodyweight } = location.state as { 
-    exercises: PlannedExercise[], 
-    currentBodyweight: number 
-  } || { exercises: [], currentBodyweight: 0 };
+  const { exercises: plannedExercises = [], currentBodyweight: stateBodyweight } = location.state as {
+    exercises: PlannedExercise[],
+    currentBodyweight?: number
+  } || { exercises: [], currentBodyweight: undefined };
+
+  // Ensure currentBodyweight has a valid numeric value (fallback to 0 for bodyweight exercises)
+  const currentBodyweight = stateBodyweight ?? 0;
 
   // Redirect if no exercises
   useEffect(() => {

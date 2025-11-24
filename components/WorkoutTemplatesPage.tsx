@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templatesAPI } from '../api';
-import { WorkoutTemplate } from '../types';
+import { WorkoutTemplate, UserProfile } from '../types';
 import { PlannedExercise } from '../types/savedWorkouts';
 import { EXERCISE_LIBRARY } from '../constants';
 
-const WorkoutTemplatesPage: React.FC = () => {
+interface WorkoutTemplatesPageProps {
+  profile: UserProfile;
+}
+
+const WorkoutTemplatesPage: React.FC<WorkoutTemplatesPageProps> = ({ profile }) => {
   const navigate = useNavigate();
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,23 +88,43 @@ const WorkoutTemplatesPage: React.FC = () => {
   };
 
   const handleBeginWorkout = (template: WorkoutTemplate) => {
-    // Convert template to PlannedExercise[]
-    const exercises: PlannedExercise[] = template.exerciseIds.map(id => {
-      const exercise = EXERCISE_LIBRARY.find(ex => ex.id === id);
-      if (!exercise) throw new Error(`Exercise ${id} not found`);
+    let exercises: PlannedExercise[];
 
-      return {
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
-        sets: [
-          { weight: 0, reps: 10, restSeconds: 90 },
-          { weight: 0, reps: 10, restSeconds: 90 },
-          { weight: 0, reps: 10, restSeconds: 90 },
-        ],
-      };
-    });
+    // Use saved exercises if available (new format), otherwise fall back to exerciseIds (legacy)
+    if (template.exercises && template.exercises.length > 0) {
+      // New format: use saved exercise details with weights, reps, rest times
+      exercises = template.exercises.map(ex => ({
+        exerciseId: ex.exerciseId,
+        exerciseName: ex.exerciseName,
+        sets: ex.sets.map(s => ({
+          weight: s.weight,
+          reps: s.reps,
+          restSeconds: s.restSeconds,
+        })),
+      }));
+    } else {
+      // Legacy format: convert exerciseIds to PlannedExercise[] with defaults
+      exercises = template.exerciseIds.map(id => {
+        const exercise = EXERCISE_LIBRARY.find(ex => ex.id === id);
+        if (!exercise) throw new Error(`Exercise ${id} not found`);
 
-    navigate('/workout/active', { state: { exercises } });
+        return {
+          exerciseId: exercise.id,
+          exerciseName: exercise.name,
+          sets: [
+            { weight: 0, reps: 10, restSeconds: 90 },
+            { weight: 0, reps: 10, restSeconds: 90 },
+            { weight: 0, reps: 10, restSeconds: 90 },
+          ],
+        };
+      });
+    }
+
+    // Extract current bodyweight from profile (same as WorkoutBuilderPage)
+    const currentBodyweight = profile?.bodyweightHistory
+      ?.sort((a, b) => b.date - a.date)[0]?.weight || 0;
+
+    navigate('/workout/active', { state: { exercises, currentBodyweight } });
   };
 
   // Empty state

@@ -71,8 +71,8 @@ export const MuscleCard: React.FC<MuscleCardProps> = ({
     >
       {/* Header: Muscle name and fatigue percentage */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-white font-medium">{muscleName}</span>
-        <span className="text-white font-bold tabular-nums">{fatiguePercent}%</span>
+        <span className="text-gray-900 dark:text-white font-medium">{muscleName}</span>
+        <span className="text-gray-900 dark:text-white font-bold tabular-nums">{fatiguePercent}%</span>
       </div>
 
       {/* Progress bar */}
@@ -85,7 +85,7 @@ export const MuscleCard: React.FC<MuscleCardProps> = ({
       />
 
       {/* Footer: Last trained date */}
-      <div className="text-gray-400 text-sm tabular-nums">
+      <div className="text-gray-600 dark:text-gray-400 text-sm tabular-nums">
         Last trained: {relativeTime}
       </div>
     </div>

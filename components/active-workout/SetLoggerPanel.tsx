@@ -41,11 +41,13 @@ const SetLoggerPanel: React.FC<SetLoggerPanelProps> = ({
   const [restSeconds, setRestSeconds] = useState(currentSetInfo.suggestedRest);
 
   // Update defaults when switching exercises or completing sets
+  // Include exercise.exerciseId to ensure state resets when exercise changes,
+  // even if suggested values happen to be the same between exercises
   useEffect(() => {
     setWeight(currentSetInfo.suggestedWeight);
     setReps(currentSetInfo.suggestedReps);
     setRestSeconds(currentSetInfo.suggestedRest);
-  }, [currentSetInfo.suggestedWeight, currentSetInfo.suggestedReps, currentSetInfo.suggestedRest]);
+  }, [exercise.exerciseId, currentSetInfo.suggestedWeight, currentSetInfo.suggestedReps, currentSetInfo.suggestedRest]);
 
   const handleLogSet = () => {
     // Convert 'bodyweight' string to actual numeric value

@@ -559,7 +559,7 @@ const App: React.FC = () => {
           <Route path="/workout/active" element={<ActiveWorkoutPage />} />
           <Route path="/workout/summary" element={<WorkoutSummaryPage />} />
           <Route path="/workout/history" element={wrapPage(<WorkoutHistoryPage />)} />
-          <Route path="/workout/templates" element={wrapPage(<WorkoutTemplatesPage />)} />
+          <Route path="/workout/templates" element={wrapPage(<WorkoutTemplatesPage profile={profile} />)} />
         </Routes>
       </AnimatePresence>
       </div>

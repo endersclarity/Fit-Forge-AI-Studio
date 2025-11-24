@@ -204,15 +204,27 @@ const WorkoutBuilderPage: React.FC<WorkoutBuilderPageProps> = ({ profile }) => {
       const firstExercise = EXERCISE_LIBRARY.find(ex => ex.id === selectedExercises[0].exerciseId);
       const category = firstExercise?.category || 'Push';
 
-      // Extract exercise IDs
+      // Extract exercise IDs (for backward compatibility)
       const exerciseIds = selectedExercises.map(ex => ex.exerciseId);
 
-      // Create template
+      // Convert selectedExercises to TemplateExercise format for full persistence
+      const exercises = selectedExercises.map(ex => ({
+        exerciseId: ex.exerciseId,
+        exerciseName: ex.exerciseName,
+        sets: ex.sets.map(s => ({
+          weight: s.weight,
+          reps: s.reps,
+          restSeconds: s.restSeconds,
+        })),
+      }));
+
+      // Create template with full exercise details
       await templatesAPI.create({
         name: workoutName.trim(),
         category,
         variation: 'A',
         exerciseIds,
+        exercises,
         isFavorite: false,
       });
 

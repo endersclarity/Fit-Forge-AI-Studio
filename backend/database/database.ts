@@ -189,11 +189,23 @@ interface WorkoutTemplateRow {
   name: string;
   category: string;
   variation: string;
-  exercise_ids: string;
+  exercise_ids: string | null;
+  sets: string | null; // JSON string of TemplateExercise[]
   is_favorite: number;
   times_used: number;
   created_at: string;
   updated_at: string;
+}
+
+// Template exercise structure for storage
+interface TemplateExercise {
+  exerciseId: string;
+  exerciseName: string;
+  sets: Array<{
+    weight: number | 'bodyweight';
+    reps: number;
+    restSeconds: number;
+  }>;
 }
 
 // ============================================
@@ -1897,17 +1909,24 @@ function getWorkoutTemplates(): WorkoutTemplate[] {
     ORDER BY times_used DESC, updated_at DESC
   `).all() as WorkoutTemplateRow[];
 
-  return templates.map(t => ({
-    id: t.id.toString(),
-    name: t.name,
-    category: t.category as 'Push' | 'Pull' | 'Legs' | 'Core',
-    variation: t.variation as 'A' | 'B',
-    exerciseIds: t.exercise_ids ? JSON.parse(t.exercise_ids) as string[] : [],
-    isFavorite: Boolean(t.is_favorite),
-    timesUsed: t.times_used,
-    createdAt: new Date(t.created_at).getTime(),
-    updatedAt: new Date(t.updated_at).getTime()
-  }));
+  return templates.map(t => {
+    // Parse exercises from new 'sets' column, fall back to exerciseIds for legacy templates
+    const exercises = t.sets ? JSON.parse(t.sets) as TemplateExercise[] : undefined;
+    const exerciseIds = t.exercise_ids ? JSON.parse(t.exercise_ids) as string[] : [];
+
+    return {
+      id: t.id.toString(),
+      name: t.name,
+      category: t.category as 'Push' | 'Pull' | 'Legs' | 'Core',
+      variation: t.variation as 'A' | 'B',
+      exerciseIds,
+      exercises,
+      isFavorite: Boolean(t.is_favorite),
+      timesUsed: t.times_used,
+      createdAt: new Date(t.created_at).getTime(),
+      updatedAt: new Date(t.updated_at).getTime()
+    };
+  });
 }
 
 /**
@@ -1921,12 +1940,17 @@ function getWorkoutTemplateById(id: string | number): WorkoutTemplate | null {
 
   if (!template) return null;
 
+  // Parse exercises from new 'sets' column, fall back to exerciseIds for legacy templates
+  const exercises = template.sets ? JSON.parse(template.sets) as TemplateExercise[] : undefined;
+  const exerciseIds = template.exercise_ids ? JSON.parse(template.exercise_ids) as string[] : [];
+
   return {
     id: template.id.toString(),
     name: template.name,
     category: template.category as 'Push' | 'Pull' | 'Legs' | 'Core',
     variation: template.variation as 'A' | 'B',
-    exerciseIds: template.exercise_ids ? JSON.parse(template.exercise_ids) as string[] : [],
+    exerciseIds,
+    exercises,
     isFavorite: Boolean(template.is_favorite),
     timesUsed: template.times_used,
     createdAt: new Date(template.created_at).getTime(),
@@ -1949,8 +1973,8 @@ function createWorkoutTemplate(template: Omit<WorkoutTemplate, 'id' | 'timesUsed
   }
 
   const insert = db.prepare(`
-    INSERT INTO workout_templates (user_id, name, category, variation, exercise_ids, is_favorite, created_at, updated_at)
-    VALUES (1, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    INSERT INTO workout_templates (user_id, name, category, variation, exercise_ids, sets, is_favorite, created_at, updated_at)
+    VALUES (1, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `);
 
   const result = insert.run(
@@ -1958,6 +1982,7 @@ function createWorkoutTemplate(template: Omit<WorkoutTemplate, 'id' | 'timesUsed
     template.category,
     template.variation,
     JSON.stringify(template.exerciseIds),
+    template.exercises ? JSON.stringify(template.exercises) : null,
     template.isFavorite ? 1 : 0
   );
 
@@ -1987,7 +2012,7 @@ function updateWorkoutTemplate(id: string | number, template: Partial<WorkoutTem
 
   const update = db.prepare(`
     UPDATE workout_templates
-    SET name = ?, category = ?, variation = ?, exercise_ids = ?, is_favorite = ?, times_used = ?, updated_at = CURRENT_TIMESTAMP
+    SET name = ?, category = ?, variation = ?, exercise_ids = ?, sets = ?, is_favorite = ?, times_used = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND user_id = 1
   `);
 
@@ -1996,6 +2021,7 @@ function updateWorkoutTemplate(id: string | number, template: Partial<WorkoutTem
     template.category,
     template.variation,
     template.exerciseIds ? JSON.stringify(template.exerciseIds) : undefined,
+    template.exercises ? JSON.stringify(template.exercises) : undefined,
     template.isFavorite ? 1 : 0,
     template.timesUsed ?? 0,
     id

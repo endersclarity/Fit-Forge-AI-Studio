@@ -234,12 +234,24 @@ export interface TemplateSet {
   restTimerSeconds: number;
 }
 
+// Template exercise with full set details
+export interface TemplateExercise {
+  exerciseId: string;
+  exerciseName: string;
+  sets: Array<{
+    weight: number | 'bodyweight';
+    reps: number;
+    restSeconds: number;
+  }>;
+}
+
 export interface WorkoutTemplate {
   id: string;
   name: string;
   category: ExerciseCategory;
   variation: "A" | "B";
-  exerciseIds: string[]; // API returns exerciseIds, not sets
+  exerciseIds: string[]; // DEPRECATED: Old format, kept for backward compatibility
+  exercises?: TemplateExercise[]; // New format: full exercise details with sets
   isFavorite: boolean;
   timesUsed: number;
   createdAt: number; // timestamp

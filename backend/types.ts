@@ -78,13 +78,25 @@ export type {
 // BACKEND-SPECIFIC TYPES ONLY
 // ============================================
 
-// Backend uses exerciseIds instead of sets (different from frontend)
+// Template exercise with full set details
+export interface TemplateExercise {
+  exerciseId: string;
+  exerciseName: string;
+  sets: Array<{
+    weight: number | 'bodyweight';
+    reps: number;
+    restSeconds: number;
+  }>;
+}
+
+// Backend workout template (now supports both exerciseIds and exercises)
 export interface WorkoutTemplate {
   id: string;
   name: string;
   category: ExerciseCategory;
   variation: 'A' | 'B';
-  exerciseIds: string[]; // Backend uses exerciseIds, frontend uses sets
+  exerciseIds: string[]; // DEPRECATED: Old format, kept for backward compatibility
+  exercises?: TemplateExercise[]; // New format: full exercise details with sets
   isFavorite: boolean;
   timesUsed: number;
   createdAt: number;
