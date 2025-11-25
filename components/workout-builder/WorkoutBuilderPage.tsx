@@ -38,22 +38,39 @@ const WorkoutBuilderPage: React.FC<WorkoutBuilderPageProps> = ({ profile }) => {
       // Pre-populate from template
       setWorkoutName(template.name);
 
-      const exercises: PlannedExercise[] = template.exerciseIds.map(id => {
-        const exercise = EXERCISE_LIBRARY.find(ex => ex.id === id);
-        if (!exercise) throw new Error(`Exercise ${id} not found`);
+      let exercises: PlannedExercise[];
 
-        return {
-          exerciseId: exercise.id,
-          exerciseName: exercise.name,
-          sets: [
-            {
-              weight: 'bodyweight',
-              reps: 10,
-              restSeconds: 90,
-            },
-          ],
-        };
-      });
+      // Use saved exercises if available (new format), otherwise fall back to exerciseIds (legacy)
+      if (template.exercises && template.exercises.length > 0) {
+        // New format: use saved exercise details with weights, reps, rest times
+        exercises = template.exercises.map(ex => ({
+          exerciseId: ex.exerciseId,
+          exerciseName: ex.exerciseName,
+          sets: ex.sets.map(s => ({
+            weight: s.weight,
+            reps: s.reps,
+            restSeconds: s.restSeconds,
+          })),
+        }));
+      } else {
+        // Legacy format: convert exerciseIds to PlannedExercise[] with defaults
+        exercises = template.exerciseIds.map(id => {
+          const exercise = EXERCISE_LIBRARY.find(ex => ex.id === id);
+          if (!exercise) throw new Error(`Exercise ${id} not found`);
+
+          return {
+            exerciseId: exercise.id,
+            exerciseName: exercise.name,
+            sets: [
+              {
+                weight: 'bodyweight',
+                reps: 10,
+                restSeconds: 90,
+              },
+            ],
+          };
+        });
+      }
 
       setSelectedExercises(exercises);
     }
