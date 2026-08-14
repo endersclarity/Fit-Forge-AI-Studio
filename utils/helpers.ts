@@ -1,5 +1,6 @@
 // Fix: Corrected import path for WorkoutSession type.
-import { WorkoutSession, Exercise } from '../types';
+import { WorkoutSession, Exercise, ExerciseCategory } from '../types';
+import { EXERCISE_LIBRARY } from '../constants';
 
 // Note: getDaysSince, calculateRecoveryPercentage, and getRecoveryColor have been removed
 // as part of Phase 5 cleanup. Muscle state calculations are now handled by the backend.
@@ -35,6 +36,17 @@ export const formatDuration = (milliseconds: number) => {
 
 export const calculateVolume = (reps: number, weight: number): number => {
     return reps * weight;
+};
+
+export const majorityCategory = (exerciseIds: string[]): ExerciseCategory => {
+  const counts: Record<string, number> = {};
+  for (const id of exerciseIds) {
+    const cat = EXERCISE_LIBRARY.find(e => e.id === id)?.category;
+    if (!cat) continue;
+    counts[cat] = (counts[cat] || 0) + 1;
+  }
+  const winner = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  return (winner?.[0] as ExerciseCategory) || 'Push';
 };
 
 export const findPreviousWorkout = (currentWorkout: WorkoutSession, allWorkouts: WorkoutSession[]): WorkoutSession | undefined => {

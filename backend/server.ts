@@ -54,6 +54,16 @@ const DEFAULT_RECOMMENDATION_PARAMS = {
   ESTIMATED_WEIGHT_LBS: 100
 } as const;
 
+function applyWorkoutMetrics(workoutId: number): boolean {
+  try {
+    calculateWorkoutMetrics(workoutId);
+    return true;
+  } catch (metricsError) {
+    console.error('[WARN] Failed to calculate muscle states:', metricsError);
+    return false;
+  }
+}
+
 // Middleware
 // CORS configuration - supports both development and production
 const allowedOrigins = [
@@ -276,14 +286,7 @@ app.post('/api/workouts', (req: Request<{}, WorkoutResponse | ApiErrorResponse, 
       exerciseCount: req.body.exercises.length
     });
 
-    // Calculate muscle fatigue and update muscle states
-    try {
-      calculateWorkoutMetrics(workout.id);
-      console.log('[DEBUG] Muscle states calculated for workout:', workout.id);
-    } catch (metricsError) {
-      console.error('[WARN] Failed to calculate muscle states:', metricsError);
-      // Don't fail the workout save if metrics calculation fails
-    }
+    applyWorkoutMetrics(workout.id);
 
     // Advance rotation if category and variation are provided
     if (workout.category && workout.variation) {
@@ -665,6 +668,7 @@ app.post('/api/quick-workout', (req: Request<{}, QuickWorkoutResponse | ApiError
 
     // Baseline updates are returned from saveWorkout if any were made
     const updated_baselines = workout.updated_baselines || [];
+    const muscle_states_updated = applyWorkoutMetrics(workout.id);
 
     return res.status(201).json({
       workout_id: workout.id,
@@ -673,7 +677,7 @@ app.post('/api/quick-workout', (req: Request<{}, QuickWorkoutResponse | ApiError
       duration_seconds: durationSeconds,
       prs,
       updated_baselines,
-      muscle_states_updated: true
+      muscle_states_updated
     });
   } catch (error) {
     console.error('Error in quick-workout:', error);
@@ -787,6 +791,7 @@ app.post('/api/builder-workout', (req: Request<{}, QuickWorkoutResponse | ApiErr
 
     // Baseline updates
     const updated_baselines = workout.updated_baselines || [];
+    const muscle_states_updated = applyWorkoutMetrics(workout.id);
 
     return res.status(201).json({
       workout_id: workout.id,
@@ -795,7 +800,7 @@ app.post('/api/builder-workout', (req: Request<{}, QuickWorkoutResponse | ApiErr
       duration_seconds: durationSeconds,
       prs,
       updated_baselines,
-      muscle_states_updated: true
+      muscle_states_updated
     });
   } catch (error) {
     console.error('Error in builder-workout:', error);
@@ -1064,19 +1069,35 @@ interface RecoveryTimelineResponse {
 app.post('/api/workouts/:id/complete', async (req: Request, res: Response<WorkoutCompletionResponse | ApiErrorResponse>) => {
   try {
     const workoutId = parseInt(req.params.id);
-    const { exercises } = req.body as WorkoutCompletionRequest;
+    let { exercises } = (req.body || {}) as WorkoutCompletionRequest;
 
     // Input validation
     if (isNaN(workoutId) || workoutId <= 0) {
       return res.status(400).json({ error: 'Invalid workout ID' });
     }
 
-    if (!exercises || !Array.isArray(exercises)) {
-      return res.status(400).json({ error: 'Invalid request: exercises array required' });
+    if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
+      const saved = db.getWorkouts().find((w: { id: number }) => w.id === workoutId);
+      if (!saved) {
+        return res.status(404).json({ error: 'Workout not found' });
+      }
+      exercises = saved.exercises
+        .map((ex) => {
+          const info = getExerciseByName(ex.exercise);
+          return {
+            exerciseId: info?.id || '',
+            sets: (ex.sets || []).map((s) => ({
+              reps: s.reps,
+              weight: s.weight,
+              toFailure: Boolean((s as { to_failure?: boolean }).to_failure)
+            }))
+          };
+        })
+        .filter((ex) => ex.exerciseId && ex.sets.length > 0);
     }
 
-    if (exercises.length === 0) {
-      return res.status(400).json({ error: 'Invalid request: exercises array cannot be empty' });
+    if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
+      return res.status(400).json({ error: 'Invalid request: exercises array required' });
     }
 
     // Validate exercises structure
@@ -1137,6 +1158,7 @@ app.post('/api/workouts/:id/complete', async (req: Request, res: Response<Workou
       };
     });
     db.updateMuscleStates(muscleStatesToStore);
+    applyWorkoutMetrics(workoutId);
 
     // Calculate workout summary metrics (AC 4)
     // Total volume: sum of (weight × reps) for all sets
