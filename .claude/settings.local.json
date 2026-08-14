@@ -9,16 +9,6 @@
     "ask": []
   },
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Read|Grep|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/serena-reminder.sh"
-          }
-        ]
-      }
-    ]
+    "PreToolUse": []
   }
 }
