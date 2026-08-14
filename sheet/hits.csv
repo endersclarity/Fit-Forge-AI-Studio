@@ -1,0 +1,778 @@
+date,split,exercise_id,exercise,set,reps,weight_lb,muscle,role
+2026-08-13,push,ex32,Incline Dumbbell Bench Press,1,10,60,Pectoralis,primary
+2026-08-13,push,ex32,Incline Dumbbell Bench Press,1,10,60,Triceps,secondary
+2026-08-13,push,ex32,Incline Dumbbell Bench Press,1,10,60,Deltoids,secondary
+2026-08-13,push,ex32,Incline Dumbbell Bench Press,2,10,60,Pectoralis,primary
+2026-08-13,push,ex32,Incline Dumbbell Bench Press,2,10,60,Triceps,secondary
+2026-08-13,push,ex32,Incline Dumbbell Bench Press,2,10,60,Deltoids,secondary
+2026-08-13,push,ex32,Incline Dumbbell Bench Press,3,7,60,Pectoralis,primary
+2026-08-13,push,ex32,Incline Dumbbell Bench Press,3,7,60,Triceps,secondary
+2026-08-13,push,ex32,Incline Dumbbell Bench Press,3,7,60,Deltoids,secondary
+2026-08-13,push,ex03,Push-up,1,12,,Pectoralis,primary
+2026-08-13,push,ex03,Push-up,1,12,,Triceps,primary
+2026-08-13,push,ex03,Push-up,1,12,,Deltoids,secondary
+2026-08-13,push,ex03,Push-up,1,12,,Core,secondary
+2026-08-13,push,ex03,Push-up,2,12,,Pectoralis,primary
+2026-08-13,push,ex03,Push-up,2,12,,Triceps,primary
+2026-08-13,push,ex03,Push-up,2,12,,Deltoids,secondary
+2026-08-13,push,ex03,Push-up,2,12,,Core,secondary
+2026-08-13,push,ex03,Push-up,3,12,,Pectoralis,primary
+2026-08-13,push,ex03,Push-up,3,12,,Triceps,primary
+2026-08-13,push,ex03,Push-up,3,12,,Deltoids,secondary
+2026-08-13,push,ex03,Push-up,3,12,,Core,secondary
+2026-08-13,push,ex33,Dips,1,8,,Pectoralis,primary
+2026-08-13,push,ex33,Dips,1,8,,Triceps,primary
+2026-08-13,push,ex33,Dips,1,8,,Deltoids,secondary
+2026-08-13,push,ex33,Dips,2,10,,Pectoralis,primary
+2026-08-13,push,ex33,Dips,2,10,,Triceps,primary
+2026-08-13,push,ex33,Dips,2,10,,Deltoids,secondary
+2026-08-13,push,ex33,Dips,3,8,,Pectoralis,primary
+2026-08-13,push,ex33,Dips,3,8,,Triceps,primary
+2026-08-13,push,ex33,Dips,3,8,,Deltoids,secondary
+2026-08-13,push,ex05,Single-Arm Shoulder Press,1,12,20,Deltoids,primary
+2026-08-13,push,ex05,Single-Arm Shoulder Press,1,12,20,Triceps,secondary
+2026-08-13,push,ex05,Single-Arm Shoulder Press,2,11,20,Deltoids,primary
+2026-08-13,push,ex05,Single-Arm Shoulder Press,2,11,20,Triceps,secondary
+2026-08-13,push,ex05,Single-Arm Shoulder Press,3,8,20,Deltoids,primary
+2026-08-13,push,ex05,Single-Arm Shoulder Press,3,8,20,Triceps,secondary
+2026-08-13,push,ex40,TRX Tricep Extension,1,9,,Triceps,primary
+2026-08-13,push,ex40,TRX Tricep Extension,1,9,,Core,secondary
+2026-08-13,push,ex40,TRX Tricep Extension,2,12,,Triceps,primary
+2026-08-13,push,ex40,TRX Tricep Extension,2,12,,Core,secondary
+2026-08-13,push,ex40,TRX Tricep Extension,3,12,,Triceps,primary
+2026-08-13,push,ex40,TRX Tricep Extension,3,12,,Core,secondary
+2026-08-10,pull,ex20,Chin-Up,1,9,,Lats,primary
+2026-08-10,pull,ex20,Chin-Up,1,9,,Biceps,secondary
+2026-08-10,pull,ex20,Chin-Up,2,7,,Lats,primary
+2026-08-10,pull,ex20,Chin-Up,2,7,,Biceps,secondary
+2026-08-10,pull,ex20,Chin-Up,3,7,,Lats,primary
+2026-08-10,pull,ex20,Chin-Up,3,7,,Biceps,secondary
+2026-08-10,pull,ex21,Face Pull,1,17,,Deltoids,primary
+2026-08-10,pull,ex21,Face Pull,1,17,,Rhomboids,primary
+2026-08-10,pull,ex21,Face Pull,1,17,,Trapezius,secondary
+2026-08-10,pull,ex21,Face Pull,2,19,,Deltoids,primary
+2026-08-10,pull,ex21,Face Pull,2,19,,Rhomboids,primary
+2026-08-10,pull,ex21,Face Pull,2,19,,Trapezius,secondary
+2026-08-10,pull,ex21,Face Pull,3,14,,Deltoids,primary
+2026-08-10,pull,ex21,Face Pull,3,14,,Rhomboids,primary
+2026-08-10,pull,ex21,Face Pull,3,14,,Trapezius,secondary
+2026-08-10,pull,ex-yfly,TRX Y-Fly,1,11,,Deltoids,primary
+2026-08-10,pull,ex-yfly,TRX Y-Fly,1,11,,Trapezius,primary
+2026-08-10,pull,ex-yfly,TRX Y-Fly,1,11,,Rhomboids,secondary
+2026-08-10,pull,ex-yfly,TRX Y-Fly,2,10,,Deltoids,primary
+2026-08-10,pull,ex-yfly,TRX Y-Fly,2,10,,Trapezius,primary
+2026-08-10,pull,ex-yfly,TRX Y-Fly,2,10,,Rhomboids,secondary
+2026-08-10,pull,ex-yfly,TRX Y-Fly,3,9,,Deltoids,primary
+2026-08-10,pull,ex-yfly,TRX Y-Fly,3,9,,Trapezius,primary
+2026-08-10,pull,ex-yfly,TRX Y-Fly,3,9,,Rhomboids,secondary
+2026-08-10,pull,ex18,Dumbbell Upright Row,1,10,40,Deltoids,primary
+2026-08-10,pull,ex18,Dumbbell Upright Row,1,10,40,Trapezius,primary
+2026-08-10,pull,ex18,Dumbbell Upright Row,1,10,40,Biceps,secondary
+2026-08-10,pull,ex18,Dumbbell Upright Row,2,8,40,Deltoids,primary
+2026-08-10,pull,ex18,Dumbbell Upright Row,2,8,40,Trapezius,primary
+2026-08-10,pull,ex18,Dumbbell Upright Row,2,8,40,Biceps,secondary
+2026-08-10,pull,ex18,Dumbbell Upright Row,3,7,40,Deltoids,primary
+2026-08-10,pull,ex18,Dumbbell Upright Row,3,7,40,Trapezius,primary
+2026-08-10,pull,ex18,Dumbbell Upright Row,3,7,40,Biceps,secondary
+2026-08-10,pull,ex-altcurl,Alternating Dumbbell Curl,1,10,40,Biceps,primary
+2026-08-10,pull,ex-altcurl,Alternating Dumbbell Curl,1,10,40,Forearms,secondary
+2026-08-10,pull,ex-altcurl,Alternating Dumbbell Curl,2,9,40,Biceps,primary
+2026-08-10,pull,ex-altcurl,Alternating Dumbbell Curl,2,9,40,Forearms,secondary
+2026-08-10,pull,ex-altcurl,Alternating Dumbbell Curl,3,10,40,Biceps,primary
+2026-08-10,pull,ex-altcurl,Alternating Dumbbell Curl,3,10,40,Forearms,secondary
+2026-08-09,legs,ex-bss-sprinter,Bulgarian Split Squat (sprinter-lean),1,6,25,Glutes,primary
+2026-08-09,legs,ex-bss-sprinter,Bulgarian Split Squat (sprinter-lean),1,6,25,Hamstrings,primary
+2026-08-09,legs,ex-bss-sprinter,Bulgarian Split Squat (sprinter-lean),1,6,25,Quadriceps,secondary
+2026-08-09,legs,ex-bss-sprinter,Bulgarian Split Squat (sprinter-lean),2,12,25,Glutes,primary
+2026-08-09,legs,ex-bss-sprinter,Bulgarian Split Squat (sprinter-lean),2,12,25,Hamstrings,primary
+2026-08-09,legs,ex-bss-sprinter,Bulgarian Split Squat (sprinter-lean),2,12,25,Quadriceps,secondary
+2026-08-09,legs,ex-bss-sprinter,Bulgarian Split Squat (sprinter-lean),3,8,25,Glutes,primary
+2026-08-09,legs,ex-bss-sprinter,Bulgarian Split Squat (sprinter-lean),3,8,25,Hamstrings,primary
+2026-08-09,legs,ex-bss-sprinter,Bulgarian Split Squat (sprinter-lean),3,8,25,Quadriceps,secondary
+2026-08-09,legs,ex-bss-upright,Bulgarian Split Squat (upright),1,8,25,Quadriceps,primary
+2026-08-09,legs,ex-bss-upright,Bulgarian Split Squat (upright),1,8,25,Glutes,secondary
+2026-08-09,legs,ex-trx-squat,TRX Squat,1,20,,Quadriceps,primary
+2026-08-09,legs,ex-trx-squat,TRX Squat,1,20,,Glutes,primary
+2026-08-09,legs,ex-trx-squat,TRX Squat,1,20,,Core,secondary
+2026-08-09,legs,ex-trx-squat,TRX Squat,2,20,,Quadriceps,primary
+2026-08-09,legs,ex-trx-squat,TRX Squat,2,20,,Glutes,primary
+2026-08-09,legs,ex-trx-squat,TRX Squat,2,20,,Core,secondary
+2026-08-09,legs,ex-trx-squat,TRX Squat,3,20,,Quadriceps,primary
+2026-08-09,legs,ex-trx-squat,TRX Squat,3,20,,Glutes,primary
+2026-08-09,legs,ex-trx-squat,TRX Squat,3,20,,Core,secondary
+2026-08-08,push,ex32,Incline Dumbbell Bench Press,1,10,60,Pectoralis,primary
+2026-08-08,push,ex32,Incline Dumbbell Bench Press,1,10,60,Triceps,secondary
+2026-08-08,push,ex32,Incline Dumbbell Bench Press,1,10,60,Deltoids,secondary
+2026-08-08,push,ex32,Incline Dumbbell Bench Press,2,8,60,Pectoralis,primary
+2026-08-08,push,ex32,Incline Dumbbell Bench Press,2,8,60,Triceps,secondary
+2026-08-08,push,ex32,Incline Dumbbell Bench Press,2,8,60,Deltoids,secondary
+2026-08-08,push,ex32,Incline Dumbbell Bench Press,3,6,60,Pectoralis,primary
+2026-08-08,push,ex32,Incline Dumbbell Bench Press,3,6,60,Triceps,secondary
+2026-08-08,push,ex32,Incline Dumbbell Bench Press,3,6,60,Deltoids,secondary
+2026-08-08,push,ex03,Push-up,1,12,,Pectoralis,primary
+2026-08-08,push,ex03,Push-up,1,12,,Triceps,primary
+2026-08-08,push,ex03,Push-up,1,12,,Deltoids,secondary
+2026-08-08,push,ex03,Push-up,1,12,,Core,secondary
+2026-08-08,push,ex03,Push-up,2,9,,Pectoralis,primary
+2026-08-08,push,ex03,Push-up,2,9,,Triceps,primary
+2026-08-08,push,ex03,Push-up,2,9,,Deltoids,secondary
+2026-08-08,push,ex03,Push-up,2,9,,Core,secondary
+2026-08-08,push,ex03,Push-up,3,8,,Pectoralis,primary
+2026-08-08,push,ex03,Push-up,3,8,,Triceps,primary
+2026-08-08,push,ex03,Push-up,3,8,,Deltoids,secondary
+2026-08-08,push,ex03,Push-up,3,8,,Core,secondary
+2026-08-08,push,ex33,Dips,1,7,,Pectoralis,primary
+2026-08-08,push,ex33,Dips,1,7,,Triceps,primary
+2026-08-08,push,ex33,Dips,1,7,,Deltoids,secondary
+2026-08-08,push,ex33,Dips,2,9,,Pectoralis,primary
+2026-08-08,push,ex33,Dips,2,9,,Triceps,primary
+2026-08-08,push,ex33,Dips,2,9,,Deltoids,secondary
+2026-08-08,push,ex33,Dips,3,7,,Pectoralis,primary
+2026-08-08,push,ex33,Dips,3,7,,Triceps,primary
+2026-08-08,push,ex33,Dips,3,7,,Deltoids,secondary
+2026-08-08,push,ex05,Single-Arm Shoulder Press,1,10,20,Deltoids,primary
+2026-08-08,push,ex05,Single-Arm Shoulder Press,1,10,20,Triceps,secondary
+2026-08-08,push,ex05,Single-Arm Shoulder Press,2,10,20,Deltoids,primary
+2026-08-08,push,ex05,Single-Arm Shoulder Press,2,10,20,Triceps,secondary
+2026-08-08,push,ex05,Single-Arm Shoulder Press,3,10,20,Deltoids,primary
+2026-08-08,push,ex05,Single-Arm Shoulder Press,3,10,20,Triceps,secondary
+2026-08-08,push,ex40,TRX Tricep Extension,1,12,,Triceps,primary
+2026-08-08,push,ex40,TRX Tricep Extension,1,12,,Core,secondary
+2026-08-08,push,ex40,TRX Tricep Extension,2,11,,Triceps,primary
+2026-08-08,push,ex40,TRX Tricep Extension,2,11,,Core,secondary
+2026-08-08,push,ex40,TRX Tricep Extension,3,10,,Triceps,primary
+2026-08-08,push,ex40,TRX Tricep Extension,3,10,,Core,secondary
+2026-08-05,pull,ex20,Chin-Up,1,10,,Lats,primary
+2026-08-05,pull,ex20,Chin-Up,1,10,,Biceps,secondary
+2026-08-05,pull,ex20,Chin-Up,2,8,,Lats,primary
+2026-08-05,pull,ex20,Chin-Up,2,8,,Biceps,secondary
+2026-08-05,pull,ex20,Chin-Up,3,7,,Lats,primary
+2026-08-05,pull,ex20,Chin-Up,3,7,,Biceps,secondary
+2026-08-05,pull,ex49,TRX T-Row,1,20,,Lats,primary
+2026-08-05,pull,ex49,TRX T-Row,1,20,,Rhomboids,primary
+2026-08-05,pull,ex49,TRX T-Row,1,20,,Biceps,secondary
+2026-08-05,pull,ex49,TRX T-Row,1,20,,Core,secondary
+2026-08-05,pull,ex49,TRX T-Row,2,16,,Lats,primary
+2026-08-05,pull,ex49,TRX T-Row,2,16,,Rhomboids,primary
+2026-08-05,pull,ex49,TRX T-Row,2,16,,Biceps,secondary
+2026-08-05,pull,ex49,TRX T-Row,2,16,,Core,secondary
+2026-08-05,pull,ex49,TRX T-Row,3,20,,Lats,primary
+2026-08-05,pull,ex49,TRX T-Row,3,20,,Rhomboids,primary
+2026-08-05,pull,ex49,TRX T-Row,3,20,,Biceps,secondary
+2026-08-05,pull,ex49,TRX T-Row,3,20,,Core,secondary
+2026-08-05,pull,ex-yfly,TRX Y-Fly,1,14,,Deltoids,primary
+2026-08-05,pull,ex-yfly,TRX Y-Fly,1,14,,Trapezius,primary
+2026-08-05,pull,ex-yfly,TRX Y-Fly,1,14,,Rhomboids,secondary
+2026-08-05,pull,ex-yfly,TRX Y-Fly,2,16,,Deltoids,primary
+2026-08-05,pull,ex-yfly,TRX Y-Fly,2,16,,Trapezius,primary
+2026-08-05,pull,ex-yfly,TRX Y-Fly,2,16,,Rhomboids,secondary
+2026-08-05,pull,ex-yfly,TRX Y-Fly,3,13,,Deltoids,primary
+2026-08-05,pull,ex-yfly,TRX Y-Fly,3,13,,Trapezius,primary
+2026-08-05,pull,ex-yfly,TRX Y-Fly,3,13,,Rhomboids,secondary
+2026-08-05,pull,ex18,Dumbbell Upright Row,1,9,45,Deltoids,primary
+2026-08-05,pull,ex18,Dumbbell Upright Row,1,9,45,Trapezius,primary
+2026-08-05,pull,ex18,Dumbbell Upright Row,1,9,45,Biceps,secondary
+2026-08-05,pull,ex18,Dumbbell Upright Row,2,9,45,Deltoids,primary
+2026-08-05,pull,ex18,Dumbbell Upright Row,2,9,45,Trapezius,primary
+2026-08-05,pull,ex18,Dumbbell Upright Row,2,9,45,Biceps,secondary
+2026-08-05,pull,ex18,Dumbbell Upright Row,3,8,45,Deltoids,primary
+2026-08-05,pull,ex18,Dumbbell Upright Row,3,8,45,Trapezius,primary
+2026-08-05,pull,ex18,Dumbbell Upright Row,3,8,45,Biceps,secondary
+2026-08-05,pull,ex25,Incline Hammer Curl,1,7,40,Biceps,primary
+2026-08-05,pull,ex25,Incline Hammer Curl,1,7,40,Forearms,primary
+2026-08-05,pull,ex25,Incline Hammer Curl,2,6,40,Biceps,primary
+2026-08-05,pull,ex25,Incline Hammer Curl,2,6,40,Forearms,primary
+2026-08-05,pull,ex25,Incline Hammer Curl,3,5,40,Biceps,primary
+2026-08-05,pull,ex25,Incline Hammer Curl,3,5,40,Forearms,primary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,1,13,80,Glutes,primary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,1,13,80,Hamstrings,primary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,1,13,80,Core,secondary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,1,13,80,Forearms,secondary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,1,13,80,Trapezius,secondary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,2,13,80,Glutes,primary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,2,13,80,Hamstrings,primary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,2,13,80,Core,secondary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,2,13,80,Forearms,secondary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,2,13,80,Trapezius,secondary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,3,13,80,Glutes,primary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,3,13,80,Hamstrings,primary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,3,13,80,Core,secondary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,3,13,80,Forearms,secondary
+2026-08-02,legs,ex-dl,Dumbbell Deadlift,3,13,80,Trapezius,secondary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,1,10,80,Hamstrings,primary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,1,10,80,Glutes,primary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,1,10,80,Core,secondary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,1,10,80,Forearms,secondary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,2,10,80,Hamstrings,primary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,2,10,80,Glutes,primary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,2,10,80,Core,secondary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,2,10,80,Forearms,secondary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,3,10,80,Hamstrings,primary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,3,10,80,Glutes,primary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,3,10,80,Core,secondary
+2026-08-02,legs,ex36,Stiff-Legged Deadlift,3,10,80,Forearms,secondary
+2026-08-02,legs,ex-trx-squat,TRX Squat,1,20,,Quadriceps,primary
+2026-08-02,legs,ex-trx-squat,TRX Squat,1,20,,Glutes,primary
+2026-08-02,legs,ex-trx-squat,TRX Squat,1,20,,Core,secondary
+2026-08-02,legs,ex-trx-squat,TRX Squat,2,20,,Quadriceps,primary
+2026-08-02,legs,ex-trx-squat,TRX Squat,2,20,,Glutes,primary
+2026-08-02,legs,ex-trx-squat,TRX Squat,2,20,,Core,secondary
+2026-08-02,legs,ex-trx-squat,TRX Squat,3,15,,Quadriceps,primary
+2026-08-02,legs,ex-trx-squat,TRX Squat,3,15,,Glutes,primary
+2026-08-02,legs,ex-trx-squat,TRX Squat,3,15,,Core,secondary
+2026-08-02,legs,ex15,Calf Raise,,,,Calves,primary
+2026-08-02,legs,ex35,Glute Bridge,1,30,80,Glutes,primary
+2026-08-02,legs,ex35,Glute Bridge,1,30,80,Hamstrings,secondary
+2026-08-02,legs,ex35,Glute Bridge,2,30,80,Glutes,primary
+2026-08-02,legs,ex35,Glute Bridge,2,30,80,Hamstrings,secondary
+2026-08-02,legs,ex35,Glute Bridge,3,30,80,Glutes,primary
+2026-08-02,legs,ex35,Glute Bridge,3,30,80,Hamstrings,secondary
+2026-08-01,push,ex32,Incline Dumbbell Bench Press,1,10,60,Pectoralis,primary
+2026-08-01,push,ex32,Incline Dumbbell Bench Press,1,10,60,Triceps,secondary
+2026-08-01,push,ex32,Incline Dumbbell Bench Press,1,10,60,Deltoids,secondary
+2026-08-01,push,ex32,Incline Dumbbell Bench Press,2,10,60,Pectoralis,primary
+2026-08-01,push,ex32,Incline Dumbbell Bench Press,2,10,60,Triceps,secondary
+2026-08-01,push,ex32,Incline Dumbbell Bench Press,2,10,60,Deltoids,secondary
+2026-08-01,push,ex32,Incline Dumbbell Bench Press,3,9,60,Pectoralis,primary
+2026-08-01,push,ex32,Incline Dumbbell Bench Press,3,9,60,Triceps,secondary
+2026-08-01,push,ex32,Incline Dumbbell Bench Press,3,9,60,Deltoids,secondary
+2026-08-01,push,ex03,Push-up,1,12,,Pectoralis,primary
+2026-08-01,push,ex03,Push-up,1,12,,Triceps,primary
+2026-08-01,push,ex03,Push-up,1,12,,Deltoids,secondary
+2026-08-01,push,ex03,Push-up,1,12,,Core,secondary
+2026-08-01,push,ex03,Push-up,2,11,,Pectoralis,primary
+2026-08-01,push,ex03,Push-up,2,11,,Triceps,primary
+2026-08-01,push,ex03,Push-up,2,11,,Deltoids,secondary
+2026-08-01,push,ex03,Push-up,2,11,,Core,secondary
+2026-08-01,push,ex03,Push-up,3,9,,Pectoralis,primary
+2026-08-01,push,ex03,Push-up,3,9,,Triceps,primary
+2026-08-01,push,ex03,Push-up,3,9,,Deltoids,secondary
+2026-08-01,push,ex03,Push-up,3,9,,Core,secondary
+2026-08-01,push,ex33,Dips,1,12,,Pectoralis,primary
+2026-08-01,push,ex33,Dips,1,12,,Triceps,primary
+2026-08-01,push,ex33,Dips,1,12,,Deltoids,secondary
+2026-08-01,push,ex33,Dips,2,11,,Pectoralis,primary
+2026-08-01,push,ex33,Dips,2,11,,Triceps,primary
+2026-08-01,push,ex33,Dips,2,11,,Deltoids,secondary
+2026-08-01,push,ex33,Dips,3,10,,Pectoralis,primary
+2026-08-01,push,ex33,Dips,3,10,,Triceps,primary
+2026-08-01,push,ex33,Dips,3,10,,Deltoids,secondary
+2026-08-01,push,ex05,Single-Arm Shoulder Press,1,10,30,Deltoids,primary
+2026-08-01,push,ex05,Single-Arm Shoulder Press,1,10,30,Triceps,secondary
+2026-08-01,push,ex05,Single-Arm Shoulder Press,2,7,30,Deltoids,primary
+2026-08-01,push,ex05,Single-Arm Shoulder Press,2,7,30,Triceps,secondary
+2026-08-01,push,ex05,Single-Arm Shoulder Press,3,7,30,Deltoids,primary
+2026-08-01,push,ex05,Single-Arm Shoulder Press,3,7,30,Triceps,secondary
+2026-08-01,push,ex40,TRX Tricep Extension,1,12,,Triceps,primary
+2026-08-01,push,ex40,TRX Tricep Extension,1,12,,Core,secondary
+2026-08-01,push,ex40,TRX Tricep Extension,2,12,,Triceps,primary
+2026-08-01,push,ex40,TRX Tricep Extension,2,12,,Core,secondary
+2026-08-01,push,ex40,TRX Tricep Extension,3,12,,Triceps,primary
+2026-08-01,push,ex40,TRX Tricep Extension,3,12,,Core,secondary
+2026-07-31,pull,ex20,Chin-Up,1,10,,Lats,primary
+2026-07-31,pull,ex20,Chin-Up,1,10,,Biceps,secondary
+2026-07-31,pull,ex20,Chin-Up,2,10,,Lats,primary
+2026-07-31,pull,ex20,Chin-Up,2,10,,Biceps,secondary
+2026-07-31,pull,ex20,Chin-Up,3,9,,Lats,primary
+2026-07-31,pull,ex20,Chin-Up,3,9,,Biceps,secondary
+2026-07-31,pull,ex49,TRX T-Row,1,25,,Lats,primary
+2026-07-31,pull,ex49,TRX T-Row,1,25,,Rhomboids,primary
+2026-07-31,pull,ex49,TRX T-Row,1,25,,Biceps,secondary
+2026-07-31,pull,ex49,TRX T-Row,1,25,,Core,secondary
+2026-07-31,pull,ex49,TRX T-Row,2,20,,Lats,primary
+2026-07-31,pull,ex49,TRX T-Row,2,20,,Rhomboids,primary
+2026-07-31,pull,ex49,TRX T-Row,2,20,,Biceps,secondary
+2026-07-31,pull,ex49,TRX T-Row,2,20,,Core,secondary
+2026-07-31,pull,ex49,TRX T-Row,3,18,,Lats,primary
+2026-07-31,pull,ex49,TRX T-Row,3,18,,Rhomboids,primary
+2026-07-31,pull,ex49,TRX T-Row,3,18,,Biceps,secondary
+2026-07-31,pull,ex49,TRX T-Row,3,18,,Core,secondary
+2026-07-31,pull,ex-yfly,TRX Y-Fly,1,16,,Deltoids,primary
+2026-07-31,pull,ex-yfly,TRX Y-Fly,1,16,,Trapezius,primary
+2026-07-31,pull,ex-yfly,TRX Y-Fly,1,16,,Rhomboids,secondary
+2026-07-31,pull,ex-yfly,TRX Y-Fly,2,16,,Deltoids,primary
+2026-07-31,pull,ex-yfly,TRX Y-Fly,2,16,,Trapezius,primary
+2026-07-31,pull,ex-yfly,TRX Y-Fly,2,16,,Rhomboids,secondary
+2026-07-31,pull,ex-yfly,TRX Y-Fly,3,16,,Deltoids,primary
+2026-07-31,pull,ex-yfly,TRX Y-Fly,3,16,,Trapezius,primary
+2026-07-31,pull,ex-yfly,TRX Y-Fly,3,16,,Rhomboids,secondary
+2026-07-31,pull,ex18,Dumbbell Upright Row,1,12,45,Deltoids,primary
+2026-07-31,pull,ex18,Dumbbell Upright Row,1,12,45,Trapezius,primary
+2026-07-31,pull,ex18,Dumbbell Upright Row,1,12,45,Biceps,secondary
+2026-07-31,pull,ex18,Dumbbell Upright Row,2,12,45,Deltoids,primary
+2026-07-31,pull,ex18,Dumbbell Upright Row,2,12,45,Trapezius,primary
+2026-07-31,pull,ex18,Dumbbell Upright Row,2,12,45,Biceps,secondary
+2026-07-31,pull,ex18,Dumbbell Upright Row,3,11,45,Deltoids,primary
+2026-07-31,pull,ex18,Dumbbell Upright Row,3,11,45,Trapezius,primary
+2026-07-31,pull,ex18,Dumbbell Upright Row,3,11,45,Biceps,secondary
+2026-07-31,pull,ex25,Incline Hammer Curl,1,10,40,Biceps,primary
+2026-07-31,pull,ex25,Incline Hammer Curl,1,10,40,Forearms,primary
+2026-07-31,pull,ex25,Incline Hammer Curl,2,7,40,Biceps,primary
+2026-07-31,pull,ex25,Incline Hammer Curl,2,7,40,Forearms,primary
+2026-07-31,pull,ex25,Incline Hammer Curl,3,8,40,Biceps,primary
+2026-07-31,pull,ex25,Incline Hammer Curl,3,8,40,Forearms,primary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,1,12,80,Glutes,primary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,1,12,80,Hamstrings,primary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,1,12,80,Core,secondary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,1,12,80,Forearms,secondary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,1,12,80,Trapezius,secondary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,2,10,80,Glutes,primary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,2,10,80,Hamstrings,primary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,2,10,80,Core,secondary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,2,10,80,Forearms,secondary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,2,10,80,Trapezius,secondary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,3,13,80,Glutes,primary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,3,13,80,Hamstrings,primary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,3,13,80,Core,secondary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,3,13,80,Forearms,secondary
+2026-07-28,legs,ex-dl,Dumbbell Deadlift,3,13,80,Trapezius,secondary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,1,10,80,Hamstrings,primary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,1,10,80,Glutes,primary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,1,10,80,Core,secondary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,1,10,80,Forearms,secondary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,2,10,80,Hamstrings,primary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,2,10,80,Glutes,primary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,2,10,80,Core,secondary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,2,10,80,Forearms,secondary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,3,7,80,Hamstrings,primary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,3,7,80,Glutes,primary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,3,7,80,Core,secondary
+2026-07-28,legs,ex36,Stiff-Legged Deadlift,3,7,80,Forearms,secondary
+2026-07-28,legs,ex-trx-squat,TRX Squat,1,20,,Quadriceps,primary
+2026-07-28,legs,ex-trx-squat,TRX Squat,1,20,,Glutes,primary
+2026-07-28,legs,ex-trx-squat,TRX Squat,1,20,,Core,secondary
+2026-07-28,legs,ex-trx-squat,TRX Squat,2,20,,Quadriceps,primary
+2026-07-28,legs,ex-trx-squat,TRX Squat,2,20,,Glutes,primary
+2026-07-28,legs,ex-trx-squat,TRX Squat,2,20,,Core,secondary
+2026-07-28,legs,ex-trx-squat,TRX Squat,3,20,,Quadriceps,primary
+2026-07-28,legs,ex-trx-squat,TRX Squat,3,20,,Glutes,primary
+2026-07-28,legs,ex-trx-squat,TRX Squat,3,20,,Core,secondary
+2026-07-28,legs,ex15,Calf Raise,,,,Calves,primary
+2026-07-28,legs,ex35,Glute Bridge,1,30,80,Glutes,primary
+2026-07-28,legs,ex35,Glute Bridge,1,30,80,Hamstrings,secondary
+2026-07-28,legs,ex35,Glute Bridge,2,30,80,Glutes,primary
+2026-07-28,legs,ex35,Glute Bridge,2,30,80,Hamstrings,secondary
+2026-07-28,legs,ex35,Glute Bridge,3,30,80,Glutes,primary
+2026-07-28,legs,ex35,Glute Bridge,3,30,80,Hamstrings,secondary
+2026-07-26,push,ex32,Incline Dumbbell Bench Press,1,10,60,Pectoralis,primary
+2026-07-26,push,ex32,Incline Dumbbell Bench Press,1,10,60,Triceps,secondary
+2026-07-26,push,ex32,Incline Dumbbell Bench Press,1,10,60,Deltoids,secondary
+2026-07-26,push,ex32,Incline Dumbbell Bench Press,2,11,60,Pectoralis,primary
+2026-07-26,push,ex32,Incline Dumbbell Bench Press,2,11,60,Triceps,secondary
+2026-07-26,push,ex32,Incline Dumbbell Bench Press,2,11,60,Deltoids,secondary
+2026-07-26,push,ex32,Incline Dumbbell Bench Press,3,8,60,Pectoralis,primary
+2026-07-26,push,ex32,Incline Dumbbell Bench Press,3,8,60,Triceps,secondary
+2026-07-26,push,ex32,Incline Dumbbell Bench Press,3,8,60,Deltoids,secondary
+2026-07-26,push,ex03,Push-up,1,11,,Pectoralis,primary
+2026-07-26,push,ex03,Push-up,1,11,,Triceps,primary
+2026-07-26,push,ex03,Push-up,1,11,,Deltoids,secondary
+2026-07-26,push,ex03,Push-up,1,11,,Core,secondary
+2026-07-26,push,ex03,Push-up,2,11,,Pectoralis,primary
+2026-07-26,push,ex03,Push-up,2,11,,Triceps,primary
+2026-07-26,push,ex03,Push-up,2,11,,Deltoids,secondary
+2026-07-26,push,ex03,Push-up,2,11,,Core,secondary
+2026-07-26,push,ex03,Push-up,3,8,,Pectoralis,primary
+2026-07-26,push,ex03,Push-up,3,8,,Triceps,primary
+2026-07-26,push,ex03,Push-up,3,8,,Deltoids,secondary
+2026-07-26,push,ex03,Push-up,3,8,,Core,secondary
+2026-07-26,push,ex33,Dips,1,12,,Pectoralis,primary
+2026-07-26,push,ex33,Dips,1,12,,Triceps,primary
+2026-07-26,push,ex33,Dips,1,12,,Deltoids,secondary
+2026-07-26,push,ex33,Dips,2,10,,Pectoralis,primary
+2026-07-26,push,ex33,Dips,2,10,,Triceps,primary
+2026-07-26,push,ex33,Dips,2,10,,Deltoids,secondary
+2026-07-26,push,ex33,Dips,3,10,,Pectoralis,primary
+2026-07-26,push,ex33,Dips,3,10,,Triceps,primary
+2026-07-26,push,ex33,Dips,3,10,,Deltoids,secondary
+2026-07-26,push,ex05,Single-Arm Shoulder Press,1,10,30,Deltoids,primary
+2026-07-26,push,ex05,Single-Arm Shoulder Press,1,10,30,Triceps,secondary
+2026-07-26,push,ex05,Single-Arm Shoulder Press,2,9,30,Deltoids,primary
+2026-07-26,push,ex05,Single-Arm Shoulder Press,2,9,30,Triceps,secondary
+2026-07-26,push,ex05,Single-Arm Shoulder Press,3,8,30,Deltoids,primary
+2026-07-26,push,ex05,Single-Arm Shoulder Press,3,8,30,Triceps,secondary
+2026-07-26,push,ex40,TRX Tricep Extension,1,11,,Triceps,primary
+2026-07-26,push,ex40,TRX Tricep Extension,1,11,,Core,secondary
+2026-07-26,push,ex40,TRX Tricep Extension,2,12,,Triceps,primary
+2026-07-26,push,ex40,TRX Tricep Extension,2,12,,Core,secondary
+2026-07-26,push,ex40,TRX Tricep Extension,3,12,,Triceps,primary
+2026-07-26,push,ex40,TRX Tricep Extension,3,12,,Core,secondary
+2026-07-24,pull,ex20,Chin-Up,1,10,,Lats,primary
+2026-07-24,pull,ex20,Chin-Up,1,10,,Biceps,secondary
+2026-07-24,pull,ex20,Chin-Up,2,10,,Lats,primary
+2026-07-24,pull,ex20,Chin-Up,2,10,,Biceps,secondary
+2026-07-24,pull,ex20,Chin-Up,3,8,,Lats,primary
+2026-07-24,pull,ex20,Chin-Up,3,8,,Biceps,secondary
+2026-07-24,pull,ex49,TRX T-Row,1,25,,Lats,primary
+2026-07-24,pull,ex49,TRX T-Row,1,25,,Rhomboids,primary
+2026-07-24,pull,ex49,TRX T-Row,1,25,,Biceps,secondary
+2026-07-24,pull,ex49,TRX T-Row,1,25,,Core,secondary
+2026-07-24,pull,ex49,TRX T-Row,2,25,,Lats,primary
+2026-07-24,pull,ex49,TRX T-Row,2,25,,Rhomboids,primary
+2026-07-24,pull,ex49,TRX T-Row,2,25,,Biceps,secondary
+2026-07-24,pull,ex49,TRX T-Row,2,25,,Core,secondary
+2026-07-24,pull,ex49,TRX T-Row,3,25,,Lats,primary
+2026-07-24,pull,ex49,TRX T-Row,3,25,,Rhomboids,primary
+2026-07-24,pull,ex49,TRX T-Row,3,25,,Biceps,secondary
+2026-07-24,pull,ex49,TRX T-Row,3,25,,Core,secondary
+2026-07-24,pull,ex-yfly,TRX Y-Fly,1,14,,Deltoids,primary
+2026-07-24,pull,ex-yfly,TRX Y-Fly,1,14,,Trapezius,primary
+2026-07-24,pull,ex-yfly,TRX Y-Fly,1,14,,Rhomboids,secondary
+2026-07-24,pull,ex-yfly,TRX Y-Fly,2,15,,Deltoids,primary
+2026-07-24,pull,ex-yfly,TRX Y-Fly,2,15,,Trapezius,primary
+2026-07-24,pull,ex-yfly,TRX Y-Fly,2,15,,Rhomboids,secondary
+2026-07-24,pull,ex-yfly,TRX Y-Fly,3,15,,Deltoids,primary
+2026-07-24,pull,ex-yfly,TRX Y-Fly,3,15,,Trapezius,primary
+2026-07-24,pull,ex-yfly,TRX Y-Fly,3,15,,Rhomboids,secondary
+2026-07-24,pull,ex18,Dumbbell Upright Row,1,9,,Deltoids,primary
+2026-07-24,pull,ex18,Dumbbell Upright Row,1,9,,Trapezius,primary
+2026-07-24,pull,ex18,Dumbbell Upright Row,1,9,,Biceps,secondary
+2026-07-24,pull,ex18,Dumbbell Upright Row,2,10,,Deltoids,primary
+2026-07-24,pull,ex18,Dumbbell Upright Row,2,10,,Trapezius,primary
+2026-07-24,pull,ex18,Dumbbell Upright Row,2,10,,Biceps,secondary
+2026-07-24,pull,ex18,Dumbbell Upright Row,3,9,,Deltoids,primary
+2026-07-24,pull,ex18,Dumbbell Upright Row,3,9,,Trapezius,primary
+2026-07-24,pull,ex18,Dumbbell Upright Row,3,9,,Biceps,secondary
+2026-07-24,pull,ex25,Incline Hammer Curl,1,10,,Biceps,primary
+2026-07-24,pull,ex25,Incline Hammer Curl,1,10,,Forearms,primary
+2026-07-24,pull,ex25,Incline Hammer Curl,2,9,,Biceps,primary
+2026-07-24,pull,ex25,Incline Hammer Curl,2,9,,Forearms,primary
+2026-07-24,pull,ex25,Incline Hammer Curl,3,9,,Biceps,primary
+2026-07-24,pull,ex25,Incline Hammer Curl,3,9,,Forearms,primary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,1,12,70,Glutes,primary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,1,12,70,Hamstrings,primary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,1,12,70,Core,secondary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,1,12,70,Forearms,secondary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,1,12,70,Trapezius,secondary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,2,12,70,Glutes,primary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,2,12,70,Hamstrings,primary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,2,12,70,Core,secondary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,2,12,70,Forearms,secondary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,2,12,70,Trapezius,secondary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,3,13,70,Glutes,primary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,3,13,70,Hamstrings,primary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,3,13,70,Core,secondary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,3,13,70,Forearms,secondary
+2026-07-23,legs,ex-dl,Dumbbell Deadlift,3,13,70,Trapezius,secondary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,1,12,70,Hamstrings,primary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,1,12,70,Glutes,primary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,1,12,70,Core,secondary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,1,12,70,Forearms,secondary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,2,12,70,Hamstrings,primary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,2,12,70,Glutes,primary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,2,12,70,Core,secondary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,2,12,70,Forearms,secondary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,3,12,70,Hamstrings,primary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,3,12,70,Glutes,primary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,3,12,70,Core,secondary
+2026-07-23,legs,ex36,Stiff-Legged Deadlift,3,12,70,Forearms,secondary
+2026-07-23,legs,ex-trx-squat,TRX Squat,1,20,,Quadriceps,primary
+2026-07-23,legs,ex-trx-squat,TRX Squat,1,20,,Glutes,primary
+2026-07-23,legs,ex-trx-squat,TRX Squat,1,20,,Core,secondary
+2026-07-23,legs,ex-trx-squat,TRX Squat,2,20,,Quadriceps,primary
+2026-07-23,legs,ex-trx-squat,TRX Squat,2,20,,Glutes,primary
+2026-07-23,legs,ex-trx-squat,TRX Squat,2,20,,Core,secondary
+2026-07-23,legs,ex-trx-squat,TRX Squat,3,18,,Quadriceps,primary
+2026-07-23,legs,ex-trx-squat,TRX Squat,3,18,,Glutes,primary
+2026-07-23,legs,ex-trx-squat,TRX Squat,3,18,,Core,secondary
+2026-07-23,legs,ex15,Calf Raise,,,,Calves,primary
+2026-07-23,legs,ex35,Glute Bridge,1,30,70,Glutes,primary
+2026-07-23,legs,ex35,Glute Bridge,1,30,70,Hamstrings,secondary
+2026-07-23,legs,ex35,Glute Bridge,2,30,70,Glutes,primary
+2026-07-23,legs,ex35,Glute Bridge,2,30,70,Hamstrings,secondary
+2026-07-23,legs,ex35,Glute Bridge,3,30,70,Glutes,primary
+2026-07-23,legs,ex35,Glute Bridge,3,30,70,Hamstrings,secondary
+2026-07-23,legs,ex47,Box Step-up,1,10,,Quadriceps,primary
+2026-07-23,legs,ex47,Box Step-up,1,10,,Glutes,primary
+2026-07-23,legs,ex47,Box Step-up,1,10,,Hamstrings,secondary
+2026-07-19,push,ex32,Incline Dumbbell Bench Press,1,10,60,Pectoralis,primary
+2026-07-19,push,ex32,Incline Dumbbell Bench Press,1,10,60,Triceps,secondary
+2026-07-19,push,ex32,Incline Dumbbell Bench Press,1,10,60,Deltoids,secondary
+2026-07-19,push,ex32,Incline Dumbbell Bench Press,2,10,60,Pectoralis,primary
+2026-07-19,push,ex32,Incline Dumbbell Bench Press,2,10,60,Triceps,secondary
+2026-07-19,push,ex32,Incline Dumbbell Bench Press,2,10,60,Deltoids,secondary
+2026-07-19,push,ex32,Incline Dumbbell Bench Press,3,8,60,Pectoralis,primary
+2026-07-19,push,ex32,Incline Dumbbell Bench Press,3,8,60,Triceps,secondary
+2026-07-19,push,ex32,Incline Dumbbell Bench Press,3,8,60,Deltoids,secondary
+2026-07-19,push,ex03,Push-up,1,11,,Pectoralis,primary
+2026-07-19,push,ex03,Push-up,1,11,,Triceps,primary
+2026-07-19,push,ex03,Push-up,1,11,,Deltoids,secondary
+2026-07-19,push,ex03,Push-up,1,11,,Core,secondary
+2026-07-19,push,ex03,Push-up,2,10,,Pectoralis,primary
+2026-07-19,push,ex03,Push-up,2,10,,Triceps,primary
+2026-07-19,push,ex03,Push-up,2,10,,Deltoids,secondary
+2026-07-19,push,ex03,Push-up,2,10,,Core,secondary
+2026-07-19,push,ex03,Push-up,3,10,,Pectoralis,primary
+2026-07-19,push,ex03,Push-up,3,10,,Triceps,primary
+2026-07-19,push,ex03,Push-up,3,10,,Deltoids,secondary
+2026-07-19,push,ex03,Push-up,3,10,,Core,secondary
+2026-07-19,push,ex40,TRX Tricep Extension,1,11,,Triceps,primary
+2026-07-19,push,ex40,TRX Tricep Extension,1,11,,Core,secondary
+2026-07-19,push,ex40,TRX Tricep Extension,2,10,,Triceps,primary
+2026-07-19,push,ex40,TRX Tricep Extension,2,10,,Core,secondary
+2026-07-19,push,ex40,TRX Tricep Extension,3,10,,Triceps,primary
+2026-07-19,push,ex40,TRX Tricep Extension,3,10,,Core,secondary
+2026-07-19,push,ex05,Single-Arm Shoulder Press,1,13,25,Deltoids,primary
+2026-07-19,push,ex05,Single-Arm Shoulder Press,1,13,25,Triceps,secondary
+2026-07-19,push,ex05,Single-Arm Shoulder Press,2,11,25,Deltoids,primary
+2026-07-19,push,ex05,Single-Arm Shoulder Press,2,11,25,Triceps,secondary
+2026-07-19,push,ex05,Single-Arm Shoulder Press,3,11,25,Deltoids,primary
+2026-07-19,push,ex05,Single-Arm Shoulder Press,3,11,25,Triceps,secondary
+2026-07-17,pull,ex20,Chin-Up,1,12,,Lats,primary
+2026-07-17,pull,ex20,Chin-Up,1,12,,Biceps,secondary
+2026-07-17,pull,ex20,Chin-Up,2,9,,Lats,primary
+2026-07-17,pull,ex20,Chin-Up,2,9,,Biceps,secondary
+2026-07-17,pull,ex20,Chin-Up,3,6,,Lats,primary
+2026-07-17,pull,ex20,Chin-Up,3,6,,Biceps,secondary
+2026-07-17,pull,ex49,TRX T-Row,1,25,,Lats,primary
+2026-07-17,pull,ex49,TRX T-Row,1,25,,Rhomboids,primary
+2026-07-17,pull,ex49,TRX T-Row,1,25,,Biceps,secondary
+2026-07-17,pull,ex49,TRX T-Row,1,25,,Core,secondary
+2026-07-17,pull,ex49,TRX T-Row,2,20,,Lats,primary
+2026-07-17,pull,ex49,TRX T-Row,2,20,,Rhomboids,primary
+2026-07-17,pull,ex49,TRX T-Row,2,20,,Biceps,secondary
+2026-07-17,pull,ex49,TRX T-Row,2,20,,Core,secondary
+2026-07-17,pull,ex49,TRX T-Row,3,20,,Lats,primary
+2026-07-17,pull,ex49,TRX T-Row,3,20,,Rhomboids,primary
+2026-07-17,pull,ex49,TRX T-Row,3,20,,Biceps,secondary
+2026-07-17,pull,ex49,TRX T-Row,3,20,,Core,secondary
+2026-07-17,pull,ex-yfly,TRX Y-Fly,1,14,,Deltoids,primary
+2026-07-17,pull,ex-yfly,TRX Y-Fly,1,14,,Trapezius,primary
+2026-07-17,pull,ex-yfly,TRX Y-Fly,1,14,,Rhomboids,secondary
+2026-07-17,pull,ex-yfly,TRX Y-Fly,2,14,,Deltoids,primary
+2026-07-17,pull,ex-yfly,TRX Y-Fly,2,14,,Trapezius,primary
+2026-07-17,pull,ex-yfly,TRX Y-Fly,2,14,,Rhomboids,secondary
+2026-07-17,pull,ex-yfly,TRX Y-Fly,3,13,,Deltoids,primary
+2026-07-17,pull,ex-yfly,TRX Y-Fly,3,13,,Trapezius,primary
+2026-07-17,pull,ex-yfly,TRX Y-Fly,3,13,,Rhomboids,secondary
+2026-07-17,pull,ex18,Dumbbell Upright Row,1,10,,Deltoids,primary
+2026-07-17,pull,ex18,Dumbbell Upright Row,1,10,,Trapezius,primary
+2026-07-17,pull,ex18,Dumbbell Upright Row,1,10,,Biceps,secondary
+2026-07-17,pull,ex18,Dumbbell Upright Row,2,10,,Deltoids,primary
+2026-07-17,pull,ex18,Dumbbell Upright Row,2,10,,Trapezius,primary
+2026-07-17,pull,ex18,Dumbbell Upright Row,2,10,,Biceps,secondary
+2026-07-17,pull,ex18,Dumbbell Upright Row,3,8,,Deltoids,primary
+2026-07-17,pull,ex18,Dumbbell Upright Row,3,8,,Trapezius,primary
+2026-07-17,pull,ex18,Dumbbell Upright Row,3,8,,Biceps,secondary
+2026-07-17,pull,ex25,Incline Hammer Curl,1,9,,Biceps,primary
+2026-07-17,pull,ex25,Incline Hammer Curl,1,9,,Forearms,primary
+2026-07-17,pull,ex25,Incline Hammer Curl,2,9,,Biceps,primary
+2026-07-17,pull,ex25,Incline Hammer Curl,2,9,,Forearms,primary
+2026-07-17,pull,ex25,Incline Hammer Curl,3,8,,Biceps,primary
+2026-07-17,pull,ex25,Incline Hammer Curl,3,8,,Forearms,primary
+2026-07-13,push,ex32,Incline Dumbbell Bench Press,1,12,60,Pectoralis,primary
+2026-07-13,push,ex32,Incline Dumbbell Bench Press,1,12,60,Triceps,secondary
+2026-07-13,push,ex32,Incline Dumbbell Bench Press,1,12,60,Deltoids,secondary
+2026-07-13,push,ex32,Incline Dumbbell Bench Press,2,9,60,Pectoralis,primary
+2026-07-13,push,ex32,Incline Dumbbell Bench Press,2,9,60,Triceps,secondary
+2026-07-13,push,ex32,Incline Dumbbell Bench Press,2,9,60,Deltoids,secondary
+2026-07-13,push,ex32,Incline Dumbbell Bench Press,3,5,60,Pectoralis,primary
+2026-07-13,push,ex32,Incline Dumbbell Bench Press,3,5,60,Triceps,secondary
+2026-07-13,push,ex32,Incline Dumbbell Bench Press,3,5,60,Deltoids,secondary
+2026-07-13,push,ex33,Dips,1,11,,Pectoralis,primary
+2026-07-13,push,ex33,Dips,1,11,,Triceps,primary
+2026-07-13,push,ex33,Dips,1,11,,Deltoids,secondary
+2026-07-13,push,ex33,Dips,2,9,,Pectoralis,primary
+2026-07-13,push,ex33,Dips,2,9,,Triceps,primary
+2026-07-13,push,ex33,Dips,2,9,,Deltoids,secondary
+2026-07-13,push,ex33,Dips,3,7,,Pectoralis,primary
+2026-07-13,push,ex33,Dips,3,7,,Triceps,primary
+2026-07-13,push,ex33,Dips,3,7,,Deltoids,secondary
+2026-07-13,push,ex03,Push-up,1,12,,Pectoralis,primary
+2026-07-13,push,ex03,Push-up,1,12,,Triceps,primary
+2026-07-13,push,ex03,Push-up,1,12,,Deltoids,secondary
+2026-07-13,push,ex03,Push-up,1,12,,Core,secondary
+2026-07-13,push,ex03,Push-up,2,9,,Pectoralis,primary
+2026-07-13,push,ex03,Push-up,2,9,,Triceps,primary
+2026-07-13,push,ex03,Push-up,2,9,,Deltoids,secondary
+2026-07-13,push,ex03,Push-up,2,9,,Core,secondary
+2026-07-13,push,ex03,Push-up,3,8,,Pectoralis,primary
+2026-07-13,push,ex03,Push-up,3,8,,Triceps,primary
+2026-07-13,push,ex03,Push-up,3,8,,Deltoids,secondary
+2026-07-13,push,ex03,Push-up,3,8,,Core,secondary
+2026-07-13,push,ex40,TRX Tricep Extension,1,10,,Triceps,primary
+2026-07-13,push,ex40,TRX Tricep Extension,1,10,,Core,secondary
+2026-07-13,push,ex40,TRX Tricep Extension,2,9,,Triceps,primary
+2026-07-13,push,ex40,TRX Tricep Extension,2,9,,Core,secondary
+2026-07-13,push,ex40,TRX Tricep Extension,3,10,,Triceps,primary
+2026-07-13,push,ex40,TRX Tricep Extension,3,10,,Core,secondary
+2026-07-13,push,ex05,Single-Arm Shoulder Press,1,12,25,Deltoids,primary
+2026-07-13,push,ex05,Single-Arm Shoulder Press,1,12,25,Triceps,secondary
+2026-07-13,push,ex05,Single-Arm Shoulder Press,2,10,25,Deltoids,primary
+2026-07-13,push,ex05,Single-Arm Shoulder Press,2,10,25,Triceps,secondary
+2026-07-13,push,ex05,Single-Arm Shoulder Press,3,10,25,Deltoids,primary
+2026-07-13,push,ex05,Single-Arm Shoulder Press,3,10,25,Triceps,secondary
+2026-07-05,pull,ex20,Chin-Up,1,12,,Lats,primary
+2026-07-05,pull,ex20,Chin-Up,1,12,,Biceps,secondary
+2026-07-05,pull,ex20,Chin-Up,2,9,,Lats,primary
+2026-07-05,pull,ex20,Chin-Up,2,9,,Biceps,secondary
+2026-07-05,pull,ex20,Chin-Up,3,7,,Lats,primary
+2026-07-05,pull,ex20,Chin-Up,3,7,,Biceps,secondary
+2026-07-05,pull,ex49,TRX T-Row,1,23,,Lats,primary
+2026-07-05,pull,ex49,TRX T-Row,1,23,,Rhomboids,primary
+2026-07-05,pull,ex49,TRX T-Row,1,23,,Biceps,secondary
+2026-07-05,pull,ex49,TRX T-Row,1,23,,Core,secondary
+2026-07-05,pull,ex49,TRX T-Row,2,23,,Lats,primary
+2026-07-05,pull,ex49,TRX T-Row,2,23,,Rhomboids,primary
+2026-07-05,pull,ex49,TRX T-Row,2,23,,Biceps,secondary
+2026-07-05,pull,ex49,TRX T-Row,2,23,,Core,secondary
+2026-07-05,pull,ex49,TRX T-Row,3,23,,Lats,primary
+2026-07-05,pull,ex49,TRX T-Row,3,23,,Rhomboids,primary
+2026-07-05,pull,ex49,TRX T-Row,3,23,,Biceps,secondary
+2026-07-05,pull,ex49,TRX T-Row,3,23,,Core,secondary
+2026-07-05,pull,ex18,Dumbbell Upright Row,1,10,50,Deltoids,primary
+2026-07-05,pull,ex18,Dumbbell Upright Row,1,10,50,Trapezius,primary
+2026-07-05,pull,ex18,Dumbbell Upright Row,1,10,50,Biceps,secondary
+2026-07-05,pull,ex18,Dumbbell Upright Row,2,10,50,Deltoids,primary
+2026-07-05,pull,ex18,Dumbbell Upright Row,2,10,50,Trapezius,primary
+2026-07-05,pull,ex18,Dumbbell Upright Row,2,10,50,Biceps,secondary
+2026-07-05,pull,ex18,Dumbbell Upright Row,3,7,50,Deltoids,primary
+2026-07-05,pull,ex18,Dumbbell Upright Row,3,7,50,Trapezius,primary
+2026-07-05,pull,ex18,Dumbbell Upright Row,3,7,50,Biceps,secondary
+2026-07-05,pull,ex25,Incline Hammer Curl,1,8,40,Biceps,primary
+2026-07-05,pull,ex25,Incline Hammer Curl,1,8,40,Forearms,primary
+2026-07-05,pull,ex25,Incline Hammer Curl,2,8,40,Biceps,primary
+2026-07-05,pull,ex25,Incline Hammer Curl,2,8,40,Forearms,primary
+2026-07-05,pull,ex25,Incline Hammer Curl,3,8,40,Biceps,primary
+2026-07-05,pull,ex25,Incline Hammer Curl,3,8,40,Forearms,primary
+2026-07-05,pull,ex19,TRX Bicep Curl,1,15,,Biceps,primary
+2026-07-05,pull,ex19,TRX Bicep Curl,1,15,,Core,secondary
+2026-07-05,pull,ex19,TRX Bicep Curl,2,15,,Biceps,primary
+2026-07-05,pull,ex19,TRX Bicep Curl,2,15,,Core,secondary
+2026-07-05,pull,ex19,TRX Bicep Curl,3,15,,Biceps,primary
+2026-07-05,pull,ex19,TRX Bicep Curl,3,15,,Core,secondary
+2026-07-03,push,ex32,Incline Dumbbell Bench Press,1,10,60,Pectoralis,primary
+2026-07-03,push,ex32,Incline Dumbbell Bench Press,1,10,60,Triceps,secondary
+2026-07-03,push,ex32,Incline Dumbbell Bench Press,1,10,60,Deltoids,secondary
+2026-07-03,push,ex32,Incline Dumbbell Bench Press,2,9,60,Pectoralis,primary
+2026-07-03,push,ex32,Incline Dumbbell Bench Press,2,9,60,Triceps,secondary
+2026-07-03,push,ex32,Incline Dumbbell Bench Press,2,9,60,Deltoids,secondary
+2026-07-03,push,ex32,Incline Dumbbell Bench Press,3,8,60,Pectoralis,primary
+2026-07-03,push,ex32,Incline Dumbbell Bench Press,3,8,60,Triceps,secondary
+2026-07-03,push,ex32,Incline Dumbbell Bench Press,3,8,60,Deltoids,secondary
+2026-07-03,push,ex03,Push-up,1,10,,Pectoralis,primary
+2026-07-03,push,ex03,Push-up,1,10,,Triceps,primary
+2026-07-03,push,ex03,Push-up,1,10,,Deltoids,secondary
+2026-07-03,push,ex03,Push-up,1,10,,Core,secondary
+2026-07-03,push,ex03,Push-up,2,8,,Pectoralis,primary
+2026-07-03,push,ex03,Push-up,2,8,,Triceps,primary
+2026-07-03,push,ex03,Push-up,2,8,,Deltoids,secondary
+2026-07-03,push,ex03,Push-up,2,8,,Core,secondary
+2026-07-03,push,ex03,Push-up,3,7,,Pectoralis,primary
+2026-07-03,push,ex03,Push-up,3,7,,Triceps,primary
+2026-07-03,push,ex03,Push-up,3,7,,Deltoids,secondary
+2026-07-03,push,ex03,Push-up,3,7,,Core,secondary
+2026-07-03,push,ex33,Dips,1,10,,Pectoralis,primary
+2026-07-03,push,ex33,Dips,1,10,,Triceps,primary
+2026-07-03,push,ex33,Dips,1,10,,Deltoids,secondary
+2026-07-03,push,ex33,Dips,2,8,,Pectoralis,primary
+2026-07-03,push,ex33,Dips,2,8,,Triceps,primary
+2026-07-03,push,ex33,Dips,2,8,,Deltoids,secondary
+2026-07-03,push,ex33,Dips,3,5,,Pectoralis,primary
+2026-07-03,push,ex33,Dips,3,5,,Triceps,primary
+2026-07-03,push,ex33,Dips,3,5,,Deltoids,secondary
+2026-07-03,push,ex40,TRX Tricep Extension,1,8,,Triceps,primary
+2026-07-03,push,ex40,TRX Tricep Extension,1,8,,Core,secondary
+2026-07-03,push,ex40,TRX Tricep Extension,2,10,,Triceps,primary
+2026-07-03,push,ex40,TRX Tricep Extension,2,10,,Core,secondary
+2026-07-03,push,ex40,TRX Tricep Extension,3,10,,Triceps,primary
+2026-07-03,push,ex40,TRX Tricep Extension,3,10,,Core,secondary
+2026-07-03,push,ex-scap,Scaption,1,12,10,Deltoids,primary
+2026-07-03,push,ex-scap,Scaption,2,12,10,Deltoids,primary
+2026-07-03,push,ex-scap,Scaption,3,12,10,Deltoids,primary
+2026-06-22,pull,ex06,Pull-up,1,7,,Lats,primary
+2026-06-22,pull,ex06,Pull-up,1,7,,Biceps,secondary
+2026-06-22,pull,ex06,Pull-up,1,7,,Forearms,secondary
+2026-06-22,pull,ex06,Pull-up,2,7,,Lats,primary
+2026-06-22,pull,ex06,Pull-up,2,7,,Biceps,secondary
+2026-06-22,pull,ex06,Pull-up,2,7,,Forearms,secondary
+2026-06-22,pull,ex06,Pull-up,3,5,,Lats,primary
+2026-06-22,pull,ex06,Pull-up,3,5,,Biceps,secondary
+2026-06-22,pull,ex06,Pull-up,3,5,,Forearms,secondary
+2026-06-22,pull,ex18,Dumbbell Upright Row,1,12,40,Deltoids,primary
+2026-06-22,pull,ex18,Dumbbell Upright Row,1,12,40,Trapezius,primary
+2026-06-22,pull,ex18,Dumbbell Upright Row,1,12,40,Biceps,secondary
+2026-06-22,pull,ex18,Dumbbell Upright Row,2,12,40,Deltoids,primary
+2026-06-22,pull,ex18,Dumbbell Upright Row,2,12,40,Trapezius,primary
+2026-06-22,pull,ex18,Dumbbell Upright Row,2,12,40,Biceps,secondary
+2026-06-22,pull,ex18,Dumbbell Upright Row,3,12,40,Deltoids,primary
+2026-06-22,pull,ex18,Dumbbell Upright Row,3,12,40,Trapezius,primary
+2026-06-22,pull,ex18,Dumbbell Upright Row,3,12,40,Biceps,secondary
+2026-06-22,pull,ex49,TRX T-Row,1,20,,Lats,primary
+2026-06-22,pull,ex49,TRX T-Row,1,20,,Rhomboids,primary
+2026-06-22,pull,ex49,TRX T-Row,1,20,,Biceps,secondary
+2026-06-22,pull,ex49,TRX T-Row,1,20,,Core,secondary
+2026-06-22,pull,ex49,TRX T-Row,2,15,,Lats,primary
+2026-06-22,pull,ex49,TRX T-Row,2,15,,Rhomboids,primary
+2026-06-22,pull,ex49,TRX T-Row,2,15,,Biceps,secondary
+2026-06-22,pull,ex49,TRX T-Row,2,15,,Core,secondary
+2026-06-22,pull,ex49,TRX T-Row,3,12,,Lats,primary
+2026-06-22,pull,ex49,TRX T-Row,3,12,,Rhomboids,primary
+2026-06-22,pull,ex49,TRX T-Row,3,12,,Biceps,secondary
+2026-06-22,pull,ex49,TRX T-Row,3,12,,Core,secondary
+2026-06-22,pull,ex-yfly,TRX Y-Fly,1,12,,Deltoids,primary
+2026-06-22,pull,ex-yfly,TRX Y-Fly,1,12,,Trapezius,primary
+2026-06-22,pull,ex-yfly,TRX Y-Fly,1,12,,Rhomboids,secondary
+2026-06-22,pull,ex-yfly,TRX Y-Fly,2,12,,Deltoids,primary
+2026-06-22,pull,ex-yfly,TRX Y-Fly,2,12,,Trapezius,primary
+2026-06-22,pull,ex-yfly,TRX Y-Fly,2,12,,Rhomboids,secondary
+2026-06-22,pull,ex-yfly,TRX Y-Fly,3,12,,Deltoids,primary
+2026-06-22,pull,ex-yfly,TRX Y-Fly,3,12,,Trapezius,primary
+2026-06-22,pull,ex-yfly,TRX Y-Fly,3,12,,Rhomboids,secondary
+2026-06-22,pull,ex25,Incline Hammer Curl,1,10,40,Biceps,primary
+2026-06-22,pull,ex25,Incline Hammer Curl,1,10,40,Forearms,primary
+2026-06-22,pull,ex25,Incline Hammer Curl,2,7,40,Biceps,primary
+2026-06-22,pull,ex25,Incline Hammer Curl,2,7,40,Forearms,primary
+2026-06-22,pull,ex25,Incline Hammer Curl,3,6,40,Biceps,primary
+2026-06-22,pull,ex25,Incline Hammer Curl,3,6,40,Forearms,primary
+2026-06-22,pull,ex16,Plank,,,,Core,primary
+2026-06-20,push,ex32,Incline Dumbbell Bench Press,1,10,52.5,Pectoralis,primary
+2026-06-20,push,ex32,Incline Dumbbell Bench Press,1,10,52.5,Triceps,secondary
+2026-06-20,push,ex32,Incline Dumbbell Bench Press,1,10,52.5,Deltoids,secondary
+2026-06-20,push,ex32,Incline Dumbbell Bench Press,2,10,52.5,Pectoralis,primary
+2026-06-20,push,ex32,Incline Dumbbell Bench Press,2,10,52.5,Triceps,secondary
+2026-06-20,push,ex32,Incline Dumbbell Bench Press,2,10,52.5,Deltoids,secondary
+2026-06-20,push,ex32,Incline Dumbbell Bench Press,3,10,52.5,Pectoralis,primary
+2026-06-20,push,ex32,Incline Dumbbell Bench Press,3,10,52.5,Triceps,secondary
+2026-06-20,push,ex32,Incline Dumbbell Bench Press,3,10,52.5,Deltoids,secondary
+2026-06-20,push,ex31,TRX Push-up,1,12,,Pectoralis,primary
+2026-06-20,push,ex31,TRX Push-up,1,12,,Triceps,secondary
+2026-06-20,push,ex31,TRX Push-up,1,12,,Deltoids,secondary
+2026-06-20,push,ex31,TRX Push-up,1,12,,Core,secondary
+2026-06-20,push,ex31,TRX Push-up,2,12,,Pectoralis,primary
+2026-06-20,push,ex31,TRX Push-up,2,12,,Triceps,secondary
+2026-06-20,push,ex31,TRX Push-up,2,12,,Deltoids,secondary
+2026-06-20,push,ex31,TRX Push-up,2,12,,Core,secondary
+2026-06-20,push,ex31,TRX Push-up,3,15,,Pectoralis,primary
+2026-06-20,push,ex31,TRX Push-up,3,15,,Triceps,secondary
+2026-06-20,push,ex31,TRX Push-up,3,15,,Deltoids,secondary
+2026-06-20,push,ex31,TRX Push-up,3,15,,Core,secondary
+2026-06-20,push,ex33,Dips,1,7,,Pectoralis,primary
+2026-06-20,push,ex33,Dips,1,7,,Triceps,primary
+2026-06-20,push,ex33,Dips,1,7,,Deltoids,secondary
+2026-06-20,push,ex33,Dips,2,8,,Pectoralis,primary
+2026-06-20,push,ex33,Dips,2,8,,Triceps,primary
+2026-06-20,push,ex33,Dips,2,8,,Deltoids,secondary
+2026-06-20,push,ex33,Dips,3,6,,Pectoralis,primary
+2026-06-20,push,ex33,Dips,3,6,,Triceps,primary
+2026-06-20,push,ex33,Dips,3,6,,Deltoids,secondary
+2026-06-20,push,ex05,Single-Arm Shoulder Press,1,12,20/25/25,Deltoids,primary
+2026-06-20,push,ex05,Single-Arm Shoulder Press,1,12,20/25/25,Triceps,secondary
+2026-06-20,push,ex05,Single-Arm Shoulder Press,2,10,20/25/25,Deltoids,primary
+2026-06-20,push,ex05,Single-Arm Shoulder Press,2,10,20/25/25,Triceps,secondary
+2026-06-20,push,ex05,Single-Arm Shoulder Press,3,9,20/25/25,Deltoids,primary
+2026-06-20,push,ex05,Single-Arm Shoulder Press,3,9,20/25/25,Triceps,secondary
+2026-06-20,push,ex40,TRX Tricep Extension,1,12,,Triceps,primary
+2026-06-20,push,ex40,TRX Tricep Extension,1,12,,Core,secondary
+2026-06-20,push,ex40,TRX Tricep Extension,2,12,,Triceps,primary
+2026-06-20,push,ex40,TRX Tricep Extension,2,12,,Core,secondary
+2026-06-20,push,ex40,TRX Tricep Extension,3,10,,Triceps,primary
+2026-06-20,push,ex40,TRX Tricep Extension,3,10,,Core,secondary
+2026-06-19,legs,ex12,Kettlebell Goblet Squat,1,17,,Quadriceps,primary
+2026-06-19,legs,ex12,Kettlebell Goblet Squat,1,17,,Glutes,primary
+2026-06-19,legs,ex12,Kettlebell Goblet Squat,1,17,,Core,secondary
+2026-06-19,legs,ex12,Kettlebell Goblet Squat,2,20,,Quadriceps,primary
+2026-06-19,legs,ex12,Kettlebell Goblet Squat,2,20,,Glutes,primary
+2026-06-19,legs,ex12,Kettlebell Goblet Squat,2,20,,Core,secondary
+2026-06-19,legs,ex15,Calf Raise,,,,Calves,primary
+2026-06-19,legs,ex35,Glute Bridge,,,,Glutes,primary
+2026-06-19,legs,ex35,Glute Bridge,,,,Hamstrings,secondary

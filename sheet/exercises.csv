@@ -1,0 +1,50 @@
+id,name,aliases,category,equipment,primary,secondary,notes
+ex32,Incline Dumbbell Bench Press,Incline dumbbell bench press,Push,Dumbbells,Pectoralis,Triceps;Deltoids,Upper-chest bias. Delts are secondary not the point.
+ex03,Push-up,Push-ups;Standard push-ups,Push,Bodyweight,Pectoralis;Triceps,Deltoids;Core,
+ex33,Dips,Dips,Push,Dip station,Pectoralis;Triceps,Deltoids,Still a press. Not a pec isolation.
+ex05,Single-Arm Shoulder Press,Shoulder press (single-arm),Push,Dumbbells,Deltoids,Triceps,Pecs may stabilize. Not a chest exercise.
+ex40,TRX Tricep Extension,TRX tricep extensions,Push,TRX,Triceps,Core,
+ex31,TRX Push-up,TRX push-ups;TRX Pushup,Push,TRX,Pectoralis,Triceps;Deltoids;Core,
+ex02,Dumbbell Bench Press,Dumbbell Bench Press,Push,Dumbbells,Pectoralis,Triceps;Deltoids,
+ex38,Single Arm Dumbbell Bench Press,Single Arm Dumbbell Bench Press,Push,Dumbbells,Pectoralis,Triceps;Core,
+ex39,Single Arm Incline Dumbbell Bench Press,Single Arm Incline Dumbbell Bench Press,Push,Dumbbells,Pectoralis,Triceps;Deltoids;Core,
+ex30,Tricep Extension,Tricep Extension,Push,Dumbbells,Triceps,,
+ex34,Kettlebell Press,Kettlebell Press,Push,Kettlebell,Deltoids,Triceps;Core,
+ex-scap,Scaption,Scaption,Push,Dumbbells,Deltoids,,Scapular-plane raise. Shoulder-friendly. Not pecs.
+ex20,Chin-Up,Chin-ups;Chin-Ups,Pull,Bar,Lats,Biceps,"Youdas 2010 pecs fire ~50% MVIC as initiators. That is not chest work. Do not debit Pectoralis."
+ex06,Pull-up,Pull-up;Ring-grip pull-ups (Olympic rings),Pull,Bar,Lats,Biceps;Forearms,Same rule as chin-ups. No pec debit.
+ex26,Neutral Grip Pull-up,Neutral Grip Pull-ups,Pull,Bar,Lats,Biceps,
+ex42,Wide Grip Pull-up,Wide Grip Pull-ups,Pull,Bar,Lats,Biceps;Trapezius,
+ex41,TRX Pull-up,TRX Pull-up,Pull,TRX,Lats,Biceps;Forearms;Core,
+ex49,TRX T-Row,"TRX T-Row;TRX T's (T-pose rows);TRX T's;TRX rows (T's);TRX rows",Pull,TRX,Lats;Rhomboids,Biceps;Core,Horizontal pull. Rear-delt overlap with face pulls is secondary.
+ex21,Face Pull,TRX face pulls;Face Pull,Pull,TRX,Deltoids;Rhomboids,Trapezius,Rear delts. Not pecs.
+ex-yfly,TRX Y-Fly,"Curtain openers (TRX Y flies);TRX Y flies (curtain-opener);TRX Y flies",Pull,TRX,Deltoids;Trapezius,Rhomboids,Lower trap / scapular upward rotation. Finisher behind face pulls.
+ex18,Dumbbell Upright Row,Dumbbell upright rows;Upright rows,Pull,Dumbbells,Deltoids;Trapezius,Biceps,Carries side-delt work shrugs do not.
+ex23,Shoulder Shrugs,Shoulder Shrugs;shrugs,Pull,Dumbbells,Trapezius,Forearms,
+ex25,Incline Hammer Curl,Incline dumbbell hammer curls;Incline Hammer Curl,Pull,Dumbbells,Biceps;Forearms,,
+ex-altcurl,Alternating Dumbbell Curl,Alternating dumbbell curls,Pull,Dumbbells,Biceps,Forearms,Supinated. Not comparable to hammer numbers.
+ex19,TRX Bicep Curl,TRX curls;TRX Bicep Curl,Pull,TRX,Biceps,Core,
+ex07,Dumbbell Bicep Curl,Dumbbell Bicep Curl,Pull,Dumbbells,Biceps,Forearms,
+ex22,Concentration Curl,Concentration Curl,Pull,Dumbbells,Biceps,,
+ex09,Dumbbell Row,Dumbbell Row,Pull,Dumbbells,Lats;Rhomboids,Biceps,
+ex28,Renegade Rows,Renegade Rows,Pull,Dumbbells,Core;Lats,Rhomboids,Pecs are the plank. Not a chest exercise. Do not debit Pectoralis as a target.
+ex48,Dumbbell Pullover,Dumbbell Pullover,Pull,Dumbbells,Lats,Pectoralis;Triceps,Rare case where pecs are a real secondary.
+ex29,TRX Reverse Flys,TRX Reverse Flys,Pull,TRX,Deltoids,Trapezius;Rhomboids,
+ex-bss-sprinter,"Bulgarian Split Squat (sprinter-lean)","Bulgarian split squats, sprinter-lean (torso forward, posterior-chain bias)",Legs,Dumbbells,Glutes;Hamstrings,Quadriceps,Torso forward. Posterior-chain bias.
+ex-bss-upright,"Bulgarian Split Squat (upright)","Bulgarian split squats, upright (torso perpendicular, quad bias)",Legs,Dumbbells,Quadriceps,Glutes,Torso upright. Quad bias.
+ex-trx-squat,TRX Squat,TRX squats,Legs,TRX,Quadriceps;Glutes,Core,Leaned-back angle is more quad.
+ex-dl,Dumbbell Deadlift,Dumbbell deadlifts,Legs,Dumbbells,Glutes;Hamstrings,Core;Forearms;Trapezius,Grip often limits before legs.
+ex36,Stiff-Legged Deadlift,Stiff-legged deadlifts;Dumbbell Stiff Legged Deadlift,Legs,Dumbbells,Hamstrings;Glutes,Core;Forearms,
+ex13,Dumbbell Romanian Deadlift,Dumbbell Romanian Deadlift,Legs,Dumbbells,Hamstrings;Glutes,Core,
+ex35,Glute Bridge,Glute bridges,Legs,Dumbbells,Glutes,Hamstrings,
+ex15,Calf Raise,Calf raises,Legs,Bodyweight,Calves,,Standing rule: to exhaustion. Reps often untracked.
+ex47,Box Step-up,Box step-ups,Legs,Box,Quadriceps;Glutes,Hamstrings,
+ex12,Kettlebell Goblet Squat,Goblet squat (kettlebell);Kettlebell Goblet Squat,Legs,Kettlebell,Quadriceps;Glutes,Core,
+ex43,Dumbbell Goblet Squat,Dumbbell Goblet Squat,Legs,Dumbbells,Quadriceps;Glutes,Core,
+ex37,Kettlebell Swings,Kettlebell Swings,Legs,Kettlebell,Glutes;Hamstrings,Core,
+ex16,Plank,Plank,Core,Bodyweight,Core,,
+ex17,Bench Sit-ups,Bench Sit-ups,Core,Bodyweight,Core,,
+ex44,Spider Planks,Spider Planks,Core,Bodyweight,Core,Deltoids,
+ex45,TRX Mountain Climbers,TRX Mountain Climbers,Core,TRX,Core,Deltoids,
+ex46,Hanging Leg Raises,Hanging Leg Raises,Core,Bar,Core,Forearms,
+ex-walk,Walk,Walk,Other,None,,,Not a lift. No muscle debit.
