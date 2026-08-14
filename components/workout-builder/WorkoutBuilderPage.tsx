@@ -4,6 +4,7 @@ import { EXERCISE_LIBRARY } from '../../constants';
 import { PlannedExercise, PlannedSet } from '../../types/savedWorkouts';
 import { WorkoutTemplate, UserProfile } from '../../types';
 import { templatesAPI } from '../../api';
+import { majorityCategory } from '../../utils/helpers';
 
 type CategoryType = 'Push' | 'Pull' | 'Legs' | 'Core' | null;
 const EXERCISES_PER_PAGE = 5;
@@ -217,14 +218,7 @@ const WorkoutBuilderPage: React.FC<WorkoutBuilderPageProps> = ({ profile }) => {
     }
 
     try {
-      // Extract category from first exercise
-      const firstExercise = EXERCISE_LIBRARY.find(ex => ex.id === selectedExercises[0].exerciseId);
-      const category = firstExercise?.category || 'Push';
-
-      // Extract exercise IDs (for backward compatibility)
       const exerciseIds = selectedExercises.map(ex => ex.exerciseId);
-
-      // Convert selectedExercises to TemplateExercise format for full persistence
       const exercises = selectedExercises.map(ex => ({
         exerciseId: ex.exerciseId,
         exerciseName: ex.exerciseName,
@@ -235,10 +229,9 @@ const WorkoutBuilderPage: React.FC<WorkoutBuilderPageProps> = ({ profile }) => {
         })),
       }));
 
-      // Create template with full exercise details
       await templatesAPI.create({
         name: workoutName.trim(),
-        category,
+        category: majorityCategory(exerciseIds),
         variation: 'A',
         exerciseIds,
         exercises,

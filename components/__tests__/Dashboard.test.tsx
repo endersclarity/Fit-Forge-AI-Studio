@@ -373,9 +373,7 @@ describe('Dashboard Component - Design System Migration', () => {
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/muscle-states'));
-        expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/muscle-states/detailed'));
-        expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/workouts'));
-        expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/personal-bests'));
+        expect(global.fetch).not.toHaveBeenCalledWith(expect.stringContaining('/muscle-states/detailed'));
       });
     });
 
@@ -492,16 +490,11 @@ describe('Dashboard Component - Design System Migration', () => {
       }, { timeout: 3000 });
     });
 
-    it('should toggle muscle detail level on button click', async () => {
-      const user = userEvent.setup();
+    it('should not show the 42-muscle detail toggle', async () => {
       renderDashboard();
 
-      await waitFor(async () => {
-        const toggleButton = screen.queryByRole('button', { name: /show detailed|show simple/i });
-        if (toggleButton) {
-          await user.click(toggleButton);
-          expect(localStorageMock.setItem).toHaveBeenCalled();
-        }
+      await waitFor(() => {
+        expect(screen.queryByRole('button', { name: /show detailed|show simple/i })).not.toBeInTheDocument();
       });
     });
 

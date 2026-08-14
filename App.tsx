@@ -12,14 +12,8 @@ import Toast from './components/Toast';
 import { PRNotificationManager } from './components/PRNotification';
 import { ProfileWizard, WizardData } from './components/onboarding/ProfileWizard';
 import BaselineUpdateModal from './components/BaselineUpdateModal';
-import UXMockup from './components/ux-mockup';
-import WorkoutFlowMockups from './components/WorkoutFlowMockups';
-import WorkoutBuilderMockups from './components/WorkoutBuilderMockups';
-import ActiveWorkoutMockups from './components/ActiveWorkoutMockups';
-import WorkoutHistoryMockups from './components/WorkoutHistoryMockups';
 import WorkoutHistoryPage from './components/WorkoutHistoryPage';
 import WorkoutTemplatesPage from './components/WorkoutTemplatesPage';
-import SavedWorkoutsMockups from './components/SavedWorkoutsMockups';
 import { WorkoutSessionProvider } from './contexts/WorkoutSessionContext';
 import ExercisePickerPage from './components/workout-flow/ExercisePickerPage';
 import SetLoggerPage from './components/workout-flow/SetLoggerPage';
@@ -544,13 +538,6 @@ const App: React.FC = () => {
           }>
             <MuscleBaselinesPage />
           </Suspense>)} />
-
-          <Route path="/ux-mockup" element={wrapPage(<UXMockup />)} />
-          <Route path="/workout-flow-mockups" element={wrapPage(<WorkoutFlowMockups />)} />
-          <Route path="/workout-builder-mockups" element={wrapPage(<WorkoutBuilderMockups />)} />
-          <Route path="/active-workout-mockups" element={wrapPage(<ActiveWorkoutMockups />)} />
-          <Route path="/workout-history-mockups" element={wrapPage(<WorkoutHistoryMockups />)} />
-          <Route path="/saved-workouts-mockups" element={wrapPage(<SavedWorkoutsMockups />)} />
 
           {/* New workout flow routes */}
           <Route path="/workout/select" element={<ExercisePickerPage />} />
