@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { PlannedExercise } from '../types/savedWorkouts';
 import { ActiveWorkoutState, CompletedSet } from '../types/activeWorkout';
 import { WorkoutSession, ExerciseLog } from '../types';
+import { majorityCategory } from '../utils/helpers';
 
 export function useActiveWorkout(plannedExercises: PlannedExercise[], currentBodyweight: number = 0) {
   const [state, setState] = useState<ActiveWorkoutState>({
@@ -185,7 +186,7 @@ export function useActiveWorkout(plannedExercises: PlannedExercise[], currentBod
     return {
       id: '',
       name: 'Workout',
-      type: 'Push', // Default, can be enhanced later
+      type: majorityCategory(state.plannedExercises.map(ex => ex.exerciseId)),
       variation: 'A',
       startTime: state.startTime,
       endTime: Date.now(),

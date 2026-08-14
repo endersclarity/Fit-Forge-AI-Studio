@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkoutSession } from '../../contexts/WorkoutSessionContext';
 import { workoutsAPI } from '../../api';
+import { majorityCategory } from '../../utils/helpers';
 
 const WorkoutSummaryPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const WorkoutSummaryPage: React.FC = () => {
       const workoutData = {
         id: '', // Will be assigned by backend
         name: 'Custom Workout',
-        type: 'Push' as const, // Default category
+        type: majorityCategory(session.exercises.map(ex => ex.exerciseId)),
         variation: 'A' as const,
         startTime,
         endTime: now,

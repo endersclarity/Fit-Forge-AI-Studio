@@ -621,17 +621,12 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
 
   // State management for fetching muscle states from API
   const [muscleStates, setMuscleStates] = useState<MuscleStatesResponse>({});
-  const [detailedMuscleStates, setDetailedMuscleStates] = useState<DetailedMuscleStatesResponse>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutResponse[]>([]);
   const [personalBests, setPersonalBests] = useState<PersonalBestsResponse>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get muscle detail preference from localStorage
-  const [muscleDetailLevel, setMuscleDetailLevel] = useState<'simple' | 'detailed'>(() => {
-    const saved = localStorage.getItem('muscleDetailLevel');
-    return (saved === 'simple' || saved === 'detailed') ? saved : 'simple';
-  });
+  const muscleDetailLevel = 'simple' as const;
 
   // Muscle visualization selection state
   const [selectedMuscles, setSelectedMuscles] = useState<Muscle[]>([]);
@@ -689,15 +684,6 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
     setIsStartingWorkout(false);
   }, [onStartRecommendedWorkout]);
 
-  // Muscle detail level toggle handler - memoized for performance
-  const toggleMuscleDetailLevel = useCallback(() => {
-    setMuscleDetailLevel(prev => {
-      const newLevel = prev === 'simple' ? 'detailed' : 'simple';
-      localStorage.setItem('muscleDetailLevel', newLevel);
-      return newLevel;
-    });
-  }, []);
-
   // Muscle deep dive modal handlers - memoized to prevent child re-renders
   const handleMuscleClickForDeepDive = useCallback((muscle: Muscle) => {
     setSelectedMuscleForDeepDive(muscle);
@@ -721,21 +707,13 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
       // Fetch only muscle state data (workouts and personalBests come from props)
-      const [muscleStatesRes, detailedMuscleStatesRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/muscle-states`),
-        fetch(`${API_BASE_URL}/muscle-states/detailed`)
-      ]);
+      const muscleStatesRes = await fetch(`${API_BASE_URL}/muscle-states`);
 
       if (!muscleStatesRes.ok) throw new Error('Failed to fetch muscle states');
-      if (!detailedMuscleStatesRes.ok) throw new Error('Failed to fetch detailed muscle states');
 
-      const [muscleStatesData, detailedMuscleStatesData] = await Promise.all([
-        muscleStatesRes.json(),
-        detailedMuscleStatesRes.json()
-      ]);
+      const muscleStatesData = await muscleStatesRes.json();
 
       setMuscleStates(muscleStatesData);
-      setDetailedMuscleStates(detailedMuscleStatesData);
       // Use workouts from props instead of re-fetching
       setWorkoutHistory(workouts);
     } catch (err) {
@@ -978,21 +956,10 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, workouts, muscleBaseline
                 >
                   {loading ? 'Loading...' : 'Refresh muscle data'}
                 </Button>
-                <Button
-                  onClick={toggleMuscleDetailLevel}
-                  variant="secondary"
-                  size="sm"
-                  className="min-h-[60px]"
-                  aria-label="Toggle muscle detail level"
-                >
-                  {muscleDetailLevel === 'simple'
-                    ? 'Show Detailed (42 muscles)'
-                    : 'Show Simple (13 muscles)'}
-                </Button>
               </div>
               <MuscleFatigueHeatMap
                 muscleStates={muscleStates}
-                detailedMuscleStates={detailedMuscleStates}
+                detailedMuscleStates={{}}
                 workouts={workouts}
                 muscleBaselines={muscleBaselines}
                 muscleDetailLevel={muscleDetailLevel}

@@ -524,6 +524,21 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     ],
     variation: "Both",
   },
+  {
+    id: "ex49",
+    name: "TRX T-Row",
+    category: "Pull",
+    equipment: "TRX",
+    difficulty: "Intermediate",
+    muscleEngagements: [
+        // TODO: Research actual muscle engagement percentages
+        { muscle: Muscle.Lats, percentage: 50 },
+        { muscle: Muscle.Rhomboids, percentage: 50 },
+        { muscle: Muscle.Biceps, percentage: 30 },
+        { muscle: Muscle.Core, percentage: 25 },
+    ],
+    variation: "A",
+  },
 ];
 
 // Helper functions
