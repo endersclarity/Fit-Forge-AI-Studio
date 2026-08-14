@@ -2083,7 +2083,7 @@ export function seedDefaultTemplates(): void {
       name: 'Pull Day A',
       category: 'Pull',
       variation: 'A',
-      exerciseIds: ['ex42', 'ex22', 'ex07', 'ex18', 'ex23', 'ex25'], // Wide Grip Pull-ups, Concentration Curl, Bicep Curl, Upright Row, Shrugs, Incline Hammer Curl
+      exerciseIds: ['ex49', 'ex42', 'ex09', 'ex22'], // TRX T-Row, Wide Grip Pull-ups, Dumbbell Row (Bent Over), Concentration Curl
       isFavorite: 0
     },
     {
